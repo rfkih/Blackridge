@@ -1,23 +1,129 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@media (prefers-color-scheme: dark) {
+@layer base {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    /* ── Blackheart design tokens ─────────────────────────────── */
+    /* Backgrounds */
+    --bg-base: #0a0b0d;
+    --bg-surface: #111318;
+    --bg-elevated: #1a1d24;
+    --bg-overlay: #22262f;
+    --bg-hover: #2a2f3a;
+
+    /* Borders */
+    --border-subtle: #1e2230;
+    --border-default: #2a2f3a;
+    --border-strong: #3d4455;
+
+    /* Semantic colors */
+    --color-profit: #00c896;
+    --color-loss: #ff4d6a;
+    --color-warning: #f5a623;
+    --color-info: #4e9eff;
+    --color-neutral: #8892a4;
+
+    /* Text */
+    --text-primary: #e8ebf0;
+    --text-secondary: #8892a4;
+    --text-muted: #4a5160;
+    --text-inverse: #0a0b0d;
+
+    /* Brand accent */
+    --accent-primary: #4e9eff;
+    --accent-glow: rgba(78, 158, 255, 0.15);
+
+    /* Typography */
+    --font-display: 'DM Mono', monospace;
+    --font-body: 'Inter', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+
+    /* Radius */
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius: 0.5rem;
+
+    /* Shadows */
+    --shadow-panel: 0 0 0 1px var(--border-subtle), 0 4px 24px rgba(0, 0, 0, 0.4);
+    --shadow-glow-profit: 0 0 12px rgba(0, 200, 150, 0.2);
+    --shadow-glow-loss: 0 0 12px rgba(255, 77, 106, 0.2);
+
+    /* ── shadcn/ui compat (HSL components, mapped to Blackheart palette) ── */
+    /* Tailwind config wraps these with hsl(...) */
+    --background: 220 13% 4%;
+    --foreground: 220 18% 93%;
+
+    --card: 222 17% 8%;
+    --card-foreground: 220 18% 93%;
+
+    --popover: 222 16% 12%;
+    --popover-foreground: 220 18% 93%;
+
+    --primary: 213 100% 65%;
+    --primary-foreground: 220 13% 4%;
+
+    --secondary: 222 16% 16%;
+    --secondary-foreground: 220 18% 93%;
+
+    --muted: 222 16% 16%;
+    --muted-foreground: 220 13% 60%;
+
+    --accent: 222 16% 20%;
+    --accent-foreground: 220 18% 93%;
+
+    --destructive: 351 100% 65%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 222 16% 20%;
+    --input: 222 16% 20%;
+    --ring: 213 100% 65%;
+
+    --chart-1: 162 100% 39%;
+    --chart-2: 351 100% 65%;
+    --chart-3: 213 100% 65%;
+    --chart-4: 36 91% 55%;
+    --chart-5: 220 13% 60%;
+
+    --sidebar: 222 17% 8%;
+    --sidebar-foreground: 220 18% 93%;
+    --sidebar-primary: 213 100% 65%;
+    --sidebar-primary-foreground: 220 13% 4%;
+    --sidebar-accent: 222 16% 20%;
+    --sidebar-accent-foreground: 220 18% 93%;
+    --sidebar-border: 222 21% 15%;
+    --sidebar-ring: 213 100% 65%;
   }
 }
 
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+@layer base {
+  * {
+    @apply border-border;
+  }
+  html,
+  body {
+    background-color: var(--bg-base);
+    color: var(--text-primary);
+    font-family: var(--font-body);
+    font-feature-settings: 'cv11', 'ss01', 'ss03';
+  }
+}
+
+.font-mono,
+code,
+pre {
+  font-family: var(--font-mono);
+}
+
+.font-display {
+  font-family: var(--font-display);
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
 }
 
 @layer utilities {

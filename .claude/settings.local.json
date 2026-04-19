@@ -1,0 +1,43 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pnpm --version)",
+      "Bash(npm --version)",
+      "Bash(corepack --version)",
+      "Bash(corepack enable *)",
+      "Bash(corepack prepare *)",
+      "Bash(npm config *)",
+      "Bash(npm install *)",
+      "Bash(pnpm create *)",
+      "Bash(shopt -s dotglob)",
+      "Bash(mv \"C:/MyFiles/blackheart/bootstrap-tmp\"/* \"C:/MyFiles/blackheart/front-end/\")",
+      "Bash(pnpm add *)",
+      "Bash(rm -rf node_modules)",
+      "Bash(pnpm install *)",
+      "Bash(pnpm dlx *)",
+      "Bash(rm -f app/page.tsx)",
+      "Bash(rm -rf app/fonts)",
+      "Bash(mkdir -p 'app/\\(auth\\)/login' 'app/\\(auth\\)/register' 'app/\\(dashboard\\)/trades/[id]' 'app/\\(dashboard\\)/strategies/[accountStrategyId]/params' 'app/\\(dashboard\\)/backtest/new/params' 'app/\\(dashboard\\)/backtest/[id]' 'app/\\(dashboard\\)/portfolio' 'app/\\(dashboard\\)/market' 'app/\\(dashboard\\)/pnl' 'app/\\(dashboard\\)/montecarlo' app/api components/layout components/charts components/trading components/backtest components/strategy components/shared hooks lib/api lib/ws lib/backtest store types tests/unit tests/e2e)",
+      "Bash(mv src/tests tests)",
+      "Bash(touch src/app/api/.gitkeep tests/unit/.gitkeep tests/e2e/.gitkeep)",
+      "Bash(pnpm typecheck *)",
+      "Bash(pnpm build *)",
+      "Bash(pnpm lint *)",
+      "Bash(pnpm format *)",
+      "Bash(pnpm test *)",
+      "Bash(pnpm approve-builds *)",
+      "Bash(pnpm rebuild *)",
+      "Bash(pnpm remove *)",
+      "Bash(xargs grep *)",
+      "Bash(curl -s -o /tmp/resp.html -w \"HTTP %{http_code} loc=%{redirect_url} size=%{size_download}\\\\n\" http://localhost:3100/)",
+      "Bash(curl -s -o /tmp/resp_root.html -w \"ROOT: HTTP %{http_code} size=%{size_download}\\\\n\" -L http://localhost:3100/)",
+      "Bash(curl -s -o /tmp/resp_login.html -w \"LOGIN: HTTP %{http_code} size=%{size_download}\\\\n\" http://localhost:3100/login)",
+      "Bash(curl -v --max-time 90 http://localhost:3100/login)",
+      "Bash(tasklist)",
+      "Bash(wmic process *)",
+      "Bash(taskkill //F //IM node.exe)",
+      "Bash(rm -rf .next)",
+      "Bash(pnpm next *)"
+    ]
+  }
+}
