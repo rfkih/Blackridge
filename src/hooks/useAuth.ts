@@ -34,7 +34,9 @@ async function postLogin(payload: LoginRequest): Promise<LoginResponse> {
 }
 
 async function postRegister(payload: RegisterRequest): Promise<RegisterResponse> {
-  const { data } = await apiClient.post<BackendAuthData>('/api/v1/users/register', payload);
+  // Backend expects `fullName`, not `name`
+  const body = { email: payload.email, password: payload.password, fullName: payload.name };
+  const { data } = await apiClient.post<BackendAuthData>('/api/v1/users/register', body);
   return { token: data.accessToken, user: mapUser(data.user) };
 }
 

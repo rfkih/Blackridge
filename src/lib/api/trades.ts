@@ -1,1 +1,50 @@
-// SLICE 4: trades API — GET /api/v1/trades and GET /api/v1/trades/:id.
+import { apiClient } from './client';
+import type { LivePosition, Trades } from '@/types/trading';
+import type { PageResponse } from '@/types/api';
+
+function extractList<T>(data: T[] | PageResponse<T>): T[] {
+  if (Array.isArray(data)) return data;
+  return (data as PageResponse<T>).content ?? [];
+}
+
+/**
+ * The unified GET /api/v1/trades endpoint returns Trades objects with `id`.
+ * The open-positions panel expects LivePosition with `tradeId` and `openedAt`.
+ * Map at the API boundary so the rest of the app stays consistent.
+ */
+function tradeToLivePosition(t: Trades): LivePosition {
+  return {
+    tradeId: t.id,
+    accountId: t.accountId,
+    accountStrategyId: t.accountStrategyId,
+    symbol: t.symbol,
+    direction: t.direction,
+    quantity: t.quantity,
+    entryPrice: t.entryPrice,
+    markPrice: t.markPrice ?? t.entryPrice,
+    unrealizedPnl: t.unrealizedPnl ?? 0,
+    unrealizedPnlPct: t.unrealizedPnlPct ?? 0,
+    openedAt: t.entryTime,
+  };
+}
+
+export async function getOpenTrades(accountId?: string): Promise<LivePosition[]> {
+  const params: Record<string, unknown> = { status: 'OPEN' };
+  if (accountId) params.accountId = accountId;
+  const { data } = await apiClient.get<Trades[] | PageResponse<Trades>>('/api/v1/trades', {
+    params,
+  });
+  return extractList(data).map(tradeToLivePosition);
+}
+
+export async function getRecentTrades(limit = 10): Promise<Trades[]> {
+  const { data } = await apiClient.get<Trades[] | PageResponse<Trades>>('/api/v1/trades', {
+    params: { status: 'CLOSED', limit },
+  });
+  return extractList(data);
+}
+
+export async function getTradeById(id: string): Promise<Trades> {
+  const { data } = await apiClient.get<Trades>(`/api/v1/trades/${id}`);
+  return data;
+}

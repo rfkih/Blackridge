@@ -46,6 +46,36 @@ export interface BackendAuthData {
   user: BackendUser;
 }
 
+/** Backend AccountStrategy DTO (Java field names). */
+export interface BackendAccountStrategy {
+  accountStrategyId: UUID;
+  accountId: UUID;
+  strategyCode: string;
+  symbol: string;
+  intervalName: string;       // frontend: interval
+  currentStatus: string;      // frontend: status
+  capitalAllocatedUsdt: number;
+  allowLong: boolean;
+  allowShort: boolean;
+  priorityOrder: number;
+  createdTime: ISO8601;       // frontend: createdAt
+  updatedTime: ISO8601;       // frontend: updatedAt
+}
+
+/** Backend strategy-param response — params are nested under effectiveParams. */
+export interface BackendParamResponse<T> {
+  accountStrategyId: UUID;
+  hasCustomParams: boolean;
+  overrides: Partial<T>;
+  effectiveParams: T;
+  version: number;
+  updatedAt: ISO8601;
+}
+
+/** Convenience aliases */
+export type BackendLsrParamResponse<T> = BackendParamResponse<T>;
+export type BackendVcbParamResponse<T> = BackendParamResponse<T>;
+
 /** Frontend-normalised user (field names decoupled from the Java DTO). */
 export interface User {
   id: UUID;

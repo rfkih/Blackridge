@@ -43,6 +43,9 @@ export interface Trades {
   realizedPnl: number;
   unrealizedPnl: number;
   feeUsdt: number;
+  // Populated by backend for OPEN trades only
+  markPrice?: number | null;
+  unrealizedPnlPct?: number | null;
   positions: TradePosition[];
 }
 
@@ -76,4 +79,5 @@ export interface PnlSummary {
   totalPnl: number;
   tradeCount: number;
   winRate: number;
+  openCount?: number;
 }

@@ -1,1 +1,7 @@
-// SLICE 9: pnl API — GET /api/v1/pnl, /pnl/summary, /pnl/by-strategy, /pnl/daily.
+import { apiClient } from './client';
+import type { PnlSummary } from '@/types/trading';
+
+export async function getPnlSummary(period: 'today' | 'week' | 'month'): Promise<PnlSummary> {
+  const { data } = await apiClient.get<PnlSummary>('/api/v1/pnl/summary', { params: { period } });
+  return data;
+}
