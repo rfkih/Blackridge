@@ -1,10 +1,8 @@
 'use client';
 
-// SLICE 1: Register — RHF + Zod → useAuth.register (auto-logs in) → router.push('/').
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Loader2 } from 'lucide-react';
+import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -28,9 +26,10 @@ const registerSchema = z
 type RegisterValues = z.infer<typeof registerSchema>;
 
 export default function RegisterPage() {
-  const router = useRouter();
   const { register: registerUser } = useAuth();
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   const {
     register,
@@ -41,16 +40,16 @@ export default function RegisterPage() {
     resolver: zodResolver(registerSchema),
     mode: 'onBlur',
     defaultValues: { name: '', email: '', password: '', confirmPassword: '' },
+    shouldFocusError: true,
   });
 
   const submit = handleSubmit(async (values) => {
     setSubmitError(null);
     try {
-      console.log("register disini email " + values.email + " " + values.password )
       await registerUser(values.email, values.password, values.name);
-      router.push('/');
+      // Hard redirect — guarantees the cookie is present in the middleware request.
+      window.location.assign('/');
     } catch (err) {
-       console.log("error disini email " )
       setSubmitError(err instanceof Error ? err.message : 'Registration failed');
     }
   });
@@ -58,7 +57,7 @@ export default function RegisterPage() {
   const onEnter = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Enter' && !isSubmitting) {
       event.preventDefault();
-      submit();
+      void submit();
     }
   };
 
@@ -88,13 +87,15 @@ export default function RegisterPage() {
           </p>
         </div>
 
-        <div
-          role="form"
+        <form
           aria-label="Create account"
           aria-busy={isSubmitting}
           className="rounded-md border border-bd-subtle bg-bg-surface p-8 shadow-panel"
+          onSubmit={submit}
+          noValidate
         >
           <div className="space-y-5">
+            {/* Name */}
             <div className="space-y-2">
               <Label
                 htmlFor="name"
@@ -118,6 +119,7 @@ export default function RegisterPage() {
               )}
             </div>
 
+            {/* Email */}
             <div className="space-y-2">
               <Label
                 htmlFor="email"
@@ -141,6 +143,7 @@ export default function RegisterPage() {
               )}
             </div>
 
+            {/* Password */}
             <div className="space-y-2">
               <Label
                 htmlFor="password"
@@ -148,15 +151,27 @@ export default function RegisterPage() {
               >
                 Password
               </Label>
-              <Input
-                id="password"
-                type="password"
-                autoComplete="new-password"
-                disabled={isSubmitting}
-                aria-invalid={Boolean(errors.password)}
-                onKeyDown={onEnter}
-                {...register('password', { onBlur: () => trigger('password') })}
-              />
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  autoComplete="new-password"
+                  disabled={isSubmitting}
+                  aria-invalid={Boolean(errors.password)}
+                  className="pr-9"
+                  onKeyDown={onEnter}
+                  {...register('password', { onBlur: () => trigger('password') })}
+                />
+                <button
+                  type="button"
+                  tabIndex={-1}
+                  onClick={() => setShowPassword((v) => !v)}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  className="absolute right-0 top-0 flex h-9 w-9 items-center justify-center text-text-muted transition-colors hover:text-text-secondary"
+                >
+                  {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
+                </button>
+              </div>
               {errors.password && (
                 <p role="alert" className="text-xs text-loss">
                   {errors.password.message}
@@ -164,6 +179,7 @@ export default function RegisterPage() {
               )}
             </div>
 
+            {/* Confirm password */}
             <div className="space-y-2">
               <Label
                 htmlFor="confirmPassword"
@@ -171,15 +187,27 @@ export default function RegisterPage() {
               >
                 Confirm password
               </Label>
-              <Input
-                id="confirmPassword"
-                type="password"
-                autoComplete="new-password"
-                disabled={isSubmitting}
-                aria-invalid={Boolean(errors.confirmPassword)}
-                onKeyDown={onEnter}
-                {...register('confirmPassword', { onBlur: () => trigger('confirmPassword') })}
-              />
+              <div className="relative">
+                <Input
+                  id="confirmPassword"
+                  type={showConfirm ? 'text' : 'password'}
+                  autoComplete="new-password"
+                  disabled={isSubmitting}
+                  aria-invalid={Boolean(errors.confirmPassword)}
+                  className="pr-9"
+                  onKeyDown={onEnter}
+                  {...register('confirmPassword', { onBlur: () => trigger('confirmPassword') })}
+                />
+                <button
+                  type="button"
+                  tabIndex={-1}
+                  onClick={() => setShowConfirm((v) => !v)}
+                  aria-label={showConfirm ? 'Hide password' : 'Show password'}
+                  className="absolute right-0 top-0 flex h-9 w-9 items-center justify-center text-text-muted transition-colors hover:text-text-secondary"
+                >
+                  {showConfirm ? <EyeOff size={14} /> : <Eye size={14} />}
+                </button>
+              </div>
               {errors.confirmPassword && (
                 <p role="alert" className="text-xs text-loss">
                   {errors.confirmPassword.message}
@@ -187,21 +215,22 @@ export default function RegisterPage() {
               )}
             </div>
 
+            {/* Submit error */}
             {submitError && (
               <p
                 role="alert"
-                className="border-loss/40 bg-loss/10 rounded-sm border px-3 py-2 text-xs text-loss"
+                className="rounded-sm border px-3 py-2 text-xs"
+                style={{
+                  borderColor: 'rgba(255,77,106,0.4)',
+                  backgroundColor: 'rgba(255,77,106,0.08)',
+                  color: 'var(--color-loss)',
+                }}
               >
                 {submitError}
               </p>
             )}
 
-            <Button
-              type="button"
-              className="w-full"
-              disabled={isSubmitting}
-              onClick={() => submit()}
-            >
+            <Button type="submit" className="w-full" disabled={isSubmitting}>
               {isSubmitting ? (
                 <span className="flex items-center justify-center gap-2">
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -222,7 +251,7 @@ export default function RegisterPage() {
               </Link>
             </p>
           </div>
-        </div>
+        </form>
 
         <p className="mt-6 text-center font-mono text-[10px] uppercase tracking-[0.3em] text-text-muted">
           v0 · slice 1

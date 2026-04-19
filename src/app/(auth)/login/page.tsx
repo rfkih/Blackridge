@@ -1,10 +1,9 @@
 'use client';
 
-// SLICE 1: Login — RHF + Zod → useAuth.login → router.push(next ?? '/').
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Loader2 } from 'lucide-react';
+import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { Suspense, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -21,11 +20,11 @@ const loginSchema = z.object({
 type LoginValues = z.infer<typeof loginSchema>;
 
 function LoginPageContent() {
-  const router = useRouter();
   const search = useSearchParams();
   const next = search.get('next') ?? '/';
   const { login } = useAuth();
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   const {
     register,
@@ -42,7 +41,8 @@ function LoginPageContent() {
     setSubmitError(null);
     try {
       await login(values.email, values.password);
-      router.push(next);
+      // Hard redirect — guarantees the cookie is present in the middleware request.
+      window.location.assign(next);
     } catch (err) {
       setSubmitError(err instanceof Error ? err.message : 'Sign-in failed');
     }
@@ -51,7 +51,7 @@ function LoginPageContent() {
   const onEnter = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Enter' && !isSubmitting) {
       event.preventDefault();
-      submit();
+      void submit();
     }
   };
 
@@ -88,6 +88,7 @@ function LoginPageContent() {
           className="rounded-md border border-bd-subtle bg-bg-surface p-8 shadow-panel"
         >
           <div className="space-y-5">
+            {/* Email */}
             <div className="space-y-2">
               <Label
                 htmlFor="email"
@@ -111,24 +112,35 @@ function LoginPageContent() {
               )}
             </div>
 
+            {/* Password */}
             <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label
-                  htmlFor="password"
-                  className="text-[10px] uppercase tracking-[0.18em] text-text-secondary"
+              <Label
+                htmlFor="password"
+                className="text-[10px] uppercase tracking-[0.18em] text-text-secondary"
+              >
+                Password
+              </Label>
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  autoComplete="current-password"
+                  disabled={isSubmitting}
+                  aria-invalid={Boolean(errors.password)}
+                  className="pr-9"
+                  onKeyDown={onEnter}
+                  {...register('password', { onBlur: () => trigger('password') })}
+                />
+                <button
+                  type="button"
+                  tabIndex={-1}
+                  onClick={() => setShowPassword((v) => !v)}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  className="absolute right-0 top-0 flex h-9 w-9 items-center justify-center text-text-muted transition-colors hover:text-text-secondary"
                 >
-                  Password
-                </Label>
+                  {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
+                </button>
               </div>
-              <Input
-                id="password"
-                type="password"
-                autoComplete="current-password"
-                disabled={isSubmitting}
-                aria-invalid={Boolean(errors.password)}
-                onKeyDown={onEnter}
-                {...register('password', { onBlur: () => trigger('password') })}
-              />
               {errors.password && (
                 <p role="alert" className="text-xs text-loss">
                   {errors.password.message}
@@ -136,10 +148,16 @@ function LoginPageContent() {
               )}
             </div>
 
+            {/* Submit error */}
             {submitError && (
               <p
                 role="alert"
-                className="border-loss/40 bg-loss/10 rounded-sm border px-3 py-2 text-xs text-loss"
+                className="rounded-sm border px-3 py-2 text-xs"
+                style={{
+                  borderColor: 'rgba(255,77,106,0.4)',
+                  backgroundColor: 'rgba(255,77,106,0.08)',
+                  color: 'var(--color-loss)',
+                }}
               >
                 {submitError}
               </p>
@@ -149,7 +167,7 @@ function LoginPageContent() {
               type="button"
               className="w-full"
               disabled={isSubmitting}
-              onClick={() => submit()}
+              onClick={() => void submit()}
             >
               {isSubmitting ? (
                 <span className="flex items-center justify-center gap-2">

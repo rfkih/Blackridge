@@ -16,10 +16,42 @@ export interface PageResponse<T> {
   total: number;
 }
 
+/** Standard Blackheart API envelope — every endpoint wraps its payload in this. */
+export interface BackendApiResponse<T> {
+  responseCode: string;
+  responseDesc: string;
+  data: T;
+  errorMessage: string | null;
+}
+
+/** Backend user DTO (Java field names). */
+export interface BackendUser {
+  userId: UUID;
+  email: string;
+  fullName: string;
+  phoneNumber: string | null;
+  role: string;
+  status: string;
+  emailVerified: boolean;
+  lastLoginAt: ISO8601 | null;
+  createdTime: ISO8601;
+  updatedTime: ISO8601;
+}
+
+/** Inner data of the login / register response. */
+export interface BackendAuthData {
+  accessToken: string;
+  tokenType: string;
+  expiresIn: number;
+  user: BackendUser;
+}
+
+/** Frontend-normalised user (field names decoupled from the Java DTO). */
 export interface User {
   id: UUID;
   email: string;
   name: string;
+  role?: string;
   createdAt?: ISO8601;
 }
 

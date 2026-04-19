@@ -1,5 +1,5 @@
-export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8080';
-export const WS_URL = process.env.NEXT_PUBLIC_WS_URL ?? 'ws://localhost:8080/ws';
+export const API_URL = process.env.NEXT_PUBLIC_API_URL?.trim() || 'http://localhost:8080';
+export const WS_URL = process.env.NEXT_PUBLIC_WS_URL?.trim() || 'ws://localhost:8080/ws';
 
 export const INTERVALS = ['1m', '5m', '15m', '1h', '4h', '1d'] as const;
 export type Interval = (typeof INTERVALS)[number];

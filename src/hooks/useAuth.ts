@@ -5,6 +5,8 @@ import { useCallback, useEffect } from 'react';
 import { apiClient, normalizeError } from '@/lib/api/client';
 import { useAuthStore } from '@/store/authStore';
 import type {
+  BackendAuthData,
+  BackendUser,
   LoginRequest,
   LoginResponse,
   RegisterRequest,
@@ -14,19 +16,31 @@ import type {
 
 const ME_QUERY_KEY = ['auth', 'me'] as const;
 
+/** Map Java DTO field names to the frontend User shape. */
+function mapUser(u: BackendUser): User {
+  return {
+    id: u.userId,
+    email: u.email,
+    name: u.fullName,
+    role: u.role,
+    createdAt: u.createdTime,
+  };
+}
+
 async function postLogin(payload: LoginRequest): Promise<LoginResponse> {
-  const { data } = await apiClient.post<LoginResponse>('/api/v1/users/login', payload);
-  return data;
+  // The axios interceptor already unwraps the envelope — data IS BackendAuthData here.
+  const { data } = await apiClient.post<BackendAuthData>('/api/v1/users/login', payload);
+  return { token: data.accessToken, user: mapUser(data.user) };
 }
 
 async function postRegister(payload: RegisterRequest): Promise<RegisterResponse> {
-  const { data } = await apiClient.post<RegisterResponse>('/api/v1/users/register', payload);
-  return data;
+  const { data } = await apiClient.post<BackendAuthData>('/api/v1/users/register', payload);
+  return { token: data.accessToken, user: mapUser(data.user) };
 }
 
 async function fetchMe(): Promise<User> {
-  const { data } = await apiClient.get<User>('/api/v1/users/me');
-  return data;
+  const { data } = await apiClient.get<BackendUser>('/api/v1/users/me');
+  return mapUser(data);
 }
 
 export function useAuth() {

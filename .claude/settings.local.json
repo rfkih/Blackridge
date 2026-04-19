@@ -37,7 +37,8 @@
       "Bash(wmic process *)",
       "Bash(taskkill //F //IM node.exe)",
       "Bash(rm -rf .next)",
-      "Bash(pnpm next *)"
+      "Bash(pnpm next *)",
+      "Bash(pnpm tsc *)"
     ]
   }
 }
