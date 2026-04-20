@@ -19,35 +19,67 @@ export interface AccountStrategy {
 }
 
 export interface LsrParams {
-  // Entry Conditions
-  adxThreshold: number;
-  rsiOverbought: number;
-  rsiOversold: number;
-  adxPeriod: number;
-  rsiPeriod: number;
+  // Regime / volatility thresholds
+  adxTrendingMin: number;
+  adxCompressionMax: number;
+  adxEntryMin: number;
+  adxEntryMax: number;
+  atrRatioExhaustion: number;
+  atrRatioChaotic: number;
+  atrRatioCompress: number;
 
-  // Volatility Filters
-  useErFilter: boolean;
-  erThreshold: number;
-  erPeriod: number;
-  useRelVolFilter: boolean;
-  relVolThreshold: number;
+  // Risk / exits
+  stopAtrBuffer: number;
+  maxRiskPct: number;
+  tp1RLongSweep: number;
+  tp1RLongContinuation: number;
+  tp1RShort: number;
+  beTriggerRLongSweep: number;
+  beTriggerRLongContinuation: number;
+  beTriggerRShort: number;
+  beFeeBufferR: number;
+  shortNotionalMultiplier: number;
+  longContinuationNotionalMultiplier: number;
 
-  // Exit & Risk
-  stopLossAtr: number;
-  atrPeriod: number;
-  tp1RMultiple: number;
-  tp2RMultiple: number;
-  useRunner: boolean;
-  runnerActivationR: number;
+  // Time-stop bars (integers)
+  timeStopBarsLongSweep: number;
+  timeStopBarsLongContinuation: number;
+  timeStopBarsShort: number;
 
-  // Position Sizing
-  riskPercentage: number;
-  maxPositionSizeUsdt: number;
+  // Time-stop minimum R
+  timeStopMinRLongSweep: number;
+  timeStopMinRLongContinuation: number;
+  timeStopMinRShort: number;
 
-  // Direction (read-only inherited from AccountStrategy)
-  allowLong: boolean;
-  allowShort: boolean;
+  // Long sweep reclaim
+  longSweepMinAtr: number;
+  longSweepMaxAtr: number;
+  longSweepRsiMin: number;
+  longSweepRsiMax: number;
+  longSweepRvolMin: number;
+  longSweepBodyMin: number;
+  longSweepClvMin: number;
+  minSignalScoreLongSweep: number;
+  minConfidenceScoreLongSweep: number;
+
+  // Long continuation reclaim
+  longContRsiMin: number;
+  longContRsiMax: number;
+  longContRvolMin: number;
+  longContBodyMin: number;
+  longContClvMin: number;
+  longContDonchianBufferAtr: number;
+  minSignalScoreLongCont: number;
+  minConfidenceScoreLongCont: number;
+
+  // Short exhaustion
+  shortSweepMinAtr: number;
+  shortSweepMaxAtr: number;
+  shortRsiMin: number;
+  shortRvolMin: number;
+  shortBodyMin: number;
+  shortClvMax: number;
+  minSignalScoreShort: number;
 }
 
 export interface VcbParams {

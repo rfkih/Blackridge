@@ -172,7 +172,9 @@ src/
 │   ├── strategy/
 │   │   ├── LsrParamsForm.tsx
 │   │   ├── VcbParamsForm.tsx
-│   │   └── StrategyStatusBadge.tsx
+│   │   ├── StrategyStatusBadge.tsx
+│   │   ├── NewStrategyDialog.tsx       # Create a new AccountStrategy
+│   │   └── DeleteStrategyDialog.tsx    # Soft-delete confirmation
 │   └── shared/
 │       ├── PnlCell.tsx           # Green/red formatted P&L
 │       ├── PriceCell.tsx         # Monospaced price display
@@ -186,7 +188,7 @@ src/
 │   ├── useLivePnl.ts             # Subscribe to live P&L stream
 │   ├── useTrades.ts              # TanStack Query: trades
 │   ├── useBacktest.ts            # TanStack Query: backtest CRUD
-│   ├── useStrategies.ts          # TanStack Query: account strategies
+│   ├── useStrategies.ts          # TanStack Query: strategies + create/delete mutations
 │   └── useAuth.ts                # JWT auth state
 │
 ├── lib/
@@ -250,7 +252,10 @@ client.interceptors.request.use((config) => {
 | Trades | `GET /api/v1/trades/:id` | GET | Trade detail |
 | P&L | `GET /api/v1/pnl` | GET | P&L queries |
 | Portfolio | `GET /api/v1/portfolio` | GET | Balances |
-| Strategies | `GET /api/v1/account-strategies` | GET | User strategies |
+| Strategies | `GET /api/v1/account-strategies` | GET | User strategies (excludes soft-deleted) |
+| Strategies | `GET /api/v1/account-strategies/:id` | GET | Single strategy detail |
+| Strategies | `POST /api/v1/account-strategies` | POST | Create new strategy on an account |
+| Strategies | `DELETE /api/v1/account-strategies/:id` | DELETE | Soft-delete (blocked if open trades exist) |
 | LSR Params | `GET/PUT/PATCH/DELETE /api/v1/lsr-params/:id` | * | CRUD + defaults |
 | VCB Params | `GET/PUT/PATCH/DELETE /api/v1/vcb-params/:id` | * | CRUD + defaults |
 | Backtest | `POST /api/v1/backtest` | POST | Submit backtest |
@@ -297,6 +302,14 @@ Click → Trade Detail: shows all `TradePosition` legs (SINGLE / TP1 / TP2 / RUN
 
 One card per `AccountStrategy`. Shows: strategy code badge (LSR/VCB/etc.), interval, capital allocated, allow-long/short flags, priority order, current status.  
 Click → Strategy Detail: view and edit `LsrParams` or `VcbParams` with a live form. Show param defaults alongside current values. PUT/PATCH on save.
+
+**Create / delete**
+- **"New Strategy" button** in the page header opens `NewStrategyDialog` → `POST /api/v1/account-strategies`. Disabled when the user has no active accounts.
+- **Trash icon** on each card (visible on hover) opens `DeleteStrategyDialog` → `DELETE /api/v1/account-strategies/:id`. The backend soft-deletes: the row is flagged `is_deleted=true`, `enabled=false`, `deleted_at=now()`; historical trades and P&L continue to resolve the strategy via the preserved row.
+- **Delete is blocked server-side** if the strategy has `OPEN` / `PARTIALLY_CLOSED` trades. The error message (`"Cannot delete strategy with N open trade(s)…"`) flows through `normalizeError` and renders inline in the confirmation dialog — do not hide or remap it.
+
+**Status field derivation (important)**
+The backend's `current_status` DB column is **not maintained** — every row holds the seed value `"STOPPED"`. Treat it as dead. The real liveness flag is the `enabled: boolean` field on `BackendAccountStrategy`. `mapAccountStrategy` in `src/lib/api/strategies.ts` derives `status` as `enabled ? 'LIVE' : 'STOPPED'`. `PAUSED` is unreachable on the live path until the backend models it explicitly.
 
 ### 4. Backtest (/backtest)
 
@@ -961,6 +974,8 @@ The following endpoints are **not in the current backend** but are needed for th
 | P0 | `GET /api/v1/lsr-params/defaults` | Full `LsrParams.defaults()` object for backtest param tuning form initialization |
 | P0 | `GET /api/v1/vcb-params/defaults` | Full `VcbParams.defaults()` object for backtest param tuning form initialization |
 | P0 | `POST /api/v1/backtest` (add `strategyParamOverrides` field) | Accept per-strategy param overrides at run submission time; merge via `LsrParams.merge()` / `VcbParams.merge()` |
+| ✅ Done | `POST /api/v1/account-strategies` | Create new strategy on an account (validates user ownership + strategy code) |
+| ✅ Done | `DELETE /api/v1/account-strategies/:id` | Soft-delete (sets `is_deleted=true`, `enabled=false`, `deleted_at=now()`). Blocked if open trades exist |
 | P1 | `GET /api/v1/account-strategies?userId=:id` | Already exists; confirm filter param |
 | P1 | `GET /api/v1/trades/:id/positions` | TradePosition legs for trade detail page |
 | P1 | `POST /api/v1/scheduler/pause` / `/resume` | Manual strategy pause/resume from UI |

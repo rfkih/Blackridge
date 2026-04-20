@@ -4,10 +4,10 @@ import type { BackendParamResponse } from '@/types/api';
 
 const BASE = '/api/v1/lsr-params';
 
-/** /defaults returns LsrParams directly (not wrapped in effectiveParams). */
+/** /defaults returns the same envelope as /:id — params live under effectiveParams. */
 export async function getLsrDefaults(): Promise<LsrParams> {
-  const { data } = await apiClient.get<LsrParams>(`${BASE}/defaults`);
-  return data;
+  const { data } = await apiClient.get<BackendParamResponse<LsrParams>>(`${BASE}/defaults`);
+  return data.effectiveParams;
 }
 
 /** Individual strategy endpoint wraps params in effectiveParams. */

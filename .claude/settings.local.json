@@ -38,7 +38,10 @@
       "Bash(taskkill //F //IM node.exe)",
       "Bash(rm -rf .next)",
       "Bash(pnpm next *)",
-      "Bash(pnpm tsc *)"
+      "Bash(pnpm tsc *)",
+      "Bash(./gradlew compileJava --console=plain)",
+      "Bash(pnpm exec *)",
+      "Bash(npx tsc *)"
     ]
   }
 }

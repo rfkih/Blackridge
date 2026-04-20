@@ -1,1 +1,249 @@
-// SLICE 6: VcbParamsForm — shared VCB editor; mode='live'|'backtest' controls onChange behavior.
+'use client';
+
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Save, RotateCcw, Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { ParamField } from './ParamField';
+import { ParamSection } from './ParamSection';
+import { VCB_PARAM_META, VCB_SECTIONS } from '@/lib/constants';
+import { useToast } from '@/hooks/useToast';
+import { useSaveVcbParams } from '@/hooks/useStrategies';
+import type { VcbParams } from '@/types/strategy';
+
+export interface VcbParamFormProps {
+  mode: 'live' | 'backtest';
+  accountStrategyId?: string;
+  strategyCode?: string;
+  initialValues: Partial<VcbParams>;
+  defaultValues: VcbParams;
+  onChange?: (key: keyof VcbParams, value: unknown) => void;
+  onSaveAsLive?: (current: VcbParams) => void | Promise<void>;
+}
+
+function mergeInitial(defaults: VcbParams, initial: Partial<VcbParams>): VcbParams {
+  return { ...defaults, ...initial };
+}
+
+function valuesEqual(a: unknown, b: unknown): boolean {
+  if (typeof a === 'number' && typeof b === 'number') {
+    return Math.abs(a - b) < 1e-9;
+  }
+  return a === b;
+}
+
+function computeDiff(defaults: VcbParams, current: VcbParams): Partial<VcbParams> {
+  const diff: Partial<VcbParams> = {};
+  (Object.keys(defaults) as Array<keyof VcbParams>).forEach((key) => {
+    if (!valuesEqual(defaults[key], current[key])) {
+      (diff as Record<string, unknown>)[key as string] = current[key];
+    }
+  });
+  return diff;
+}
+
+export function VcbParamsForm({
+  mode,
+  accountStrategyId,
+  strategyCode,
+  initialValues,
+  defaultValues,
+  onChange,
+  onSaveAsLive,
+}: VcbParamFormProps) {
+  const [values, setValues] = useState<VcbParams>(() => mergeInitial(defaultValues, initialValues));
+  const [savedValues, setSavedValues] = useState<VcbParams>(() =>
+    mergeInitial(defaultValues, initialValues),
+  );
+  const [confirmSaveOpen, setConfirmSaveOpen] = useState(false);
+  const toast = useToast();
+  const saveMutation = useSaveVcbParams(accountStrategyId);
+
+  useEffect(() => {
+    const merged = mergeInitial(defaultValues, initialValues);
+    setValues(merged);
+    setSavedValues(merged);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [JSON.stringify(defaultValues), JSON.stringify(initialValues)]);
+
+  const handleFieldChange = useCallback(
+    (key: keyof VcbParams, value: unknown) => {
+      setValues((prev) => ({ ...prev, [key]: value }));
+      if (mode === 'backtest') onChange?.(key, value);
+    },
+    [mode, onChange],
+  );
+
+  const overrideCountByKey = useMemo(() => {
+    const counts: Record<string, number> = {};
+    VCB_SECTIONS.forEach(({ title, keys }) => {
+      counts[title] = keys.reduce(
+        (acc, k) => (valuesEqual(defaultValues[k], values[k]) ? acc : acc + 1),
+        0,
+      );
+    });
+    return counts;
+  }, [defaultValues, values]);
+
+  const totalOverrides = useMemo(
+    () => Object.values(overrideCountByKey).reduce((a, b) => a + b, 0),
+    [overrideCountByKey],
+  );
+
+  const diff = useMemo(() => computeDiff(defaultValues, values), [defaultValues, values]);
+  const hasChanges = Object.keys(diff).length > 0;
+
+  const resetAll = useCallback(() => {
+    setValues(defaultValues);
+    if (mode === 'backtest') {
+      (Object.keys(defaultValues) as Array<keyof VcbParams>).forEach((k) =>
+        onChange?.(k, defaultValues[k]),
+      );
+    }
+  }, [defaultValues, mode, onChange]);
+
+  const handleSaveLive = useCallback(async () => {
+    if (!accountStrategyId) return;
+    try {
+      await saveMutation.mutateAsync(diff);
+      setSavedValues(values);
+      toast.success({
+        title: 'Parameters saved',
+        description: `${Object.keys(diff).length} field${Object.keys(diff).length === 1 ? '' : 's'} updated.`,
+      });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Could not save parameters';
+      toast.error({ title: 'Save failed', description: message });
+    }
+  }, [accountStrategyId, diff, saveMutation, toast, values]);
+
+  const handleSaveAsLive = useCallback(async () => {
+    setConfirmSaveOpen(false);
+    if (!onSaveAsLive) return;
+    try {
+      await onSaveAsLive(values);
+      toast.success({
+        title: 'Saved as live params',
+        description: 'The account strategy now uses these values.',
+      });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Could not save to live params';
+      toast.error({ title: 'Save failed', description: message });
+    }
+  }, [onSaveAsLive, toast, values]);
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <p className="text-xs text-[var(--text-muted)]">
+          {totalOverrides > 0 ? (
+            <>
+              <span className="font-semibold text-[var(--color-warning)]">{totalOverrides}</span>{' '}
+              field{totalOverrides === 1 ? '' : 's'} differ from defaults.
+            </>
+          ) : (
+            'All fields at default values.'
+          )}
+        </p>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={resetAll}
+          disabled={totalOverrides === 0}
+          className="gap-2 text-xs"
+        >
+          <RotateCcw size={12} />
+          Reset to defaults
+        </Button>
+      </div>
+
+      <div className="flex flex-col gap-3">
+        {VCB_SECTIONS.map((section, idx) => (
+          <ParamSection
+            key={section.title}
+            title={section.title}
+            storageKey={`bh:param-section:vcb:${section.title}`}
+            defaultOpen={idx === 0}
+            overrideCount={overrideCountByKey[section.title] ?? 0}
+          >
+            {section.keys.map((key) => {
+              const meta = VCB_PARAM_META[key];
+              return (
+                <ParamField
+                  key={key}
+                  name={key}
+                  meta={meta}
+                  value={values[key]}
+                  defaultValue={defaultValues[key]}
+                  savedValue={savedValues[key]}
+                  onChange={(v) => handleFieldChange(key, v)}
+                />
+              );
+            })}
+          </ParamSection>
+        ))}
+      </div>
+
+      {mode === 'live' && (
+        <div className="bg-[var(--bg-base)]/90 sticky bottom-0 flex items-center justify-end gap-3 border-t border-[var(--border-subtle)] py-3 backdrop-blur">
+          <p className="mr-auto text-xs text-[var(--text-muted)]">
+            {hasChanges
+              ? `${Object.keys(diff).length} pending change${Object.keys(diff).length === 1 ? '' : 's'}`
+              : 'No pending changes'}
+          </p>
+          <Button
+            onClick={handleSaveLive}
+            disabled={!hasChanges || saveMutation.isPending}
+            className="gap-2"
+          >
+            {saveMutation.isPending ? (
+              <Loader2 size={14} className="animate-spin" />
+            ) : (
+              <Save size={14} />
+            )}
+            Save Changes
+          </Button>
+        </div>
+      )}
+
+      {mode === 'backtest' && onSaveAsLive && (
+        <div className="flex items-center justify-end">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setConfirmSaveOpen(true)}
+            disabled={!hasChanges}
+          >
+            Save as Live Params
+          </Button>
+        </div>
+      )}
+
+      <Dialog open={confirmSaveOpen} onOpenChange={setConfirmSaveOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Save as live parameters?</DialogTitle>
+            <DialogDescription>
+              This will overwrite the live params
+              {strategyCode ? ` for ${strategyCode}` : ''}. Backtests and live trading will use
+              these values going forward.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setConfirmSaveOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleSaveAsLive}>Save as live</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}

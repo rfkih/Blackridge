@@ -131,3 +131,16 @@ pre {
     text-wrap: balance;
   }
 }
+
+/* Hide native <input type="number"> spinners — the dark-theme default is
+   unreadable. Param forms render their own stepper chevrons (see ParamField). */
+input[type='number'].no-native-spinners::-webkit-inner-spin-button,
+input[type='number'].no-native-spinners::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  appearance: none;
+  margin: 0;
+}
+input[type='number'].no-native-spinners {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}

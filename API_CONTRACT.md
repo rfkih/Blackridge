@@ -324,6 +324,36 @@ Protected.
 
 ---
 
+## 3b. Accounts
+
+### GET `/api/v1/accounts`
+Protected. Returns every account owned by the authenticated user — used by the top-bar **account switcher** to let users scope the dashboard, trades, P&L, and strategies views to a single account (or "All accounts").
+
+**Response `data`** — array of account summaries (never includes `apiKey` / `apiSecret`):
+```json
+[
+  {
+    "accountId": "uuid",
+    "userId": "uuid",
+    "username": "mainnet-1",
+    "exchange": "BIN",
+    "isActive": "Y",
+    "createdTime": "2026-01-12T09:41:00"
+  }
+]
+```
+
+| Field | Type | Notes |
+|---|---|---|
+| `username` | `string` | Human label shown in the switcher |
+| `exchange` | `string` | 3-char code (e.g. `BIN`) |
+| `isActive` | `string` (CHAR(1)) | Raw DB flag — in practice `"1"`/`"0"` (legacy rows may still be `"Y"`/`"N"`). Frontend maps `"1"`/`"Y"`/`"true"` → `active: true`, everything else → `false`. |
+
+### GET `/api/v1/accounts/:accountId`
+Protected. Same shape for a single account, scoped to the authenticated user (404 otherwise).
+
+---
+
 ## 4. Account Strategies
 
 ### GET `/api/v1/account-strategies`
@@ -363,8 +393,49 @@ Protected.
 
 ---
 
-### GET `/api/v1/account-strategies/:id`
-Protected. Returns a single `AccountStrategy`.
+### GET `/api/v1/account-strategies/:accountStrategyId`
+Protected. Returns a single `AccountStrategy` by its id, scoped to the authenticated user.
+
+**Path parameters**
+
+| Param | Type | Required | Description |
+|---|---|---|---|
+| `accountStrategyId` | `UUID` | Yes | The `accountStrategyId` from the list endpoint |
+
+**Example**
+```
+GET /api/v1/account-strategies/b6fa1677-2f4d-4507-b36c-12a06ae9d7df
+Authorization: Bearer <jwt>
+```
+
+**Response `data`** — single object (same shape as list item):
+```json
+{
+  "accountStrategyId": "b6fa1677-2f4d-4507-b36c-12a06ae9d7df",
+  "accountId": "uuid",
+  "strategyDefinitionId": "uuid",
+  "strategyCode": "LSR_V2",
+  "symbol": "BTCUSDT",
+  "intervalName": "1h",
+  "enabled": true,
+  "allowLong": true,
+  "allowShort": false,
+  "maxOpenPositions": 1,
+  "capitalAllocationPct": 25.00,
+  "priorityOrder": 1,
+  "currentStatus": "LIVE",
+  "createdTime": "2026-04-18T08:53:15.526678",
+  "updatedTime": "2026-04-19T17:09:37.819075"
+}
+```
+
+> The backend DTO field names (`accountStrategyId`, `intervalName`, `currentStatus`, `createdTime`, `updatedTime`, `capitalAllocationPct`) are remapped in the frontend to `id`, `interval`, `status`, `createdAt`, `updatedAt`, and `capitalAllocatedUsdt` respectively — see `src/lib/api/strategies.ts → mapAccountStrategy`.
+
+**Errors**
+
+| Code | When |
+|---|---|
+| `40400` | `accountStrategyId` does not exist, **or** it belongs to an account that does not belong to the authenticated user (treated as not-found to avoid leaking existence). |
 
 ---
 

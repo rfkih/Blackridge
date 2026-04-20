@@ -4,9 +4,10 @@ import type { BackendParamResponse } from '@/types/api';
 
 const BASE = '/api/v1/vcb-params';
 
+/** /defaults returns the same envelope as /:id — params live under effectiveParams. */
 export async function getVcbDefaults(): Promise<VcbParams> {
-  const { data } = await apiClient.get<VcbParams>(`${BASE}/defaults`);
-  return data;
+  const { data } = await apiClient.get<BackendParamResponse<VcbParams>>(`${BASE}/defaults`);
+  return data.effectiveParams;
 }
 
 export async function getVcbParams(accountStrategyId: string): Promise<VcbParams> {

@@ -24,6 +24,7 @@ import { ErrorBoundary } from '@/components/shared/ErrorBoundary';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useOpenTrades, useRecentTrades, usePnlSummary } from '@/hooks/useTrades';
 import { useStrategies } from '@/hooks/useStrategies';
+import { useActiveAccount } from '@/hooks/useAccounts';
 import { useLivePnl } from '@/hooks/useLivePnl';
 import { formatPrice, formatPnl, formatPercent, formatDate } from '@/lib/formatters';
 import { cn } from '@/lib/utils';
@@ -193,15 +194,23 @@ function SectionHeader({
 
 export default function DashboardPage() {
   const { data: strategies = [], isLoading: strategiesLoading } = useStrategies();
-  // Canonical source for account scoping — derived from strategies, not from
-  // a self-referential trade fetch.
-  const accountId = strategies[0]?.accountId;
+  // Active account context from the top-bar switcher. `scopedAccountId` is
+  // `undefined` in "All accounts" mode so scoped queries fall back to the
+  // backend's user-wide aggregate.
+  const { scopedAccountId, isAll, activeAccount } = useActiveAccount();
+
+  const visibleStrategies = scopedAccountId
+    ? strategies.filter((s) => s.accountId === scopedAccountId)
+    : strategies;
 
   const { data: pnlSummary, isLoading: pnlLoading } = usePnlSummary('today');
-  const { data: openTrades = [], isLoading: tradesLoading } = useOpenTrades(accountId);
-  const { data: recentTrades = [], isLoading: recentLoading } = useRecentTrades(10, accountId);
+  const { data: openTrades = [], isLoading: tradesLoading } = useOpenTrades(scopedAccountId);
+  const { data: recentTrades = [], isLoading: recentLoading } = useRecentTrades(
+    10,
+    scopedAccountId,
+  );
 
-  useLivePnl(accountId);
+  useLivePnl(scopedAccountId);
 
   const unrealizedPnl = pnlSummary?.unrealizedPnl ?? 0;
   const realizedPnl = pnlSummary?.realizedPnl ?? 0;
@@ -211,6 +220,33 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
+      {/* ── Scope banner — tells the user which account they're viewing ── */}
+      <div className="flex items-center justify-between rounded-md border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-3 py-2 text-xs">
+        <div className="flex items-center gap-2 text-[var(--text-secondary)]">
+          <span className="font-mono text-[10px] uppercase tracking-widest text-[var(--text-muted)]">
+            Scope
+          </span>
+          {isAll ? (
+            <span>
+              <span className="font-medium text-[var(--text-primary)]">All accounts</span>{' '}
+              · aggregated view
+            </span>
+          ) : activeAccount ? (
+            <span>
+              <span className="font-medium text-[var(--text-primary)]">{activeAccount.label}</span>{' '}
+              <span className="font-mono text-[10px] text-[var(--text-muted)]">
+                {activeAccount.exchange}
+              </span>
+            </span>
+          ) : (
+            <span className="text-[var(--text-muted)]">No account selected</span>
+          )}
+        </div>
+        <span className="font-mono text-[10px] text-[var(--text-muted)]">
+          Change in the top bar →
+        </span>
+      </div>
+
       {/* ── Row 1: Hero stats ── */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <StatCard label="Unrealized P&L" value={formatPnl(unrealizedPnl)} valueColor={unrealizedPnl >= 0 ? 'profit' : 'loss'} sub="open positions" icon={TrendingUp} isLoading={heroLoading} />
@@ -244,7 +280,7 @@ export default function DashboardPage() {
                 </h2>
                 {!strategiesLoading && (
                   <span className="rounded-full bg-[var(--bg-elevated)] px-2 py-0.5 font-mono text-xs text-[var(--text-muted)]">
-                    {strategies.length}
+                    {visibleStrategies.length}
                   </span>
                 )}
               </div>
@@ -264,17 +300,23 @@ export default function DashboardPage() {
                     <Skeleton key={i} className="h-24 w-full rounded-lg" />
                   ))}
                 </div>
-              ) : strategies.length === 0 ? (
+              ) : visibleStrategies.length === 0 ? (
                 <div className="flex h-full items-center justify-center">
                   <EmptyState
                     icon={Zap}
-                    title="No strategies configured"
-                    description="Add a strategy to start trading."
+                    title={
+                      isAll ? 'No strategies configured' : 'No strategies on this account'
+                    }
+                    description={
+                      isAll
+                        ? 'Add a strategy to start trading.'
+                        : 'Switch accounts in the top bar to see others.'
+                    }
                   />
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {strategies.map((s) => (
+                  {visibleStrategies.map((s) => (
                     <StrategyStatusCard key={s.id} strategy={s} />
                   ))}
                 </div>

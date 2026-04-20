@@ -10,6 +10,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { StatusIndicator } from '@/components/shared/StatusIndicator';
+import { AccountSwitcher } from '@/components/layout/AccountSwitcher';
 import { useWsStore } from '@/store/wsStore';
 import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/lib/utils';
@@ -83,9 +84,9 @@ export function TopNav({ onMenuClick }: TopNavProps) {
           <StatusIndicator status={wsStatus} size="sm" />
         </div>
 
-        {/* Account stub */}
-        <div className="hidden items-center gap-1 text-xs text-[var(--text-secondary)] sm:flex">
-          <span className="font-mono">BINANCE</span>
+        {/* Account switcher — scopes dashboard, trades, strategies to one account or "All" */}
+        <div className="hidden sm:block">
+          <AccountSwitcher />
         </div>
 
         {/* User dropdown */}

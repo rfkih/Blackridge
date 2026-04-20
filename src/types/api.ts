@@ -53,7 +53,8 @@ export interface BackendAccountStrategy {
   strategyCode: string;
   symbol: string;
   intervalName: string;       // frontend: interval
-  currentStatus: string;      // frontend: status
+  enabled: boolean;           // frontend: derives `status` from this
+  currentStatus: string;      // DB column is never updated by backend — do not use
   capitalAllocatedUsdt: number;
   allowLong: boolean;
   allowShort: boolean;

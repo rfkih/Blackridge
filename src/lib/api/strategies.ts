@@ -15,7 +15,7 @@ function mapAccountStrategy(s: BackendAccountStrategy): AccountStrategy {
     strategyCode: s.strategyCode,
     symbol: s.symbol,
     interval: s.intervalName,
-    status: s.currentStatus as AccountStrategyStatus,
+    status: (s.enabled ? 'LIVE' : 'STOPPED') as AccountStrategyStatus,
     capitalAllocatedUsdt: s.capitalAllocatedUsdt,
     allowLong: s.allowLong,
     allowShort: s.allowShort,
@@ -39,4 +39,31 @@ export async function getAccountStrategyById(id: string): Promise<AccountStrateg
     `/api/v1/account-strategies/${id}`,
   );
   return mapAccountStrategy(data);
+}
+
+export interface CreateAccountStrategyPayload {
+  accountId: string;
+  strategyCode: string;
+  symbol: string;
+  intervalName: string;
+  allowLong: boolean;
+  allowShort: boolean;
+  maxOpenPositions: number;
+  capitalAllocationPct: number;
+  priorityOrder: number;
+  enabled?: boolean;
+}
+
+export async function createAccountStrategy(
+  payload: CreateAccountStrategyPayload,
+): Promise<AccountStrategy> {
+  const { data } = await apiClient.post<BackendAccountStrategy>(
+    '/api/v1/account-strategies',
+    payload,
+  );
+  return mapAccountStrategy(data);
+}
+
+export async function deleteAccountStrategy(id: string): Promise<void> {
+  await apiClient.delete(`/api/v1/account-strategies/${id}`);
 }
