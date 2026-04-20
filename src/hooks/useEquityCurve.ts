@@ -3,7 +3,6 @@
 import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { fetchEquityPoints } from '@/lib/api/equity';
-import { useAuthStore } from '@/store/authStore';
 import { useStrategies } from '@/hooks/useStrategies';
 
 export type EquityPeriod = '7D' | '30D' | '90D' | 'ALL';
@@ -15,14 +14,21 @@ const PERIOD_DAYS: Record<EquityPeriod, number> = {
   ALL: 365,
 };
 
-const INITIAL_CAPITAL = 10_000;
+// Used only as a last-resort fallback when no equity data has loaded yet.
+const FALLBACK_CAPITAL = 10_000;
 
 export function useEquityCurve() {
   const [period, setPeriod] = useState<EquityPeriod>('30D');
   const { data: strategies } = useStrategies();
-  const userId = useAuthStore((s) => s.user?.id);
 
   const accountId = strategies?.[0]?.accountId;
+  // Sum capital across the user's strategies on this account as a better default
+  // than a hardcoded number when the equity series hasn't loaded yet.
+  const allocatedCapital = useMemo(() => {
+    if (!strategies?.length) return FALLBACK_CAPITAL;
+    const sum = strategies.reduce((acc, s) => acc + (s.capitalAllocatedUsdt ?? 0), 0);
+    return sum > 0 ? sum : FALLBACK_CAPITAL;
+  }, [strategies]);
 
   const days = PERIOD_DAYS[period];
   const to = Date.now();
@@ -40,13 +46,20 @@ export function useEquityCurve() {
 
   const stats = useMemo(() => {
     if (!points.length) return null;
-    const latest = points[points.length - 1]?.equity ?? INITIAL_CAPITAL;
-    const first = points[0]?.equity ?? INITIAL_CAPITAL;
-    const change = latest - INITIAL_CAPITAL;
-    const changePct = (change / INITIAL_CAPITAL) * 100;
-    const maxDrawdown = Math.min(0, ...points.map((p) => p.drawdown));
-    return { latest, first, change, changePct, maxDrawdown };
-  }, [points]);
+    const latest = points[points.length - 1]!.equity;
+    const first = points[0]!.equity;
+    // First equity sample is the actual starting balance for this window.
+    const baseline = first || allocatedCapital;
+    const change = latest - baseline;
+    const changePct = baseline !== 0 ? (change / baseline) * 100 : 0;
+    // reduce avoids `Math.min(...largeArr)` which is O(n) AND can hit
+    // the JS engine's argument-spread limit on long series.
+    const maxDrawdown = points.reduce((m, p) => (p.drawdown < m ? p.drawdown : m), 0);
+    return { latest, first, baseline, change, changePct, maxDrawdown };
+  }, [points, allocatedCapital]);
 
-  return { period, setPeriod, points, stats, isLoading: query.isLoading, initialCapital: INITIAL_CAPITAL };
+  // Prefer the first equity sample (real starting balance) over the allocated fallback.
+  const initialCapital = stats?.baseline ?? allocatedCapital;
+
+  return { period, setPeriod, points, stats, isLoading: query.isLoading, initialCapital };
 }

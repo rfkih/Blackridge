@@ -26,13 +26,20 @@ interface EquityPayloadItem {
   payload: { time: number; equity: number; drawdown: number };
 }
 
-function EquityTooltip({ active, payload }: { active?: boolean; payload?: EquityPayloadItem[] }) {
+function EquityTooltip({
+  active,
+  payload,
+  initialCapital,
+}: {
+  active?: boolean;
+  payload?: EquityPayloadItem[];
+  initialCapital: number;
+}) {
   if (!active || !payload?.length) return null;
   const d = payload[0]?.payload;
   if (!d) return null;
-  const initialCapital = 10_000;
   const change = d.equity - initialCapital;
-  const changePct = (change / initialCapital) * 100;
+  const changePct = initialCapital !== 0 ? (change / initialCapital) * 100 : 0;
 
   return (
     <div
@@ -167,7 +174,7 @@ export function DashboardEquityCurve({ className }: { className?: string }) {
                 tickLine={false}
                 width={52}
               />
-              <Tooltip content={<EquityTooltip />} />
+              <Tooltip content={<EquityTooltip initialCapital={initialCapital} />} />
               <ReferenceLine y={initialCapital} stroke="#2A2F3A" strokeDasharray="3 3" />
               <Area
                 type="monotone"

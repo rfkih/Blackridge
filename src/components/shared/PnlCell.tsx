@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { cn } from '@/lib/utils';
 import { formatPnl, formatPercent } from '@/lib/formatters';
 
@@ -8,7 +9,12 @@ interface PnlCellProps {
   className?: string;
 }
 
-export function PnlCell({ value, showPercent, percentValue, className }: PnlCellProps) {
+export const PnlCell = memo(function PnlCell({
+  value,
+  showPercent,
+  percentValue,
+  className,
+}: PnlCellProps) {
   const isProfit = (value ?? 0) >= 0;
   const color =
     value == null ? 'var(--text-muted)' : isProfit ? 'var(--color-profit)' : 'var(--color-loss)';
@@ -21,4 +27,4 @@ export function PnlCell({ value, showPercent, percentValue, className }: PnlCell
       )}
     </span>
   );
-}
+});

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   LayoutDashboard,
@@ -55,14 +55,15 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
   const [query, setQuery] = useState('');
   const [activeIndex, setActiveIndex] = useState(0);
 
-  const filtered =
-    query.trim() === ''
-      ? NAV_ITEMS
-      : NAV_ITEMS.filter(
-          (item) =>
-            item.label.toLowerCase().includes(query.toLowerCase()) ||
-            item.subtitle?.toLowerCase().includes(query.toLowerCase()),
-        );
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (q === '') return NAV_ITEMS;
+    return NAV_ITEMS.filter(
+      (item) =>
+        item.label.toLowerCase().includes(q) ||
+        item.subtitle?.toLowerCase().includes(q),
+    );
+  }, [query]);
 
   // Reset state on open
   useEffect(() => {
@@ -100,15 +101,20 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
     }
   }
 
-  // Group items
-  const groups = filtered.reduce<Record<string, PaletteItem[]>>((acc, item) => {
-    if (!acc[item.group]) acc[item.group] = [];
-    acc[item.group].push(item);
-    return acc;
-  }, {});
-
-  // Compute flat index → group display
-  const flatItems = Object.values(groups).flat();
+  // Group items + build a single id→flatIndex map so the render loop is O(n) not O(n²).
+  const { groups, flatItems, flatIndexById } = useMemo(() => {
+    const g: Record<string, PaletteItem[]> = {};
+    for (const item of filtered) {
+      if (!g[item.group]) g[item.group] = [];
+      g[item.group].push(item);
+    }
+    const flat = Object.values(g).flat();
+    const idx: Record<string, number> = {};
+    flat.forEach((item, i) => {
+      idx[item.id] = i;
+    });
+    return { groups: g, flatItems: flat, flatIndexById: idx };
+  }, [filtered]);
 
   return (
     <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
@@ -173,7 +179,7 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
                     {groupName}
                   </p>
                   {items.map((item) => {
-                    const flatIdx = flatItems.indexOf(item);
+                    const flatIdx = flatIndexById[item.id] ?? 0;
                     const isActive = flatIdx === activeIndex;
                     const Icon = item.icon;
                     return (

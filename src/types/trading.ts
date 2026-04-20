@@ -57,7 +57,9 @@ export interface LivePosition {
   direction: TradeDirection;
   quantity: number;
   entryPrice: number;
-  markPrice: number;
+  // Null until the WS pushes a mark — never silently fall back to entryPrice,
+  // which would mask "no live data" as "no movement".
+  markPrice: number | null;
   unrealizedPnl: number;
   unrealizedPnlPct: number;
   openedAt: EpochMs;

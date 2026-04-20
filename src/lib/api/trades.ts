@@ -21,7 +21,9 @@ function tradeToLivePosition(t: Trades): LivePosition {
     direction: t.direction,
     quantity: t.quantity,
     entryPrice: t.entryPrice,
-    markPrice: t.markPrice ?? t.entryPrice,
+    // Pass null through — UI renders "—" for absent marks instead of entryPrice
+    // (which would falsely imply "no movement since open").
+    markPrice: t.markPrice ?? null,
     unrealizedPnl: t.unrealizedPnl ?? 0,
     unrealizedPnlPct: t.unrealizedPnlPct ?? 0,
     openedAt: t.entryTime,
@@ -37,9 +39,11 @@ export async function getOpenTrades(accountId?: string): Promise<LivePosition[]>
   return extractList(data).map(tradeToLivePosition);
 }
 
-export async function getRecentTrades(limit = 10): Promise<Trades[]> {
+export async function getRecentTrades(limit = 10, accountId?: string): Promise<Trades[]> {
+  const params: Record<string, unknown> = { status: 'CLOSED', limit };
+  if (accountId) params.accountId = accountId;
   const { data } = await apiClient.get<Trades[] | PageResponse<Trades>>('/api/v1/trades', {
-    params: { status: 'CLOSED', limit },
+    params,
   });
   return extractList(data);
 }

@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard,
   TrendingUp,
@@ -15,7 +15,7 @@ import {
   X,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useAuthStore } from '@/store/authStore';
+import { useAuth } from '@/hooks/useAuth';
 
 interface NavItem {
   label: string;
@@ -41,14 +41,7 @@ interface SidebarProps {
 
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const pathname = usePathname();
-  const router = useRouter();
-  const user = useAuthStore((s) => s.user);
-  const clearAuth = useAuthStore((s) => s.clearAuth);
-
-  function handleSignOut() {
-    clearAuth();
-    router.push('/login');
-  }
+  const { user, logout } = useAuth();
 
   function isActive(href: string) {
     if (href === '/') return pathname === '/';
@@ -168,7 +161,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
               <p className="truncate text-[10px] text-[var(--text-muted)]">{user?.email ?? ''}</p>
             </div>
             <button
-              onClick={handleSignOut}
+              onClick={logout}
               className="flex size-7 shrink-0 items-center justify-center rounded text-[var(--text-muted)] transition-colors hover:bg-[var(--bg-hover)] hover:text-[var(--color-loss)]"
               aria-label="Sign out"
               title="Sign out"

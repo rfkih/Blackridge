@@ -97,6 +97,12 @@ export function DashboardMarketChart() {
   const macdSignal = useRef<ISeriesApi<'Line'> | null>(null);
   const macdHisto = useRef<ISeriesApi<'Histogram'> | null>(null);
 
+  // Unsubscribe handles for sub-chart timeScale sync — must be cleared when
+  // the sub-chart is destroyed, otherwise the handler keeps firing on a
+  // removed chart and leaks across toggle cycles.
+  const rsiSyncUnsub = useRef<(() => void) | null>(null);
+  const macdSyncUnsub = useRef<(() => void) | null>(null);
+
   const candleMap = useRef<Map<number, CandleData>>(new Map());
   const [chartReady, setChartReady] = useState(false);
   const [ohlcv, setOhlcv] = useState<OhlcvState>({
@@ -216,12 +222,29 @@ export function DashboardMarketChart() {
       if (wrapRef.current) ro.observe(wrapRef.current);
       unsubs.push(() => ro.disconnect());
 
+      // Race guard: another effect run may have started between the await above
+      // and now — don't flip ready for a chart that's about to be torn down.
+      if (cancelled) return;
       setChartReady(true);
     })();
 
     return () => {
       cancelled = true;
       unsubs.forEach((fn) => fn());
+      // Tear down sub-chart sync handlers BEFORE removing the main chart,
+      // otherwise they'd be invoked against a freed timeScale.
+      rsiSyncUnsub.current?.();
+      rsiSyncUnsub.current = null;
+      macdSyncUnsub.current?.();
+      macdSyncUnsub.current = null;
+      rsiChart.current?.remove();
+      rsiChart.current = null;
+      rsiSeries.current = null;
+      macdChart.current?.remove();
+      macdChart.current = null;
+      macdLine.current = null;
+      macdSignal.current = null;
+      macdHisto.current = null;
       mainChart.current?.remove();
       volChart.current?.remove();
       mainChart.current = null;
@@ -359,6 +382,8 @@ export function DashboardMarketChart() {
   useEffect(() => {
     if (!chartReady) return;
     if (!indicators.rsi) {
+      rsiSyncUnsub.current?.();
+      rsiSyncUnsub.current = null;
       rsiChart.current?.remove();
       rsiChart.current = null;
       rsiSeries.current = null;
@@ -390,11 +415,21 @@ export function DashboardMarketChart() {
         });
         rsiSeries.current = rs;
 
-        // Sync
-        const rsiHandler = (range: LogicalRange | null) => {
-          if (range) rc.timeScale().setVisibleLogicalRange(range);
-        };
-        mainChart.current?.timeScale().subscribeVisibleLogicalRangeChange(rsiHandler);
+        // Sync — track the unsubscribe so we don't leak the handler when toggled off.
+        const main = mainChart.current;
+        if (main) {
+          const rsiHandler = (range: LogicalRange | null) => {
+            if (range) rc.timeScale().setVisibleLogicalRange(range);
+          };
+          main.timeScale().subscribeVisibleLogicalRangeChange(rsiHandler);
+          rsiSyncUnsub.current = () => {
+            try {
+              main.timeScale().unsubscribeVisibleLogicalRangeChange(rsiHandler);
+            } catch {
+              // Main chart may already be removed.
+            }
+          };
+        }
 
         // OB/OS reference lines
         rs.createPriceLine({ price: 70, color: TV.NEUTRAL, lineWidth: 1, lineStyle: 2, axisLabelVisible: false, title: '' });
@@ -412,6 +447,8 @@ export function DashboardMarketChart() {
   useEffect(() => {
     if (!chartReady) return;
     if (!indicators.macd) {
+      macdSyncUnsub.current?.();
+      macdSyncUnsub.current = null;
       macdChart.current?.remove();
       macdChart.current = null;
       macdLine.current = null;
@@ -441,10 +478,20 @@ export function DashboardMarketChart() {
         macdLine.current = mc.addSeries(tv.LineSeries, { color: INDICATOR_COLORS.macdLine, lineWidth: 1, priceLineVisible: false, lastValueVisible: false });
         macdSignal.current = mc.addSeries(tv.LineSeries, { color: INDICATOR_COLORS.macdSignal, lineWidth: 1, priceLineVisible: false, lastValueVisible: false });
 
-        const macdHandler = (range: LogicalRange | null) => {
-          if (range) mc.timeScale().setVisibleLogicalRange(range);
-        };
-        mainChart.current?.timeScale().subscribeVisibleLogicalRangeChange(macdHandler);
+        const main = mainChart.current;
+        if (main) {
+          const macdHandler = (range: LogicalRange | null) => {
+            if (range) mc.timeScale().setVisibleLogicalRange(range);
+          };
+          main.timeScale().subscribeVisibleLogicalRangeChange(macdHandler);
+          macdSyncUnsub.current = () => {
+            try {
+              main.timeScale().unsubscribeVisibleLogicalRangeChange(macdHandler);
+            } catch {
+              // Main chart may already be removed.
+            }
+          };
+        }
       }
 
       const valid = indicatorData.filter((d) => d.macd != null);

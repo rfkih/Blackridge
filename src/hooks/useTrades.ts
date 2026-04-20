@@ -25,10 +25,10 @@ export function useOpenTrades(accountId?: string) {
   });
 }
 
-export function useRecentTrades(limit = 10) {
+export function useRecentTrades(limit = 10, accountId?: string) {
   return useQuery({
-    queryKey: ['trades', 'recent', limit],
-    queryFn: () => getRecentTrades(limit),
+    queryKey: ['trades', 'recent', limit, accountId ?? null],
+    queryFn: () => getRecentTrades(limit, accountId),
     staleTime: QUERY_STALE_TIMES.closedTrades,
   });
 }

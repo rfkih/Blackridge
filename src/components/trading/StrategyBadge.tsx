@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { cn } from '@/lib/utils';
 
 interface StrategyColors {
@@ -51,7 +52,11 @@ interface StrategyBadgeProps {
   className?: string;
 }
 
-export function StrategyBadge({ code, size = 'md', className }: StrategyBadgeProps) {
+export const StrategyBadge = memo(function StrategyBadge({
+  code,
+  size = 'md',
+  className,
+}: StrategyBadgeProps) {
   const colors = STRATEGY_COLOR_MAP[code] ?? DEFAULT_COLORS;
 
   return (
@@ -70,4 +75,4 @@ export function StrategyBadge({ code, size = 'md', className }: StrategyBadgePro
       {code}
     </span>
   );
-}
+});

@@ -1,6 +1,6 @@
 'use client';
 
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { Menu, ChevronDown, User, Settings, LogOut } from 'lucide-react';
 import {
   DropdownMenu,
@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { StatusIndicator } from '@/components/shared/StatusIndicator';
 import { useWsStore } from '@/store/wsStore';
-import { useAuthStore } from '@/store/authStore';
+import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/lib/utils';
 
 const PAGE_TITLES: Record<string, string> = {
@@ -40,15 +40,13 @@ interface TopNavProps {
 
 export function TopNav({ onMenuClick }: TopNavProps) {
   const pathname = usePathname();
-  const router = useRouter();
   const pageTitle = usePageTitle(pathname);
 
   const connected = useWsStore((s) => s.connected);
   const reconnecting = useWsStore((s) => s.reconnecting);
   const wsStatus = connected ? 'connected' : reconnecting ? 'reconnecting' : 'disconnected';
 
-  const user = useAuthStore((s) => s.user);
-  const clearAuth = useAuthStore((s) => s.clearAuth);
+  const { user, logout } = useAuth();
 
   const initials = user?.name
     ? user.name
@@ -58,11 +56,6 @@ export function TopNav({ onMenuClick }: TopNavProps) {
         .toUpperCase()
         .slice(0, 2)
     : '?';
-
-  function handleSignOut() {
-    clearAuth();
-    router.push('/login');
-  }
 
   return (
     <header
@@ -131,7 +124,7 @@ export function TopNav({ onMenuClick }: TopNavProps) {
             <DropdownMenuSeparator />
             <DropdownMenuItem
               className="gap-2 text-xs cursor-pointer text-[var(--color-loss)] focus:text-[var(--color-loss)]"
-              onClick={handleSignOut}
+              onClick={logout}
             >
               <LogOut size={13} />
               Sign out

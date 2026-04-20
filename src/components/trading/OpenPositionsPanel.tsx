@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { memo, useEffect, useRef, useState } from 'react';
 import { Activity } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/shared/EmptyState';
@@ -19,8 +19,10 @@ interface LivePnlCellProps {
 }
 
 function LivePnlCell({ tradeId, basePnl, basePct }: LivePnlCellProps) {
-  const pnlMap = usePositionStore((s) => s.pnlMap);
-  const livePnl = pnlMap[tradeId] ?? basePnl ?? 0;
+  // Per-tradeId selector: this row only re-renders when ITS pnl value changes,
+  // not on every WS frame for any other trade.
+  const livePnlRaw = usePositionStore((s) => s.pnlMap[tradeId]);
+  const livePnl = livePnlRaw ?? basePnl ?? 0;
   const [flash, setFlash] = useState<'profit' | 'loss' | null>(null);
   const prevRef = useRef(livePnl);
 
@@ -76,7 +78,9 @@ function DirectionBadge({ direction }: { direction: 'LONG' | 'SHORT' }) {
 
 // ─── Row ─────────────────────────────────────────────────────────────────────
 
-function PositionRow({ position }: { position: LivePosition }) {
+// Memoized: row only re-renders if the LivePosition reference changes.
+// LivePnlCell handles its own per-tradeId WS subscription independently.
+const PositionRow = memo(function PositionRow({ position }: { position: LivePosition }) {
   return (
     <tr className="group border-b border-[var(--border-subtle)] transition-colors hover:bg-[var(--bg-elevated)]">
       <td className="px-4 py-2.5">
@@ -107,7 +111,7 @@ function PositionRow({ position }: { position: LivePosition }) {
       </td>
     </tr>
   );
-}
+});
 
 // ─── Skeleton rows ───────────────────────────────────────────────────────────
 

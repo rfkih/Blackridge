@@ -20,6 +20,7 @@ import { StrategyBadge } from '@/components/trading/StrategyBadge';
 import { PnlCell } from '@/components/shared/PnlCell';
 import { PriceCell } from '@/components/shared/PriceCell';
 import { EmptyState } from '@/components/shared/EmptyState';
+import { ErrorBoundary } from '@/components/shared/ErrorBoundary';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useOpenTrades, useRecentTrades, usePnlSummary } from '@/hooks/useTrades';
 import { useStrategies } from '@/hooks/useStrategies';
@@ -28,7 +29,6 @@ import { formatPrice, formatPnl, formatPercent, formatDate } from '@/lib/formatt
 import { cn } from '@/lib/utils';
 import type { Trades } from '@/types/trading';
 import type { AccountStrategy, AccountStrategyStatus } from '@/types/strategy';
-import { DashboardEquityCurve } from '@/components/charts/DashboardEquityCurve';
 
 const DashboardMarketChart = dynamic(
   () =>
@@ -41,6 +41,24 @@ const DashboardMarketChart = dynamic(
       <div
         className="w-full animate-pulse rounded-lg border border-[var(--border-subtle)]"
         style={{ height: 620, background: 'var(--bg-surface)' }}
+        aria-hidden="true"
+      />
+    ),
+  },
+);
+
+// Recharts is large — defer to a client-only chunk so it doesn't bloat the dashboard's first paint.
+const DashboardEquityCurve = dynamic(
+  () =>
+    import('@/components/charts/DashboardEquityCurve').then((m) => ({
+      default: m.DashboardEquityCurve,
+    })),
+  {
+    ssr: false,
+    loading: () => (
+      <div
+        className="h-full w-full animate-pulse rounded-lg border border-[var(--border-subtle)]"
+        style={{ background: 'var(--bg-surface)' }}
         aria-hidden="true"
       />
     ),
@@ -174,12 +192,15 @@ function SectionHeader({
 // ─── Dashboard page ──────────────────────────────────────────────────────────
 
 export default function DashboardPage() {
-  const { data: pnlSummary, isLoading: pnlLoading } = usePnlSummary('today');
-  const { data: openTrades = [], isLoading: tradesLoading } = useOpenTrades();
-  const { data: recentTrades = [], isLoading: recentLoading } = useRecentTrades(10);
   const { data: strategies = [], isLoading: strategiesLoading } = useStrategies();
+  // Canonical source for account scoping — derived from strategies, not from
+  // a self-referential trade fetch.
+  const accountId = strategies[0]?.accountId;
 
-  const accountId = openTrades[0]?.accountId ?? strategies[0]?.accountId;
+  const { data: pnlSummary, isLoading: pnlLoading } = usePnlSummary('today');
+  const { data: openTrades = [], isLoading: tradesLoading } = useOpenTrades(accountId);
+  const { data: recentTrades = [], isLoading: recentLoading } = useRecentTrades(10, accountId);
+
   useLivePnl(accountId);
 
   const unrealizedPnl = pnlSummary?.unrealizedPnl ?? 0;
@@ -203,11 +224,13 @@ export default function DashboardPage() {
 
         {/* Open positions — fills the fixed height, table scrolls if many rows */}
         <div className="flex flex-col lg:col-span-3" style={{ height: 360 }}>
-          <OpenPositionsPanel
-            positions={openTrades}
-            isLoading={tradesLoading}
-            className="flex-1 min-h-0"
-          />
+          <ErrorBoundary label="Open positions">
+            <OpenPositionsPanel
+              positions={openTrades}
+              isLoading={tradesLoading}
+              className="flex-1 min-h-0"
+            />
+          </ErrorBoundary>
         </div>
 
         {/* Strategies — same fixed height, card list scrolls if many strategies */}
@@ -263,18 +286,24 @@ export default function DashboardPage() {
       </div>
 
       {/* ── Row 3: Live market chart (full width) ── */}
-      <DashboardMarketChart />
+      <ErrorBoundary label="Market chart">
+        <DashboardMarketChart />
+      </ErrorBoundary>
 
-      {/* ── Row 4: Equity curve (3/5) + Recent trades (2/5) — equal height ── */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-5 lg:h-[400px]">
-        <div className="flex flex-col lg:col-span-3 h-full">
-          <DashboardEquityCurve className="flex-1 min-h-0" />
+      {/* ── Row 4: Equity curve (3/5) + Recent trades (2/5) ── */}
+      {/* items-start lets the recent-trades panel stay compact (~6 rows) without
+          forcing the equity curve to shrink to match it. */}
+      <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-5">
+        <div className="flex flex-col lg:col-span-3">
+          <ErrorBoundary label="Equity curve">
+            <DashboardEquityCurve />
+          </ErrorBoundary>
         </div>
 
-        {/* Recent trades — same height as equity curve, table scrolls */}
-        <div className="flex flex-col lg:col-span-2 h-full">
+        {/* Recent trades — caps at ~6 visible rows; rest scrolls inside the body */}
+        <div className="flex flex-col lg:col-span-2">
           <div
-            className="flex h-full min-h-0 flex-col overflow-hidden rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)]"
+            className="flex flex-col overflow-hidden rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)]"
             style={{ boxShadow: 'var(--shadow-panel)' }}
           >
             {/* Panel header */}
@@ -297,8 +326,9 @@ export default function DashboardPage() {
               </Link>
             </div>
 
-            {/* Scrollable body */}
-            <div className="flex-1 min-h-0 overflow-y-auto">
+            {/* Scrollable body — capped at ~6 rows tall (each row ≈ 36px + sticky thead 32px).
+                minHeight keeps the empty/loading states from collapsing. */}
+            <div className="overflow-y-auto" style={{ maxHeight: 248, minHeight: 160 }}>
               {recentLoading ? (
                 <div className="space-y-3 p-4">
                   {Array.from({ length: 5 }).map((_, i) => (

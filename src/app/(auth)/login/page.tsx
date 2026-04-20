@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/hooks/useAuth';
+import { safeRedirectPath } from '@/lib/utils';
 
 const loginSchema = z.object({
   email: z.string().min(1, 'Email is required').email('Enter a valid email'),
@@ -21,7 +22,7 @@ type LoginValues = z.infer<typeof loginSchema>;
 
 function LoginPageContent() {
   const search = useSearchParams();
-  const next = search.get('next') ?? '/';
+  const next = safeRedirectPath(search.get('next'));
   const { login } = useAuth();
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);

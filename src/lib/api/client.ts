@@ -47,17 +47,37 @@ function logDevAxiosFailure(error: AxiosError) {
   console.groupEnd();
 }
 
+interface BlackheartEnvelope {
+  responseCode: string | number;
+  responseDesc?: string;
+  data: unknown;
+  errorMessage?: string;
+}
+
+function isEnvelope(value: unknown): value is BlackheartEnvelope {
+  return typeof value === 'object' && value !== null && 'responseCode' in value && 'data' in value;
+}
+
+function isAuthPath(pathname: string): boolean {
+  // Exact match or trailing slash — `/login-foo` should NOT count as the auth path.
+  return (
+    pathname === '/login' ||
+    pathname === '/register' ||
+    pathname.startsWith('/login/') ||
+    pathname.startsWith('/register/')
+  );
+}
+
 apiClient.interceptors.response.use(
   (response) => {
     // Unwrap the Blackheart API envelope: { responseCode, responseDesc, data, errorMessage }
     // so every caller just receives the inner `data` directly.
-    const raw = response.data as Record<string, unknown> | null;
-    if (raw && typeof raw === 'object' && 'responseCode' in raw && 'data' in raw) {
-      if (raw.errorMessage) {
-        return Promise.reject(new Error(raw.errorMessage as string));
+    if (isEnvelope(response.data)) {
+      const env = response.data;
+      if (env.errorMessage) {
+        return Promise.reject(new Error(env.errorMessage));
       }
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      response.data = raw.data as any;
+      response.data = env.data;
     }
     return response;
   },
@@ -66,13 +86,9 @@ apiClient.interceptors.response.use(
     if (error.response?.status === 401) {
       const { clearAuth } = useAuthStore.getState();
       clearAuth();
-      if (typeof window !== 'undefined') {
-        const p = window.location.pathname;
-        const onPublicAuth = p.startsWith('/login') || p.startsWith('/register');
-        if (!onPublicAuth) {
-          const next = encodeURIComponent(window.location.pathname + window.location.search);
-          window.location.assign(`/login?next=${next}`);
-        }
+      if (typeof window !== 'undefined' && !isAuthPath(window.location.pathname)) {
+        const next = encodeURIComponent(window.location.pathname + window.location.search);
+        window.location.assign(`/login?next=${next}`);
       }
     }
     return Promise.reject(error);
