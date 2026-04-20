@@ -1,5 +1,6 @@
 'use client';
 
+import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import {
   TrendingUp,
@@ -27,59 +28,24 @@ import { formatPrice, formatPnl, formatPercent, formatDate } from '@/lib/formatt
 import { cn } from '@/lib/utils';
 import type { Trades } from '@/types/trading';
 import type { AccountStrategy, AccountStrategyStatus } from '@/types/strategy';
+import { DashboardEquityCurve } from '@/components/charts/DashboardEquityCurve';
 
-// ─── Recent trades row ───────────────────────────────────────────────────────
-
-function RecentTradeRow({ trade }: { trade: Trades }) {
-  const isProfit = trade.realizedPnl >= 0;
-  const isLong = trade.direction === 'LONG';
-
-  return (
-    <tr className="border-b border-[var(--border-subtle)] transition-colors hover:bg-[var(--bg-elevated)]">
-      <td className="px-4 py-2.5">
-        <div className="flex items-center gap-2">
-          <span
-            className="flex size-5 shrink-0 items-center justify-center rounded"
-            style={{
-              backgroundColor: isLong ? 'rgba(0,200,150,0.1)' : 'rgba(255,77,106,0.1)',
-            }}
-          >
-            {isLong ? (
-              <ArrowUpRight size={11} style={{ color: 'var(--color-profit)' }} />
-            ) : (
-              <ArrowDownRight size={11} style={{ color: 'var(--color-loss)' }} />
-            )}
-          </span>
-          <span className="font-mono text-sm font-medium text-[var(--text-primary)]">
-            {trade.symbol}
-          </span>
-        </div>
-      </td>
-      <td className="px-4 py-2.5">
-        <StrategyBadge code={trade.strategyCode} size="sm" />
-      </td>
-      <td className="px-4 py-2.5">
-        <div className="flex items-center gap-1 font-mono tabular-nums text-xs text-[var(--text-secondary)]">
-          <PriceCell value={trade.entryPrice} />
-          <ChevronRight size={10} className="text-[var(--text-muted)]" />
-          {trade.exitAvgPrice != null ? (
-            <PriceCell value={trade.exitAvgPrice} />
-          ) : (
-            <span className="text-[var(--text-muted)]">—</span>
-          )}
-        </div>
-      </td>
-      <td className="px-4 py-2.5">
-        <PnlCell value={trade.realizedPnl} />
-      </td>
-      <td className="px-4 py-2.5">
-        <span className="text-xs text-[var(--text-muted)]">
-          {trade.exitTime != null ? formatDate(trade.exitTime) : '—'}
-        </span>
-      </td>
-    </tr>
-  );
-}
+const DashboardMarketChart = dynamic(
+  () =>
+    import('@/components/charts/DashboardMarketChart').then((m) => ({
+      default: m.DashboardMarketChart,
+    })),
+  {
+    ssr: false,
+    loading: () => (
+      <div
+        className="w-full animate-pulse rounded-lg border border-[var(--border-subtle)]"
+        style={{ height: 620, background: 'var(--bg-surface)' }}
+        aria-hidden="true"
+      />
+    ),
+  },
+);
 
 // ─── Strategy status card ────────────────────────────────────────────────────
 
@@ -213,93 +179,142 @@ export default function DashboardPage() {
   const { data: recentTrades = [], isLoading: recentLoading } = useRecentTrades(10);
   const { data: strategies = [], isLoading: strategiesLoading } = useStrategies();
 
-  // Subscribe to live P&L for the first account in the data
   const accountId = openTrades[0]?.accountId ?? strategies[0]?.accountId;
   useLivePnl(accountId);
 
-  // Derive hero values
   const unrealizedPnl = pnlSummary?.unrealizedPnl ?? 0;
   const realizedPnl = pnlSummary?.realizedPnl ?? 0;
   const openCount = pnlSummary?.openCount ?? openTrades.length;
   const winRate = pnlSummary?.winRate ?? 0;
-
   const heroLoading = pnlLoading && !pnlSummary;
 
   return (
     <div className="space-y-6">
       {/* ── Row 1: Hero stats ── */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <StatCard
-          label="Unrealized P&L"
-          value={formatPnl(unrealizedPnl)}
-          valueColor={unrealizedPnl >= 0 ? 'profit' : 'loss'}
-          sub="across all open positions"
-          icon={TrendingUp}
-          isLoading={heroLoading}
-        />
-        <StatCard
-          label="Realized P&L Today"
-          value={formatPnl(realizedPnl)}
-          valueColor={realizedPnl >= 0 ? 'profit' : 'loss'}
-          sub="closed trades today"
-          icon={DollarSign}
-          isLoading={heroLoading}
-        />
-        <StatCard
-          label="Open Positions"
-          value={String(openCount)}
-          valueColor="info"
-          sub="active trades"
-          icon={Activity}
-          isLoading={heroLoading}
-        />
-        <StatCard
-          label="Win Rate (30d)"
-          value={`${winRate.toFixed(1)}%`}
-          valueColor={winRate >= 50 ? 'profit' : 'loss'}
-          sub={`${formatPercent(winRate - 50)} vs 50%`}
-          subColor={winRate >= 50 ? 'profit' : 'loss'}
-          icon={Target}
-          isLoading={heroLoading}
-        />
+        <StatCard label="Unrealized P&L" value={formatPnl(unrealizedPnl)} valueColor={unrealizedPnl >= 0 ? 'profit' : 'loss'} sub="open positions" icon={TrendingUp} isLoading={heroLoading} />
+        <StatCard label="Realized P&L Today" value={formatPnl(realizedPnl)} valueColor={realizedPnl >= 0 ? 'profit' : 'loss'} sub="closed trades today" icon={DollarSign} isLoading={heroLoading} />
+        <StatCard label="Open Positions" value={String(openCount)} valueColor="info" sub="active trades" icon={Activity} isLoading={heroLoading} />
+        <StatCard label="Win Rate (30d)" value={`${winRate.toFixed(1)}%`} valueColor={winRate >= 50 ? 'profit' : 'loss'} sub={`${formatPercent(winRate - 50)} vs 50%`} subColor={winRate >= 50 ? 'profit' : 'loss'} icon={Target} isLoading={heroLoading} />
       </div>
 
-      {/* ── Row 2: Open positions ── */}
-      <OpenPositionsPanel positions={openTrades} isLoading={tradesLoading} />
-
-      {/* ── Row 3: Recent trades + Strategy status ── */}
+      {/* ── Row 2: Open positions + Strategy status — fixed height so panels match ── */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
-        {/* Recent trades */}
-        <div className="lg:col-span-3">
-          <SectionHeader
-            title="Recent Trades"
-            count={recentTrades.length}
-            href="/trades"
-            hrefLabel="All trades"
+
+        {/* Open positions — fills the fixed height, table scrolls if many rows */}
+        <div className="flex flex-col lg:col-span-3" style={{ height: 360 }}>
+          <OpenPositionsPanel
+            positions={openTrades}
+            isLoading={tradesLoading}
+            className="flex-1 min-h-0"
           />
-          <div className="rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)]">
-            {recentLoading ? (
-              <div className="p-4 space-y-3">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <Skeleton key={i} className="h-9 w-full" />
-                ))}
+        </div>
+
+        {/* Strategies — same fixed height, card list scrolls if many strategies */}
+        <div className="flex flex-col lg:col-span-2" style={{ height: 360 }}>
+          <div className="flex flex-1 min-h-0 flex-col overflow-hidden rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)]">
+            {/* Panel header */}
+            <div className="flex shrink-0 items-center justify-between border-b border-[var(--border-subtle)] px-4 py-3">
+              <div className="flex items-center gap-2.5">
+                <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--text-secondary)]">
+                  Strategies
+                </h2>
+                {!strategiesLoading && (
+                  <span className="rounded-full bg-[var(--bg-elevated)] px-2 py-0.5 font-mono text-xs text-[var(--text-muted)]">
+                    {strategies.length}
+                  </span>
+                )}
               </div>
-            ) : recentTrades.length === 0 ? (
-              <EmptyState
-                icon={TrendingUp}
-                title="No closed trades yet"
-                description="Completed trades will appear here."
-              />
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full min-w-[520px]">
-                  <thead>
+              <Link
+                href="/strategies"
+                className="flex items-center gap-0.5 text-xs text-[var(--text-muted)] transition-colors hover:text-[var(--accent-primary)]"
+              >
+                Manage <ChevronRight size={12} />
+              </Link>
+            </div>
+
+            {/* Scrollable card list */}
+            <div className="flex-1 overflow-y-auto p-3">
+              {strategiesLoading ? (
+                <div className="space-y-3">
+                  {Array.from({ length: 3 }).map((_, i) => (
+                    <Skeleton key={i} className="h-24 w-full rounded-lg" />
+                  ))}
+                </div>
+              ) : strategies.length === 0 ? (
+                <div className="flex h-full items-center justify-center">
+                  <EmptyState
+                    icon={Zap}
+                    title="No strategies configured"
+                    description="Add a strategy to start trading."
+                  />
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {strategies.map((s) => (
+                    <StrategyStatusCard key={s.id} strategy={s} />
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      {/* ── Row 3: Live market chart (full width) ── */}
+      <DashboardMarketChart />
+
+      {/* ── Row 4: Equity curve (3/5) + Recent trades (2/5) — equal height ── */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-5 lg:h-[400px]">
+        <div className="flex flex-col lg:col-span-3 h-full">
+          <DashboardEquityCurve className="flex-1 min-h-0" />
+        </div>
+
+        {/* Recent trades — same height as equity curve, table scrolls */}
+        <div className="flex flex-col lg:col-span-2 h-full">
+          <div
+            className="flex h-full min-h-0 flex-col overflow-hidden rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)]"
+            style={{ boxShadow: 'var(--shadow-panel)' }}
+          >
+            {/* Panel header */}
+            <div className="flex shrink-0 items-center justify-between border-b border-[var(--border-subtle)] px-4 py-3">
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-semibold uppercase tracking-widest text-[var(--text-muted)]">
+                  Recent Trades
+                </span>
+                {!recentLoading && (
+                  <span className="rounded-full bg-[var(--bg-elevated)] px-2 py-0.5 font-mono text-xs text-[var(--text-muted)]">
+                    {recentTrades.length}
+                  </span>
+                )}
+              </div>
+              <Link
+                href="/trades"
+                className="flex items-center gap-0.5 text-xs text-[var(--text-muted)] transition-colors hover:text-[var(--accent-primary)]"
+              >
+                All trades <ChevronRight size={12} />
+              </Link>
+            </div>
+
+            {/* Scrollable body */}
+            <div className="flex-1 min-h-0 overflow-y-auto">
+              {recentLoading ? (
+                <div className="space-y-3 p-4">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <Skeleton key={i} className="h-9 w-full" />
+                  ))}
+                </div>
+              ) : recentTrades.length === 0 ? (
+                <div className="flex h-full items-center justify-center">
+                  <EmptyState icon={TrendingUp} title="No closed trades yet" description="Completed trades will appear here." />
+                </div>
+              ) : (
+                <table className="w-full">
+                  <thead className="sticky top-0 z-10 bg-[var(--bg-surface)]">
                     <tr className="border-b border-[var(--border-subtle)]">
-                      {['Symbol', 'Strategy', 'Entry → Exit', 'P&L', 'Closed'].map((col) => (
-                        <th
-                          key={col}
-                          className="px-4 py-2 text-left text-[10px] font-semibold uppercase tracking-wider text-[var(--text-muted)]"
-                        >
+                      {['Symbol', 'Strategy', 'P&L', 'Closed'].map((col) => (
+                        <th key={col} className="px-4 py-2 text-left text-[10px] font-semibold uppercase tracking-wider text-[var(--text-muted)]">
                           {col}
                         </th>
                       ))}
@@ -307,44 +322,25 @@ export default function DashboardPage() {
                   </thead>
                   <tbody>
                     {recentTrades.map((trade) => (
-                      <RecentTradeRow key={trade.id} trade={trade} />
+                      <tr key={trade.id} className="border-b border-[var(--border-subtle)] transition-colors hover:bg-[var(--bg-elevated)]">
+                        <td className="px-4 py-2.5">
+                          <div className="flex items-center gap-2">
+                            {trade.direction === 'LONG'
+                              ? <ArrowUpRight size={11} style={{ color: 'var(--color-profit)' }} />
+                              : <ArrowDownRight size={11} style={{ color: 'var(--color-loss)' }} />}
+                            <span className="font-mono text-sm text-[var(--text-primary)]">{trade.symbol}</span>
+                          </div>
+                        </td>
+                        <td className="px-4 py-2.5"><StrategyBadge code={trade.strategyCode} size="sm" /></td>
+                        <td className="px-4 py-2.5"><PnlCell value={trade.realizedPnl} /></td>
+                        <td className="px-4 py-2.5 text-xs text-[var(--text-muted)]">{formatDate(trade.exitTime)}</td>
+                      </tr>
                     ))}
                   </tbody>
                 </table>
-              </div>
-            )}
+              )}
+            </div>
           </div>
-        </div>
-
-        {/* Strategy status */}
-        <div className="lg:col-span-2">
-          <SectionHeader
-            title="Strategies"
-            count={strategies.length}
-            href="/strategies"
-            hrefLabel="Manage"
-          />
-          {strategiesLoading ? (
-            <div className="space-y-3">
-              {Array.from({ length: 3 }).map((_, i) => (
-                <Skeleton key={i} className="h-24 w-full rounded-lg" />
-              ))}
-            </div>
-          ) : strategies.length === 0 ? (
-            <div className="rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)]">
-              <EmptyState
-                icon={Zap}
-                title="No strategies configured"
-                description="Add a strategy to start trading."
-              />
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {strategies.map((s) => (
-                <StrategyStatusCard key={s.id} strategy={s} />
-              ))}
-            </div>
-          )}
         </div>
       </div>
     </div>

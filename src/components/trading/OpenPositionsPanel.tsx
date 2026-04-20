@@ -134,13 +134,19 @@ const COLUMNS = ['Symbol', 'Direction', 'Entry Price', 'Mark Price', 'Unreal. P&
 interface OpenPositionsPanelProps {
   positions: LivePosition[];
   isLoading: boolean;
+  className?: string;
 }
 
-export function OpenPositionsPanel({ positions, isLoading }: OpenPositionsPanelProps) {
+export function OpenPositionsPanel({ positions, isLoading, className }: OpenPositionsPanelProps) {
   return (
-    <div className="rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)]">
+    <div
+      className={cn(
+        'flex flex-col overflow-hidden rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)]',
+        className,
+      )}
+    >
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-[var(--border-subtle)] px-5 py-3">
+      <div className="flex shrink-0 items-center justify-between border-b border-[var(--border-subtle)] px-5 py-3">
         <div className="flex items-center gap-2.5">
           <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--text-secondary)]">
             Open Positions
@@ -157,17 +163,19 @@ export function OpenPositionsPanel({ positions, isLoading }: OpenPositionsPanelP
         </span>
       </div>
 
-      {/* Table */}
+      {/* Table — flex-1 so it fills remaining panel height and scrolls */}
       {positions.length === 0 && !isLoading ? (
-        <EmptyState
-          icon={Activity}
-          title="No open positions"
-          description="Active trades will appear here in real time."
-        />
+        <div className="flex flex-1 items-center justify-center">
+          <EmptyState
+            icon={Activity}
+            title="No open positions"
+            description="Active trades will appear here in real time."
+          />
+        </div>
       ) : (
-        <div className="overflow-x-auto">
+        <div className="flex-1 overflow-auto">
           <table className="w-full min-w-[640px]">
-            <thead>
+            <thead className="sticky top-0 bg-[var(--bg-surface)]">
               <tr className="border-b border-[var(--border-subtle)]">
                 {COLUMNS.map((col) => (
                   <th
