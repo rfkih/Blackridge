@@ -1,115 +1,283 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap');
+/* ─────────────────────────────────────────────────────────────────────
+   Blackheart — Dark Terminal Luxury × Paper Terminal
+   Tokens for [data-theme="dark"] (default) and [data-theme="light"]
+   Fonts are loaded via next/font in app/layout.tsx and exposed as
+   CSS vars: --font-geist-sans, --font-geist-mono, --font-jetbrains-mono
+   ───────────────────────────────────────────────────────────────────── */
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-@layer base {
-  :root {
-    /* ── Blackheart design tokens ─────────────────────────────── */
-    /* Backgrounds */
-    --bg-base: #0a0b0d;
-    --bg-surface: #111318;
-    --bg-elevated: #1a1d24;
-    --bg-overlay: #22262f;
-    --bg-hover: #2a2f3a;
+/* ── Shared tokens — radius, typography, motion ─────────────────────── */
+:root {
+  /* Radius — terminal-tight. No "pill" anything. */
+  --radius-sm: 3px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius: var(--radius-md); /* shadcn default */
 
-    /* Borders */
-    --border-subtle: #1e2230;
-    --border-default: #2a2f3a;
-    --border-strong: #3d4455;
+  /* Typography families — next/font provides --font-inter and --font-jetbrains-mono.
+     Display + numerics share JetBrains Mono: one mono face across the UI gives the
+     Bloomberg-cohesive texture the brief calls for. Body is Inter with tight tracking. */
+  --font-display: var(--font-jetbrains-mono), ui-monospace, SFMono-Regular, Menlo, Consolas,
+    monospace;
+  --font-body: var(--font-inter), system-ui, -apple-system, Segoe UI, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, SFMono-Regular, Menlo, Consolas,
+    monospace;
 
-    /* Semantic colors */
-    --color-profit: #00c896;
-    --color-loss: #ff4d6a;
-    --color-warning: #f5a623;
-    --color-info: #4e9eff;
-    --color-neutral: #8892a4;
+  /* Motion */
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur-fast: 120ms;
+  --dur-base: 180ms;
+  --dur-slow: 280ms;
+}
 
-    /* Text */
-    --text-primary: #e8ebf0;
-    --text-secondary: #8892a4;
-    --text-muted: #4a5160;
-    --text-inverse: #0a0b0d;
+/* ── DARK THEME (default) ────────────────────────────────────────────
+   Deeper blacks than v1. Near-black base with a single hairline layer
+   above it. Accent used surgically — one razor-thin line at a time. */
+:root,
+[data-theme='dark'] {
+  color-scheme: dark;
 
-    /* Brand accent */
-    --accent-primary: #4e9eff;
-    --accent-glow: rgba(78, 158, 255, 0.15);
+  /* Surfaces — progressively lighter by ~6% luminance per step */
+  --bg-base: #08090b;
+  --bg-surface: #0e0f13;
+  --bg-elevated: #16181e;
+  --bg-overlay: #1d2028;
+  --bg-hover: #262a33;
 
-    /* Typography */
-    --font-display: 'DM Mono', monospace;
-    --font-body: 'Inter', sans-serif;
-    --font-mono: 'JetBrains Mono', monospace;
+  /* Borders — barely-there → tangible */
+  --border-subtle: #1a1d24;
+  --border-default: #242831;
+  --border-strong: #3a3f4b;
 
-    /* Radius */
-    --radius-sm: 4px;
-    --radius-md: 8px;
-    --radius-lg: 12px;
-    --radius: 0.5rem;
+  /* Text — off-white primary to reduce eye-burn vs #FFF */
+  --text-primary: #edeef0;
+  --text-secondary: #9aa0ae;
+  --text-muted: #555b69;
+  --text-inverse: #08090b;
 
-    /* Shadows */
-    --shadow-panel: 0 0 0 1px var(--border-subtle), 0 4px 24px rgba(0, 0, 0, 0.4);
-    --shadow-glow-profit: 0 0 12px rgba(0, 200, 150, 0.2);
-    --shadow-glow-loss: 0 0 12px rgba(255, 77, 106, 0.2);
+  /* Semantic — brighter on dark for legibility, kept honest */
+  --color-profit: #00d395;
+  --color-loss: #ff5266;
+  --color-warning: #f2a53a;
+  --color-info: #5a9eff;
+  --color-neutral: #8892a4;
 
-    /* ── shadcn/ui compat (HSL components, mapped to Blackheart palette) ── */
-    /* Tailwind config wraps these with hsl(...) */
-    --background: 220 13% 4%;
-    --foreground: 220 18% 93%;
+  /* Profit / loss soft tints for backgrounds (cell flash, pill bg) */
+  --tint-profit: rgba(0, 211, 149, 0.10);
+  --tint-loss: rgba(255, 82, 102, 0.10);
+  --tint-warning: rgba(242, 165, 58, 0.10);
+  --tint-info: rgba(90, 158, 255, 0.10);
 
-    --card: 222 17% 8%;
-    --card-foreground: 220 18% 93%;
+  /* Flash at 15% opacity — used by PnlCell tick animation */
+  --flash-profit: rgba(0, 211, 149, 0.15);
+  --flash-loss: rgba(255, 82, 102, 0.15);
 
-    --popover: 222 16% 12%;
-    --popover-foreground: 220 18% 93%;
+  /* Accent = profit-green. No chromatic brand. Every color in the UI
+     carries P&L meaning; "active / live / link" is semantically "up". */
+  --accent-primary: var(--color-profit);
+  --accent-subtle: rgba(0, 211, 149, 0.18);
+  --accent-glow: rgba(0, 211, 149, 0.10);
 
-    --primary: 213 100% 65%;
-    --primary-foreground: 220 13% 4%;
+  /* Shadows — hairline ring + subtle drop, no blur-fest */
+  --shadow-panel: 0 0 0 1px var(--border-subtle), 0 1px 2px rgba(0, 0, 0, 0.40);
+  --shadow-float: 0 0 0 1px var(--border-default), 0 8px 32px rgba(0, 0, 0, 0.48);
+  --shadow-glow-profit: 0 0 16px rgba(0, 211, 149, 0.18);
+  --shadow-glow-loss: 0 0 16px rgba(255, 82, 102, 0.18);
 
-    --secondary: 222 16% 16%;
-    --secondary-foreground: 220 18% 93%;
+  /* Focus ring — profit-green, slightly dimmed so it reads as "focused"
+     not "on fire". */
+  --ring: 162 100% 42%;
 
-    --muted: 222 16% 16%;
-    --muted-foreground: 220 13% 60%;
+  /* ── shadcn/ui HSL vars (Radix popovers, dialogs, etc.) ─────────── */
+  --background: 220 15% 4%;
+  --foreground: 220 10% 93%;
+  --card: 222 17% 7%;
+  --card-foreground: 220 10% 93%;
+  --popover: 222 17% 9%;
+  --popover-foreground: 220 10% 93%;
+  --primary: 162 100% 42%;
+  --primary-foreground: 220 15% 4%;
+  --secondary: 222 14% 14%;
+  --secondary-foreground: 220 10% 93%;
+  --muted: 222 14% 12%;
+  --muted-foreground: 222 10% 58%;
+  --accent: 222 14% 18%;
+  --accent-foreground: 220 10% 93%;
+  --destructive: 351 100% 66%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 222 14% 16%;
+  --input: 222 14% 16%;
 
-    --accent: 222 16% 20%;
-    --accent-foreground: 220 18% 93%;
+  /* Charts — Recharts/TV series colors. Paired to profit/loss/brand + neutrals. */
+  --chart-1: 161 100% 42%; /* profit */
+  --chart-2: 351 100% 66%; /* loss */
+  --chart-3: 213 100% 68%; /* info/brand */
+  --chart-4: 36 88% 56%;   /* warning */
+  --chart-5: 220 10% 64%;  /* neutral */
 
-    --destructive: 351 100% 65%;
-    --destructive-foreground: 0 0% 100%;
+  /* Sidebar — deliberately the same surface as base, separated by hairline */
+  --sidebar: 220 15% 4%;
+  --sidebar-foreground: 220 10% 93%;
+  --sidebar-primary: 162 100% 42%;
+  --sidebar-primary-foreground: 220 15% 4%;
+  --sidebar-accent: 222 14% 12%;
+  --sidebar-accent-foreground: 220 10% 93%;
+  --sidebar-border: 222 14% 10%;
+  --sidebar-ring: 162 100% 42%;
+}
 
-    --border: 222 16% 20%;
-    --input: 222 16% 20%;
-    --ring: 213 100% 65%;
+/* ── LIGHT THEME — "Platinum Terminal" ──────────────────────────────
+   Warm-neutral stone (NOT cream/yellow). Think Swiss private bank,
+   Hermès boutique card stock, not a legal pad. Hue pulled toward
+   neutral-warm-grey (~hue 36, sat 8–14%); ink-black type remains.
+   Profit/loss deepened for WCAG AA on the brighter paper. */
+[data-theme='light'] {
+  color-scheme: light;
 
-    --chart-1: 162 100% 39%;
-    --chart-2: 351 100% 65%;
-    --chart-3: 213 100% 65%;
-    --chart-4: 36 91% 55%;
-    --chart-5: 220 13% 60%;
+  /* Surfaces — stone → linen → bone */
+  --bg-base: #edece8;         /* page: warm stone, almost neutral */
+  --bg-surface: #f5f4f0;      /* primary surface: linen */
+  --bg-elevated: #fdfcfa;     /* cards: bone, a whisper of warmth */
+  --bg-overlay: #e5e3dd;      /* selection / highlight */
+  --bg-hover: #dcd9d0;
 
-    --sidebar: 222 17% 8%;
-    --sidebar-foreground: 220 18% 93%;
-    --sidebar-primary: 213 100% 65%;
-    --sidebar-primary-foreground: 220 13% 4%;
-    --sidebar-accent: 222 16% 20%;
-    --sidebar-accent-foreground: 220 18% 93%;
-    --sidebar-border: 222 21% 15%;
-    --sidebar-ring: 213 100% 65%;
+  /* Borders — warm platinum grey, no yellow */
+  --border-subtle: #dcd9d0;
+  --border-default: #bdb8ab;
+  --border-strong: #7c7668;
+
+  /* Text — deep ink, very slight cool undertone for contrast */
+  --text-primary: #14161a;
+  --text-secondary: #4b515d;
+  --text-muted: #8a857a;
+  --text-inverse: #fdfcfa;
+
+  /* Semantic — deeper forest + burgundy for on-paper legibility */
+  --color-profit: #006d4a;
+  --color-loss: #b4263a;
+  --color-warning: #9a5f0a;
+  --color-info: #1b56bc;
+  --color-neutral: #6b6e78;
+
+  /* Tints — keep soft; they read stronger on a brighter canvas */
+  --tint-profit: rgba(0, 109, 74, 0.08);
+  --tint-loss: rgba(180, 38, 58, 0.08);
+  --tint-warning: rgba(154, 95, 10, 0.08);
+  --tint-info: rgba(27, 86, 188, 0.08);
+
+  --flash-profit: rgba(0, 109, 74, 0.14);
+  --flash-loss: rgba(180, 38, 58, 0.14);
+
+  --accent-primary: var(--color-profit);
+  --accent-subtle: rgba(0, 109, 74, 0.14);
+  --accent-glow: rgba(0, 109, 74, 0.08);
+
+  /* Paper shadows — almost none. Hairline ring carries the weight. */
+  --shadow-panel: 0 0 0 1px var(--border-subtle), 0 1px 2px rgba(20, 22, 26, 0.04);
+  --shadow-float: 0 0 0 1px var(--border-default), 0 12px 32px rgba(20, 22, 26, 0.08);
+  --shadow-glow-profit: 0 0 12px rgba(0, 109, 74, 0.10);
+  --shadow-glow-loss: 0 0 12px rgba(180, 38, 58, 0.10);
+
+  --ring: 162 100% 21%;
+
+  /* shadcn HSL vars — re-derived for platinum paper */
+  --background: 42 11% 92%;
+  --foreground: 222 13% 9%;
+  --card: 42 27% 98%;
+  --card-foreground: 222 13% 9%;
+  --popover: 42 27% 98%;
+  --popover-foreground: 222 13% 9%;
+  --primary: 162 100% 21%;
+  --primary-foreground: 42 22% 97%;
+  --secondary: 42 12% 88%;
+  --secondary-foreground: 222 13% 9%;
+  --muted: 42 12% 90%;
+  --muted-foreground: 32 7% 42%;
+  --accent: 42 12% 88%;
+  --accent-foreground: 222 13% 9%;
+  --destructive: 352 65% 42%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 42 14% 82%;
+  --input: 42 14% 82%;
+
+  --chart-1: 162 100% 21%;
+  --chart-2: 352 65% 42%;
+  --chart-3: 216 74% 42%;
+  --chart-4: 34 85% 33%;
+  --chart-5: 225 6% 45%;
+
+  --sidebar: 42 11% 92%;
+  --sidebar-foreground: 222 13% 9%;
+  --sidebar-primary: 162 100% 21%;
+  --sidebar-primary-foreground: 42 22% 97%;
+  --sidebar-accent: 42 12% 88%;
+  --sidebar-accent-foreground: 222 13% 9%;
+  --sidebar-border: 42 14% 84%;
+  --sidebar-ring: 162 100% 21%;
+}
+
+/* First-paint respect for OS preference when the user hasn't explicitly
+   chosen a theme yet. ThemeProvider's pre-hydration script will set
+   data-theme before paint; this is a belt-and-braces fallback. */
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme]) {
+    color-scheme: light;
   }
 }
 
+/* ── Base resets ─────────────────────────────────────────────────────── */
 @layer base {
   * {
     @apply border-border;
   }
+
   html,
   body {
     background-color: var(--bg-base);
     color: var(--text-primary);
     font-family: var(--font-body);
     font-feature-settings: 'cv11', 'ss01', 'ss03';
+    letter-spacing: -0.01em;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
+
+  /* Theme crossfade — applied to the root so every descendant fades
+     in unison. Paired with the view-transitions API in ThemeProvider
+     where supported; this handles the fallback. */
+  html {
+    transition:
+      background-color var(--dur-base) var(--ease-out-quart),
+      color var(--dur-base) var(--ease-out-quart);
+  }
+
+  body {
+    transition:
+      background-color var(--dur-base) var(--ease-out-quart),
+      color var(--dur-base) var(--ease-out-quart);
+  }
+
+  ::selection {
+    background-color: var(--accent-subtle);
+    color: var(--text-primary);
+  }
+
+  :focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+  }
+}
+
+/* ── Typography utility classes ─────────────────────────────────────── */
+.font-display {
+  font-family: var(--font-display);
+  letter-spacing: -0.02em;
+  font-feature-settings: 'tnum', 'zero', 'ss01';
 }
 
 .font-mono,
@@ -118,22 +286,180 @@ pre {
   font-family: var(--font-mono);
 }
 
-.font-display {
-  font-family: var(--font-display);
-}
-
+/* Numeric data — mandatory on every price, qty, P&L, %. Tabular + slashed 0. */
+.num,
 .tabular-nums {
-  font-variant-numeric: tabular-nums;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums slashed-zero;
+  font-feature-settings: 'tnum', 'zero';
+  letter-spacing: 0;
 }
 
+/* Small uppercase label — the "BLOOMBERG" caption look */
+.label-caps {
+  font-family: var(--font-body);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/* ── View-transitions: simple crossfade on theme change ─────────────
+   Both snapshots cross-dissolve over 180ms, ease-out-quart. No spatial
+   motion — color is the only thing that changes, eyes stay still. */
+@supports (view-transition-name: root) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation-duration: var(--dur-base);
+    animation-timing-function: var(--ease-out-quart);
+    mix-blend-mode: normal;
+  }
+  ::view-transition-old(root) {
+    animation-name: theme-fade-out;
+  }
+  ::view-transition-new(root) {
+    animation-name: theme-fade-in;
+  }
+  @keyframes theme-fade-out {
+    to {
+      opacity: 0;
+    }
+  }
+  @keyframes theme-fade-in {
+    from {
+      opacity: 0;
+    }
+  }
+}
+
+/* ── Utilities ──────────────────────────────────────────────────────── */
 @layer utilities {
   .text-balance {
     text-wrap: balance;
   }
+
+  /* Hairline separator — 1px @ border-subtle */
+  .hairline-b {
+    box-shadow: inset 0 -1px 0 0 var(--border-subtle);
+  }
+  .hairline-t {
+    box-shadow: inset 0 1px 0 0 var(--border-subtle);
+  }
+
+  /* Route / page entry — tiny rise, 240ms, once.
+     Placed on <main> so every navigation feels intentional, not twitchy. */
+  .page-enter {
+    animation: page-enter 240ms var(--ease-out-quart) both;
+  }
+  @keyframes page-enter {
+    0% {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Staggered reveal for dashboard panels — 40ms step, caps at 4.
+     Apply .reveal to children; parent sets --reveal-i (0..3). */
+  .reveal {
+    opacity: 0;
+    transform: translateY(6px);
+    animation: reveal 320ms var(--ease-out-expo) both;
+    animation-delay: calc(var(--reveal-i, 0) * 40ms);
+  }
+  @keyframes reveal {
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Card hover — razor-thin profit-green line sweeps in from the left
+     along the top edge. Pair with `group` on the card. 200ms. */
+  .card-topline::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 1px;
+    width: 100%;
+    background: var(--color-profit);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform var(--dur-base) var(--ease-out-quart);
+    pointer-events: none;
+  }
+  .group:hover > .card-topline::before,
+  .group:focus-within > .card-topline::before {
+    transform: scaleX(1);
+  }
+
+  /* Subtle shimmer for skeleton loaders */
+  .shimmer {
+    background: linear-gradient(
+      90deg,
+      var(--bg-elevated) 0%,
+      var(--bg-overlay) 50%,
+      var(--bg-elevated) 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.6s var(--ease-out-quart) infinite;
+  }
+  @keyframes shimmer {
+    0% {
+      background-position: 200% 0;
+    }
+    100% {
+      background-position: -200% 0;
+    }
+  }
+
+  /* P&L cell tick flash — key by value change in the component */
+  .flash-profit {
+    animation: flash-p 420ms var(--ease-out-quart) 1;
+  }
+  .flash-loss {
+    animation: flash-l 420ms var(--ease-out-quart) 1;
+  }
+  @keyframes flash-p {
+    0% {
+      background-color: var(--flash-profit);
+    }
+    100% {
+      background-color: transparent;
+    }
+  }
+  @keyframes flash-l {
+    0% {
+      background-color: var(--flash-loss);
+    }
+    100% {
+      background-color: transparent;
+    }
+  }
+
+  /* Connection dot pulse — subtler than Tailwind's animate-pulse */
+  .pulse-dot {
+    animation: pulse-dot 2s var(--ease-out-quart) infinite;
+  }
+  @keyframes pulse-dot {
+    0%,
+    100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 0.55;
+      transform: scale(0.88);
+    }
+  }
 }
 
-/* Hide native <input type="number"> spinners — the dark-theme default is
-   unreadable. Param forms render their own stepper chevrons (see ParamField). */
+/* Kill native number spinners where we render our own steppers */
 input[type='number'].no-native-spinners::-webkit-inner-spin-button,
 input[type='number'].no-native-spinners::-webkit-outer-spin-button {
   -webkit-appearance: none;

@@ -1,7 +1,10 @@
 import type { Config } from 'tailwindcss';
 
 const config: Config = {
-  darkMode: ['class'],
+  // Theme is controlled by the `data-theme` attribute on <html>, not a class.
+  // shadcn-originating `dark:` utilities are unused by the redesigned components,
+  // but we keep the selector present for any third-party code.
+  darkMode: ['selector', '[data-theme="dark"]'],
   content: [
     './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
     './src/components/**/*.{js,ts,jsx,tsx,mdx}',
@@ -10,7 +13,7 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // ── shadcn/ui (HSL-wrapped CSS vars) ────────────────────
+        // ── shadcn/ui (HSL-wrapped CSS vars; re-derived per theme in globals.css) ──
         background: 'hsl(var(--background))',
         foreground: 'hsl(var(--foreground))',
         card: {
@@ -62,7 +65,7 @@ const config: Config = {
           ring: 'hsl(var(--sidebar-ring))',
         },
 
-        // ── Blackheart named tokens (raw CSS vars) ──────────────
+        // ── Blackheart named tokens (raw CSS vars, theme-aware) ──
         bg: {
           base: 'var(--bg-base)',
           surface: 'var(--bg-surface)',
@@ -80,6 +83,12 @@ const config: Config = {
         warning: 'var(--color-warning)',
         info: 'var(--color-info)',
         neutral: 'var(--color-neutral)',
+        tint: {
+          profit: 'var(--tint-profit)',
+          loss: 'var(--tint-loss)',
+          warning: 'var(--tint-warning)',
+          info: 'var(--tint-info)',
+        },
         text: {
           primary: 'var(--text-primary)',
           secondary: 'var(--text-secondary)',
@@ -88,6 +97,7 @@ const config: Config = {
         },
         brand: {
           DEFAULT: 'var(--accent-primary)',
+          subtle: 'var(--accent-subtle)',
           glow: 'var(--accent-glow)',
         },
       },
@@ -97,15 +107,63 @@ const config: Config = {
         mono: ['var(--font-mono)'],
         sans: ['var(--font-body)'],
       },
+      fontSize: {
+        // Dramatic scale — "big things BIG, small things SMALL, no mushy middle"
+        caption: ['10px', { lineHeight: '1.4', letterSpacing: '0.12em' }],
+        micro: ['11px', { lineHeight: '1.45' }],
+        body: ['13px', { lineHeight: '1.55' }],
+        'body-lg': ['14px', { lineHeight: '1.55' }],
+        heading: ['15px', { lineHeight: '1.35', letterSpacing: '-0.005em' }],
+        'heading-lg': ['18px', { lineHeight: '1.3', letterSpacing: '-0.01em' }],
+        'display-sm': ['24px', { lineHeight: '1.15', letterSpacing: '-0.02em' }],
+        'display-md': ['36px', { lineHeight: '1.05', letterSpacing: '-0.025em' }],
+        'display-lg': ['44px', { lineHeight: '1.02', letterSpacing: '-0.03em' }],
+        'display-xl': ['56px', { lineHeight: '1', letterSpacing: '-0.035em' }],
+        'display-2xl': ['72px', { lineHeight: '0.98', letterSpacing: '-0.04em' }],
+      },
+      letterSpacing: {
+        tightest: '-0.035em',
+        tighter: '-0.025em',
+        tight: '-0.01em',
+        normal: '0',
+        wide: '0.04em',
+        wider: '0.08em',
+        widest: '0.12em',
+      },
       borderRadius: {
+        none: '0',
         sm: 'var(--radius-sm)',
+        DEFAULT: 'var(--radius-md)',
         md: 'var(--radius-md)',
         lg: 'var(--radius-lg)',
+        // Intentionally no xl / 2xl / full — terminal aesthetic rejects pill UI.
+      },
+      borderWidth: {
+        hairline: '1px',
       },
       boxShadow: {
         panel: 'var(--shadow-panel)',
+        float: 'var(--shadow-float)',
         'glow-profit': 'var(--shadow-glow-profit)',
         'glow-loss': 'var(--shadow-glow-loss)',
+      },
+      transitionTimingFunction: {
+        'out-quart': 'cubic-bezier(0.25, 1, 0.5, 1)',
+        'out-expo': 'cubic-bezier(0.16, 1, 0.3, 1)',
+      },
+      transitionDuration: {
+        fast: '120ms',
+        base: '180ms',
+        slow: '280ms',
+      },
+      keyframes: {
+        'fade-up': {
+          '0%': { opacity: '0', transform: 'translateY(4px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
+      },
+      animation: {
+        'fade-up': 'fade-up 180ms cubic-bezier(0.25, 1, 0.5, 1) both',
       },
     },
   },

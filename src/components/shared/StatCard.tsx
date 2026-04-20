@@ -41,39 +41,35 @@ export function StatCard({
   return (
     <div
       className={cn(
-        'flex flex-col gap-3 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-5',
+        'group relative flex flex-col gap-3 overflow-hidden rounded-md border border-bd-subtle bg-bg-surface px-4 py-4',
+        'transition-colors duration-base ease-out-quart hover:border-bd',
         className,
       )}
     >
+      <span aria-hidden="true" className="card-topline" />
+
       <div className="flex items-center justify-between">
-        <span className="text-[10px] font-semibold uppercase tracking-widest text-[var(--text-muted)]">
-          {label}
-        </span>
+        <span className="label-caps">{label}</span>
         {Icon && (
-          <span className="rounded-md bg-[var(--bg-elevated)] p-1.5">
-            <Icon size={13} className="text-[var(--text-muted)]" />
-          </span>
+          <Icon size={13} strokeWidth={1.75} className="text-text-muted" aria-hidden="true" />
         )}
       </div>
 
       {isLoading ? (
         <div className="space-y-2">
-          <Skeleton className="h-7 w-36" />
-          {sub !== undefined && <Skeleton className="h-3.5 w-20" />}
+          <Skeleton className="h-7 w-32" />
+          {sub !== undefined && <Skeleton className="h-3 w-16" />}
         </div>
       ) : (
         <div>
           <span
-            className="font-display text-2xl font-semibold leading-none tabular-nums tracking-tight"
+            className="num block text-[26px] font-semibold leading-none tracking-tighter"
             style={{ color: VALUE_COLOR_MAP[valueColor] }}
           >
             {value}
           </span>
           {sub && (
-            <p
-              className="mt-1.5 text-[11px] tabular-nums"
-              style={{ color: SUB_COLOR_MAP[subColor] }}
-            >
+            <p className="num mt-2 text-[11px] leading-none" style={{ color: SUB_COLOR_MAP[subColor] }}>
               {sub}
             </p>
           )}

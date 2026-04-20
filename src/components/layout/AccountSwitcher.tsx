@@ -74,29 +74,25 @@ export function AccountSwitcher() {
           type="button"
           aria-label="Switch account"
           className={cn(
-            'inline-flex h-7 max-w-[220px] items-center gap-2 rounded-md border px-2 text-xs transition-colors',
-            'border-[var(--border-default)] bg-[var(--bg-surface)] text-[var(--text-primary)]',
-            'hover:border-[var(--border-strong)] hover:bg-[var(--bg-elevated)]',
-            'focus:outline-none focus-visible:ring-1 focus-visible:ring-[var(--accent-primary)]',
+            'inline-flex h-7 max-w-[220px] items-center gap-2 rounded-sm border px-2 transition-colors duration-fast',
+            'border-bd-subtle bg-bg-surface text-text-primary',
+            'hover:border-bd hover:bg-bg-elevated',
+            'focus:outline-none focus-visible:ring-2 focus-visible:ring-ring',
           )}
         >
           <AccountAvatar account={activeAccount} isAll={isAll} />
           <span className="flex min-w-0 flex-col items-start leading-tight">
-            <span className="truncate font-medium">{triggerLabel}</span>
+            <span className="truncate text-[11px] font-medium">{triggerLabel}</span>
             {triggerSubtle && (
-              <span className="truncate font-mono text-[9px] text-[var(--text-muted)]">
-                {triggerSubtle}
-              </span>
+              <span className="truncate font-mono text-[9px] text-text-muted">{triggerSubtle}</span>
             )}
           </span>
-          <ChevronDown size={12} className="shrink-0 opacity-60" />
+          <ChevronDown size={12} strokeWidth={1.75} className="shrink-0 opacity-60" />
         </button>
       </DropdownMenuTrigger>
 
       <DropdownMenuContent align="end" className="min-w-[240px]">
-        <DropdownMenuLabel className="text-[10px] uppercase tracking-wider text-[var(--text-muted)]">
-          Account context
-        </DropdownMenuLabel>
+        <DropdownMenuLabel className="label-caps !text-[10px]">Account context</DropdownMenuLabel>
 
         {hasMultiple && (
           <>
@@ -141,23 +137,21 @@ function AccountAvatar({
 }) {
   if (isAll) {
     return (
-      <span className="flex size-5 shrink-0 items-center justify-center rounded bg-[var(--bg-hover)] text-[var(--accent-primary)]">
-        <Layers size={11} />
+      <span className="flex size-5 shrink-0 items-center justify-center rounded-sm bg-bg-elevated text-profit">
+        <Layers size={11} strokeWidth={1.75} />
       </span>
     );
   }
   if (!account) {
     return (
-      <span className="size-5 shrink-0 rounded bg-[var(--bg-hover)]" aria-hidden="true" />
+      <span className="size-5 shrink-0 rounded-sm bg-bg-elevated" aria-hidden="true" />
     );
   }
   return (
     <span
       className={cn(
-        'flex size-5 shrink-0 items-center justify-center rounded font-mono text-[9px] font-semibold',
-        account.active
-          ? 'bg-[rgba(78,158,255,0.14)] text-[var(--accent-primary)]'
-          : 'bg-[var(--bg-hover)] text-[var(--text-muted)]',
+        'flex size-5 shrink-0 items-center justify-center rounded-sm font-mono text-[9px] font-semibold',
+        account.active ? 'bg-tint-profit text-profit' : 'bg-bg-elevated text-text-muted',
       )}
       aria-hidden="true"
     >
@@ -187,26 +181,26 @@ function AccountOption({
     <DropdownMenuItem
       onSelect={onSelect}
       className={cn(
-        'flex cursor-pointer items-center gap-2.5 px-2 py-1.5 text-xs',
-        selected ? 'bg-[var(--bg-elevated)]' : '',
+        'flex cursor-pointer items-center gap-2.5 px-2 py-1.5 text-[12px]',
+        selected ? 'bg-bg-elevated' : '',
       )}
     >
       {icon}
       <div className="flex min-w-0 flex-1 flex-col">
         <div className="flex items-center gap-1.5">
-          <span className="truncate font-medium text-[var(--text-primary)]">{label}</span>
+          <span className="truncate font-medium text-text-primary">{label}</span>
           {active === false && (
-            <span className="rounded bg-[rgba(255,77,106,0.12)] px-1 py-px font-mono text-[9px] text-[var(--color-loss)]">
+            <span className="rounded-sm bg-tint-loss px-1 py-px font-mono text-[9px] text-loss">
               inactive
             </span>
           )}
         </div>
-        <span className="truncate font-mono text-[9px] text-[var(--text-muted)]">{subtitle}</span>
+        <span className="truncate font-mono text-[9px] text-text-muted">{subtitle}</span>
       </div>
       <div className="flex shrink-0 items-center gap-2">
-        <span className="font-mono text-[10px] text-[var(--text-muted)]">{count}</span>
+        <span className="font-mono text-[10px] text-text-muted">{count}</span>
         {selected ? (
-          <Check size={12} className="text-[var(--accent-primary)]" />
+          <Check size={12} strokeWidth={2} className="text-profit" />
         ) : (
           <span className="size-3" aria-hidden="true" />
         )}

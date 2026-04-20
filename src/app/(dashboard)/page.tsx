@@ -4,9 +4,6 @@ import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import {
   TrendingUp,
-  DollarSign,
-  Activity,
-  Target,
   ChevronRight,
   Zap,
   PauseCircle,
@@ -14,11 +11,10 @@ import {
   ArrowUpRight,
   ArrowDownRight,
 } from 'lucide-react';
-import { StatCard } from '@/components/shared/StatCard';
+import { HeroPnl } from '@/components/dashboard/HeroPnl';
 import { OpenPositionsPanel } from '@/components/trading/OpenPositionsPanel';
 import { StrategyBadge } from '@/components/trading/StrategyBadge';
 import { PnlCell } from '@/components/shared/PnlCell';
-import { PriceCell } from '@/components/shared/PriceCell';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { ErrorBoundary } from '@/components/shared/ErrorBoundary';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -26,9 +22,8 @@ import { useOpenTrades, useRecentTrades, usePnlSummary } from '@/hooks/useTrades
 import { useStrategies } from '@/hooks/useStrategies';
 import { useActiveAccount } from '@/hooks/useAccounts';
 import { useLivePnl } from '@/hooks/useLivePnl';
-import { formatPrice, formatPnl, formatPercent, formatDate } from '@/lib/formatters';
+import { formatPrice, formatDate } from '@/lib/formatters';
 import { cn } from '@/lib/utils';
-import type { Trades } from '@/types/trading';
 import type { AccountStrategy, AccountStrategyStatus } from '@/types/strategy';
 
 const DashboardMarketChart = dynamic(
@@ -40,15 +35,14 @@ const DashboardMarketChart = dynamic(
     ssr: false,
     loading: () => (
       <div
-        className="w-full animate-pulse rounded-lg border border-[var(--border-subtle)]"
-        style={{ height: 620, background: 'var(--bg-surface)' }}
+        className="w-full rounded-md border border-bd-subtle shimmer"
+        style={{ height: 620 }}
         aria-hidden="true"
       />
     ),
   },
 );
 
-// Recharts is large — defer to a client-only chunk so it doesn't bloat the dashboard's first paint.
 const DashboardEquityCurve = dynamic(
   () =>
     import('@/components/charts/DashboardEquityCurve').then((m) => ({
@@ -57,38 +51,27 @@ const DashboardEquityCurve = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div
-        className="h-full w-full animate-pulse rounded-lg border border-[var(--border-subtle)]"
-        style={{ background: 'var(--bg-surface)' }}
-        aria-hidden="true"
-      />
+      <div className="h-full w-full rounded-md border border-bd-subtle shimmer" aria-hidden="true" />
     ),
   },
 );
-
-// ─── Strategy status card ────────────────────────────────────────────────────
 
 const STATUS_CONFIG: Record<
   AccountStrategyStatus,
   { label: string; icon: React.ElementType; color: string; bg: string }
 > = {
-  LIVE: {
-    label: 'Live',
-    icon: Zap,
-    color: 'var(--color-profit)',
-    bg: 'rgba(0,200,150,0.1)',
-  },
+  LIVE: { label: 'Live', icon: Zap, color: 'var(--color-profit)', bg: 'var(--tint-profit)' },
   PAUSED: {
     label: 'Paused',
     icon: PauseCircle,
     color: 'var(--color-warning)',
-    bg: 'rgba(245,166,35,0.1)',
+    bg: 'var(--tint-warning)',
   },
   STOPPED: {
     label: 'Stopped',
     icon: StopCircle,
     color: 'var(--color-loss)',
-    bg: 'rgba(255,77,106,0.1)',
+    bg: 'var(--tint-loss)',
   },
 };
 
@@ -99,104 +82,62 @@ function StrategyStatusCard({ strategy }: { strategy: AccountStrategy }) {
   return (
     <Link
       href={`/strategies/${strategy.id}`}
-      className="group block rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-4 transition-colors hover:border-[var(--border-default)] hover:bg-[var(--bg-elevated)]"
+      className="group relative block overflow-hidden rounded-md border border-bd-subtle bg-bg-base transition-colors duration-base ease-out-quart hover:border-bd"
     >
-      <div className="flex items-start justify-between gap-2">
-        <StrategyBadge code={strategy.strategyCode} size="sm" />
-        <span
-          className="flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-semibold"
-          style={{ backgroundColor: statusCfg.bg, color: statusCfg.color }}
-        >
-          <StatusIcon size={10} />
-          {statusCfg.label}
-        </span>
-      </div>
+      <span aria-hidden="true" className="card-topline" />
+      <div className="p-4">
+        <div className="flex items-start justify-between gap-2">
+          <StrategyBadge code={strategy.strategyCode} size="sm" />
+          <span
+            className="inline-flex items-center gap-1 rounded-sm px-1.5 py-0.5 font-mono text-[10px] font-semibold"
+            style={{ backgroundColor: statusCfg.bg, color: statusCfg.color }}
+          >
+            <StatusIcon size={10} strokeWidth={2} />
+            {statusCfg.label}
+          </span>
+        </div>
 
-      <div className="mt-3 space-y-1">
-        <p className="font-mono text-sm font-medium text-[var(--text-primary)]">
-          {strategy.symbol}
-          <span className="ml-1.5 text-xs text-[var(--text-muted)]">{strategy.interval}</span>
-        </p>
-        <p className="font-mono tabular-nums text-xs text-[var(--text-secondary)]">
-          {formatPrice(strategy.capitalAllocatedUsdt)}
-          <span className="text-[var(--text-muted)]"> allocated</span>
-        </p>
-      </div>
+        <div className="mt-3 space-y-1">
+          <p className="num text-[13px] font-medium text-text-primary">
+            {strategy.symbol}
+            <span className="ml-1.5 text-[11px] text-text-muted">{strategy.interval}</span>
+          </p>
+          <p className="num text-[11px] text-text-secondary">
+            {formatPrice(strategy.capitalAllocatedUsdt)}
+            <span className="text-text-muted"> USDT allocated</span>
+          </p>
+        </div>
 
-      <div className="mt-3 flex items-center gap-3">
-        <span
-          className={cn(
-            'rounded px-1.5 py-0.5 font-mono text-[10px]',
-            strategy.allowLong
-              ? 'bg-[rgba(0,200,150,0.08)] text-[var(--color-profit)]'
-              : 'bg-[var(--bg-elevated)] text-[var(--text-muted)]',
-          )}
-        >
-          L
-        </span>
-        <span
-          className={cn(
-            'rounded px-1.5 py-0.5 font-mono text-[10px]',
-            strategy.allowShort
-              ? 'bg-[rgba(255,77,106,0.08)] text-[var(--color-loss)]'
-              : 'bg-[var(--bg-elevated)] text-[var(--text-muted)]',
-          )}
-        >
-          S
-        </span>
-        <span className="ml-auto text-[10px] text-[var(--text-muted)] opacity-0 transition-opacity group-hover:opacity-100">
-          View →
-        </span>
+        <div className="mt-3 flex items-center gap-2">
+          <DirPill kind="long" on={strategy.allowLong} />
+          <DirPill kind="short" on={strategy.allowShort} />
+          <span className="label-caps ml-auto !text-[9px] opacity-0 transition-opacity duration-fast group-hover:opacity-100">
+            View
+          </span>
+        </div>
       </div>
     </Link>
   );
 }
 
-// ─── Section wrapper ─────────────────────────────────────────────────────────
-
-function SectionHeader({
-  title,
-  count,
-  href,
-  hrefLabel = 'View all',
-}: {
-  title: string;
-  count?: number;
-  href?: string;
-  hrefLabel?: string;
-}) {
+function DirPill({ kind, on }: { kind: 'long' | 'short'; on: boolean }) {
+  const color = kind === 'long' ? 'var(--color-profit)' : 'var(--color-loss)';
+  const bg = kind === 'long' ? 'var(--tint-profit)' : 'var(--tint-loss)';
   return (
-    <div className="mb-3 flex items-center justify-between">
-      <div className="flex items-center gap-2">
-        <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--text-secondary)]">
-          {title}
-        </h2>
-        {count !== undefined && (
-          <span className="rounded-full bg-[var(--bg-elevated)] px-2 py-0.5 font-mono text-xs text-[var(--text-muted)]">
-            {count}
-          </span>
-        )}
-      </div>
-      {href && (
-        <Link
-          href={href}
-          className="flex items-center gap-0.5 text-xs text-[var(--text-muted)] transition-colors hover:text-[var(--accent-primary)]"
-        >
-          {hrefLabel}
-          <ChevronRight size={12} />
-        </Link>
-      )}
-    </div>
+    <span
+      className="inline-flex items-center rounded-sm px-1.5 py-0.5 font-mono text-[10px]"
+      style={{
+        backgroundColor: on ? bg : 'var(--bg-elevated)',
+        color: on ? color : 'var(--text-muted)',
+      }}
+    >
+      {kind === 'long' ? 'L' : 'S'}
+    </span>
   );
 }
 
-// ─── Dashboard page ──────────────────────────────────────────────────────────
-
 export default function DashboardPage() {
   const { data: strategies = [], isLoading: strategiesLoading } = useStrategies();
-  // Active account context from the top-bar switcher. `scopedAccountId` is
-  // `undefined` in "All accounts" mode so scoped queries fall back to the
-  // backend's user-wide aggregate.
   const { scopedAccountId, isAll, activeAccount } = useActiveAccount();
 
   const visibleStrategies = scopedAccountId
@@ -205,10 +146,7 @@ export default function DashboardPage() {
 
   const { data: pnlSummary, isLoading: pnlLoading } = usePnlSummary('today');
   const { data: openTrades = [], isLoading: tradesLoading } = useOpenTrades(scopedAccountId);
-  const { data: recentTrades = [], isLoading: recentLoading } = useRecentTrades(
-    10,
-    scopedAccountId,
-  );
+  const { data: recentTrades = [], isLoading: recentLoading } = useRecentTrades(10, scopedAccountId);
 
   useLivePnl(scopedAccountId);
 
@@ -220,46 +158,24 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      {/* ── Scope banner — tells the user which account they're viewing ── */}
-      <div className="flex items-center justify-between rounded-md border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-3 py-2 text-xs">
-        <div className="flex items-center gap-2 text-[var(--text-secondary)]">
-          <span className="font-mono text-[10px] uppercase tracking-widest text-[var(--text-muted)]">
-            Scope
-          </span>
-          {isAll ? (
-            <span>
-              <span className="font-medium text-[var(--text-primary)]">All accounts</span>{' '}
-              · aggregated view
-            </span>
-          ) : activeAccount ? (
-            <span>
-              <span className="font-medium text-[var(--text-primary)]">{activeAccount.label}</span>{' '}
-              <span className="font-mono text-[10px] text-[var(--text-muted)]">
-                {activeAccount.exchange}
-              </span>
-            </span>
-          ) : (
-            <span className="text-[var(--text-muted)]">No account selected</span>
-          )}
-        </div>
-        <span className="font-mono text-[10px] text-[var(--text-muted)]">
-          Change in the top bar →
-        </span>
+      {/* Row 0: the hero — the single visually dominant element on the page */}
+      <div className="reveal" style={{ ['--reveal-i' as string]: 0 }}>
+        <HeroPnl
+          unrealizedPnl={unrealizedPnl}
+          realizedPnlToday={realizedPnl}
+          openCount={openCount}
+          winRate={winRate}
+          isLoading={heroLoading}
+          scope={{ isAll, account: activeAccount }}
+        />
       </div>
 
-      {/* ── Row 1: Hero stats ── */}
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <StatCard label="Unrealized P&L" value={formatPnl(unrealizedPnl)} valueColor={unrealizedPnl >= 0 ? 'profit' : 'loss'} sub="open positions" icon={TrendingUp} isLoading={heroLoading} />
-        <StatCard label="Realized P&L Today" value={formatPnl(realizedPnl)} valueColor={realizedPnl >= 0 ? 'profit' : 'loss'} sub="closed trades today" icon={DollarSign} isLoading={heroLoading} />
-        <StatCard label="Open Positions" value={String(openCount)} valueColor="info" sub="active trades" icon={Activity} isLoading={heroLoading} />
-        <StatCard label="Win Rate (30d)" value={`${winRate.toFixed(1)}%`} valueColor={winRate >= 50 ? 'profit' : 'loss'} sub={`${formatPercent(winRate - 50)} vs 50%`} subColor={winRate >= 50 ? 'profit' : 'loss'} icon={Target} isLoading={heroLoading} />
-      </div>
-
-      {/* ── Row 2: Open positions + Strategy status — fixed height so panels match ── */}
+      {/* Row 1: Open positions (3/5) + Strategies (2/5) */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
-
-        {/* Open positions — fills the fixed height, table scrolls if many rows */}
-        <div className="flex flex-col lg:col-span-3" style={{ height: 360 }}>
+        <div
+          className="reveal flex flex-col lg:col-span-3"
+          style={{ ['--reveal-i' as string]: 1, height: 360 }}
+        >
           <ErrorBoundary label="Open positions">
             <OpenPositionsPanel
               positions={openTrades}
@@ -269,44 +185,40 @@ export default function DashboardPage() {
           </ErrorBoundary>
         </div>
 
-        {/* Strategies — same fixed height, card list scrolls if many strategies */}
-        <div className="flex flex-col lg:col-span-2" style={{ height: 360 }}>
-          <div className="flex flex-1 min-h-0 flex-col overflow-hidden rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)]">
-            {/* Panel header */}
-            <div className="flex shrink-0 items-center justify-between border-b border-[var(--border-subtle)] px-4 py-3">
+        <div
+          className="reveal flex flex-col lg:col-span-2"
+          style={{ ['--reveal-i' as string]: 2, height: 360 }}
+        >
+          <div className="flex flex-1 min-h-0 flex-col overflow-hidden rounded-md border border-bd-subtle bg-bg-surface">
+            <div className="flex shrink-0 items-center justify-between border-b border-bd-subtle px-4 py-3">
               <div className="flex items-center gap-2.5">
-                <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--text-secondary)]">
-                  Strategies
-                </h2>
+                <h2 className="label-caps">Strategies</h2>
                 {!strategiesLoading && (
-                  <span className="rounded-full bg-[var(--bg-elevated)] px-2 py-0.5 font-mono text-xs text-[var(--text-muted)]">
+                  <span className="num rounded-sm bg-bg-elevated px-1.5 py-0.5 text-[10px] text-text-muted">
                     {visibleStrategies.length}
                   </span>
                 )}
               </div>
               <Link
                 href="/strategies"
-                className="flex items-center gap-0.5 text-xs text-[var(--text-muted)] transition-colors hover:text-[var(--accent-primary)]"
+                className="flex items-center gap-0.5 text-[11px] text-text-muted transition-colors duration-fast hover:text-text-primary"
               >
-                Manage <ChevronRight size={12} />
+                Manage <ChevronRight size={12} strokeWidth={1.75} />
               </Link>
             </div>
 
-            {/* Scrollable card list */}
             <div className="flex-1 overflow-y-auto p-3">
               {strategiesLoading ? (
                 <div className="space-y-3">
                   {Array.from({ length: 3 }).map((_, i) => (
-                    <Skeleton key={i} className="h-24 w-full rounded-lg" />
+                    <Skeleton key={i} className="h-24 w-full rounded-md" />
                   ))}
                 </div>
               ) : visibleStrategies.length === 0 ? (
                 <div className="flex h-full items-center justify-center">
                   <EmptyState
                     icon={Zap}
-                    title={
-                      isAll ? 'No strategies configured' : 'No strategies on this account'
-                    }
+                    title={isAll ? 'No strategies configured' : 'No strategies on this account'}
                     description={
                       isAll
                         ? 'Add a strategy to start trading.'
@@ -324,17 +236,16 @@ export default function DashboardPage() {
             </div>
           </div>
         </div>
-
       </div>
 
-      {/* ── Row 3: Live market chart (full width) ── */}
-      <ErrorBoundary label="Market chart">
-        <DashboardMarketChart />
-      </ErrorBoundary>
+      {/* Row 2: market chart — full width */}
+      <div className="reveal" style={{ ['--reveal-i' as string]: 3 }}>
+        <ErrorBoundary label="Market chart">
+          <DashboardMarketChart />
+        </ErrorBoundary>
+      </div>
 
-      {/* ── Row 4: Equity curve (3/5) + Recent trades (2/5) ── */}
-      {/* items-start lets the recent-trades panel stay compact (~6 rows) without
-          forcing the equity curve to shrink to match it. */}
+      {/* Row 3: Equity curve (3/5) + Recent trades (2/5) */}
       <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-5">
         <div className="flex flex-col lg:col-span-3">
           <ErrorBoundary label="Equity curve">
@@ -342,34 +253,25 @@ export default function DashboardPage() {
           </ErrorBoundary>
         </div>
 
-        {/* Recent trades — caps at ~6 visible rows; rest scrolls inside the body */}
         <div className="flex flex-col lg:col-span-2">
-          <div
-            className="flex flex-col overflow-hidden rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)]"
-            style={{ boxShadow: 'var(--shadow-panel)' }}
-          >
-            {/* Panel header */}
-            <div className="flex shrink-0 items-center justify-between border-b border-[var(--border-subtle)] px-4 py-3">
+          <div className="flex flex-col overflow-hidden rounded-md border border-bd-subtle bg-bg-surface shadow-panel">
+            <div className="flex shrink-0 items-center justify-between border-b border-bd-subtle px-4 py-3">
               <div className="flex items-center gap-2">
-                <span className="text-[10px] font-semibold uppercase tracking-widest text-[var(--text-muted)]">
-                  Recent Trades
-                </span>
+                <h2 className="label-caps">Recent Trades</h2>
                 {!recentLoading && (
-                  <span className="rounded-full bg-[var(--bg-elevated)] px-2 py-0.5 font-mono text-xs text-[var(--text-muted)]">
+                  <span className="num rounded-sm bg-bg-elevated px-1.5 py-0.5 text-[10px] text-text-muted">
                     {recentTrades.length}
                   </span>
                 )}
               </div>
               <Link
                 href="/trades"
-                className="flex items-center gap-0.5 text-xs text-[var(--text-muted)] transition-colors hover:text-[var(--accent-primary)]"
+                className="flex items-center gap-0.5 text-[11px] text-text-muted transition-colors duration-fast hover:text-text-primary"
               >
-                All trades <ChevronRight size={12} />
+                All trades <ChevronRight size={12} strokeWidth={1.75} />
               </Link>
             </div>
 
-            {/* Scrollable body — capped at ~6 rows tall (each row ≈ 36px + sticky thead 32px).
-                minHeight keeps the empty/loading states from collapsing. */}
             <div className="overflow-y-auto" style={{ maxHeight: 248, minHeight: 160 }}>
               {recentLoading ? (
                 <div className="space-y-3 p-4">
@@ -379,14 +281,21 @@ export default function DashboardPage() {
                 </div>
               ) : recentTrades.length === 0 ? (
                 <div className="flex h-full items-center justify-center">
-                  <EmptyState icon={TrendingUp} title="No closed trades yet" description="Completed trades will appear here." />
+                  <EmptyState
+                    icon={TrendingUp}
+                    title="No closed trades yet"
+                    description="Completed trades will appear here."
+                  />
                 </div>
               ) : (
                 <table className="w-full">
-                  <thead className="sticky top-0 z-10 bg-[var(--bg-surface)]">
-                    <tr className="border-b border-[var(--border-subtle)]">
+                  <thead className="sticky top-0 z-10 bg-bg-surface">
+                    <tr className={cn('border-b border-bd-subtle')}>
                       {['Symbol', 'Strategy', 'P&L', 'Closed'].map((col) => (
-                        <th key={col} className="px-4 py-2 text-left text-[10px] font-semibold uppercase tracking-wider text-[var(--text-muted)]">
+                        <th
+                          key={col}
+                          className="label-caps px-4 py-2 text-left"
+                        >
                           {col}
                         </th>
                       ))}
@@ -394,18 +303,31 @@ export default function DashboardPage() {
                   </thead>
                   <tbody>
                     {recentTrades.map((trade) => (
-                      <tr key={trade.id} className="border-b border-[var(--border-subtle)] transition-colors hover:bg-[var(--bg-elevated)]">
+                      <tr
+                        key={trade.id}
+                        className="border-b border-bd-subtle transition-colors duration-fast hover:bg-bg-elevated last:border-b-0"
+                      >
                         <td className="px-4 py-2.5">
                           <div className="flex items-center gap-2">
-                            {trade.direction === 'LONG'
-                              ? <ArrowUpRight size={11} style={{ color: 'var(--color-profit)' }} />
-                              : <ArrowDownRight size={11} style={{ color: 'var(--color-loss)' }} />}
-                            <span className="font-mono text-sm text-[var(--text-primary)]">{trade.symbol}</span>
+                            {trade.direction === 'LONG' ? (
+                              <ArrowUpRight size={11} strokeWidth={1.75} className="text-profit" />
+                            ) : (
+                              <ArrowDownRight size={11} strokeWidth={1.75} className="text-loss" />
+                            )}
+                            <span className="num text-[13px] text-text-primary">
+                              {trade.symbol}
+                            </span>
                           </div>
                         </td>
-                        <td className="px-4 py-2.5"><StrategyBadge code={trade.strategyCode} size="sm" /></td>
-                        <td className="px-4 py-2.5"><PnlCell value={trade.realizedPnl} /></td>
-                        <td className="px-4 py-2.5 text-xs text-[var(--text-muted)]">{formatDate(trade.exitTime)}</td>
+                        <td className="px-4 py-2.5">
+                          <StrategyBadge code={trade.strategyCode} size="sm" />
+                        </td>
+                        <td className="px-4 py-2.5">
+                          <PnlCell value={trade.realizedPnl} noFlash />
+                        </td>
+                        <td className="num px-4 py-2.5 text-[11px] text-text-muted">
+                          {formatDate(trade.exitTime)}
+                        </td>
                       </tr>
                     ))}
                   </tbody>

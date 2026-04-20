@@ -41,7 +41,10 @@
       "Bash(pnpm tsc *)",
       "Bash(./gradlew compileJava --console=plain)",
       "Bash(pnpm exec *)",
-      "Bash(npx tsc *)"
+      "Bash(npx tsc *)",
+      "Read(//mnt/skills/**)",
+      "Read(//mnt/**)",
+      "Read(//c/Users/rfkih/.claude/skills/**)"
     ]
   }
 }
