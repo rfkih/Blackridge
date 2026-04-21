@@ -51,14 +51,14 @@ function logDevAxiosFailure(error: AxiosError) {
   console.groupEnd();
 }
 
-interface BlackheartEnvelope {
+interface ApiEnvelope {
   responseCode: string | number;
   responseDesc?: string;
   data: unknown;
   errorMessage?: string;
 }
 
-function isEnvelope(value: unknown): value is BlackheartEnvelope {
+function isEnvelope(value: unknown): value is ApiEnvelope {
   return typeof value === 'object' && value !== null && 'responseCode' in value && 'data' in value;
 }
 
@@ -74,7 +74,7 @@ function isAuthPath(pathname: string): boolean {
 
 apiClient.interceptors.response.use(
   (response) => {
-    // Unwrap the Blackheart API envelope: { responseCode, responseDesc, data, errorMessage }
+    // Unwrap the backend envelope: { responseCode, responseDesc, data, errorMessage }
     // so every caller just receives the inner `data` directly.
     if (isEnvelope(response.data)) {
       const envelope = response.data;

@@ -12,7 +12,7 @@ import { env } from '@/lib/env';
  */
 
 interface BackendErrorPayload {
-  /** Blackheart envelope — `{ responseCode, data, errorMessage }`. */
+  /** Response envelope — `{ responseCode, data, errorMessage }`. */
   errorMessage?: string;
   /** Spring default error body fields. */
   message?: string;

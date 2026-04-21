@@ -1,6 +1,7 @@
 'use client';
 
-import { useCallback, useMemo } from 'react';
+import { Suspense, useCallback, useMemo } from 'react';
+import nextDynamic from 'next/dynamic';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { format, subDays } from 'date-fns';
 import {
@@ -17,12 +18,21 @@ import { PnlCell } from '@/components/shared/PnlCell';
 import { ErrorBoundary } from '@/components/shared/ErrorBoundary';
 import { StrategyBadge } from '@/components/trading/StrategyBadge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { CumulativePnlChart } from '@/components/charts/CumulativePnlChart';
-import { PnlBarChart } from '@/components/charts/PnlBarChart';
 import { useDailyPnl, usePnlByStrategy } from '@/hooks/useTrades';
 import { useStrategies } from '@/hooks/useStrategies';
 import { cn } from '@/lib/utils';
 import type { DailyPnl, StrategyPnl } from '@/types/pnl';
+
+// Recharts is heavy (~80kb gzipped). Lazy-load both charts so the filter bar
+// + summary tiles can paint while the chart chunk is still downloading.
+const PnlBarChart = nextDynamic(
+  () => import('@/components/charts/PnlBarChart').then((m) => m.PnlBarChart),
+  { ssr: false, loading: () => <Skeleton className="h-[260px] w-full" /> },
+);
+const CumulativePnlChart = nextDynamic(
+  () => import('@/components/charts/CumulativePnlChart').then((m) => m.CumulativePnlChart),
+  { ssr: false, loading: () => <Skeleton className="h-[240px] w-full" /> },
+);
 
 const DEFAULT_LOOKBACK_DAYS = 30;
 
@@ -50,6 +60,16 @@ function readFilters(params: URLSearchParams): Filters {
 }
 
 export default function PnlPage() {
+  // useSearchParams() forces a client-side render boundary. Wrap in Suspense
+  // so Next 14's prerender pass doesn't abort when the hook bails out.
+  return (
+    <Suspense fallback={<Skeleton className="h-[60vh] w-full" />}>
+      <PnlPageContent />
+    </Suspense>
+  );
+}
+
+function PnlPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const filters = useMemo(

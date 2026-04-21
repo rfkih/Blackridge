@@ -1,18 +1,25 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import nextDynamic from 'next/dynamic';
 import { AlertCircle, Dice5, Loader2, Percent, Play, Target, TrendingUp } from 'lucide-react';
 import { z } from 'zod';
 import { StatCard } from '@/components/shared/StatCard';
 import { ErrorBoundary } from '@/components/shared/ErrorBoundary';
 import { Skeleton } from '@/components/ui/skeleton';
-import { MonteCarloChart } from '@/components/charts/MonteCarloChart';
 import { useBacktestRuns } from '@/hooks/useBacktest';
 import { useMonteCarlo } from '@/hooks/useMonteCarlo';
 import { normalizeError } from '@/lib/api/client';
 import { formatPrice } from '@/lib/formatters';
 import { cn } from '@/lib/utils';
 import type { MonteCarloResult, MonteCarloSimulationMode } from '@/types/montecarlo';
+
+// Recharts is ~80kb gzipped — only ship it once the user has a result to
+// render. The form + form schema still render without it.
+const MonteCarloChart = nextDynamic(
+  () => import('@/components/charts/MonteCarloChart').then((m) => m.MonteCarloChart),
+  { ssr: false, loading: () => <Skeleton className="h-[320px] w-full" /> },
+);
 
 const SIM_MODES: Array<{ value: MonteCarloSimulationMode; label: string; hint: string }> = [
   {

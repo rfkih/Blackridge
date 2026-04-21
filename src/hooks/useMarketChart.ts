@@ -5,6 +5,12 @@ import { useQuery } from '@tanstack/react-query';
 import { fetchCandles, fetchIndicators } from '@/lib/api/market';
 import { generateMockCandles, generateMockIndicators } from '@/lib/charts/mockData';
 import { REFETCH_INTERVALS } from '@/lib/charts/chartTheme';
+import type { CandleData, IndicatorData } from '@/types/market';
+
+// Stable sentinels — keep returning the same reference when a query is
+// pending so downstream useMemos don't churn on identity changes.
+const EMPTY_CANDLES: CandleData[] = [];
+const EMPTY_INDICATORS: IndicatorData[] = [];
 
 // ─── localStorage helper ──────────────────────────────────────────────────────
 
@@ -132,8 +138,8 @@ export function useMarketChart() {
     setInterval,
     indicators,
     toggleIndicator,
-    candles: candleQuery.data ?? [],
-    indicatorData: indicatorQuery.data ?? [],
+    candles: candleQuery.data ?? EMPTY_CANDLES,
+    indicatorData: indicatorQuery.data ?? EMPTY_INDICATORS,
     isLoadingCandles: candleQuery.isFetching && !candleQuery.data,
     isError: candleQuery.isError,
     refetch: candleQuery.refetch,

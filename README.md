@@ -1,12 +1,12 @@
-# Blackheart Frontend
+# Meridian Edge Frontend
 
-Enterprise algo-trading dashboard for the Blackheart platform — a Next.js 14 web client that talks to a Spring Boot backend running live trading and backtests on Binance. Dark-only, data-dense, TradingView candles + Recharts analytics, STOMP-over-WebSocket for live P&L.
+Enterprise algo-trading dashboard for the Meridian Edge platform — a Next.js 14 web client that talks to a Spring Boot backend running live trading and backtests on Binance. Dark-only, data-dense, TradingView candles + Recharts analytics, STOMP-over-WebSocket for live P&L.
 
 ## Prerequisites
 
 - **Node.js 20+**
 - **pnpm** (preferred package manager; `corepack enable` if you don't have it)
-- A running **Blackheart backend** at a reachable URL (defaults to `http://localhost:8080`)
+- A running **Meridian Edge backend** at a reachable URL (defaults to `http://localhost:8080`)
 
 ## Setup
 

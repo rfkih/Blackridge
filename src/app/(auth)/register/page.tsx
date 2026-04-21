@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/hooks/useAuth';
+import { LogoMark } from '@/components/brand/Logo';
 
 const registerSchema = z
   .object({
@@ -72,15 +73,15 @@ export default function RegisterPage() {
       }}
     >
       <div className="w-full max-w-sm">
-        <div className="mb-10 text-center">
+        <div className="mb-10 flex flex-col items-center text-center">
+          <LogoMark size={44} className="text-[var(--color-profit)]" />
           <h1
-            aria-label="Blackheart"
-            className="font-display text-4xl font-semibold tracking-[0.22em] text-text-primary"
+            aria-label="Meridian Edge"
+            className="mt-5 font-display text-[28px] font-semibold tracking-[0.22em] text-text-primary"
           >
-            BLACKHEART
-            <span aria-hidden className="ml-1 text-info">
-              .
-            </span>
+            <span className="text-[var(--color-profit)]">MERIDIAN</span>
+            <span className="mx-2 text-text-muted">/</span>
+            <span>EDGE</span>
           </h1>
           <p className="mt-3 text-[10px] uppercase tracking-[0.4em] text-text-muted">
             Create your account

@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
+import { Logotype } from '@/components/brand/Logo';
 
 interface NavItem {
   label: string;
@@ -77,19 +78,14 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         )}
         aria-label="Navigation"
       >
-        {/* Wordmark — monospace ticker treatment, single-color, no gradients. */}
+        {/* Brand lockup — full Meridian Edge wordmark + mark. */}
         <div className="flex h-12 shrink-0 items-center justify-between pl-5 pr-3">
           <Link
             href="/"
-            className="group flex items-baseline gap-1.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="group flex items-center focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            aria-label="Meridian Edge — home"
           >
-            <span
-              aria-hidden="true"
-              className="pulse-dot inline-block h-2 w-2 translate-y-[1px] bg-profit"
-            />
-            <span className="font-mono text-[13px] font-semibold tracking-widest text-text-primary">
-              BLACKHEART
-            </span>
+            <Logotype size="md" />
           </Link>
           <button
             type="button"

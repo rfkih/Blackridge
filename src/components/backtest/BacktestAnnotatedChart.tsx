@@ -202,17 +202,18 @@ export function BacktestAnnotatedChart({
   }, [height]);
 
   // ── Effect 2: load candles ────────────────────────────────────────────────
+  // getBacktestCandles already filters NaN and sorts ascending. We do one
+  // linear pass to drop duplicate timestamps (TV rejects them) but skip the
+  // O(n log n) re-sort the earlier version performed every refetch.
   useEffect(() => {
     if (!ready || !candles.length || !seriesRef.current) return;
     const seen = new Set<number>();
-    const valid = candles
-      .filter((c) => Number.isFinite(c.time))
-      .sort((a, b) => a.time - b.time)
-      .filter((c) => {
-        if (seen.has(c.time)) return false;
-        seen.add(c.time);
-        return true;
-      });
+    const valid: typeof candles = [];
+    for (const c of candles) {
+      if (seen.has(c.time)) continue;
+      seen.add(c.time);
+      valid.push(c);
+    }
     if (!valid.length) return;
     seriesRef.current.setData(
       valid.map((c) => ({

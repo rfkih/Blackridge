@@ -16,7 +16,7 @@ export interface PageResponse<T> {
   total: number;
 }
 
-/** Standard Blackheart API envelope — every endpoint wraps its payload in this. */
+/** Standard API response envelope — every backend endpoint wraps its payload in this. */
 export interface BackendApiResponse<T> {
   responseCode: string;
   responseDesc: string;

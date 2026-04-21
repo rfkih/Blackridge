@@ -20,8 +20,12 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'Blackheart',
-  description: 'Algorithmic trading dashboard',
+  title: {
+    default: 'Meridian Edge',
+    template: '%s · Meridian Edge',
+  },
+  description: 'Algorithmic trading dashboard — Meridian Edge.',
+  applicationName: 'Meridian Edge',
 };
 
 export default function RootLayout({

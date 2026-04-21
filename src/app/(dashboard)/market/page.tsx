@@ -1,7 +1,7 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import dynamic from 'next/dynamic';
+import { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
+import nextDynamic from 'next/dynamic';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { AlertCircle, LineChart, RefreshCw } from 'lucide-react';
 import { SymbolPicker } from '@/components/charts/SymbolPicker';
@@ -18,7 +18,7 @@ import type { CandleData, IndicatorData } from '@/types/market';
 import { cn } from '@/lib/utils';
 
 // TradingView isn't SSR-safe — keep the wrapper dynamic.
-const CandlestickChart = dynamic(
+const CandlestickChart = nextDynamic(
   () => import('@/components/charts/CandlestickChart').then((m) => m.CandlestickChart),
   { ssr: false, loading: () => <Skeleton className="h-[560px] w-full" /> },
 );
@@ -70,6 +70,17 @@ function loadIndicators(): Required<CandlestickChartIndicators> {
 }
 
 export default function MarketPage() {
+  // useSearchParams() forces a client-side render boundary. Next 14 requires
+  // the page to opt into that explicitly by wrapping the subtree in Suspense,
+  // so we render the real page body inside one.
+  return (
+    <Suspense fallback={<Skeleton className="h-[560px] w-full" />}>
+      <MarketPageContent />
+    </Suspense>
+  );
+}
+
+function MarketPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const filters = useMemo(

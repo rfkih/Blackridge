@@ -32,7 +32,7 @@ function usePageTitle(pathname: string): string {
   for (const [key, title] of Object.entries(PAGE_TITLES)) {
     if (key !== '/' && pathname.startsWith(key)) return title;
   }
-  return 'Blackheart';
+  return 'Meridian Edge';
 }
 
 type WsStatus = 'connected' | 'reconnecting' | 'disconnected';

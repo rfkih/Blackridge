@@ -3,6 +3,7 @@
 import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { fetchEquityPoints } from '@/lib/api/equity';
+import { useActiveAccount } from '@/hooks/useAccounts';
 import { useStrategies } from '@/hooks/useStrategies';
 import type { EquityPoint } from '@/types/market';
 
@@ -20,23 +21,38 @@ const PERIOD_DAYS: Record<EquityPeriod, number> = {
 // Used only as a last-resort fallback when no equity data has loaded yet.
 const FALLBACK_CAPITAL = 10_000;
 
+/**
+ * Snap the window to hour granularity so query keys are stable across renders
+ * and don't mint a new cache entry every millisecond. `Date.now()` in the
+ * render body would do exactly that.
+ */
+function periodWindow(period: EquityPeriod) {
+  const now = Date.now();
+  const hourMs = 60 * 60 * 1_000;
+  const to = Math.floor(now / hourMs) * hourMs;
+  const from = to - PERIOD_DAYS[period] * 86_400_000;
+  return { from, to };
+}
+
 export function useEquityCurve() {
   const [period, setPeriod] = useState<EquityPeriod>('30D');
+  // Follow the active-account selection — fall back to the user's first
+  // strategy's account only if nothing is explicitly selected (e.g. first
+  // login before accounts load).
+  const { scopedAccountId } = useActiveAccount();
   const { data: strategies } = useStrategies();
+  const accountId = scopedAccountId ?? strategies?.[0]?.accountId;
 
-  const accountId = strategies?.[0]?.accountId;
-  // The backend exposes allocations as percentages of account equity, not
-  // absolute USDT — summing them would produce a meaningless number. Use the
-  // first equity sample as the baseline (see `stats.baseline` below); only
-  // fall back to a fixed constant if the equity series hasn't loaded yet.
+  // Allocations are percentages, not absolute USDT — summing them produces a
+  // meaningless number. Use the first equity sample as the baseline (see
+  // `stats.baseline` below); only fall back to a fixed constant until the
+  // series loads.
   const allocatedCapital = FALLBACK_CAPITAL;
 
-  const days = PERIOD_DAYS[period];
-  const to = Date.now();
-  const from = to - days * 86_400_000;
+  const { from, to } = useMemo(() => periodWindow(period), [period]);
 
   const query = useQuery({
-    queryKey: ['equity', accountId, period],
+    queryKey: ['equity', accountId, period, from, to],
     queryFn: () => fetchEquityPoints(accountId!, from, to),
     enabled: Boolean(accountId),
     staleTime: 60_000,

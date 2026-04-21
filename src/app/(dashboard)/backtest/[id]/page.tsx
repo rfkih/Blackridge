@@ -9,7 +9,6 @@ import { format } from 'date-fns';
 import { StrategyBadge } from '@/components/trading/StrategyBadge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { BacktestMetricsGrid } from '@/components/backtest/BacktestMetricsGrid';
-import { BacktestEquityPanel } from '@/components/backtest/BacktestEquityPanel';
 import { BacktestTradeTable } from '@/components/backtest/BacktestTradeTable';
 import { ErrorBoundary } from '@/components/shared/ErrorBoundary';
 import {
@@ -35,6 +34,13 @@ const BacktestAnnotatedChart = dynamic(
   () =>
     import('@/components/backtest/BacktestAnnotatedChart').then((m) => m.BacktestAnnotatedChart),
   { ssr: false, loading: () => <ChartSkeleton /> },
+);
+
+// Recharts adds ~80kb; keep it off the initial bundle. The equity panel only
+// renders once the run has loaded anyway.
+const BacktestEquityPanel = dynamic(
+  () => import('@/components/backtest/BacktestEquityPanel').then((m) => m.BacktestEquityPanel),
+  { ssr: false, loading: () => <Skeleton className="h-[260px] w-full" /> },
 );
 
 export default function BacktestResultPage({ params }: { params: { id: string } }) {

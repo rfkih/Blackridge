@@ -14,6 +14,13 @@ interface PositionStore {
    */
   setPositions: (positions: LivePosition[]) => void;
   updatePnl: (update: PnlUpdate) => void;
+  /**
+   * Coalesce many per-trade updates into a single store commit. WS frames
+   * arrive with N trades at a time; dispatching one `updatePnl` per trade
+   * fires N subscriber notifications and N `{...pnlMap}` spreads. This path
+   * allocates the new map exactly once per frame.
+   */
+  updatePnlBatch: (updates: PnlUpdate[]) => void;
   reset: () => void;
 }
 
@@ -33,5 +40,20 @@ export const usePositionStore = create<PositionStore>((set) => ({
     set((state) => ({
       pnlMap: { ...state.pnlMap, [update.tradeId]: update.unrealizedPnl },
     })),
+  updatePnlBatch: (updates) =>
+    set((state) => {
+      if (updates.length === 0) return state;
+      // Skip the commit entirely if nothing actually changed — spares every
+      // subscriber from re-evaluating their selector.
+      let mutated = false;
+      const nextPnl = { ...state.pnlMap };
+      for (const u of updates) {
+        if (nextPnl[u.tradeId] !== u.unrealizedPnl) {
+          nextPnl[u.tradeId] = u.unrealizedPnl;
+          mutated = true;
+        }
+      }
+      return mutated ? { pnlMap: nextPnl } : state;
+    }),
   reset: () => set({ positions: [], pnlMap: {} }),
 }));

@@ -4,7 +4,7 @@ import { useEffect } from 'react';
 import { publishToApp, subscribeToTopic } from '@/lib/ws/stompClient';
 import { useWsStore } from '@/store/wsStore';
 import { usePositionStore } from '@/store/positionStore';
-import type { LivePosition } from '@/types/trading';
+import type { LivePosition, PnlUpdate } from '@/types/trading';
 
 /**
  * The backend publishes an account-level envelope on `/topic/pnl/{accountId}`:
@@ -47,7 +47,7 @@ function numberOrNull(v: string | null | undefined): number | null {
 
 export function useLivePnl(accountId: string | undefined) {
   const connected = useWsStore((s) => s.connected);
-  const updatePnl = usePositionStore((s) => s.updatePnl);
+  const updatePnlBatch = usePositionStore((s) => s.updatePnlBatch);
 
   useEffect(() => {
     if (!connected || !accountId) return;
@@ -59,14 +59,18 @@ export function useLivePnl(accountId: string | undefined) {
       try {
         const env = JSON.parse(body) as BackendActiveTradePnlEnvelope;
         const trades = env.trades ?? [];
+        if (trades.length === 0) return;
         const ts = Date.now();
+        // Build the full batch first, then commit once. Per-trade commits
+        // would fire N subscriber notifications for a single network frame.
+        const batch: PnlUpdate[] = [];
         for (const t of trades) {
           if (!t.tradeId) continue;
           const mark = numberOrNull(t.currentPrice);
           const pnl = numberOrNull(t.unrealizedPnlAmount);
           const pnlPct = numberOrNull(t.unrealizedPnlPercent);
           if (pnl == null) continue; // malformed row — skip rather than corrupt the map
-          updatePnl({
+          batch.push({
             tradeId: t.tradeId,
             accountId,
             markPrice: mark ?? 0,
@@ -75,6 +79,7 @@ export function useLivePnl(accountId: string | undefined) {
             ts,
           });
         }
+        if (batch.length > 0) updatePnlBatch(batch);
       } catch {
         // ignore malformed frames
       }
@@ -85,7 +90,7 @@ export function useLivePnl(accountId: string | undefined) {
     publishToApp('/pnl.subscribe', { accountId });
 
     return unsubscribe;
-  }, [connected, accountId, updatePnl]);
+  }, [connected, accountId, updatePnlBatch]);
 }
 
 /**
