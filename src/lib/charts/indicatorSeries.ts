@@ -27,7 +27,9 @@ export function safeRemove(chart: IChartApi, series: AnySeries | null): void {
   if (!series) return;
   try {
     chart.removeSeries(series);
-  } catch {}
+  } catch {
+    // Chart may have been disposed between render and teardown — fine.
+  }
 }
 
 export function addEmaLine(
@@ -51,11 +53,7 @@ export function addEmaLine(
   return series;
 }
 
-export function addBbSeries(
-  chart: IChartApi,
-  data: IndicatorData[],
-  color: string,
-): BbSeries {
+export function addBbSeries(chart: IChartApi, data: IndicatorData[], color: string): BbSeries {
   const base = {
     priceLineVisible: false,
     lastValueVisible: false,
@@ -73,11 +71,7 @@ export function addBbSeries(
   return { upper, middle, lower };
 }
 
-export function addKcSeries(
-  chart: IChartApi,
-  data: IndicatorData[],
-  color: string,
-): KcSeries {
+export function addKcSeries(chart: IChartApi, data: IndicatorData[], color: string): KcSeries {
   const opts = {
     color,
     lineWidth: 1 as const,

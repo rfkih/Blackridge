@@ -58,7 +58,10 @@ export function generateMockCandles(symbol: string, interval: string, count: num
     const time = startSec + i * intervalSec;
     const open = close;
     const vol = basePrice * 0.003;
-    close = Math.max(basePrice * 0.6, Math.min(basePrice * 1.4, open + (Math.random() - 0.49) * vol * 2));
+    close = Math.max(
+      basePrice * 0.6,
+      Math.min(basePrice * 1.4, open + (Math.random() - 0.49) * vol * 2),
+    );
     const high = Math.max(open, close) + Math.random() * vol * 0.5;
     const low = Math.min(open, close) - Math.random() * vol * 0.5;
     const move = Math.abs(close - open) / open;

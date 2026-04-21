@@ -68,7 +68,8 @@ export function BacktestParamTuner() {
     if (!config) router.replace('/backtest/new');
   }, [config, router]);
 
-  const strategyCodes = config?.strategyCodes ?? [];
+  // Memoised so downstream hooks don't see a fresh array identity each render.
+  const strategyCodes = useMemo<Array<string>>(() => config?.strategyCodes ?? [], [config]);
   const [activeTab, setActiveTab] = useState<string>(strategyCodes[0] ?? '');
 
   useEffect(() => {
@@ -89,7 +90,8 @@ export function BacktestParamTuner() {
     const map: Record<string, Record<string, unknown>> = {};
     for (const code of strategyCodes) {
       if (isLsr(code) && lsrDefaults) map[code] = lsrDefaults as unknown as Record<string, unknown>;
-      else if (isVcb(code) && vcbDefaults) map[code] = vcbDefaults as unknown as Record<string, unknown>;
+      else if (isVcb(code) && vcbDefaults)
+        map[code] = vcbDefaults as unknown as Record<string, unknown>;
       else map[code] = {};
     }
     return map;
@@ -110,9 +112,13 @@ export function BacktestParamTuner() {
 
   // Dirty-state beforeunload guard — only fires once the user has made edits.
   useEffect(() => {
-    if (totalOverrides === 0) return;
+    if (totalOverrides === 0) return undefined;
     const handler = (e: BeforeUnloadEvent) => {
       e.preventDefault();
+      // Assigning `returnValue` is the browser-standard way to trigger the
+      // confirm dialog. The prop is deprecated but still required across
+      // major browsers; no-param-reassign is suppressed intentionally.
+      // eslint-disable-next-line no-param-reassign
       e.returnValue = '';
     };
     window.addEventListener('beforeunload', handler);
@@ -226,7 +232,7 @@ export function BacktestParamTuner() {
               type="button"
               onClick={() => setActiveTab(code)}
               className={cn(
-                'group relative flex items-center gap-2 px-3 pb-2 pt-2 text-[12px] font-mono font-semibold transition-colors duration-fast',
+                'group relative flex items-center gap-2 px-3 pb-2 pt-2 font-mono text-[12px] font-semibold transition-colors duration-fast',
                 'focus:outline-none focus-visible:bg-bg-elevated',
                 isActive ? 'text-text-primary' : 'text-text-muted hover:text-text-secondary',
               )}

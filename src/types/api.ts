@@ -53,17 +53,17 @@ export interface BackendAccountStrategy {
   strategyDefinitionId?: UUID | null;
   strategyCode: string;
   symbol: string;
-  intervalName: string;       // frontend: interval
-  enabled: boolean;           // frontend: derives `status` from this
-  currentStatus: string;      // DB column is never updated by backend — do not use
+  intervalName: string; // frontend: interval
+  enabled: boolean; // frontend: derives `status` from this
+  currentStatus: string; // DB column is never updated by backend — do not use
   /** Fraction of the account's equity allocated to this strategy (0–100). */
   capitalAllocationPct: number | string | null;
   maxOpenPositions: number | null;
   allowLong: boolean;
   allowShort: boolean;
   priorityOrder: number;
-  createdTime: ISO8601;       // frontend: createdAt
-  updatedTime: ISO8601;       // frontend: updatedAt
+  createdTime: ISO8601; // frontend: createdAt
+  updatedTime: ISO8601; // frontend: updatedAt
 }
 
 /** Backend strategy-param response — params are nested under effectiveParams. */

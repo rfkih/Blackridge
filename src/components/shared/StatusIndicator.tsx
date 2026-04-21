@@ -11,9 +11,9 @@ export interface StatusIndicatorProps {
 const DOT_SIZE = { sm: 'size-1.5', md: 'size-2' };
 
 export function StatusIndicator({ status, label, size = 'md' }: StatusIndicatorProps) {
-  const dotClass = cn(DOT_SIZE[size], 'rounded-full shrink-0', {
+  const dotClass = cn(DOT_SIZE[size], 'shrink-0 rounded-full', {
     'bg-[var(--color-profit)]': status === 'connected',
-    'bg-[var(--color-warning)] animate-pulse': status === 'reconnecting',
+    'animate-pulse bg-[var(--color-warning)]': status === 'reconnecting',
     'bg-[var(--color-loss)]': status === 'disconnected',
   });
 

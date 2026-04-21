@@ -40,7 +40,7 @@ function LivePnlCell({ tradeId, basePnl, basePct }: LivePnlCellProps) {
   return (
     <span
       className={cn(
-        '-mx-1 rounded px-1 font-mono tabular-nums text-sm transition-[background-color] duration-300',
+        '-mx-1 rounded px-1 font-mono text-sm tabular-nums transition-[background-color] duration-300',
         isProfit ? 'text-[var(--color-profit)]' : 'text-[var(--color-loss)]',
       )}
       style={{
@@ -105,7 +105,7 @@ const PositionRow = memo(function PositionRow({ position }: { position: LivePosi
         />
       </td>
       <td className="px-4 py-2.5">
-        <span className="font-mono tabular-nums text-xs text-[var(--text-muted)]">
+        <span className="font-mono text-xs tabular-nums text-[var(--text-muted)]">
           {formatAge(position.openedAt)}
         </span>
       </td>

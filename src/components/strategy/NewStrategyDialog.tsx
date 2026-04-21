@@ -261,14 +261,14 @@ export function NewStrategyDialog({
                   checked={form.allowLong}
                   onCheckedChange={(v) => setForm((s) => ({ ...s, allowLong: v }))}
                 />
-                <Label className="text-xs font-mono uppercase tracking-wider">Allow Long</Label>
+                <Label className="font-mono text-xs uppercase tracking-wider">Allow Long</Label>
               </div>
               <div className="flex items-center gap-2">
                 <Switch
                   checked={form.allowShort}
                   onCheckedChange={(v) => setForm((s) => ({ ...s, allowShort: v }))}
                 />
-                <Label className="text-xs font-mono uppercase tracking-wider">Allow Short</Label>
+                <Label className="font-mono text-xs uppercase tracking-wider">Allow Short</Label>
               </div>
             </div>
             <div className="flex items-center gap-2">
@@ -276,7 +276,7 @@ export function NewStrategyDialog({
                 checked={form.enabled}
                 onCheckedChange={(v) => setForm((s) => ({ ...s, enabled: v }))}
               />
-              <Label className="text-xs font-mono uppercase tracking-wider">Enable on create</Label>
+              <Label className="font-mono text-xs uppercase tracking-wider">Enable on create</Label>
             </div>
           </div>
 

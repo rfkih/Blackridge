@@ -6,7 +6,6 @@ import { StrategyBadge } from '@/components/trading/StrategyBadge';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useBacktestRuns } from '@/hooks/useBacktest';
-import { formatDate } from '@/lib/formatters';
 import { cn } from '@/lib/utils';
 import type { BacktestRun, BacktestStatus } from '@/types/backtest';
 import { format } from 'date-fns';
@@ -161,7 +160,10 @@ function BacktestTable({ runs }: { runs: BacktestRun[] }) {
 }
 
 function BacktestRow({ run, index }: { run: BacktestRun; index: number }) {
-  const codes = (run.strategyCode ?? '').split(',').map((c) => c.trim()).filter(Boolean);
+  const codes = (run.strategyCode ?? '')
+    .split(',')
+    .map((c) => c.trim())
+    .filter(Boolean);
   const totalReturnPct = run.metrics?.totalReturnPct;
   const sharpe = run.metrics?.sharpe;
   const maxDD = run.metrics?.maxDrawdownPct;
@@ -214,7 +216,7 @@ function BacktestRow({ run, index }: { run: BacktestRun; index: number }) {
       <td className="whitespace-nowrap px-4 py-3 text-right">
         <Link
           href={`/backtest/${run.id}`}
-          className="inline-flex items-center gap-0.5 text-[11px] text-text-muted opacity-0 transition-all duration-fast group-hover:opacity-100 hover:text-text-primary"
+          className="inline-flex items-center gap-0.5 text-[11px] text-text-muted opacity-0 transition-all duration-fast hover:text-text-primary group-hover:opacity-100"
         >
           View
           <ChevronRight size={12} strokeWidth={1.75} />

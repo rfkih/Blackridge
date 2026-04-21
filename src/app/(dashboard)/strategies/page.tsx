@@ -11,7 +11,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { useAccountStrategies } from '@/hooks/useStrategies';
 import { useActiveAccount } from '@/hooks/useAccounts';
-import { formatPrice } from '@/lib/formatters';
 import { cn } from '@/lib/utils';
 import type { AccountStrategy } from '@/types/strategy';
 import type { AccountSummary } from '@/types/account';
@@ -32,7 +31,7 @@ function StrategyCard({
           e.stopPropagation();
           onDelete(strategy);
         }}
-        className="absolute right-2 top-2 z-10 rounded-md p-1.5 text-[var(--text-muted)] opacity-0 transition-all hover:bg-[rgba(255,77,106,0.12)] hover:text-[var(--color-loss)] group-hover:opacity-100 focus:opacity-100"
+        className="absolute right-2 top-2 z-10 rounded-md p-1.5 text-[var(--text-muted)] opacity-0 transition-all hover:bg-[rgba(255,77,106,0.12)] hover:text-[var(--color-loss)] focus:opacity-100 group-hover:opacity-100"
         aria-label={`Delete ${strategy.strategyCode} on ${strategy.symbol}`}
       >
         <Trash2 size={14} />
@@ -179,7 +178,9 @@ export default function StrategiesPage() {
         <EmptyState
           icon={Zap}
           title={
-            isAll ? 'No strategies yet' : `No strategies on ${activeAccount?.label ?? 'this account'}`
+            isAll
+              ? 'No strategies yet'
+              : `No strategies on ${activeAccount?.label ?? 'this account'}`
           }
           description={
             isAll
@@ -234,9 +235,7 @@ function GroupedStrategies({
     list.push(s);
     byAccount.set(s.accountId, list);
   }
-  const orderedAccountIds = accounts
-    .filter((a) => byAccount.has(a.id))
-    .map((a) => a.id);
+  const orderedAccountIds = accounts.filter((a) => byAccount.has(a.id)).map((a) => a.id);
   // Include any strategies whose accounts weren't in the accounts list (defensive).
   byAccount.forEach((_, id) => {
     if (!orderedAccountIds.includes(id)) orderedAccountIds.push(id);

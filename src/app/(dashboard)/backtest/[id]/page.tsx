@@ -11,6 +11,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { BacktestMetricsGrid } from '@/components/backtest/BacktestMetricsGrid';
 import { BacktestEquityPanel } from '@/components/backtest/BacktestEquityPanel';
 import { BacktestTradeTable } from '@/components/backtest/BacktestTradeTable';
+import { ErrorBoundary } from '@/components/shared/ErrorBoundary';
 import {
   useBacktestCandles,
   useBacktestEquityPoints,
@@ -19,11 +20,7 @@ import {
 } from '@/hooks/useBacktest';
 import { useBacktestParamStore } from '@/store/backtestParamStore';
 import { cn } from '@/lib/utils';
-import type {
-  BacktestEquityPoint,
-  BacktestRun,
-  BacktestTrade,
-} from '@/types/backtest';
+import type { BacktestEquityPoint, BacktestRun, BacktestTrade } from '@/types/backtest';
 import type { CandleData } from '@/types/market';
 
 // Module-level empty arrays so render-time fallbacks don't churn referential
@@ -47,37 +44,12 @@ export default function BacktestResultPage({ params }: { params: { id: string } 
   // Route params can legitimately be the literal string "undefined" when an
   // upstream caller built the URL from a run whose id was missing. Treating
   // that as a routing error beats silently 404-ing against the backend.
-  const idIsValid =
-    typeof id === 'string' && id.length > 0 && id !== 'undefined' && id !== 'null';
+  const idIsValid = typeof id === 'string' && id.length > 0 && id !== 'undefined' && id !== 'null';
 
   const runQ = useBacktestRun(idIsValid ? id : undefined);
   const tradesQ = useBacktestTrades(idIsValid ? id : undefined);
   const candlesQ = useBacktestCandles(idIsValid ? id : undefined);
   const equityQ = useBacktestEquityPoints(idIsValid ? id : undefined);
-
-  if (!idIsValid) {
-    return (
-      <div className="flex min-h-[60vh] items-center justify-center">
-        <div className="w-full max-w-md rounded-md border border-bd-subtle bg-bg-surface p-8 text-center shadow-panel">
-          <p className="font-mono text-xs uppercase tracking-widest text-text-muted">
-            Invalid run id
-          </p>
-          <h1 className="mt-3 font-display text-2xl text-text-primary">
-            This backtest link is broken
-          </h1>
-          <p className="mt-2 text-sm text-text-secondary">
-            The URL doesn&apos;t point to a real run. Try picking one from the list instead.
-          </p>
-          <Link
-            href="/backtest"
-            className="mt-4 inline-flex items-center gap-1.5 rounded-sm border border-bd-subtle bg-bg-elevated px-3 py-2 text-[12px] text-text-primary transition-colors duration-fast hover:bg-bg-hover"
-          >
-            <ArrowLeft size={12} strokeWidth={1.75} /> Back to runs
-          </Link>
-        </div>
-      </div>
-    );
-  }
 
   const [selectedTradeId, setSelectedTradeId] = useState<string | null>(null);
   // Two separate triggers so a chart→table scroll never loops back into a
@@ -130,6 +102,33 @@ export default function BacktestResultPage({ params }: { params: { id: string } 
     router.push('/backtest/new');
   }, [runQ.data, hydrateFromRun, router]);
 
+  // Early returns come AFTER every hook is registered — React's Rules of
+  // Hooks require a stable call order across renders. Rendering the
+  // invalid-id panel before hooks run would desync the hook list.
+  if (!idIsValid) {
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <div className="w-full max-w-md rounded-md border border-bd-subtle bg-bg-surface p-8 text-center shadow-panel">
+          <p className="font-mono text-xs uppercase tracking-widest text-text-muted">
+            Invalid run id
+          </p>
+          <h1 className="mt-3 font-display text-2xl text-text-primary">
+            This backtest link is broken
+          </h1>
+          <p className="mt-2 text-sm text-text-secondary">
+            The URL doesn&apos;t point to a real run. Try picking one from the list instead.
+          </p>
+          <Link
+            href="/backtest"
+            className="mt-4 inline-flex items-center gap-1.5 rounded-sm border border-bd-subtle bg-bg-elevated px-3 py-2 text-[12px] text-text-primary transition-colors duration-fast hover:bg-bg-hover"
+          >
+            <ArrowLeft size={12} strokeWidth={1.75} /> Back to runs
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   if (runQ.isError) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
@@ -169,21 +168,25 @@ export default function BacktestResultPage({ params }: { params: { id: string } 
         ) : candlesQ.isLoading || tradesQ.isLoading ? (
           <ChartSkeleton />
         ) : (
-          <BacktestAnnotatedChart
-            candles={candlesQ.data ?? EMPTY_CANDLES}
-            trades={tradesQ.data ?? EMPTY_TRADES}
-            selectedTradeId={selectedTradeId}
-            onTradeSelect={handleChartSelect}
-            scrollTrigger={chartScrollTrigger}
-          />
+          <ErrorBoundary label="Annotated chart">
+            <BacktestAnnotatedChart
+              candles={candlesQ.data ?? EMPTY_CANDLES}
+              trades={tradesQ.data ?? EMPTY_TRADES}
+              selectedTradeId={selectedTradeId}
+              onTradeSelect={handleChartSelect}
+              scrollTrigger={chartScrollTrigger}
+            />
+          </ErrorBoundary>
         )}
       </section>
 
-      <BacktestEquityPanel
-        points={equityQ.data ?? EMPTY_EQUITY}
-        initialCapital={runQ.data?.initialCapital ?? 0}
-        isLoading={equityQ.isLoading}
-      />
+      <ErrorBoundary label="Equity curve">
+        <BacktestEquityPanel
+          points={equityQ.data ?? EMPTY_EQUITY}
+          initialCapital={runQ.data?.initialCapital ?? 0}
+          isLoading={equityQ.isLoading}
+        />
+      </ErrorBoundary>
 
       <section className="space-y-2">
         <div className="flex items-baseline justify-between">
@@ -202,12 +205,14 @@ export default function BacktestResultPage({ params }: { params: { id: string } 
         ) : tradesQ.isLoading ? (
           <TableSkeleton />
         ) : (
-          <BacktestTradeTable
-            trades={tradesQ.data ?? EMPTY_TRADES}
-            selectedTradeId={selectedTradeId}
-            onTradeSelect={handleTableSelect}
-            scrollTrigger={tableScrollTrigger}
-          />
+          <ErrorBoundary label="Trade table">
+            <BacktestTradeTable
+              trades={tradesQ.data ?? EMPTY_TRADES}
+              selectedTradeId={selectedTradeId}
+              onTradeSelect={handleTableSelect}
+              scrollTrigger={tableScrollTrigger}
+            />
+          </ErrorBoundary>
         )}
       </section>
     </div>

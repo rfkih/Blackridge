@@ -37,8 +37,7 @@ const COLUMNS = [
 
 // CSS grid template — keeps header + virtualized rows perfectly aligned.
 // Total minimum width drives the horizontal scroll for narrower viewports.
-const GRID_TEMPLATE =
-  '40px 60px 150px 84px 150px 84px 80px 80px 80px 110px 100px 64px 100px';
+const GRID_TEMPLATE = '40px 60px 150px 84px 150px 84px 80px 80px 80px 110px 100px 64px 100px';
 const ROW_HEIGHT = 36; // matches .py-2 + content baseline; virtualizer needs a stable estimate
 const VIEWPORT_MAX_HEIGHT = 480;
 
@@ -51,10 +50,7 @@ export function BacktestTradeTable({
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // Sort chronologically for a natural read order.
-  const ordered = useMemo(
-    () => [...trades].sort((a, b) => a.entryTime - b.entryTime),
-    [trades],
-  );
+  const ordered = useMemo(() => [...trades].sort((a, b) => a.entryTime - b.entryTime), [trades]);
 
   const indexById = useMemo(() => {
     const m = new Map<string, number>();

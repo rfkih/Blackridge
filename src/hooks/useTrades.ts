@@ -2,7 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { getOpenTrades, getRecentTrades } from '@/lib/api/trades';
-import { getPnlSummary } from '@/lib/api/pnl';
+import { getDailyPnl, getPnlByStrategy, getPnlSummary } from '@/lib/api/pnl';
 import { QUERY_STALE_TIMES } from '@/lib/constants';
 import { useWsStore } from '@/store/wsStore';
 import type { PnlSummary } from '@/types/trading';
@@ -48,5 +48,25 @@ export function usePnlSummary(period: 'today' | 'week' | 'month' = 'today') {
     staleTime: QUERY_STALE_TIMES.pnlSummary,
     placeholderData: FALLBACK_PNL,
     retry: false,
+  });
+}
+
+export function useDailyPnl(from: string, to: string, strategyCode?: string) {
+  // Enabled only when we have a well-formed window — empty strings would hit
+  // the backend with `?from=&to=` and trigger a 400.
+  const enabled = Boolean(from) && Boolean(to);
+  return useQuery({
+    queryKey: ['pnl', 'daily', from, to, strategyCode ?? null],
+    queryFn: () => getDailyPnl(from, to, strategyCode),
+    enabled,
+    staleTime: QUERY_STALE_TIMES.pnlSummary,
+  });
+}
+
+export function usePnlByStrategy(from?: string, to?: string) {
+  return useQuery({
+    queryKey: ['pnl', 'by-strategy', from ?? null, to ?? null],
+    queryFn: () => getPnlByStrategy(from, to),
+    staleTime: QUERY_STALE_TIMES.pnlSummary,
   });
 }

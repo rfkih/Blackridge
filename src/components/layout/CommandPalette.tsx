@@ -59,9 +59,7 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
     const q = query.trim().toLowerCase();
     if (q === '') return NAV_ITEMS;
     return NAV_ITEMS.filter(
-      (item) =>
-        item.label.toLowerCase().includes(q) ||
-        item.subtitle?.toLowerCase().includes(q),
+      (item) => item.label.toLowerCase().includes(q) || item.subtitle?.toLowerCase().includes(q),
     );
   }, [query]);
 
@@ -87,19 +85,24 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
     [router, onOpenChange],
   );
 
-  function handleKeyDown(e: React.KeyboardEvent) {
-    if (e.key === 'ArrowDown') {
-      e.preventDefault();
-      setActiveIndex((i) => (i + 1) % Math.max(filtered.length, 1));
-    } else if (e.key === 'ArrowUp') {
-      e.preventDefault();
-      setActiveIndex((i) => (i - 1 + Math.max(filtered.length, 1)) % Math.max(filtered.length, 1));
-    } else if (e.key === 'Enter') {
-      e.preventDefault();
-      const item = filtered[activeIndex];
-      if (item) navigate(item);
-    }
-  }
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        setActiveIndex((i) => (i + 1) % Math.max(filtered.length, 1));
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        setActiveIndex(
+          (i) => (i - 1 + Math.max(filtered.length, 1)) % Math.max(filtered.length, 1),
+        );
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        const item = filtered[activeIndex];
+        if (item) navigate(item);
+      }
+    },
+    [filtered, activeIndex, navigate],
+  );
 
   // Group items + build a single id→flatIndex map so the render loop is O(n) not O(n²).
   const { groups, flatItems, flatIndexById } = useMemo(() => {
@@ -185,6 +188,7 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
                     return (
                       <button
                         key={item.id}
+                        type="button"
                         role="option"
                         aria-selected={isActive}
                         onClick={() => navigate(item)}

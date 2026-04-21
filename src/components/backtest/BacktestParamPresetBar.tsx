@@ -1,13 +1,7 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import {
-  BookmarkPlus,
-  ChevronDown,
-  RotateCcw,
-  Trash2,
-  Check as CheckIcon,
-} from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
+import { BookmarkPlus, ChevronDown, RotateCcw, Trash2, Check as CheckIcon } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -117,9 +111,7 @@ export function BacktestParamPresetBar({
             )}
           >
             <span className="label-caps !text-[9px] !text-text-muted">Preset</span>
-            <span className="truncate font-mono text-[11px]">
-              {activePresetName ?? 'Load…'}
-            </span>
+            <span className="truncate font-mono text-[11px]">{activePresetName ?? 'Load…'}</span>
             <ChevronDown size={11} strokeWidth={1.75} className="opacity-60" />
           </button>
         </DropdownMenuTrigger>

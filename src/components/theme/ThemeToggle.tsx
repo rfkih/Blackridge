@@ -21,7 +21,7 @@ export function ThemeToggle({ className }: ThemeToggleProps) {
       className={cn(
         'group relative inline-flex h-8 w-8 items-center justify-center rounded-sm',
         'text-text-secondary transition-colors duration-fast ease-out-quart',
-        'hover:text-text-primary hover:bg-bg-hover',
+        'hover:bg-bg-hover hover:text-text-primary',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
         className,
       )}
@@ -31,7 +31,7 @@ export function ThemeToggle({ className }: ThemeToggleProps) {
         strokeWidth={1.75}
         className={cn(
           'absolute transition-all duration-base ease-out-expo',
-          isDark ? 'opacity-0 rotate-45 scale-75' : 'opacity-100 rotate-0 scale-100',
+          isDark ? 'rotate-45 scale-75 opacity-0' : 'rotate-0 scale-100 opacity-100',
         )}
       />
       <Moon
@@ -39,7 +39,7 @@ export function ThemeToggle({ className }: ThemeToggleProps) {
         strokeWidth={1.75}
         className={cn(
           'absolute transition-all duration-base ease-out-expo',
-          isDark ? 'opacity-100 rotate-0 scale-100' : 'opacity-0 -rotate-45 scale-75',
+          isDark ? 'rotate-0 scale-100 opacity-100' : '-rotate-45 scale-75 opacity-0',
         )}
       />
     </button>

@@ -1,10 +1,14 @@
 // SLICE 1: Axios instance with bearer-token interceptor and error normalization.
-import axios, { AxiosError, type AxiosInstance } from 'axios';
+import axios, { type AxiosError, type AxiosInstance } from 'axios';
 import { useAuthStore } from '@/store/authStore';
-import { API_URL } from '@/lib/constants';
+import { env } from '@/lib/env';
+
+// Re-export the error helpers so callers that imported them from `./client`
+// keep working after the lift into `./errorMap`.
+export { normalizeError, messageForStatus, FALLBACK_MESSAGE } from './errorMap';
 
 export const apiClient: AxiosInstance = axios.create({
-  baseURL: API_URL,
+  baseURL: env.apiUrl,
   headers: { 'Content-Type': 'application/json' },
   timeout: 20_000,
 });
@@ -73,11 +77,11 @@ apiClient.interceptors.response.use(
     // Unwrap the Blackheart API envelope: { responseCode, responseDesc, data, errorMessage }
     // so every caller just receives the inner `data` directly.
     if (isEnvelope(response.data)) {
-      const env = response.data;
-      if (env.errorMessage) {
-        return Promise.reject(new Error(env.errorMessage));
+      const envelope = response.data;
+      if (envelope.errorMessage) {
+        return Promise.reject(new Error(envelope.errorMessage));
       }
-      response.data = env.data;
+      response.data = envelope.data;
     }
     return response;
   },
@@ -94,32 +98,3 @@ apiClient.interceptors.response.use(
     return Promise.reject(error);
   },
 );
-
-interface BackendErrorPayload {
-  errorMessage?: string; // Blackheart envelope
-  message?: string;
-  error?: string;
-  detail?: string;
-}
-
-const FALLBACK_MESSAGE = 'Something went wrong. Please try again.';
-
-export function normalizeError(err: unknown): string {
-  if (axios.isAxiosError<BackendErrorPayload>(err)) {
-    const data = err.response?.data;
-    if (data?.errorMessage) return data.errorMessage;
-    if (data?.message) return data.message;
-    if (data?.error) return data.error;
-    if (data?.detail) return data.detail;
-    if (err.code === 'ECONNABORTED') return 'Request timed out. Please try again.';
-    if (err.code === 'ERR_NETWORK') {
-      if (process.env.NODE_ENV === 'development') {
-        return `Cannot reach server (${API_URL}). If curl works but the browser does not, allow CORS for this origin (e.g. http://localhost:3000) on the API. Also confirm the backend is running.`;
-      }
-      return 'Cannot reach server. Check your connection.';
-    }
-    if (err.message) return err.message;
-  }
-  if (err instanceof Error) return err.message;
-  return FALLBACK_MESSAGE;
-}

@@ -55,10 +55,7 @@ export function disconnectStompClient(): void {
   }
 }
 
-export function subscribeToTopic(
-  topic: string,
-  callback: (body: string) => void,
-): () => void {
+export function subscribeToTopic(topic: string, callback: (body: string) => void): () => void {
   const client = stompClient;
   if (!client?.active) return () => {};
   const sub: StompSubscription = client.subscribe(topic, (msg) => {

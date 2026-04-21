@@ -168,7 +168,9 @@ function LoginPageContent() {
               type="button"
               className="w-full"
               disabled={isSubmitting}
-              onClick={() => void submit()}
+              onClick={() => {
+                void submit();
+              }}
             >
               {isSubmitting ? (
                 <span className="flex items-center justify-center gap-2">

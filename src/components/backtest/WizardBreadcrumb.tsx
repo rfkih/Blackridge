@@ -21,10 +21,7 @@ interface WizardBreadcrumbProps {
 export function WizardBreadcrumb({ current, onStepClick, className }: WizardBreadcrumbProps) {
   const currentIndex = STEPS.findIndex((s) => s.id === current);
   return (
-    <nav
-      aria-label="Wizard progress"
-      className={cn('flex items-center gap-1.5', className)}
-    >
+    <nav aria-label="Wizard progress" className={cn('flex items-center gap-1.5', className)}>
       {STEPS.map((step, i) => {
         const isCurrent = i === currentIndex;
         const isDone = i < currentIndex;

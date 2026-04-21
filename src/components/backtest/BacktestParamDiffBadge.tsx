@@ -5,10 +5,7 @@ interface BacktestParamDiffBadgeProps {
   className?: string;
 }
 
-export function BacktestParamDiffBadge({
-  overrideCount,
-  className,
-}: BacktestParamDiffBadgeProps) {
+export function BacktestParamDiffBadge({ overrideCount, className }: BacktestParamDiffBadgeProps) {
   const isDirty = overrideCount > 0;
   return (
     <span

@@ -119,9 +119,7 @@ function mapMetrics(m: BackendBacktestRun['metrics']): BacktestMetrics | null {
  * the submitter sent; we accept either a map of overrides or a legacy string,
  * and fall back to null rather than surfacing raw JSON to the UI.
  */
-function mapParamSnapshot(
-  raw: unknown,
-): Record<string, Record<string, unknown>> | null {
+function mapParamSnapshot(raw: unknown): Record<string, Record<string, unknown>> | null {
   if (raw == null) return null;
   if (typeof raw === 'string') {
     try {

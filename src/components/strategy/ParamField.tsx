@@ -44,20 +44,14 @@ export function ParamField({
   disabled,
 }: ParamFieldProps) {
   const id = useId();
-  const modifiedFromDefault = useMemo(
-    () => isModified(value, defaultValue),
-    [value, defaultValue],
-  );
+  const modifiedFromDefault = useMemo(() => isModified(value, defaultValue), [value, defaultValue]);
   // If savedValue wasn't supplied, treat the default as the saved value.
   const effectiveSaved = savedValue === undefined ? defaultValue : savedValue;
   const savedDiffersFromDefault = useMemo(
     () => savedValue !== undefined && isModified(effectiveSaved, defaultValue),
     [savedValue, effectiveSaved, defaultValue],
   );
-  const unsavedEdit = useMemo(
-    () => isModified(value, effectiveSaved),
-    [value, effectiveSaved],
-  );
+  const unsavedEdit = useMemo(() => isModified(value, effectiveSaved), [value, effectiveSaved]);
   const readOnly = disabled || meta.readOnly;
 
   return (

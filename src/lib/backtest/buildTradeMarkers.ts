@@ -96,8 +96,7 @@ export function buildTradeMarkers(trades: BacktestTrade[]): TradeMarkerSet {
       const cfg = LEG_MARKER_CONFIG[pos.type]?.[pos.exitReason];
       if (!cfg) continue;
       const exitSec = Math.floor(pos.exitTime / 1000);
-      const position =
-        pos.exitReason === 'SL_HIT' ? oppositeOfEntry(isLong) : exitPosition(isLong);
+      const position = pos.exitReason === 'SL_HIT' ? oppositeOfEntry(isLong) : exitPosition(isLong);
       const price = legExitPrice(trade, pos);
       out.push({
         marker: {

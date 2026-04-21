@@ -21,7 +21,10 @@ interface ErrorBoundaryState {
  * area that failed.
  */
 export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
-  state: ErrorBoundaryState = { error: null };
+  constructor(props: ErrorBoundaryProps) {
+    super(props);
+    this.state = { error: null };
+  }
 
   static getDerivedStateFromError(error: Error): ErrorBoundaryState {
     return { error };
@@ -29,8 +32,9 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 
   componentDidCatch(error: Error, info: ErrorInfo) {
     if (process.env.NODE_ENV === 'development') {
-      // eslint-disable-next-line no-console
-      console.error('[panel error]', this.props.label ?? '(unlabeled)', error, info);
+      const { label } = this.props;
+      // eslint-disable-next-line no-console -- dev-only panel trace
+      console.error('[panel error]', label ?? '(unlabeled)', error, info);
     }
   }
 
@@ -38,9 +42,10 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 
   render() {
     const { error } = this.state;
-    if (!error) return this.props.children;
+    const { children, fallback, label } = this.props;
+    if (!error) return children;
 
-    if (this.props.fallback) return this.props.fallback(error, this.reset);
+    if (fallback) return fallback(error, this.reset);
 
     return (
       <div
@@ -50,7 +55,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
         <AlertTriangle size={20} className="text-[var(--color-loss)]" aria-hidden="true" />
         <div>
           <p className="text-sm text-[var(--text-primary)]">
-            {this.props.label ? `${this.props.label} failed to render` : 'Something broke here'}
+            {label ? `${label} failed to render` : 'Something broke here'}
           </p>
           {process.env.NODE_ENV === 'development' && (
             <p className="mt-1 max-w-md truncate font-mono text-xs text-[var(--text-muted)]">
@@ -61,9 +66,9 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
         <button
           type="button"
           onClick={this.reset}
-          className="flex items-center gap-1.5 rounded border border-[var(--border-default)] px-3 py-1.5 text-xs text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-hover)]"
+          className="flex items-center gap-1.5 rounded border border-[var(--border-default)] px-3 py-1.5 text-xs text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-hover)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-primary)]"
         >
-          <RefreshCw size={12} /> Try again
+          <RefreshCw size={12} aria-hidden="true" /> Try again
         </button>
       </div>
     );

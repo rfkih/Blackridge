@@ -16,7 +16,6 @@ import {
   useVcbParams,
 } from '@/hooks/useStrategies';
 import { useAccounts } from '@/hooks/useAccounts';
-import { formatPrice } from '@/lib/formatters';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import type { AccountStrategy } from '@/types/strategy';
@@ -103,10 +102,7 @@ function StrategyDetail({ strategy }: { strategy: AccountStrategy }) {
           </h1>
         </div>
         <div className="grid grid-cols-2 gap-4 text-right sm:grid-cols-3">
-          <MetaStat
-            label="Allocation"
-            value={`${strategy.capitalAllocationPct.toFixed(1)}%`}
-          />
+          <MetaStat label="Allocation" value={`${strategy.capitalAllocationPct.toFixed(1)}%`} />
           <MetaStat label="Priority" value={`#${strategy.priorityOrder}`} />
           <MetaStat
             label="Direction"

@@ -2,7 +2,7 @@
 
 import { useSyncExternalStore } from 'react';
 
-export type ToastVariant = 'default' | 'success' | 'error';
+export type ToastVariant = 'default' | 'success' | 'error' | 'warning' | 'info';
 
 export interface Toast {
   id: string;
@@ -13,15 +13,29 @@ export interface Toast {
 
 type Listener = () => void;
 
+/** Max toasts visible at once — newer ones push older ones out the top. */
+const MAX_VISIBLE = 3;
+const DEFAULT_DURATION_MS = 4_000;
+
 const listeners = new Set<Listener>();
+const timers = new Map<string, ReturnType<typeof setTimeout>>();
 let toasts: Toast[] = [];
 
 function emit() {
   listeners.forEach((l) => l());
 }
 
+function clearTimer(id: string) {
+  const t = timers.get(id);
+  if (t) {
+    clearTimeout(t);
+    timers.delete(id);
+  }
+}
+
 function remove(id: string) {
   toasts = toasts.filter((t) => t.id !== id);
+  clearTimer(id);
   emit();
 }
 
@@ -34,8 +48,13 @@ function getSnapshot() {
   return toasts;
 }
 
+/**
+ * SSR must return the same reference every render — a fresh `[]` literal per
+ * call makes React's store-hydration bail and log a mismatch warning.
+ */
+const EMPTY_TOASTS: Toast[] = [];
 function getServerSnapshot(): Toast[] {
-  return [];
+  return EMPTY_TOASTS;
 }
 
 export interface ShowToastInput {
@@ -56,17 +75,40 @@ function show(input: ShowToastInput) {
     description: input.description,
     variant: input.variant ?? 'default',
   };
-  toasts = [...toasts, toast];
+  // Push and cap. Drop oldest so the newest always wins attention — a late
+  // error toast shouldn't be hidden behind a stale success toast.
+  const next = [...toasts, toast];
+  while (next.length > MAX_VISIBLE) {
+    const dropped = next.shift();
+    if (dropped) clearTimer(dropped.id);
+  }
+  toasts = next;
   emit();
-  const duration = input.durationMs ?? 4000;
-  setTimeout(() => remove(id), duration);
+
+  const duration = input.durationMs ?? DEFAULT_DURATION_MS;
+  if (duration > 0 && Number.isFinite(duration)) {
+    const timer = setTimeout(() => remove(id), duration);
+    timers.set(id, timer);
+  }
   return id;
 }
 
+type ShortInput = Omit<ShowToastInput, 'variant'> | string;
+
+function normaliseShort(input: ShortInput): Omit<ShowToastInput, 'variant'> {
+  return typeof input === 'string' ? { title: input } : input;
+}
+
+/**
+ * Imperative handle usable outside React (mutations, event handlers, etc.).
+ * Accepts either a string (shorthand) or a full ShowToastInput.
+ */
 export const toast = {
   show,
-  success: (input: Omit<ShowToastInput, 'variant'>) => show({ ...input, variant: 'success' }),
-  error: (input: Omit<ShowToastInput, 'variant'>) => show({ ...input, variant: 'error' }),
+  success: (input: ShortInput) => show({ ...normaliseShort(input), variant: 'success' }),
+  error: (input: ShortInput) => show({ ...normaliseShort(input), variant: 'error' }),
+  warning: (input: ShortInput) => show({ ...normaliseShort(input), variant: 'warning' }),
+  info: (input: ShortInput) => show({ ...normaliseShort(input), variant: 'info' }),
   dismiss: remove,
 };
 

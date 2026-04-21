@@ -8,11 +8,13 @@ interface PriceCellProps {
   className?: string;
 }
 
-export const PriceCell = memo(function PriceCell({ value, decimals = 2, className }: PriceCellProps) {
+export const PriceCell = memo(function PriceCell({
+  value,
+  decimals = 2,
+  className,
+}: PriceCellProps) {
   return (
-    <span
-      className={cn('font-mono tabular-nums text-sm text-[var(--text-primary)]', className)}
-    >
+    <span className={cn('font-mono text-sm tabular-nums text-[var(--text-primary)]', className)}>
       {formatPrice(value, decimals)}
     </span>
   );

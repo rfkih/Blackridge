@@ -48,9 +48,7 @@ export async function getAccountStrategies(userId?: string): Promise<AccountStra
 }
 
 export async function getAccountStrategyById(id: string): Promise<AccountStrategy> {
-  const { data } = await apiClient.get<BackendAccountStrategy>(
-    `/api/v1/account-strategies/${id}`,
-  );
+  const { data } = await apiClient.get<BackendAccountStrategy>(`/api/v1/account-strategies/${id}`);
   return mapAccountStrategy(data);
 }
 

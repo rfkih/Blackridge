@@ -26,7 +26,7 @@ interface IndicatorToggleBarProps {
 
 export function IndicatorToggleBar({ indicators, onToggle }: IndicatorToggleBarProps) {
   return (
-    <div className="flex items-center gap-1.5 overflow-x-auto px-4 py-2 scrollbar-none">
+    <div className="scrollbar-none flex items-center gap-1.5 overflow-x-auto px-4 py-2">
       {INDICATORS.map(({ key, label, color }) => {
         const active = indicators[key];
         return (
@@ -37,7 +37,9 @@ export function IndicatorToggleBar({ indicators, onToggle }: IndicatorToggleBarP
             onClick={() => onToggle(key)}
             className={cn(
               'flex shrink-0 items-center gap-1.5 rounded border px-2 py-1 text-[11px] font-medium transition-colors duration-150',
-              active ? 'text-[var(--text-primary)]' : 'border-[var(--border-default)] text-[var(--text-muted)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-secondary)]',
+              active
+                ? 'text-[var(--text-primary)]'
+                : 'border-[var(--border-default)] text-[var(--text-muted)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-secondary)]',
             )}
             style={
               active

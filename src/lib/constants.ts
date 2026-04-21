@@ -1,9 +1,12 @@
 // Circular type-only import — erased at runtime (strategy.ts re-imports Interval/StrategyCode).
 // eslint-disable-next-line import/no-cycle
 import type { LsrParams, VcbParams } from '@/types/strategy';
+import { env } from './env';
 
-export const API_URL = process.env.NEXT_PUBLIC_API_URL?.trim() || 'http://localhost:8080';
-export const WS_URL = process.env.NEXT_PUBLIC_WS_URL?.trim() || 'ws://localhost:8080/ws';
+/** @deprecated prefer `import { env } from '@/lib/env'`. Re-exported so existing call sites keep working. */
+export const API_URL = env.apiUrl;
+/** @deprecated prefer `import { env } from '@/lib/env'`. */
+export const WS_URL = env.wsUrl;
 
 export const INTERVALS = ['1m', '5m', '15m', '1h', '4h', '1d'] as const;
 export type Interval = (typeof INTERVALS)[number];
@@ -160,7 +163,8 @@ export const LSR_PARAM_META: Record<keyof LsrParams, ParamMeta> = {
   },
   beTriggerRLongContinuation: {
     label: 'BE Trigger R — Long Continuation',
-    description: 'R-multiple at which the stop is moved to break-even for long-continuation trades.',
+    description:
+      'R-multiple at which the stop is moved to break-even for long-continuation trades.',
     kind: 'decimal',
     unit: '×',
     min: 0,

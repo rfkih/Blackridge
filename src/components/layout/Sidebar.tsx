@@ -70,10 +70,10 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       <aside
         className={cn(
           'fixed left-0 top-0 z-40 flex h-full w-[220px] flex-col',
-          'bg-bg-base border-r border-bd-subtle',
+          'border-r border-bd-subtle bg-bg-base',
           'transition-transform duration-base ease-out-quart',
           isOpen ? 'translate-x-0' : '-translate-x-full',
-          'lg:translate-x-0 lg:static lg:z-auto',
+          'lg:static lg:z-auto lg:translate-x-0',
         )}
         aria-label="Navigation"
       >
@@ -85,13 +85,14 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           >
             <span
               aria-hidden="true"
-              className="inline-block h-2 w-2 translate-y-[1px] bg-profit pulse-dot"
+              className="pulse-dot inline-block h-2 w-2 translate-y-[1px] bg-profit"
             />
             <span className="font-mono text-[13px] font-semibold tracking-widest text-text-primary">
               BLACKHEART
             </span>
           </Link>
           <button
+            type="button"
             onClick={onClose}
             className="flex size-7 items-center justify-center rounded-sm text-text-muted transition-colors duration-fast hover:bg-bg-hover hover:text-text-primary lg:hidden"
             aria-label="Close sidebar"
@@ -105,7 +106,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         {/* Nav — active state is a razor-thin profit-green left edge, no pill. */}
         <nav className="flex-1 overflow-y-auto py-3" aria-label="Main navigation">
           <p className="label-caps px-5 pb-2">Navigation</p>
-          <ul className="flex flex-col" role="list">
+          <ul className="flex flex-col">
             {NAV_ITEMS.map(({ label, href, icon: Icon }) => {
               const active = isActive(href);
               return (
@@ -125,9 +126,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                       'group relative flex items-center gap-3 px-5 py-[9px]',
                       'text-[13px] font-medium transition-colors duration-fast ease-out-quart',
                       'focus:outline-none focus-visible:bg-bg-elevated',
-                      active
-                        ? 'text-text-primary'
-                        : 'text-text-secondary hover:text-text-primary',
+                      active ? 'text-text-primary' : 'text-text-secondary hover:text-text-primary',
                     )}
                   >
                     <Icon
@@ -135,9 +134,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                       strokeWidth={1.75}
                       className={cn(
                         'shrink-0 transition-colors duration-fast',
-                        active
-                          ? 'text-profit'
-                          : 'text-text-muted group-hover:text-text-secondary',
+                        active ? 'text-profit' : 'text-text-muted group-hover:text-text-secondary',
                       )}
                       aria-hidden="true"
                     />
@@ -181,6 +178,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
               </p>
             </div>
             <button
+              type="button"
               onClick={logout}
               className="flex size-7 shrink-0 items-center justify-center rounded-sm text-text-muted transition-colors duration-fast hover:bg-bg-hover hover:text-loss focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               aria-label="Sign out"

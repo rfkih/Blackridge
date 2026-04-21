@@ -4,8 +4,11 @@ import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { fetchEquityPoints } from '@/lib/api/equity';
 import { useStrategies } from '@/hooks/useStrategies';
+import type { EquityPoint } from '@/types/market';
 
 export type EquityPeriod = '7D' | '30D' | '90D' | 'ALL';
+
+const EMPTY_POINTS: EquityPoint[] = [];
 
 const PERIOD_DAYS: Record<EquityPeriod, number> = {
   '7D': 7,
@@ -40,7 +43,9 @@ export function useEquityCurve() {
     retry: false,
   });
 
-  const points = query.data ?? [];
+  // `query.data ?? []` would mint a fresh array each render, busting the
+  // memoised stats below. Module-level sentinel keeps identity stable.
+  const points = query.data ?? EMPTY_POINTS;
 
   const stats = useMemo(() => {
     if (!points.length) return null;

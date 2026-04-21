@@ -22,7 +22,7 @@ import { useOpenTrades, useRecentTrades, usePnlSummary } from '@/hooks/useTrades
 import { useStrategies } from '@/hooks/useStrategies';
 import { useActiveAccount } from '@/hooks/useAccounts';
 import { useLivePnl, useSyncOpenPositions } from '@/hooks/useLivePnl';
-import { formatPrice, formatDate } from '@/lib/formatters';
+import { formatDate } from '@/lib/formatters';
 import { cn } from '@/lib/utils';
 import type { AccountStrategy, AccountStrategyStatus } from '@/types/strategy';
 
@@ -35,7 +35,7 @@ const DashboardMarketChart = dynamic(
     ssr: false,
     loading: () => (
       <div
-        className="w-full rounded-md border border-bd-subtle shimmer"
+        className="shimmer w-full rounded-md border border-bd-subtle"
         style={{ height: 620 }}
         aria-hidden="true"
       />
@@ -51,7 +51,10 @@ const DashboardEquityCurve = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="h-full w-full rounded-md border border-bd-subtle shimmer" aria-hidden="true" />
+      <div
+        className="shimmer h-full w-full rounded-md border border-bd-subtle"
+        aria-hidden="true"
+      />
     ),
   },
 );
@@ -146,7 +149,10 @@ export default function DashboardPage() {
 
   const { data: pnlSummary, isLoading: pnlLoading } = usePnlSummary('today');
   const { data: openTrades = [], isLoading: tradesLoading } = useOpenTrades(scopedAccountId);
-  const { data: recentTrades = [], isLoading: recentLoading } = useRecentTrades(10, scopedAccountId);
+  const { data: recentTrades = [], isLoading: recentLoading } = useRecentTrades(
+    10,
+    scopedAccountId,
+  );
 
   useLivePnl(scopedAccountId);
   useSyncOpenPositions(openTrades);
@@ -181,7 +187,7 @@ export default function DashboardPage() {
             <OpenPositionsPanel
               positions={openTrades}
               isLoading={tradesLoading}
-              className="flex-1 min-h-0"
+              className="min-h-0 flex-1"
             />
           </ErrorBoundary>
         </div>
@@ -190,7 +196,7 @@ export default function DashboardPage() {
           className="reveal flex flex-col lg:col-span-2"
           style={{ ['--reveal-i' as string]: 2, height: 360 }}
         >
-          <div className="flex flex-1 min-h-0 flex-col overflow-hidden rounded-md border border-bd-subtle bg-bg-surface">
+          <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-md border border-bd-subtle bg-bg-surface">
             <div className="flex shrink-0 items-center justify-between border-b border-bd-subtle px-4 py-3">
               <div className="flex items-center gap-2.5">
                 <h2 className="label-caps">Strategies</h2>
@@ -293,10 +299,7 @@ export default function DashboardPage() {
                   <thead className="sticky top-0 z-10 bg-bg-surface">
                     <tr className={cn('border-b border-bd-subtle')}>
                       {['Symbol', 'Strategy', 'P&L', 'Closed'].map((col) => (
-                        <th
-                          key={col}
-                          className="label-caps px-4 py-2 text-left"
-                        >
+                        <th key={col} className="label-caps px-4 py-2 text-left">
                           {col}
                         </th>
                       ))}
@@ -306,7 +309,7 @@ export default function DashboardPage() {
                     {recentTrades.map((trade) => (
                       <tr
                         key={trade.id}
-                        className="border-b border-bd-subtle transition-colors duration-fast hover:bg-bg-elevated last:border-b-0"
+                        className="border-b border-bd-subtle transition-colors duration-fast last:border-b-0 hover:bg-bg-elevated"
                       >
                         <td className="px-4 py-2.5">
                           <div className="flex items-center gap-2">

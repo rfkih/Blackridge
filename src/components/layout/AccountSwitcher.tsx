@@ -128,13 +128,7 @@ export function AccountSwitcher() {
   );
 }
 
-function AccountAvatar({
-  account,
-  isAll,
-}: {
-  account: AccountSummary | null;
-  isAll: boolean;
-}) {
+function AccountAvatar({ account, isAll }: { account: AccountSummary | null; isAll: boolean }) {
   if (isAll) {
     return (
       <span className="flex size-5 shrink-0 items-center justify-center rounded-sm bg-bg-elevated text-profit">
@@ -143,9 +137,7 @@ function AccountAvatar({
     );
   }
   if (!account) {
-    return (
-      <span className="size-5 shrink-0 rounded-sm bg-bg-elevated" aria-hidden="true" />
-    );
+    return <span className="size-5 shrink-0 rounded-sm bg-bg-elevated" aria-hidden="true" />;
   }
   return (
     <span

@@ -69,7 +69,10 @@ export function StatCard({
             {value}
           </span>
           {sub && (
-            <p className="num mt-2 text-[11px] leading-none" style={{ color: SUB_COLOR_MAP[subColor] }}>
+            <p
+              className="num mt-2 text-[11px] leading-none"
+              style={{ color: SUB_COLOR_MAP[subColor] }}
+            >
               {sub}
             </p>
           )}

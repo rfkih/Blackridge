@@ -22,7 +22,9 @@ function writeLocal(key: string, value: unknown) {
   if (typeof window === 'undefined') return;
   try {
     window.localStorage.setItem(key, JSON.stringify(value));
-  } catch {}
+  } catch {
+    // localStorage disabled or quota exceeded — fine to swallow.
+  }
 }
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -56,14 +58,14 @@ const CANDLE_COUNT = 500;
 // ─── Hook ─────────────────────────────────────────────────────────────────────
 
 export function useMarketChart() {
-  const [symbol, setSymbolState] = useState<string>(
-    () => readLocal('blackheart:chart-symbol', 'BTCUSDT'),
+  const [symbol, setSymbolState] = useState<string>(() =>
+    readLocal('blackheart:chart-symbol', 'BTCUSDT'),
   );
-  const [interval, setIntervalState] = useState<ChartInterval>(
-    () => readLocal('blackheart:chart-interval', '1h'),
+  const [interval, setIntervalState] = useState<ChartInterval>(() =>
+    readLocal('blackheart:chart-interval', '1h'),
   );
-  const [indicators, setIndicatorsState] = useState<ActiveIndicators>(
-    () => readLocal('blackheart:chart-indicators', DEFAULT_INDICATORS),
+  const [indicators, setIndicatorsState] = useState<ActiveIndicators>(() =>
+    readLocal('blackheart:chart-indicators', DEFAULT_INDICATORS),
   );
 
   const setSymbol = useCallback((s: string) => {

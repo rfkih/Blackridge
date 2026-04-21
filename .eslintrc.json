@@ -61,7 +61,22 @@
           "context"
         ]
       }
-    ]
+    ],
+    "no-nested-ternary": "off",
+    "@typescript-eslint/no-use-before-define": [
+      "error",
+      { "functions": false, "classes": true, "variables": true }
+    ],
+    "no-continue": "off",
+    "no-void": ["error", { "allowAsStatement": true }],
+    "consistent-return": "off",
+    "no-plusplus": "off",
+    "react/no-array-index-key": "off",
+    "import/order": "off",
+    "prefer-destructuring": "off",
+    "@typescript-eslint/no-shadow": "off",
+    "no-alert": "off",
+    "react-hooks/exhaustive-deps": "warn"
   },
   "overrides": [
     {

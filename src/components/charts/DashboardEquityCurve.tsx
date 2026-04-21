@@ -68,12 +68,19 @@ function EquityTooltip({
 
 // ─── Period tabs ──────────────────────────────────────────────────────────────
 
-function PeriodTabs({ value, onChange }: { value: EquityPeriod; onChange: (p: EquityPeriod) => void }) {
+function PeriodTabs({
+  value,
+  onChange,
+}: {
+  value: EquityPeriod;
+  onChange: (p: EquityPeriod) => void;
+}) {
   return (
     <div className="flex items-center gap-0.5 rounded-md bg-[var(--bg-overlay)] p-0.5">
       {PERIODS.map((p) => (
         <button
           key={p}
+          type="button"
           onClick={() => onChange(p)}
           className={cn(
             'rounded px-2 py-1 font-mono text-[11px] font-medium transition-colors',
@@ -96,10 +103,7 @@ export function DashboardEquityCurve({ className }: { className?: string }) {
 
   const isProfit = (stats?.change ?? 0) >= 0;
 
-  const chartData = useMemo(
-    () => points.map((p) => ({ ...p, timestamp: p.time })),
-    [points],
-  );
+  const chartData = useMemo(() => points.map((p) => ({ ...p, timestamp: p.time })), [points]);
 
   // Single-pass min/max — Math.min(...largeArr) can hit the JS call-stack
   // limit on very long equity series (Safari is the strictest).

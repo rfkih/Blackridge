@@ -14,11 +14,7 @@ import type {
   Time,
 } from 'lightweight-charts';
 import { TV } from '@/lib/charts/chartTheme';
-import {
-  buildTradeMarkers,
-  legHitMap,
-  type MarkerMeta,
-} from '@/lib/backtest/buildTradeMarkers';
+import { buildTradeMarkers, legHitMap, type MarkerMeta } from '@/lib/backtest/buildTradeMarkers';
 import { formatPnl, formatPrice } from '@/lib/formatters';
 import type { BacktestTrade } from '@/types/backtest';
 import type { CandleData } from '@/types/market';
@@ -293,8 +289,7 @@ export function BacktestAnnotatedChart({
     if (!chart) return;
 
     const entrySec = Math.floor(trade.entryTime / 1000);
-    const exitSec =
-      trade.exitTime != null ? Math.floor(trade.exitTime / 1000) : entrySec;
+    const exitSec = trade.exitTime != null ? Math.floor(trade.exitTime / 1000) : entrySec;
     // Pad either side so the trade isn't pinned to the edge. Fall back to one
     // hour for instant in/out trades so the visible range never collapses to zero.
     const span = Math.max(exitSec - entrySec, 60 * 60);
@@ -365,16 +360,24 @@ export function BacktestAnnotatedChart({
   const hoveredTrade = hover ? tradeById.get(hover.tradeId) : null;
 
   return (
+    // The div hosts TradingView's canvas — TV captures pointer events; we
+    // only listen for ESC to deselect. `role="application"` marks this as a
+    // focusable application region for screen readers; we still suppress the
+    // noninteractive-element-interactions rule because the handler attaches
+    // to the region container, not an intrinsically-interactive element.
+    /* eslint-disable jsx-a11y/no-noninteractive-element-interactions, jsx-a11y/no-noninteractive-tabindex */
     <div
       ref={containerRef}
+      role="application"
       className="relative w-full"
       style={{ height }}
-      tabIndex={-1}
+      tabIndex={0}
       onKeyDown={handleKey}
       aria-label="Backtest annotated candlestick chart"
     >
       {hoveredTrade && hover && <TradeMarkerTooltip trade={hoveredTrade} x={hover.x} y={hover.y} />}
     </div>
+    /* eslint-enable jsx-a11y/no-noninteractive-element-interactions, jsx-a11y/no-noninteractive-tabindex */
   );
 }
 

@@ -20,6 +20,7 @@ export function IntervalTabs({ value, onChange }: IntervalTabsProps) {
         return (
           <button
             key={iv}
+            type="button"
             role="tab"
             aria-selected={active}
             onClick={() => onChange(iv)}

@@ -106,7 +106,12 @@ export function DashboardMarketChart() {
   const candleMap = useRef<Map<number, CandleData>>(new Map());
   const [chartReady, setChartReady] = useState(false);
   const [ohlcv, setOhlcv] = useState<OhlcvState>({
-    open: null, high: null, low: null, close: null, prevClose: null, volume: null,
+    open: null,
+    high: null,
+    low: null,
+    close: null,
+    prevClose: null,
+    volume: null,
   });
 
   // ── Effect 1: Create main + volume charts (per symbol) ──────────────────────
@@ -197,7 +202,14 @@ export function DashboardMarketChart() {
           const last = arr[arr.length - 1];
           if (last) {
             const prev = arr[arr.length - 2];
-            setOhlcv({ open: last.open, high: last.high, low: last.low, close: last.close, prevClose: prev?.close ?? null, volume: last.volume });
+            setOhlcv({
+              open: last.open,
+              high: last.high,
+              low: last.low,
+              close: last.close,
+              prevClose: prev?.close ?? null,
+              volume: last.volume,
+            });
           }
           return;
         }
@@ -205,9 +217,17 @@ export function DashboardMarketChart() {
         const raw = candleMap.current.get(key);
         const arr = Array.from(candleMap.current.values());
         const idx = arr.findIndex((c) => c.time === key);
-        const prevClose = idx > 0 ? arr[idx - 1]?.close ?? null : null;
+        const prevClose = idx > 0 ? (arr[idx - 1]?.close ?? null) : null;
         const d = param.seriesData.get(cs) as CandlestickData<Time> | undefined;
-        if (d) setOhlcv({ open: d.open, high: d.high, low: d.low, close: d.close, prevClose, volume: raw?.volume ?? null });
+        if (d)
+          setOhlcv({
+            open: d.open,
+            high: d.high,
+            low: d.low,
+            close: d.close,
+            prevClose,
+            volume: raw?.volume ?? null,
+          });
       };
       mc.subscribeCrosshairMove(crosshairHandler);
       unsubs.push(() => mc.unsubscribeCrosshairMove(crosshairHandler));
@@ -216,8 +236,10 @@ export function DashboardMarketChart() {
       const ro = new ResizeObserver(() => {
         if (mainRef.current) mc.applyOptions({ width: mainRef.current.clientWidth });
         if (volRef.current) vc.applyOptions({ width: volRef.current.clientWidth });
-        if (rsiRef.current && rsiChart.current) rsiChart.current.applyOptions({ width: rsiRef.current.clientWidth });
-        if (macdRef.current && macdChart.current) macdChart.current.applyOptions({ width: macdRef.current.clientWidth });
+        if (rsiRef.current && rsiChart.current)
+          rsiChart.current.applyOptions({ width: rsiRef.current.clientWidth });
+        if (macdRef.current && macdChart.current)
+          macdChart.current.applyOptions({ width: macdRef.current.clientWidth });
       });
       if (wrapRef.current) ro.observe(wrapRef.current);
       unsubs.push(() => ro.disconnect());
@@ -312,7 +334,15 @@ export function DashboardMarketChart() {
 
     const last = valid[valid.length - 1];
     const prev = valid[valid.length - 2];
-    if (last) setOhlcv({ open: last.open, high: last.high, low: last.low, close: last.close, prevClose: prev?.close ?? null, volume: last.volume });
+    if (last)
+      setOhlcv({
+        open: last.open,
+        high: last.high,
+        low: last.low,
+        close: last.close,
+        prevClose: prev?.close ?? null,
+        volume: last.volume,
+      });
   }, [chartReady, candles, symbol, interval]);
 
   // ── Effect 3: Overlay indicators ────────────────────────────────────────────
@@ -325,7 +355,11 @@ export function DashboardMarketChart() {
       if (!ema20Ref.current && indicatorData.length) {
         ema20Ref.current = addEmaLine(chart, indicatorData, 'ema20', INDICATOR_COLORS.ema20);
       } else if (ema20Ref.current && indicatorData.length) {
-        ema20Ref.current.setData(indicatorData.filter((d) => d.ema20 != null).map((d) => ({ time: d.time as Time, value: d.ema20! })));
+        ema20Ref.current.setData(
+          indicatorData
+            .filter((d) => d.ema20 != null)
+            .map((d) => ({ time: d.time as Time, value: d.ema20! })),
+        );
       }
     } else if (ema20Ref.current) {
       safeRemove(chart, ema20Ref.current);
@@ -337,7 +371,11 @@ export function DashboardMarketChart() {
       if (!ema50Ref.current && indicatorData.length) {
         ema50Ref.current = addEmaLine(chart, indicatorData, 'ema50', INDICATOR_COLORS.ema50);
       } else if (ema50Ref.current && indicatorData.length) {
-        ema50Ref.current.setData(indicatorData.filter((d) => d.ema50 != null).map((d) => ({ time: d.time as Time, value: d.ema50! })));
+        ema50Ref.current.setData(
+          indicatorData
+            .filter((d) => d.ema50 != null)
+            .map((d) => ({ time: d.time as Time, value: d.ema50! })),
+        );
       }
     } else if (ema50Ref.current) {
       safeRemove(chart, ema50Ref.current);
@@ -349,7 +387,11 @@ export function DashboardMarketChart() {
       if (!ema200Ref.current && indicatorData.length) {
         ema200Ref.current = addEmaLine(chart, indicatorData, 'ema200', INDICATOR_COLORS.ema200);
       } else if (ema200Ref.current && indicatorData.length) {
-        ema200Ref.current.setData(indicatorData.filter((d) => d.ema200 != null).map((d) => ({ time: d.time as Time, value: d.ema200! })));
+        ema200Ref.current.setData(
+          indicatorData
+            .filter((d) => d.ema200 != null)
+            .map((d) => ({ time: d.time as Time, value: d.ema200! })),
+        );
       }
     } else if (ema200Ref.current) {
       safeRemove(chart, ema200Ref.current);
@@ -388,7 +430,15 @@ export function DashboardMarketChart() {
       kcRef.current = null;
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [chartReady, indicators.ema20, indicators.ema50, indicators.ema200, indicators.bb, indicators.kc, indicatorData]);
+  }, [
+    chartReady,
+    indicators.ema20,
+    indicators.ema50,
+    indicators.ema200,
+    indicators.bb,
+    indicators.kc,
+    indicatorData,
+  ]);
 
   // ── Effect 4: RSI sub-chart ──────────────────────────────────────────────────
   useEffect(() => {
@@ -410,7 +460,12 @@ export function DashboardMarketChart() {
       if (!rsiChart.current) {
         const rc = tv.createChart(rsiRef.current, {
           height: 80,
-          layout: { background: { type: tv.ColorType.Solid, color: TV.BG }, textColor: TV.TEXT, fontFamily: "'JetBrains Mono', monospace", fontSize: 10 },
+          layout: {
+            background: { type: tv.ColorType.Solid, color: TV.BG },
+            textColor: TV.TEXT,
+            fontFamily: "'JetBrains Mono', monospace",
+            fontSize: 10,
+          },
           grid: { vertLines: { visible: false }, horzLines: { color: TV.GRID } },
           rightPriceScale: { borderColor: TV.BORDER, scaleMargins: { top: 0.1, bottom: 0.1 } },
           timeScale: { visible: false },
@@ -444,12 +499,28 @@ export function DashboardMarketChart() {
         }
 
         // OB/OS reference lines
-        rs.createPriceLine({ price: 70, color: TV.NEUTRAL, lineWidth: 1, lineStyle: 2, axisLabelVisible: false, title: '' });
-        rs.createPriceLine({ price: 30, color: TV.NEUTRAL, lineWidth: 1, lineStyle: 2, axisLabelVisible: false, title: '' });
+        rs.createPriceLine({
+          price: 70,
+          color: TV.NEUTRAL,
+          lineWidth: 1,
+          lineStyle: 2,
+          axisLabelVisible: false,
+          title: '',
+        });
+        rs.createPriceLine({
+          price: 30,
+          color: TV.NEUTRAL,
+          lineWidth: 1,
+          lineStyle: 2,
+          axisLabelVisible: false,
+          title: '',
+        });
       }
 
       rsiSeries.current?.setData(
-        indicatorData.filter((d) => d.rsi != null).map((d) => ({ time: d.time as Time, value: d.rsi! })),
+        indicatorData
+          .filter((d) => d.rsi != null)
+          .map((d) => ({ time: d.time as Time, value: d.rsi! })),
       );
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -477,7 +548,12 @@ export function DashboardMarketChart() {
       if (!macdChart.current) {
         const mc = tv.createChart(macdRef.current, {
           height: 80,
-          layout: { background: { type: tv.ColorType.Solid, color: TV.BG }, textColor: TV.TEXT, fontFamily: "'JetBrains Mono', monospace", fontSize: 10 },
+          layout: {
+            background: { type: tv.ColorType.Solid, color: TV.BG },
+            textColor: TV.TEXT,
+            fontFamily: "'JetBrains Mono', monospace",
+            fontSize: 10,
+          },
           grid: { vertLines: { visible: false }, horzLines: { color: TV.GRID } },
           rightPriceScale: { borderColor: TV.BORDER, scaleMargins: { top: 0.15, bottom: 0.15 } },
           timeScale: { visible: false },
@@ -486,9 +562,22 @@ export function DashboardMarketChart() {
           handleScale: false,
         });
         macdChart.current = mc;
-        macdHisto.current = mc.addSeries(tv.HistogramSeries, { priceLineVisible: false, lastValueVisible: false });
-        macdLine.current = mc.addSeries(tv.LineSeries, { color: INDICATOR_COLORS.macdLine, lineWidth: 1, priceLineVisible: false, lastValueVisible: false });
-        macdSignal.current = mc.addSeries(tv.LineSeries, { color: INDICATOR_COLORS.macdSignal, lineWidth: 1, priceLineVisible: false, lastValueVisible: false });
+        macdHisto.current = mc.addSeries(tv.HistogramSeries, {
+          priceLineVisible: false,
+          lastValueVisible: false,
+        });
+        macdLine.current = mc.addSeries(tv.LineSeries, {
+          color: INDICATOR_COLORS.macdLine,
+          lineWidth: 1,
+          priceLineVisible: false,
+          lastValueVisible: false,
+        });
+        macdSignal.current = mc.addSeries(tv.LineSeries, {
+          color: INDICATOR_COLORS.macdSignal,
+          lineWidth: 1,
+          priceLineVisible: false,
+          lastValueVisible: false,
+        });
 
         const main = mainChart.current;
         if (main) {
@@ -507,18 +596,24 @@ export function DashboardMarketChart() {
       }
 
       const valid = indicatorData.filter((d) => d.macd != null);
-      macdHisto.current?.setData(valid.map((d) => ({
-        time: d.time as Time,
-        value: d.macdHistogram ?? 0,
-        color: (d.macdHistogram ?? 0) >= 0 ? INDICATOR_COLORS.macdUp : INDICATOR_COLORS.macdDown,
-      })));
+      macdHisto.current?.setData(
+        valid.map((d) => ({
+          time: d.time as Time,
+          value: d.macdHistogram ?? 0,
+          color: (d.macdHistogram ?? 0) >= 0 ? INDICATOR_COLORS.macdUp : INDICATOR_COLORS.macdDown,
+        })),
+      );
       macdLine.current?.setData(valid.map((d) => ({ time: d.time as Time, value: d.macd! })));
-      macdSignal.current?.setData(valid.map((d) => ({ time: d.time as Time, value: d.macdSignal ?? 0 })));
+      macdSignal.current?.setData(
+        valid.map((d) => ({ time: d.time as Time, value: d.macdSignal ?? 0 })),
+      );
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chartReady, indicators.macd, indicatorData]);
 
-  const handleRetry = useCallback(() => void refetch(), [refetch]);
+  const handleRetry = useCallback(() => {
+    void refetch();
+  }, [refetch]);
 
   return (
     <ChartPanelShell
@@ -531,18 +626,34 @@ export function DashboardMarketChart() {
       }
     >
       <div className="border-b border-[var(--border-subtle)]">
-        <OhlcvReadout open={ohlcv.open} high={ohlcv.high} low={ohlcv.low} close={ohlcv.close} previousClose={ohlcv.prevClose} volume={ohlcv.volume} symbol={symbol} />
+        <OhlcvReadout
+          open={ohlcv.open}
+          high={ohlcv.high}
+          low={ohlcv.low}
+          close={ohlcv.close}
+          previousClose={ohlcv.prevClose}
+          volume={ohlcv.volume}
+          symbol={symbol}
+        />
       </div>
       <div className="border-b border-[var(--border-subtle)]">
         <IndicatorToggleBar indicators={indicators} onToggle={toggleIndicator} />
       </div>
 
-      <div ref={wrapRef} aria-label={`Candlestick chart for ${symbol} at ${interval} interval`} className="relative select-none">
+      <div
+        ref={wrapRef}
+        aria-label={`Candlestick chart for ${symbol} at ${interval} interval`}
+        className="relative select-none"
+      >
         {isError ? (
           <div className="flex h-[380px] flex-col items-center justify-center gap-3 text-[var(--text-muted)]">
             <AlertCircle size={20} />
             <span className="text-sm">Failed to load chart data</span>
-            <button onClick={handleRetry} className="flex items-center gap-1.5 rounded border border-[var(--border-default)] px-3 py-1.5 text-xs text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-hover)]">
+            <button
+              type="button"
+              onClick={handleRetry}
+              className="flex items-center gap-1.5 rounded border border-[var(--border-default)] px-3 py-1.5 text-xs text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-hover)]"
+            >
               <RefreshCw size={12} /> Retry
             </button>
           </div>
@@ -554,9 +665,28 @@ export function DashboardMarketChart() {
               </div>
             )}
             <div ref={mainRef} style={{ height: 380 }} aria-hidden="true" />
-            <div ref={volRef} style={{ height: 80, opacity: indicators.vol ? 1 : 0.3, transition: 'opacity 200ms' }} className="border-t border-[var(--border-subtle)]" aria-hidden="true" />
-            {indicators.rsi && <div ref={rsiRef} style={{ height: 80 }} className="border-t border-[var(--border-subtle)]" aria-hidden="true" />}
-            {indicators.macd && <div ref={macdRef} style={{ height: 80 }} className="border-t border-[var(--border-subtle)]" aria-hidden="true" />}
+            <div
+              ref={volRef}
+              style={{ height: 80, opacity: indicators.vol ? 1 : 0.3, transition: 'opacity 200ms' }}
+              className="border-t border-[var(--border-subtle)]"
+              aria-hidden="true"
+            />
+            {indicators.rsi && (
+              <div
+                ref={rsiRef}
+                style={{ height: 80 }}
+                className="border-t border-[var(--border-subtle)]"
+                aria-hidden="true"
+              />
+            )}
+            {indicators.macd && (
+              <div
+                ref={macdRef}
+                style={{ height: 80 }}
+                className="border-t border-[var(--border-subtle)]"
+                aria-hidden="true"
+              />
+            )}
           </>
         )}
       </div>

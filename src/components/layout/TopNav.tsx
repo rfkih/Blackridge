@@ -54,7 +54,11 @@ export function TopNav({ onMenuClick, onCommandOpen }: TopNavProps) {
 
   const connected = useWsStore((s) => s.connected);
   const reconnecting = useWsStore((s) => s.reconnecting);
-  const wsStatus: WsStatus = connected ? 'connected' : reconnecting ? 'reconnecting' : 'disconnected';
+  const wsStatus: WsStatus = connected
+    ? 'connected'
+    : reconnecting
+      ? 'reconnecting'
+      : 'disconnected';
   const wsMeta = WS_STATUS_META[wsStatus];
 
   const { user, logout } = useAuth();
@@ -79,13 +83,14 @@ export function TopNav({ onMenuClick, onCommandOpen }: TopNavProps) {
       {/* Left: menu (mobile) + page title as label-caps */}
       <div className="flex items-center gap-4">
         <button
+          type="button"
           onClick={onMenuClick}
           className="flex size-7 items-center justify-center rounded-sm text-text-muted transition-colors duration-fast hover:bg-bg-hover hover:text-text-primary lg:hidden"
           aria-label="Open navigation"
         >
           <Menu size={16} strokeWidth={1.75} />
         </button>
-        <h1 className="label-caps !text-text-primary !text-[11px]">{pageTitle}</h1>
+        <h1 className="label-caps !text-[11px] !text-text-primary">{pageTitle}</h1>
       </div>
 
       {/* Right: WS + ⌘K + account + theme + user */}
@@ -94,7 +99,11 @@ export function TopNav({ onMenuClick, onCommandOpen }: TopNavProps) {
         <div className="hidden items-center gap-1.5 pr-2 sm:flex" aria-live="polite">
           <span
             aria-hidden="true"
-            className={cn('inline-block h-[6px] w-[6px] rounded-full', wsMeta.dot, wsMeta.pulse && 'pulse-dot')}
+            className={cn(
+              'inline-block h-[6px] w-[6px] rounded-full',
+              wsMeta.dot,
+              wsMeta.pulse && 'pulse-dot',
+            )}
           />
           <span className="label-caps !text-[10px] text-text-muted">{wsMeta.label}</span>
         </div>
@@ -128,6 +137,7 @@ export function TopNav({ onMenuClick, onCommandOpen }: TopNavProps) {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button
+              type="button"
               className={cn(
                 'flex items-center gap-1.5 rounded-sm px-1 py-1 transition-colors duration-fast',
                 'text-text-secondary hover:bg-bg-hover hover:text-text-primary',
@@ -152,17 +162,17 @@ export function TopNav({ onMenuClick, onCommandOpen }: TopNavProps) {
               <p className="truncate font-mono text-[10px] text-text-muted">{user?.email ?? ''}</p>
             </div>
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="gap-2 text-[12px] cursor-pointer">
+            <DropdownMenuItem className="cursor-pointer gap-2 text-[12px]">
               <User size={13} strokeWidth={1.75} />
               Profile
             </DropdownMenuItem>
-            <DropdownMenuItem className="gap-2 text-[12px] cursor-pointer">
+            <DropdownMenuItem className="cursor-pointer gap-2 text-[12px]">
               <Settings size={13} strokeWidth={1.75} />
               Settings
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
-              className="gap-2 text-[12px] cursor-pointer text-loss focus:text-loss"
+              className="cursor-pointer gap-2 text-[12px] text-loss focus:text-loss"
               onClick={logout}
             >
               <LogOut size={13} strokeWidth={1.75} />

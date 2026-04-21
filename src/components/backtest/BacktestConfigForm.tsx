@@ -1,14 +1,8 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import {
-  ArrowRight,
-  AlertTriangle,
-  Check,
-  ChevronDown,
-  Loader2,
-} from 'lucide-react';
+import { ArrowRight, AlertTriangle, Check, ChevronDown, Loader2 } from 'lucide-react';
 import { z } from 'zod';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -46,13 +40,10 @@ const configSchema = z
     message: 'To date must be after From date',
     path: ['toDate'],
   })
-  .refine(
-    (d) => d.strategyCodes.every((code) => Boolean(d.strategyAccountStrategyIds[code])),
-    {
-      message: 'Every selected strategy needs an account-strategy',
-      path: ['strategyAccountStrategyIds'],
-    },
-  );
+  .refine((d) => d.strategyCodes.every((code) => Boolean(d.strategyAccountStrategyIds[code])), {
+    message: 'Every selected strategy needs an account-strategy',
+    path: ['strategyAccountStrategyIds'],
+  });
 
 type FormErrors = Partial<Record<string, string>>;
 
@@ -203,6 +194,9 @@ export function BacktestConfigForm() {
             />
             <datalist id="bt-symbols">
               {COMMON_SYMBOLS.map((s) => (
+                // Datalist options are not user-facing controls themselves —
+                // eslint's control-has-associated-label rule doesn't know that.
+                // eslint-disable-next-line jsx-a11y/control-has-associated-label
                 <option key={s} value={s} />
               ))}
             </datalist>
@@ -401,9 +395,7 @@ function StrategyChip({
         aria-hidden="true"
         className={cn(
           'flex size-4 shrink-0 items-center justify-center rounded-sm',
-          selected
-            ? 'bg-profit text-text-inverse'
-            : 'border border-bd-subtle text-transparent',
+          selected ? 'bg-profit text-text-inverse' : 'border border-bd-subtle text-transparent',
         )}
       >
         <Check size={10} strokeWidth={2.5} />

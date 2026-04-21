@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { flushSync } from 'react-dom';
 
 export type Theme = 'dark' | 'light';
@@ -75,9 +75,15 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     setTheme(theme === 'dark' ? 'light' : 'dark');
   }, [theme, setTheme]);
 
-  return (
-    <ThemeContext.Provider value={{ theme, setTheme, toggle }}>{children}</ThemeContext.Provider>
+  // Memoise so consumers don't re-render on every parent update — a fresh
+  // object literal in the Provider `value` is the classic cause of a
+  // context-wide re-render storm.
+  const value = useMemo<ThemeContextValue>(
+    () => ({ theme, setTheme, toggle }),
+    [theme, setTheme, toggle],
   );
+
+  return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 }
 
 export function useTheme(): ThemeContextValue {
