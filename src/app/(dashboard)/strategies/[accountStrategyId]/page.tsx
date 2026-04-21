@@ -103,7 +103,10 @@ function StrategyDetail({ strategy }: { strategy: AccountStrategy }) {
           </h1>
         </div>
         <div className="grid grid-cols-2 gap-4 text-right sm:grid-cols-3">
-          <MetaStat label="Capital" value={`${formatPrice(strategy.capitalAllocatedUsdt)} USDT`} />
+          <MetaStat
+            label="Allocation"
+            value={`${strategy.capitalAllocationPct.toFixed(1)}%`}
+          />
           <MetaStat label="Priority" value={`#${strategy.priorityOrder}`} />
           <MetaStat
             label="Direction"
@@ -170,8 +173,12 @@ function OverviewTab({ strategy }: { strategy: AccountStrategy }) {
     { label: 'Interval', value: strategy.interval },
     { label: 'Status', value: <StrategyStatusBadge status={strategy.status} /> },
     {
-      label: 'Capital Allocated',
-      value: `${formatPrice(strategy.capitalAllocatedUsdt)} USDT`,
+      label: 'Capital Allocation',
+      value: `${strategy.capitalAllocationPct.toFixed(2)}%`,
+    },
+    {
+      label: 'Max Open Positions',
+      value: strategy.maxOpenPositions || '—',
     },
     { label: 'Allow Long', value: strategy.allowLong ? 'Yes' : 'No' },
     { label: 'Allow Short', value: strategy.allowShort ? 'Yes' : 'No' },

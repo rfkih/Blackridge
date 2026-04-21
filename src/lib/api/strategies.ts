@@ -7,6 +7,18 @@ function extractList<T>(data: T[] | PageResponse<T>): T[] {
   return (data as PageResponse<T>).content ?? [];
 }
 
+/**
+ * Coerce a possibly-null BigDecimal string from the wire into a number. Java
+ * serialises BigDecimal as either number or string depending on Jackson config;
+ * anything that can't be parsed cleanly falls back to 0 so arithmetic stays
+ * safe (sort-by-capital, aggregates) and the UI renders "0" instead of NaN.
+ */
+function toNumber(v: number | string | null | undefined): number {
+  if (v == null) return 0;
+  const n = typeof v === 'number' ? v : Number(v);
+  return Number.isFinite(n) ? n : 0;
+}
+
 /** Map Java DTO field names to the frontend AccountStrategy shape. */
 function mapAccountStrategy(s: BackendAccountStrategy): AccountStrategy {
   return {
@@ -16,7 +28,8 @@ function mapAccountStrategy(s: BackendAccountStrategy): AccountStrategy {
     symbol: s.symbol,
     interval: s.intervalName,
     status: (s.enabled ? 'LIVE' : 'STOPPED') as AccountStrategyStatus,
-    capitalAllocatedUsdt: s.capitalAllocatedUsdt,
+    capitalAllocationPct: toNumber(s.capitalAllocationPct),
+    maxOpenPositions: toNumber(s.maxOpenPositions),
     allowLong: s.allowLong,
     allowShort: s.allowShort,
     priorityOrder: s.priorityOrder,

@@ -12,6 +12,15 @@ interface BacktestWizardState {
   resetParamOverrides: (strategyCode: string) => void;
   resetAll: () => void;
   loadPreset: (preset: BacktestParamPreset) => void;
+  /**
+   * Replace the entire config + overrides atomically. Used by "Re-run with
+   * these params" so a partial write (config applied but overrides missed) can
+   * never leave the wizard half-populated.
+   */
+  hydrateFromRun: (
+    config: BacktestWizardConfig,
+    paramOverrides: Record<string, Record<string, unknown>>,
+  ) => void;
 }
 
 // SSR-safe sessionStorage shim — falls back to a no-op store on the server
@@ -62,6 +71,8 @@ export const useBacktestParamStore = create<BacktestWizardState>()(
           },
           activePresetName: preset.name,
         })),
+      hydrateFromRun: (config, paramOverrides) =>
+        set({ config, paramOverrides, activePresetName: null }),
     }),
     {
       // sessionStorage so the wizard survives an accidental refresh but doesn't

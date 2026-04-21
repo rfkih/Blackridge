@@ -44,7 +44,12 @@
       "Bash(npx tsc *)",
       "Read(//mnt/skills/**)",
       "Read(//mnt/**)",
-      "Read(//c/Users/rfkih/.claude/skills/**)"
+      "Read(//c/Users/rfkih/.claude/skills/**)",
+      "Bash(node -e \"const m = require\\('lightweight-charts'\\); console.log\\(Object.keys\\(m\\).filter\\(k => /[Mm]arker/.test\\(k\\)\\)\\)\")",
+      "Bash(echo \"EXIT=$?\")",
+      "Bash(awk '/^\\\\.\\\\/src\\\\/\\(components\\\\/backtest\\\\/\\(BacktestAnnotatedChart|BacktestEquityPanel|BacktestMetricsGrid|BacktestTradeTable\\)|components\\\\/charts\\\\/\\(DrawdownChart|EquityCurve\\)|lib\\\\/api\\\\/backtest|lib\\\\/backtest\\\\/buildTradeMarkers|hooks\\\\/useBacktest|app\\\\/\\\\\\(dashboard\\\\\\)\\\\/backtest\\\\/\\\\[id\\\\]\\)/{p=1; print; next} /^\\\\.\\\\//{p=0} p')",
+      "Bash(awk '/^\\\\.\\\\/src\\\\/app\\\\/\\\\\\(dashboard\\\\\\)\\\\/backtest\\\\/page\\\\.tsx/{p=1; print; next} /^\\\\.\\\\//{p=0} p')",
+      "Bash(grep -rn \"backtest/\\\\${\\\\|backtest/\\\\`\\\\|router.push.*backtest\" src)"
     ]
   }
 }

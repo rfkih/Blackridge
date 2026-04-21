@@ -101,14 +101,19 @@ export function DashboardEquityCurve({ className }: { className?: string }) {
     [points],
   );
 
-  const yMin = useMemo(
-    () => Math.min(...points.map((p) => p.equity)) * 0.99,
-    [points],
-  );
-  const yMax = useMemo(
-    () => Math.max(...points.map((p) => p.equity)) * 1.01,
-    [points],
-  );
+  // Single-pass min/max — Math.min(...largeArr) can hit the JS call-stack
+  // limit on very long equity series (Safari is the strictest).
+  const [yMin, yMax] = useMemo(() => {
+    if (!points.length) return [0, 1];
+    let lo = points[0].equity;
+    let hi = lo;
+    for (let i = 1; i < points.length; i++) {
+      const v = points[i].equity;
+      if (v < lo) lo = v;
+      if (v > hi) hi = v;
+    }
+    return [lo * 0.99, hi * 1.01];
+  }, [points]);
 
   return (
     <ChartPanelShell

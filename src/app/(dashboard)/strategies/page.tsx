@@ -55,11 +55,11 @@ function StrategyCard({
         <div className="flex items-baseline justify-between gap-2">
           <p className="flex flex-col">
             <span className="text-[10px] uppercase tracking-wider text-[var(--text-muted)]">
-              Capital
+              Allocation
             </span>
             <span className="font-mono text-sm tabular-nums text-[var(--text-primary)]">
-              {formatPrice(strategy.capitalAllocatedUsdt)}
-              <span className="ml-1 text-[10px] text-[var(--text-muted)]">USDT</span>
+              {strategy.capitalAllocationPct.toFixed(1)}
+              <span className="ml-1 text-[10px] text-[var(--text-muted)]">%</span>
             </span>
           </p>
           <div className="flex items-center gap-1.5">

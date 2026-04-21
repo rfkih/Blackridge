@@ -10,7 +10,9 @@ export interface AccountStrategy {
   symbol: string;
   interval: Interval | string;
   status: AccountStrategyStatus;
-  capitalAllocatedUsdt: number;
+  /** Fraction of the owning account's equity allocated to this strategy (0–100). */
+  capitalAllocationPct: number;
+  maxOpenPositions: number;
   allowLong: boolean;
   allowShort: boolean;
   priorityOrder: number;

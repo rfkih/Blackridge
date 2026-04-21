@@ -72,3 +72,26 @@ export function subscribeToTopic(
     }
   };
 }
+
+/**
+ * STOMP SEND to an @MessageMapping-handled destination (prefix `/app`). Used
+ * to opt accounts into server-side publish loops such as `/pnl.subscribe`.
+ * No-ops silently when the client isn't connected; callers should re-send on
+ * every `connected` transition.
+ */
+export function publishToApp(destination: string, body: unknown): void {
+  const client = stompClient;
+  if (!client?.active) return;
+  try {
+    client.publish({
+      destination: destination.startsWith('/app')
+        ? destination
+        : `/app${destination.startsWith('/') ? '' : '/'}${destination}`,
+      body: JSON.stringify(body ?? {}),
+      headers: { 'content-type': 'application/json' },
+    });
+  } catch {
+    // Publish can throw if the socket just closed between the active check
+    // and the send; a reconnect will re-publish so we can safely swallow this.
+  }
+}

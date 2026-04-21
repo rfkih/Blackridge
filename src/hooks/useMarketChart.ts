@@ -101,7 +101,10 @@ export function useMarketChart() {
     queryFn: () => fetchCandles(symbol, interval, CANDLE_COUNT),
     staleTime: 0,
     refetchInterval: REFETCH_INTERVALS[interval] ?? 300_000,
-    placeholderData: mockCandles,
+    // Keep showing the previous symbol/interval's data while the new one
+    // loads — eliminates the empty-skeleton flash when toggling intervals.
+    // First-mount has no previous data, so fall back to the mock series.
+    placeholderData: (previousData) => previousData ?? mockCandles,
     retry: false,
   });
 
@@ -116,7 +119,7 @@ export function useMarketChart() {
     queryFn: () => fetchIndicators(symbol, interval, CANDLE_COUNT),
     staleTime: 0,
     enabled: needsIndicatorData,
-    placeholderData: mockIndicators,
+    placeholderData: (previousData) => previousData ?? mockIndicators,
     retry: false,
   });
 

@@ -22,13 +22,11 @@ export function useEquityCurve() {
   const { data: strategies } = useStrategies();
 
   const accountId = strategies?.[0]?.accountId;
-  // Sum capital across the user's strategies on this account as a better default
-  // than a hardcoded number when the equity series hasn't loaded yet.
-  const allocatedCapital = useMemo(() => {
-    if (!strategies?.length) return FALLBACK_CAPITAL;
-    const sum = strategies.reduce((acc, s) => acc + (s.capitalAllocatedUsdt ?? 0), 0);
-    return sum > 0 ? sum : FALLBACK_CAPITAL;
-  }, [strategies]);
+  // The backend exposes allocations as percentages of account equity, not
+  // absolute USDT — summing them would produce a meaningless number. Use the
+  // first equity sample as the baseline (see `stats.baseline` below); only
+  // fall back to a fixed constant if the equity series hasn't loaded yet.
+  const allocatedCapital = FALLBACK_CAPITAL;
 
   const days = PERIOD_DAYS[period];
   const to = Date.now();

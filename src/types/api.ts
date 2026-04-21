@@ -46,16 +46,19 @@ export interface BackendAuthData {
   user: BackendUser;
 }
 
-/** Backend AccountStrategy DTO (Java field names). */
+/** Backend AccountStrategy DTO (Java field names; mirrors AccountStrategyResponse). */
 export interface BackendAccountStrategy {
   accountStrategyId: UUID;
   accountId: UUID;
+  strategyDefinitionId?: UUID | null;
   strategyCode: string;
   symbol: string;
   intervalName: string;       // frontend: interval
   enabled: boolean;           // frontend: derives `status` from this
   currentStatus: string;      // DB column is never updated by backend — do not use
-  capitalAllocatedUsdt: number;
+  /** Fraction of the account's equity allocated to this strategy (0–100). */
+  capitalAllocationPct: number | string | null;
+  maxOpenPositions: number | null;
   allowLong: boolean;
   allowShort: boolean;
   priorityOrder: number;

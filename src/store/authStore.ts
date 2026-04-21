@@ -2,6 +2,7 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import type { User } from '@/types/api';
+import { usePositionStore } from './positionStore';
 
 const TOKEN_COOKIE = 'blackheart-token';
 const TOKEN_COOKIE_MAX_AGE = 60 * 60 * 24 * 30; // 30 days
@@ -38,6 +39,9 @@ export const useAuthStore = create<AuthStore>()(
       setUser: (user) => set({ user }),
       clearAuth: () => {
         writeTokenCookie(null);
+        // Clear cross-store state that belongs to the previous session — leaving
+        // these around bleeds yesterday's open positions/PnL into the new login.
+        usePositionStore.getState().reset();
         set({ token: null, user: null, isAuthenticated: false });
       },
     }),

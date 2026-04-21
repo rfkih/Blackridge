@@ -259,9 +259,13 @@ export function DashboardMarketChart() {
       setChartReady(false);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [symbol]);
+  }, []);
 
   // ── Effect 2: Update candle + volume data ────────────────────────────────────
+  // Re-fits the time scale on symbol/interval change so a switch from BTC to a
+  // different price band doesn't leave the chart panned to nowhere.
+  const lastSymbolRef = useRef<string>(symbol);
+  const lastIntervalRef = useRef<string>(interval);
   useEffect(() => {
     if (!chartReady || !candles.length) return;
 
@@ -298,10 +302,18 @@ export function DashboardMarketChart() {
       })),
     );
 
+    // Symbol or interval changed → reset zoom/pan; otherwise let the user keep
+    // their current view across a refetch (live append shouldn't fight scroll).
+    if (lastSymbolRef.current !== symbol || lastIntervalRef.current !== interval) {
+      mainChart.current?.timeScale().fitContent();
+      lastSymbolRef.current = symbol;
+      lastIntervalRef.current = interval;
+    }
+
     const last = valid[valid.length - 1];
     const prev = valid[valid.length - 2];
     if (last) setOhlcv({ open: last.open, high: last.high, low: last.low, close: last.close, prevClose: prev?.close ?? null, volume: last.volume });
-  }, [chartReady, candles]);
+  }, [chartReady, candles, symbol, interval]);
 
   // ── Effect 3: Overlay indicators ────────────────────────────────────────────
   useEffect(() => {

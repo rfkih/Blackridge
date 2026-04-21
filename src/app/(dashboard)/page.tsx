@@ -21,7 +21,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useOpenTrades, useRecentTrades, usePnlSummary } from '@/hooks/useTrades';
 import { useStrategies } from '@/hooks/useStrategies';
 import { useActiveAccount } from '@/hooks/useAccounts';
-import { useLivePnl } from '@/hooks/useLivePnl';
+import { useLivePnl, useSyncOpenPositions } from '@/hooks/useLivePnl';
 import { formatPrice, formatDate } from '@/lib/formatters';
 import { cn } from '@/lib/utils';
 import type { AccountStrategy, AccountStrategyStatus } from '@/types/strategy';
@@ -103,8 +103,8 @@ function StrategyStatusCard({ strategy }: { strategy: AccountStrategy }) {
             <span className="ml-1.5 text-[11px] text-text-muted">{strategy.interval}</span>
           </p>
           <p className="num text-[11px] text-text-secondary">
-            {formatPrice(strategy.capitalAllocatedUsdt)}
-            <span className="text-text-muted"> USDT allocated</span>
+            {strategy.capitalAllocationPct.toFixed(1)}%
+            <span className="text-text-muted"> of account allocated</span>
           </p>
         </div>
 
@@ -149,6 +149,7 @@ export default function DashboardPage() {
   const { data: recentTrades = [], isLoading: recentLoading } = useRecentTrades(10, scopedAccountId);
 
   useLivePnl(scopedAccountId);
+  useSyncOpenPositions(openTrades);
 
   const unrealizedPnl = pnlSummary?.unrealizedPnl ?? 0;
   const realizedPnl = pnlSummary?.realizedPnl ?? 0;
