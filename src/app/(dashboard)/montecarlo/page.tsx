@@ -89,10 +89,12 @@ export default function MonteCarloPage() {
   const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
 
-  const runsQ = useBacktestRuns();
+  // Pull a sized page of completed runs so the dropdown has a healthy set
+  // without relying on the backend's default 20-row page.
+  const runsQ = useBacktestRuns({ status: 'COMPLETED', size: 100 });
   const completedRuns = useMemo(
-    () => (runsQ.data ?? []).filter((r) => r.status === 'COMPLETED'),
-    [runsQ.data],
+    () => (runsQ.data?.content ?? []).filter((r) => r.status === 'COMPLETED'),
+    [runsQ.data?.content],
   );
 
   const mutation = useMonteCarlo();

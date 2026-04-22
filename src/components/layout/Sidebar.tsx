@@ -14,6 +14,7 @@ import {
   ShieldCheck,
   X,
   Book,
+  Database,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
@@ -41,6 +42,7 @@ const NAV_ITEMS: NavItem[] = [
 
 const ADMIN_NAV_ITEMS: NavItem[] = [
   { label: 'Catalogue', href: '/admin/strategies', icon: ShieldCheck },
+  { label: 'Historical Data', href: '/admin/historical', icon: Database },
 ];
 
 interface SidebarProps {

@@ -175,11 +175,90 @@ export function mapBacktestRun(b: BackendBacktestRun): BacktestRun {
   };
 }
 
-export async function listBacktestRuns(): Promise<BacktestRun[]> {
-  const { data } = await apiClient.get<BackendBacktestRun[] | PageResponse<BackendBacktestRun>>(
-    BASE,
-  );
-  return extractList(data).map(mapBacktestRun);
+/** Server-side sort keys the backend whitelists — see BacktestQueryService. */
+export type BacktestSortKey =
+  | 'createdAt'
+  | 'returnPct'
+  | 'sharpe'
+  | 'maxDrawdownPct'
+  | 'totalTrades'
+  | 'winRate'
+  | 'status'
+  | 'symbol'
+  | 'strategyCode';
+
+export interface BacktestListFilters {
+  status?: string;
+  strategyCode?: string;
+  symbol?: string;
+  interval?: string;
+  /** ISO LocalDateTime (e.g. `2026-01-01T00:00:00`) — matches Spring's
+   *  `@DateTimeFormat(iso = DATE_TIME)` binding. */
+  from?: string;
+  to?: string;
+  sortBy?: BacktestSortKey;
+  sortDir?: 'ASC' | 'DESC';
+  page?: number;
+  size?: number;
+}
+
+export interface BacktestRunsPage {
+  content: BacktestRun[];
+  page: number;
+  size: number;
+  total: number;
+  sortBy: BacktestSortKey;
+  sortDir: 'ASC' | 'DESC';
+}
+
+/**
+ * Paginated + filtered + sorted list. The backend accepts every param as
+ * optional and returns a `{content, page, size, total, sortBy, sortDir}`
+ * envelope. When the backend is on an older build that still emits a bare
+ * array, fall back to synthesising the page metadata locally so older
+ * deployments keep working.
+ */
+export async function listBacktestRuns(
+  filters: BacktestListFilters = {},
+): Promise<BacktestRunsPage> {
+  const params: Record<string, unknown> = {};
+  if (filters.status) params.status = filters.status;
+  if (filters.strategyCode) params.strategyCode = filters.strategyCode;
+  if (filters.symbol) params.symbol = filters.symbol.toUpperCase();
+  if (filters.interval) params.interval = filters.interval;
+  if (filters.from) params.from = filters.from;
+  if (filters.to) params.to = filters.to;
+  if (filters.sortBy) params.sortBy = filters.sortBy;
+  if (filters.sortDir) params.sortDir = filters.sortDir;
+  if (filters.page != null) params.page = filters.page;
+  if (filters.size != null) params.size = filters.size;
+
+  const { data } = await apiClient.get<
+    | BackendBacktestRun[]
+    | (PageResponse<BackendBacktestRun> & { sortBy?: string; sortDir?: string })
+  >(BASE, { params });
+
+  const content = extractList(data).map(mapBacktestRun);
+  const page = filters.page ?? 0;
+  const size = filters.size ?? content.length;
+  if (Array.isArray(data)) {
+    return {
+      content,
+      page,
+      size,
+      total: content.length,
+      sortBy: filters.sortBy ?? 'createdAt',
+      sortDir: filters.sortDir ?? 'DESC',
+    };
+  }
+  return {
+    content,
+    page: data.page ?? page,
+    size: data.size ?? size,
+    total: data.total ?? content.length,
+    sortBy: (data.sortBy as BacktestSortKey) ?? filters.sortBy ?? 'createdAt',
+    sortDir: (data.sortDir as 'ASC' | 'DESC') ?? filters.sortDir ?? 'DESC',
+  };
 }
 
 export async function getBacktestRun(id: string): Promise<BacktestRun> {

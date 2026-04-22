@@ -63,7 +63,8 @@
       "Read(//tmp/**)",
       "Bash(cp \"C:/Users/rfkih/.claude/projects/C--MyFiles-blackheart-front-end/bb182808-ec20-4abf-9d15-e66f556e3879/tool-results/webfetch-1776876429650-fdahi5.bin\" file.gz)",
       "Bash(gunzip -f file.gz)",
-      "Bash(tar -xf file)"
+      "Bash(tar -xf file)",
+      "Bash(./gradlew compileJava)"
     ]
   }
 }

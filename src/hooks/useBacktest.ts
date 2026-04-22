@@ -9,6 +9,7 @@ import {
   getBacktestRun,
   getBacktestTrades,
   listBacktestRuns,
+  type BacktestListFilters,
 } from '@/lib/api/backtest';
 import { QUERY_STALE_TIMES } from '@/lib/constants';
 import type { BacktestRun, BacktestRunPayload } from '@/types/backtest';
@@ -17,18 +18,34 @@ const ACTIVE_STATUSES = new Set<BacktestRun['status']>(['RUNNING']);
 const POLL_MS = 5_000;
 
 /**
- * List of backtest runs. Polls every 5s while any run is still PENDING / RUNNING
- * so the status column updates itself without the user reloading.
+ * Paginated / filtered / sorted run history. Polls every 5s while any row in
+ * the current page is still RUNNING so the status column updates itself
+ * without a reload. `placeholderData: prev` keeps the previous page visible
+ * while the new one loads so the table doesn't flash to a skeleton on every
+ * filter change.
  */
-export function useBacktestRuns() {
+export function useBacktestRuns(filters: BacktestListFilters = {}) {
   return useQuery({
-    queryKey: ['backtest-runs'],
-    queryFn: listBacktestRuns,
+    queryKey: [
+      'backtest-runs',
+      filters.status ?? null,
+      filters.strategyCode ?? null,
+      filters.symbol ?? null,
+      filters.interval ?? null,
+      filters.from ?? null,
+      filters.to ?? null,
+      filters.sortBy ?? 'createdAt',
+      filters.sortDir ?? 'DESC',
+      filters.page ?? 0,
+      filters.size ?? 20,
+    ],
+    queryFn: () => listBacktestRuns(filters),
     staleTime: 2_000,
+    placeholderData: (prev) => prev,
     refetchInterval: (query) => {
-      const runs = query.state.data;
-      if (!runs) return false;
-      const hasActive = runs.some((r) => ACTIVE_STATUSES.has(r.status));
+      const result = query.state.data;
+      if (!result) return false;
+      const hasActive = result.content.some((r) => ACTIVE_STATUSES.has(r.status));
       return hasActive ? POLL_MS : false;
     },
     refetchIntervalInBackground: false,
@@ -96,8 +113,12 @@ export function useBacktestEquityPoints(id: string | undefined) {
   });
 }
 
-/** Convenience: does the current list contain any still-running run? */
+/**
+ * Convenience: does the current list page contain any still-running run?
+ * Uses the default (first-page) filter so every caller shares the same
+ * cache entry and the poll fires once per app.
+ */
 export function useHasActiveBacktest(): boolean {
   const { data } = useBacktestRuns();
-  return useMemo(() => (data ?? []).some((r) => ACTIVE_STATUSES.has(r.status)), [data]);
+  return useMemo(() => (data?.content ?? []).some((r) => ACTIVE_STATUSES.has(r.status)), [data]);
 }

@@ -9,6 +9,7 @@ import {
   getSortedRowModel,
   useReactTable,
   type ColumnDef,
+  type OnChangeFn,
   type RowSelectionState,
   type SortingState,
   type VisibilityState,
@@ -54,6 +55,16 @@ export interface DataTableProps<TData> {
   hideColumnMenu?: boolean;
   /** Start with a specific sort — e.g. [{ id: 'openedAt', desc: true }]. */
   initialSort?: SortingState;
+  /**
+   * Controlled sorting. Pair with `manualSorting` to disable TanStack's
+   * client-side sort — when the table fetches already-sorted pages from
+   * the server, client sort would re-reorder the page in place and corrupt
+   * the server's order.
+   */
+  sorting?: SortingState;
+  onSortingChange?: OnChangeFn<SortingState>;
+  /** Skip TanStack's built-in sort row model — the data is already sorted. */
+  manualSorting?: boolean;
   /** Placeholder for the search input. */
   searchPlaceholder?: string;
   /** Empty-state title + description when data.length === 0 and !isLoading. */
@@ -78,6 +89,9 @@ export function DataTable<TData>({
   hideSearch,
   hideColumnMenu,
   initialSort,
+  sorting,
+  onSortingChange,
+  manualSorting,
   searchPlaceholder = 'Search…',
   emptyTitle = 'No results',
   emptyDescription = 'Adjust filters and try again.',
@@ -87,6 +101,8 @@ export function DataTable<TData>({
   pageSize = 20,
 }: DataTableProps<TData>) {
   const tableRef = useRef<HTMLDivElement>(null);
+
+  const isControlledSort = sorting !== undefined;
 
   const tableInstance = useReactTable({
     data,
@@ -99,12 +115,19 @@ export function DataTable<TData>({
         },
     initialState: {
       pagination: { pageIndex: 0, pageSize },
-      sorting: initialSort ?? [],
+      sorting: isControlledSort ? undefined : (initialSort ?? []),
       columnVisibility: {} as VisibilityState,
       rowSelection: {} as RowSelectionState,
     },
+    state: isControlledSort ? { sorting } : undefined,
+    onSortingChange,
+    manualSorting,
     getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
+    // Skip the sorted row model entirely when the server is authoritative;
+    // feeding already-sorted data back through getSortedRowModel re-sorts
+    // it by `createdAt` (the table's default tie-breaker) and corrupts the
+    // server's order.
+    ...(manualSorting ? {} : { getSortedRowModel: getSortedRowModel() }),
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
   });
