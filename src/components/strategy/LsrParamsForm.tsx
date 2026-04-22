@@ -15,7 +15,7 @@ import { ParamField } from './ParamField';
 import { ParamSection } from './ParamSection';
 import { LSR_PARAM_META, LSR_SECTIONS } from '@/lib/constants';
 import { useToast } from '@/hooks/useToast';
-import { useSaveLsrParams } from '@/hooks/useStrategies';
+import { useSaveLsrParams, useResetLsrParams } from '@/hooks/useStrategies';
 import type { LsrParams } from '@/types/strategy';
 
 export interface LsrParamFormProps {
@@ -29,8 +29,25 @@ export interface LsrParamFormProps {
   onSaveAsLive?: (current: LsrParams) => void | Promise<void>;
 }
 
+/**
+ * Merge backend-returned params on top of the canonical defaults.
+ *
+ * The backend's `effectiveParams` envelope can carry explicit `null` for
+ * columns the user has never customised (a newly-provisioned
+ * `lsr_strategy_param` row is all nulls until the first PATCH). A naive
+ * `{...defaults, ...initial}` would let those nulls clobber the defaults
+ * and leave the form showing nothing — we filter them out so "no value
+ * in the table" falls through to the constant default.
+ */
 function mergeInitial(defaults: LsrParams, initial: Partial<LsrParams>): LsrParams {
-  return { ...defaults, ...initial };
+  const filtered: Partial<LsrParams> = {};
+  (Object.keys(initial) as Array<keyof LsrParams>).forEach((key) => {
+    const v = initial[key];
+    if (v !== null && v !== undefined) {
+      (filtered as Record<string, unknown>)[key as string] = v;
+    }
+  });
+  return { ...defaults, ...filtered };
 }
 
 function valuesEqual(a: unknown, b: unknown): boolean {
@@ -66,8 +83,10 @@ export function LsrParamsForm({
     mergeInitial(defaultValues, initialValues),
   );
   const [confirmSaveOpen, setConfirmSaveOpen] = useState(false);
+  const [confirmResetOpen, setConfirmResetOpen] = useState(false);
   const toast = useToast();
   const saveMutation = useSaveLsrParams(accountStrategyId);
+  const resetMutation = useResetLsrParams(accountStrategyId);
 
   // Re-sync when upstream initial/default changes (e.g. data loads).
   useEffect(() => {
@@ -112,6 +131,23 @@ export function LsrParamsForm({
       );
     }
   }, [defaultValues, mode, onChange]);
+
+  const handleRevertOnServer = useCallback(async () => {
+    setConfirmResetOpen(false);
+    if (!accountStrategyId) return;
+    try {
+      await resetMutation.mutateAsync();
+      setValues(defaultValues);
+      setSavedValues(defaultValues);
+      toast.success({
+        title: 'Reverted to defaults',
+        description: 'All custom overrides removed — this strategy now uses the default params.',
+      });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Could not revert parameters';
+      toast.error({ title: 'Revert failed', description: message });
+    }
+  }, [accountStrategyId, defaultValues, resetMutation, toast]);
 
   const handleSaveLive = useCallback(async () => {
     if (!accountStrategyId) return;
@@ -163,6 +199,7 @@ export function LsrParamsForm({
           onClick={resetAll}
           disabled={totalOverrides === 0}
           className="gap-2 text-xs"
+          title="Reset the form to default values (not saved until you click Save)"
         >
           <RotateCcw size={12} />
           Reset to defaults
@@ -205,6 +242,21 @@ export function LsrParamsForm({
               : 'No pending changes'}
           </p>
           <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setConfirmResetOpen(true)}
+            disabled={resetMutation.isPending || !accountStrategyId}
+            className="gap-2"
+            title="Clear every custom override on the server — this strategy will fall back to defaults"
+          >
+            {resetMutation.isPending ? (
+              <Loader2 size={14} className="animate-spin" />
+            ) : (
+              <RotateCcw size={14} />
+            )}
+            Revert to defaults
+          </Button>
+          <Button
             onClick={handleSaveLive}
             disabled={!hasChanges || saveMutation.isPending}
             className="gap-2"
@@ -231,6 +283,27 @@ export function LsrParamsForm({
           </Button>
         </div>
       )}
+
+      <Dialog open={confirmResetOpen} onOpenChange={setConfirmResetOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Revert to default parameters?</DialogTitle>
+            <DialogDescription>
+              This clears every custom override
+              {strategyCode ? ` for ${strategyCode}` : ''} on the server. The strategy will run with
+              the canonical defaults until you change something again. This cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setConfirmResetOpen(false)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleRevertOnServer}>
+              Revert on server
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={confirmSaveOpen} onOpenChange={setConfirmSaveOpen}>
         <DialogContent>

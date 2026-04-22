@@ -13,8 +13,20 @@ import {
   deleteAccountStrategy,
   type CreateAccountStrategyPayload,
 } from '@/lib/api/strategies';
-import { getLsrParams, getLsrDefaults, patchLsrParams, putLsrParams } from '@/lib/api/lsr-params';
-import { getVcbParams, getVcbDefaults, patchVcbParams, putVcbParams } from '@/lib/api/vcb-params';
+import {
+  getLsrParams,
+  getLsrDefaults,
+  patchLsrParams,
+  putLsrParams,
+  deleteLsrParams,
+} from '@/lib/api/lsr-params';
+import {
+  getVcbParams,
+  getVcbDefaults,
+  patchVcbParams,
+  putVcbParams,
+  deleteVcbParams,
+} from '@/lib/api/vcb-params';
 import { QUERY_STALE_TIMES } from '@/lib/constants';
 import { useAuthStore } from '@/store/authStore';
 import type { LsrParams, VcbParams } from '@/types/strategy';
@@ -137,6 +149,39 @@ export function useDeleteStrategy() {
     onSuccess: (_, accountStrategyId) => {
       queryClient.invalidateQueries({ queryKey: ['strategies'] });
       queryClient.removeQueries({ queryKey: ['strategy', accountStrategyId] });
+    },
+  });
+}
+
+/**
+ * Wipes all LSR overrides on an account-strategy row. Backend responds
+ * with the row cleared — on success we invalidate the per-strategy query
+ * so the form re-fetches a clean `effectiveParams` that collapses to
+ * pure defaults.
+ */
+export function useResetLsrParams(accountStrategyId: string | undefined) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => {
+      if (!accountStrategyId) throw new Error('accountStrategyId is required');
+      return deleteLsrParams(accountStrategyId);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['lsr-params', accountStrategyId] });
+    },
+  });
+}
+
+/** Wipes all VCB overrides on an account-strategy row. See `useResetLsrParams`. */
+export function useResetVcbParams(accountStrategyId: string | undefined) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => {
+      if (!accountStrategyId) throw new Error('accountStrategyId is required');
+      return deleteVcbParams(accountStrategyId);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['vcb-params', accountStrategyId] });
     },
   });
 }

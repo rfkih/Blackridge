@@ -15,7 +15,7 @@ import { ParamField } from './ParamField';
 import { ParamSection } from './ParamSection';
 import { VCB_PARAM_META, VCB_SECTIONS } from '@/lib/constants';
 import { useToast } from '@/hooks/useToast';
-import { useSaveVcbParams } from '@/hooks/useStrategies';
+import { useSaveVcbParams, useResetVcbParams } from '@/hooks/useStrategies';
 import type { VcbParams } from '@/types/strategy';
 
 export interface VcbParamFormProps {
@@ -28,8 +28,23 @@ export interface VcbParamFormProps {
   onSaveAsLive?: (current: VcbParams) => void | Promise<void>;
 }
 
+/**
+ * Merge backend-returned params on top of the canonical defaults.
+ *
+ * A freshly-provisioned `vcb_strategy_param` row has nulls for every
+ * un-overridden column. A naive `{...defaults, ...initial}` would let
+ * those nulls clobber the defaults, so we filter them out first — "no
+ * value in the table" should fall through to the constant default.
+ */
 function mergeInitial(defaults: VcbParams, initial: Partial<VcbParams>): VcbParams {
-  return { ...defaults, ...initial };
+  const filtered: Partial<VcbParams> = {};
+  (Object.keys(initial) as Array<keyof VcbParams>).forEach((key) => {
+    const v = initial[key];
+    if (v !== null && v !== undefined) {
+      (filtered as Record<string, unknown>)[key as string] = v;
+    }
+  });
+  return { ...defaults, ...filtered };
 }
 
 function valuesEqual(a: unknown, b: unknown): boolean {
@@ -63,8 +78,10 @@ export function VcbParamsForm({
     mergeInitial(defaultValues, initialValues),
   );
   const [confirmSaveOpen, setConfirmSaveOpen] = useState(false);
+  const [confirmResetOpen, setConfirmResetOpen] = useState(false);
   const toast = useToast();
   const saveMutation = useSaveVcbParams(accountStrategyId);
+  const resetMutation = useResetVcbParams(accountStrategyId);
 
   useEffect(() => {
     const merged = mergeInitial(defaultValues, initialValues);
@@ -108,6 +125,23 @@ export function VcbParamsForm({
       );
     }
   }, [defaultValues, mode, onChange]);
+
+  const handleRevertOnServer = useCallback(async () => {
+    setConfirmResetOpen(false);
+    if (!accountStrategyId) return;
+    try {
+      await resetMutation.mutateAsync();
+      setValues(defaultValues);
+      setSavedValues(defaultValues);
+      toast.success({
+        title: 'Reverted to defaults',
+        description: 'All custom overrides removed — this strategy now uses the default params.',
+      });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Could not revert parameters';
+      toast.error({ title: 'Revert failed', description: message });
+    }
+  }, [accountStrategyId, defaultValues, resetMutation, toast]);
 
   const handleSaveLive = useCallback(async () => {
     if (!accountStrategyId) return;
@@ -158,6 +192,7 @@ export function VcbParamsForm({
           onClick={resetAll}
           disabled={totalOverrides === 0}
           className="gap-2 text-xs"
+          title="Reset the form to default values (not saved until you click Save)"
         >
           <RotateCcw size={12} />
           Reset to defaults
@@ -199,6 +234,21 @@ export function VcbParamsForm({
               : 'No pending changes'}
           </p>
           <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setConfirmResetOpen(true)}
+            disabled={resetMutation.isPending || !accountStrategyId}
+            className="gap-2"
+            title="Clear every custom override on the server — this strategy will fall back to defaults"
+          >
+            {resetMutation.isPending ? (
+              <Loader2 size={14} className="animate-spin" />
+            ) : (
+              <RotateCcw size={14} />
+            )}
+            Revert to defaults
+          </Button>
+          <Button
             onClick={handleSaveLive}
             disabled={!hasChanges || saveMutation.isPending}
             className="gap-2"
@@ -225,6 +275,27 @@ export function VcbParamsForm({
           </Button>
         </div>
       )}
+
+      <Dialog open={confirmResetOpen} onOpenChange={setConfirmResetOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Revert to default parameters?</DialogTitle>
+            <DialogDescription>
+              This clears every custom override
+              {strategyCode ? ` for ${strategyCode}` : ''} on the server. The strategy will run with
+              the canonical defaults until you change something again. This cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setConfirmResetOpen(false)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleRevertOnServer}>
+              Revert on server
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={confirmSaveOpen} onOpenChange={setConfirmSaveOpen}>
         <DialogContent>

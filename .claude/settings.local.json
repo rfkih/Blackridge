@@ -53,7 +53,11 @@
       "Bash(echo \"FE_EXIT=$?\")",
       "Bash(./gradlew compileJava -q)",
       "Bash(echo \"BE_EXIT=$?\")",
-      "Bash(grep -n \"^    </main>\\\\|^      </div>$\\\\|^  \\);\" src/app/\\\\\\(auth\\\\\\)/register/page.tsx)"
+      "Bash(grep -n \"^    </main>\\\\|^      </div>$\\\\|^  \\);\" src/app/\\\\\\(auth\\\\\\)/register/page.tsx)",
+      "Bash(echo \"---exit=$?---\")",
+      "Bash(pnpm prettier *)",
+      "Bash(mvn -q -o -DskipTests compile)",
+      "Bash(./gradlew.bat compileJava -q)"
     ]
   }
 }
