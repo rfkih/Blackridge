@@ -33,3 +33,22 @@ export async function getAccountById(id: string): Promise<AccountSummary> {
   const { data } = await apiClient.get<BackendAccountSummary>(`/api/v1/accounts/${id}`);
   return mapAccount(data);
 }
+
+/**
+ * Payload for creating a new exchange account. Mirrors the backend's
+ * `CreateAccountRequest` — the service stamps userId from the JWT and
+ * defaults the risk fields server-side, so we only ask the user for the
+ * identifying + credential fields.
+ */
+export interface CreateAccountPayload {
+  username: string;
+  /** Three-letter exchange code; backend stores uppercase. */
+  exchange: string;
+  apiKey: string;
+  apiSecret: string;
+}
+
+export async function createAccount(payload: CreateAccountPayload): Promise<AccountSummary> {
+  const { data } = await apiClient.post<BackendAccountSummary>('/api/v1/accounts', payload);
+  return mapAccount(data);
+}

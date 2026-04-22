@@ -17,7 +17,13 @@ import type {
 const ME_QUERY_KEY = ['auth', 'me'] as const;
 
 /** Map Java DTO field names to the frontend User shape. */
-function mapUser(u: BackendUser): User {
+function mapUser(u: BackendUser | undefined | null): User {
+  if (!u) {
+    // Fail loud. Previously this crashed deep in a getter ("cannot read
+    // userId of undefined") which made diagnosing a response-shape mismatch
+    // painful. A named error is easier to triage.
+    throw new Error('Auth response missing `user` — check backend response shape.');
+  }
   return {
     id: u.userId,
     email: u.email,
@@ -27,17 +33,40 @@ function mapUser(u: BackendUser): User {
   };
 }
 
-async function postLogin(payload: LoginRequest): Promise<LoginResponse> {
-  // The axios interceptor already unwraps the envelope — data IS BackendAuthData here.
-  const { data } = await apiClient.post<BackendAuthData>('/api/v1/users/login', payload);
+function toLoginResponse(data: BackendAuthData | undefined): LoginResponse {
+  if (!data || !data.accessToken) {
+    throw new Error('Auth response missing access token — login flow broken.');
+  }
   return { token: data.accessToken, user: mapUser(data.user) };
 }
 
+async function postLogin(payload: LoginRequest): Promise<LoginResponse> {
+  // Plaintext password over HTTPS is the industry-standard auth contract.
+  // TLS protects it on the wire; BCrypt on the backend protects it at rest;
+  // LoggingServiceImpl redacts password/secret/token fields so the value
+  // never reaches the log. No client-side encoding or hashing — those are
+  // security theatre over HTTPS.
+  const { data } = await apiClient.post<BackendAuthData>('/api/v1/users/login', payload);
+  return toLoginResponse(data);
+}
+
 async function postRegister(payload: RegisterRequest): Promise<RegisterResponse> {
-  // Backend expects `fullName`, not `name`
-  const body = { email: payload.email, password: payload.password, fullName: payload.name };
+  // Backend expects `fullName`, not `name`. Phone is only forwarded when
+  // non-empty so validation doesn't reject an empty string on the @Size rule.
+  //
+  // Register auto-logs the user in: the backend now returns the same
+  // LoginResponse shape as /login ({accessToken, tokenType, expiresIn, user})
+  // so the client can transition directly into the authenticated app.
+  const body: Record<string, string> = {
+    email: payload.email,
+    password: payload.password,
+    fullName: payload.name,
+  };
+  if (payload.phoneNumber && payload.phoneNumber.trim().length > 0) {
+    body.phoneNumber = payload.phoneNumber.trim();
+  }
   const { data } = await apiClient.post<BackendAuthData>('/api/v1/users/register', body);
-  return { token: data.accessToken, user: mapUser(data.user) };
+  return toLoginResponse(data);
 }
 
 async function fetchMe(): Promise<User> {
@@ -98,9 +127,9 @@ export function useAuth() {
   );
 
   const register = useCallback(
-    async (email: string, password: string, name: string) => {
+    async (email: string, password: string, name: string, phoneNumber?: string) => {
       try {
-        await registerMutation.mutateAsync({ email, password, name });
+        await registerMutation.mutateAsync({ email, password, name, phoneNumber });
       } catch (err) {
         throw new Error(normalizeError(err));
       }

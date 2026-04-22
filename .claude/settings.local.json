@@ -49,7 +49,11 @@
       "Bash(echo \"EXIT=$?\")",
       "Bash(awk '/^\\\\.\\\\/src\\\\/\\(components\\\\/backtest\\\\/\\(BacktestAnnotatedChart|BacktestEquityPanel|BacktestMetricsGrid|BacktestTradeTable\\)|components\\\\/charts\\\\/\\(DrawdownChart|EquityCurve\\)|lib\\\\/api\\\\/backtest|lib\\\\/backtest\\\\/buildTradeMarkers|hooks\\\\/useBacktest|app\\\\/\\\\\\(dashboard\\\\\\)\\\\/backtest\\\\/\\\\[id\\\\]\\)/{p=1; print; next} /^\\\\.\\\\//{p=0} p')",
       "Bash(awk '/^\\\\.\\\\/src\\\\/app\\\\/\\\\\\(dashboard\\\\\\)\\\\/backtest\\\\/page\\\\.tsx/{p=1; print; next} /^\\\\.\\\\//{p=0} p')",
-      "Bash(grep -rn \"backtest/\\\\${\\\\|backtest/\\\\`\\\\|router.push.*backtest\" src)"
+      "Bash(grep -rn \"backtest/\\\\${\\\\|backtest/\\\\`\\\\|router.push.*backtest\" src)",
+      "Bash(echo \"FE_EXIT=$?\")",
+      "Bash(./gradlew compileJava -q)",
+      "Bash(echo \"BE_EXIT=$?\")",
+      "Bash(grep -n \"^    </main>\\\\|^      </div>$\\\\|^  \\);\" src/app/\\\\\\(auth\\\\\\)/register/page.tsx)"
     ]
   }
 }

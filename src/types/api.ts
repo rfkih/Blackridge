@@ -115,6 +115,8 @@ export interface RegisterRequest {
   email: string;
   password: string;
   name: string;
+  /** Optional — backend `RegisterUserRequest.phoneNumber` is nullable. */
+  phoneNumber?: string;
 }
 
 export interface RegisterResponse {

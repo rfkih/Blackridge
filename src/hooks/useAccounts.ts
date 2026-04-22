@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { getMyAccounts } from '@/lib/api/accounts';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { createAccount, getMyAccounts, type CreateAccountPayload } from '@/lib/api/accounts';
 import { QUERY_STALE_TIMES } from '@/lib/constants';
 import { useAccountStore } from '@/store/accountStore';
 import { useAuthStore } from '@/store/authStore';
@@ -79,4 +79,27 @@ export function useActiveAccount(): ActiveAccountContext {
     isLoading,
     isError,
   };
+}
+
+/**
+ * Create a new exchange account. On success invalidates the accounts query
+ * so the switcher picks up the new row, and (if this is the user's very
+ * first account) selects it so downstream hooks get a concrete scope.
+ */
+export function useCreateAccount() {
+  const queryClient = useQueryClient();
+  const setSelection = useAccountStore((s) => s.setSelection);
+  const existingSelection = useAccountStore((s) => s.selection);
+
+  return useMutation({
+    mutationFn: (payload: CreateAccountPayload) => createAccount(payload),
+    onSuccess: (account) => {
+      queryClient.invalidateQueries({ queryKey: ['accounts'] });
+      // If the user had no selection yet, land them on the account they
+      // just created so the rest of the dashboard isn't a ghost town.
+      if (existingSelection == null) {
+        setSelection(account.id);
+      }
+    },
+  });
 }

@@ -1,7 +1,7 @@
 'use client';
 
-import { useMemo } from 'react';
-import { Check, ChevronDown, Layers, Plug } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { Check, ChevronDown, Layers, Plug, Plus } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,6 +13,7 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { useActiveAccount } from '@/hooks/useAccounts';
 import { useStrategies } from '@/hooks/useStrategies';
+import { NewAccountDialog } from '@/components/account/NewAccountDialog';
 import { cn } from '@/lib/utils';
 import type { AccountSummary } from '@/types/account';
 
@@ -29,6 +30,7 @@ function accountInitials(label: string): string {
 export function AccountSwitcher() {
   const { accounts, selection, activeAccount, isAll, setSelection, isLoading } = useActiveAccount();
   const { data: strategies = [] } = useStrategies();
+  const [newOpen, setNewOpen] = useState(false);
 
   const strategyCountByAccount = useMemo(() => {
     const map = new Map<string, number>();
@@ -42,12 +44,27 @@ export function AccountSwitcher() {
     return <Skeleton className="h-7 w-32" />;
   }
 
+  // Empty state is now an actionable CTA — clicking the "Connect" pill opens
+  // the new-account dialog right there in the top bar.
   if (accounts.length === 0) {
     return (
-      <span className="inline-flex items-center gap-1.5 rounded-md border border-dashed border-[var(--border-default)] px-2 py-1 text-[11px] text-[var(--text-muted)]">
-        <Plug size={11} />
-        No accounts
-      </span>
+      <>
+        <button
+          type="button"
+          onClick={() => setNewOpen(true)}
+          className={cn(
+            'inline-flex h-7 items-center gap-1.5 rounded-md border border-dashed px-2.5 text-[11px] transition-colors',
+            'border-[var(--border-default)] text-[var(--text-muted)]',
+            'hover:border-[var(--color-profit)] hover:text-[var(--color-profit)]',
+            'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-primary)]',
+          )}
+          aria-label="Connect your first exchange account"
+        >
+          <Plug size={11} strokeWidth={1.75} aria-hidden="true" />
+          Connect account
+        </button>
+        <NewAccountDialog open={newOpen} onOpenChange={setNewOpen} />
+      </>
     );
   }
 
@@ -68,63 +85,90 @@ export function AccountSwitcher() {
   }
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <button
-          type="button"
-          aria-label="Switch account"
-          className={cn(
-            'inline-flex h-7 max-w-[220px] items-center gap-2 rounded-sm border px-2 transition-colors duration-fast',
-            'border-bd-subtle bg-bg-surface text-text-primary',
-            'hover:border-bd hover:bg-bg-elevated',
-            'focus:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-          )}
-        >
-          <AccountAvatar account={activeAccount} isAll={isAll} />
-          <span className="flex min-w-0 flex-col items-start leading-tight">
-            <span className="truncate text-[11px] font-medium">{triggerLabel}</span>
-            {triggerSubtle && (
-              <span className="truncate font-mono text-[9px] text-text-muted">{triggerSubtle}</span>
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <button
+            type="button"
+            aria-label="Switch account"
+            className={cn(
+              'inline-flex h-7 max-w-[220px] items-center gap-2 rounded-sm border px-2 transition-colors duration-fast',
+              'border-bd-subtle bg-bg-surface text-text-primary',
+              'hover:border-bd hover:bg-bg-elevated',
+              'focus:outline-none focus-visible:ring-2 focus-visible:ring-ring',
             )}
-          </span>
-          <ChevronDown size={12} strokeWidth={1.75} className="shrink-0 opacity-60" />
-        </button>
-      </DropdownMenuTrigger>
+          >
+            <AccountAvatar account={activeAccount} isAll={isAll} />
+            <span className="flex min-w-0 flex-col items-start leading-tight">
+              <span className="truncate text-[11px] font-medium">{triggerLabel}</span>
+              {triggerSubtle && (
+                <span className="truncate font-mono text-[9px] text-text-muted">
+                  {triggerSubtle}
+                </span>
+              )}
+            </span>
+            <ChevronDown size={12} strokeWidth={1.75} className="shrink-0 opacity-60" />
+          </button>
+        </DropdownMenuTrigger>
 
-      <DropdownMenuContent align="end" className="min-w-[240px]">
-        <DropdownMenuLabel className="label-caps !text-[10px]">Account context</DropdownMenuLabel>
+        <DropdownMenuContent align="end" className="min-w-[240px]">
+          <DropdownMenuLabel className="label-caps !text-[10px]">Account context</DropdownMenuLabel>
 
-        {hasMultiple && (
-          <>
-            <AccountOption
-              label="All accounts"
-              subtitle={`${accounts.length} account${accounts.length === 1 ? '' : 's'}`}
-              icon={<Layers size={13} className="text-[var(--text-muted)]" />}
-              count={strategies.length}
-              selected={isAll}
-              onSelect={() => setSelection('all')}
-            />
-            <DropdownMenuSeparator />
-          </>
-        )}
+          {hasMultiple && (
+            <>
+              <AccountOption
+                label="All accounts"
+                subtitle={`${accounts.length} account${accounts.length === 1 ? '' : 's'}`}
+                icon={<Layers size={13} className="text-[var(--text-muted)]" />}
+                count={strategies.length}
+                selected={isAll}
+                onSelect={() => setSelection('all')}
+              />
+              <DropdownMenuSeparator />
+            </>
+          )}
 
-        {accounts.map((a) => {
-          const count = strategyCountByAccount.get(a.id) ?? 0;
-          return (
-            <AccountOption
-              key={a.id}
-              label={a.label}
-              subtitle={a.exchange}
-              icon={<AccountAvatar account={a} isAll={false} />}
-              active={a.active}
-              count={count}
-              selected={!isAll && selection === a.id}
-              onSelect={() => setSelection(a.id)}
-            />
-          );
-        })}
-      </DropdownMenuContent>
-    </DropdownMenu>
+          {accounts.map((a) => {
+            const count = strategyCountByAccount.get(a.id) ?? 0;
+            return (
+              <AccountOption
+                key={a.id}
+                label={a.label}
+                subtitle={a.exchange}
+                icon={<AccountAvatar account={a} isAll={false} />}
+                active={a.active}
+                count={count}
+                selected={!isAll && selection === a.id}
+                onSelect={() => setSelection(a.id)}
+              />
+            );
+          })}
+
+          <DropdownMenuSeparator />
+          <DropdownMenuItem
+            // Radix closes the menu synchronously on select, which would race
+            // with the dialog's mount. `preventDefault` keeps the menu open
+            // just long enough for React to flush the dialog state update
+            // before we finally close both.
+            onSelect={(event) => {
+              event.preventDefault();
+              setNewOpen(true);
+            }}
+            className="flex cursor-pointer items-center gap-2.5 px-2 py-1.5 text-[12px] text-[var(--color-profit)]"
+          >
+            <span
+              className="flex size-5 shrink-0 items-center justify-center rounded-sm"
+              style={{ background: 'var(--accent-glow)' }}
+              aria-hidden="true"
+            >
+              <Plus size={12} strokeWidth={2} />
+            </span>
+            <span className="font-medium">Connect another account</span>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+      <NewAccountDialog open={newOpen} onOpenChange={setNewOpen} />
+    </>
   );
 }
 
