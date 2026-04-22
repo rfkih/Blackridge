@@ -12,10 +12,12 @@ import {
   CandlestickChart,
   Dices,
   LogOut,
+  ShieldCheck,
   X,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
+import { useIsAdmin } from '@/hooks/useIsAdmin';
 import { Logotype } from '@/components/brand/Logo';
 
 interface NavItem {
@@ -35,6 +37,15 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'Monte Carlo', href: '/montecarlo', icon: Dices },
 ];
 
+// Admin-only entries. Appended to NAV_ITEMS at render time when the current
+// user has ROLE_ADMIN. Kept separate so regular users never even see the
+// link, matching the principle that the UI should mirror the backend's
+// access rules (the backend is still the real gate — every admin endpoint
+// is protected by @PreAuthorize).
+const ADMIN_NAV_ITEMS: NavItem[] = [
+  { label: 'Strategy catalogue', href: '/admin/strategies', icon: ShieldCheck },
+];
+
 interface SidebarProps {
   isOpen: boolean;
   onClose: () => void;
@@ -43,6 +54,7 @@ interface SidebarProps {
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const pathname = usePathname();
   const { user, logout } = useAuth();
+  const isAdmin = useIsAdmin();
 
   function isActive(href: string) {
     if (href === '/') return pathname === '/';
@@ -152,6 +164,55 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
               );
             })}
           </ul>
+
+          {/* Admin-only group. Rendered separately so the label "Admin" is
+              obvious, and hidden entirely for non-admins. */}
+          {isAdmin && (
+            <>
+              <p className="label-caps mt-4 px-5 pb-2">Admin</p>
+              <ul className="flex flex-col">
+                {ADMIN_NAV_ITEMS.map(({ label, href, icon: Icon }) => {
+                  const active = isActive(href);
+                  return (
+                    <li key={href} className="relative">
+                      {active && (
+                        <span
+                          aria-hidden="true"
+                          className="absolute left-0 top-0 h-full w-[2px] bg-profit"
+                        />
+                      )}
+                      <Link
+                        href={href}
+                        onClick={onClose}
+                        aria-current={active ? 'page' : undefined}
+                        className={cn(
+                          'group relative flex items-center gap-3 px-5 py-[9px]',
+                          'text-[13px] font-medium transition-colors duration-fast ease-out-quart',
+                          'focus:outline-none focus-visible:bg-bg-elevated',
+                          active
+                            ? 'text-text-primary'
+                            : 'text-text-secondary hover:text-text-primary',
+                        )}
+                      >
+                        <Icon
+                          size={15}
+                          strokeWidth={1.75}
+                          className={cn(
+                            'shrink-0 transition-colors duration-fast',
+                            active
+                              ? 'text-profit'
+                              : 'text-text-muted group-hover:text-text-secondary',
+                          )}
+                          aria-hidden="true"
+                        />
+                        <span className="truncate">{label}</span>
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            </>
+          )}
         </nav>
 
         <div className="hairline-b" />
