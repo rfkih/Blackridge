@@ -14,7 +14,6 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
 
-  // Global Cmd+K / Ctrl+K listener
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
@@ -27,7 +26,10 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <div className="flex h-screen overflow-hidden bg-bg-base">
+    <div
+      className="mm flex h-screen overflow-hidden"
+      style={{ background: 'var(--mm-bg)', color: 'var(--mm-ink-0)' }}
+    >
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       <div className="flex min-w-0 flex-1 flex-col">
@@ -37,7 +39,8 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
         />
         <main
           key={pathname}
-          className="page-enter flex-1 overflow-y-auto px-6 py-6 text-text-primary"
+          className="page-enter flex-1 overflow-y-auto"
+          style={{ padding: '24px 28px 24px 0', color: 'var(--mm-ink-0)' }}
         >
           {children}
         </main>

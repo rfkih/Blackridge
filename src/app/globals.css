@@ -41,93 +41,88 @@
 [data-theme='dark'] {
   color-scheme: dark;
 
-  /* Surfaces — progressively lighter by ~6% luminance per step */
-  --bg-base: #08090b;
-  --bg-surface: #0e0f13;
-  --bg-elevated: #16181e;
-  --bg-overlay: #1d2028;
-  --bg-hover: #262a33;
+  /* Surfaces — MONO-MINT neutral scale, warm near-black base */
+  --bg-base: #0f1111;
+  --bg-surface: #191e20;
+  --bg-elevated: #222729;
+  --bg-overlay: #2c3134;
+  --bg-hover: #2c3134;
 
-  /* Borders — barely-there → tangible */
-  --border-subtle: #1a1d24;
-  --border-default: #242831;
-  --border-strong: #3a3f4b;
+  /* Borders — barely-there → tangible (alpha for depth-independence) */
+  --border-subtle: rgba(255, 255, 255, 0.07);
+  --border-default: rgba(255, 255, 255, 0.14);
+  --border-strong: rgba(255, 255, 255, 0.24);
 
-  /* Text — off-white primary to reduce eye-burn vs #FFF */
-  --text-primary: #edeef0;
-  --text-secondary: #9aa0ae;
-  --text-muted: #555b69;
-  --text-inverse: #08090b;
+  /* Text — MONO-MINT ink scale */
+  --text-primary: #f1f3f2;
+  --text-secondary: #c5c8c7;
+  --text-muted: #898d8c;
+  --text-inverse: #0f1111;
 
-  /* Semantic — brighter on dark for legibility, kept honest */
-  --color-profit: #00d395;
-  --color-loss: #ff5266;
-  --color-warning: #f2a53a;
+  /* Semantic — mint profit + warm-coral loss */
+  --color-profit: #34e8b5;
+  --color-loss: #ff7a7a;
+  --color-warning: #f3c95e;
   --color-info: #5a9eff;
-  --color-neutral: #8892a4;
+  --color-neutral: #898d8c;
 
   /* Profit / loss soft tints for backgrounds (cell flash, pill bg) */
-  --tint-profit: rgba(0, 211, 149, 0.10);
-  --tint-loss: rgba(255, 82, 102, 0.10);
-  --tint-warning: rgba(242, 165, 58, 0.10);
-  --tint-info: rgba(90, 158, 255, 0.10);
+  --tint-profit: rgba(52, 232, 181, 0.12);
+  --tint-loss: rgba(255, 122, 122, 0.12);
+  --tint-warning: rgba(243, 201, 94, 0.14);
+  --tint-info: rgba(90, 158, 255, 0.12);
 
-  /* Flash at 15% opacity — used by PnlCell tick animation */
-  --flash-profit: rgba(0, 211, 149, 0.15);
-  --flash-loss: rgba(255, 82, 102, 0.15);
+  /* Flash for PnlCell tick animation */
+  --flash-profit: rgba(52, 232, 181, 0.18);
+  --flash-loss: rgba(255, 122, 122, 0.18);
 
-  /* Accent = profit-green. No chromatic brand. Every color in the UI
-     carries P&L meaning; "active / live / link" is semantically "up". */
+  /* Accent = mint. Everything live / focused / active pulls from profit-up. */
   --accent-primary: var(--color-profit);
-  --accent-subtle: rgba(0, 211, 149, 0.18);
-  --accent-glow: rgba(0, 211, 149, 0.10);
+  --accent-subtle: rgba(52, 232, 181, 0.22);
+  --accent-glow: rgba(52, 232, 181, 0.12);
 
-  /* Shadows — hairline ring + subtle drop, no blur-fest */
-  --shadow-panel: 0 0 0 1px var(--border-subtle), 0 1px 2px rgba(0, 0, 0, 0.40);
+  --shadow-panel: 0 0 0 1px var(--border-subtle), 0 1px 2px rgba(0, 0, 0, 0.4);
   --shadow-float: 0 0 0 1px var(--border-default), 0 8px 32px rgba(0, 0, 0, 0.48);
-  --shadow-glow-profit: 0 0 16px rgba(0, 211, 149, 0.18);
-  --shadow-glow-loss: 0 0 16px rgba(255, 82, 102, 0.18);
+  --shadow-glow-profit: 0 0 16px rgba(52, 232, 181, 0.22);
+  --shadow-glow-loss: 0 0 16px rgba(255, 122, 122, 0.22);
 
-  /* Focus ring — profit-green, slightly dimmed so it reads as "focused"
-     not "on fire". */
-  --ring: 162 100% 42%;
+  --ring: 162 78% 56%;
 
-  /* ── shadcn/ui HSL vars (Radix popovers, dialogs, etc.) ─────────── */
-  --background: 220 15% 4%;
-  --foreground: 220 10% 93%;
-  --card: 222 17% 7%;
-  --card-foreground: 220 10% 93%;
-  --popover: 222 17% 9%;
-  --popover-foreground: 220 10% 93%;
-  --primary: 162 100% 42%;
-  --primary-foreground: 220 15% 4%;
-  --secondary: 222 14% 14%;
-  --secondary-foreground: 220 10% 93%;
-  --muted: 222 14% 12%;
-  --muted-foreground: 222 10% 58%;
-  --accent: 222 14% 18%;
-  --accent-foreground: 220 10% 93%;
-  --destructive: 351 100% 66%;
+  /* ── shadcn/ui HSL vars ─────────── */
+  --background: 180 8% 7%;
+  --foreground: 150 3% 95%;
+  --card: 195 7% 12%;
+  --card-foreground: 150 3% 95%;
+  --popover: 195 7% 14%;
+  --popover-foreground: 150 3% 95%;
+  --primary: 162 78% 56%;
+  --primary-foreground: 180 8% 7%;
+  --secondary: 195 6% 17%;
+  --secondary-foreground: 150 3% 95%;
+  --muted: 195 6% 15%;
+  --muted-foreground: 180 3% 55%;
+  --accent: 195 6% 19%;
+  --accent-foreground: 150 3% 95%;
+  --destructive: 0 100% 74%;
   --destructive-foreground: 0 0% 100%;
-  --border: 222 14% 16%;
-  --input: 222 14% 16%;
+  --border: 180 3% 20%;
+  --input: 180 3% 20%;
 
-  /* Charts — Recharts/TV series colors. Paired to profit/loss/brand + neutrals. */
-  --chart-1: 161 100% 42%; /* profit */
-  --chart-2: 351 100% 66%; /* loss */
-  --chart-3: 213 100% 68%; /* info/brand */
-  --chart-4: 36 88% 56%;   /* warning */
-  --chart-5: 220 10% 64%;  /* neutral */
+  /* Charts — Recharts/TV series colors paired to the MONO-MINT palette. */
+  --chart-1: 162 78% 56%; /* profit · mint */
+  --chart-2: 0 100% 74%;  /* loss  · coral */
+  --chart-3: 213 100% 68%; /* info · blue */
+  --chart-4: 44 86% 66%;  /* warning · amber */
+  --chart-5: 180 3% 55%;  /* neutral */
 
-  /* Sidebar — deliberately the same surface as base, separated by hairline */
-  --sidebar: 220 15% 4%;
-  --sidebar-foreground: 220 10% 93%;
-  --sidebar-primary: 162 100% 42%;
-  --sidebar-primary-foreground: 220 15% 4%;
-  --sidebar-accent: 222 14% 12%;
-  --sidebar-accent-foreground: 220 10% 93%;
-  --sidebar-border: 222 14% 10%;
-  --sidebar-ring: 162 100% 42%;
+  --sidebar: 180 8% 7%;
+  --sidebar-foreground: 150 3% 95%;
+  --sidebar-primary: 162 78% 56%;
+  --sidebar-primary-foreground: 180 8% 7%;
+  --sidebar-accent: 195 6% 15%;
+  --sidebar-accent-foreground: 150 3% 95%;
+  --sidebar-border: 180 3% 16%;
+  --sidebar-ring: 162 78% 56%;
 }
 
 /* ── LIGHT THEME — "Platinum Terminal" ──────────────────────────────
@@ -138,86 +133,83 @@
 [data-theme='light'] {
   color-scheme: light;
 
-  /* Surfaces — stone → linen → bone */
-  --bg-base: #edece8;         /* page: warm stone, almost neutral */
-  --bg-surface: #f5f4f0;      /* primary surface: linen */
-  --bg-elevated: #fdfcfa;     /* cards: bone, a whisper of warmth */
-  --bg-overlay: #e5e3dd;      /* selection / highlight */
-  --bg-hover: #dcd9d0;
+  /* Surfaces — MONO-MINT cool-neutral paper */
+  --bg-base: #f4f5f4;
+  --bg-surface: #ffffff;
+  --bg-elevated: #f8f9f8;
+  --bg-overlay: #eeefee;
+  --bg-hover: #eeefee;
 
-  /* Borders — warm platinum grey, no yellow */
-  --border-subtle: #dcd9d0;
-  --border-default: #bdb8ab;
-  --border-strong: #7c7668;
+  /* Borders — warm-neutral hairlines */
+  --border-subtle: rgba(15, 17, 17, 0.08);
+  --border-default: rgba(15, 17, 17, 0.16);
+  --border-strong: rgba(15, 17, 17, 0.32);
 
-  /* Text — deep ink, very slight cool undertone for contrast */
-  --text-primary: #14161a;
-  --text-secondary: #4b515d;
-  --text-muted: #8a857a;
-  --text-inverse: #fdfcfa;
+  /* Text — deep ink scale */
+  --text-primary: #0f1111;
+  --text-secondary: #2b2e2e;
+  --text-muted: #6b6f6e;
+  --text-inverse: #ffffff;
 
-  /* Semantic — deeper forest + burgundy for on-paper legibility */
-  --color-profit: #006d4a;
-  --color-loss: #b4263a;
-  --color-warning: #9a5f0a;
+  /* Semantic — deeper mint + coral for on-paper legibility */
+  --color-profit: #0da077;
+  --color-loss: #cb4c4c;
+  --color-warning: #b78620;
   --color-info: #1b56bc;
-  --color-neutral: #6b6e78;
+  --color-neutral: #6b6f6e;
 
-  /* Tints — keep soft; they read stronger on a brighter canvas */
-  --tint-profit: rgba(0, 109, 74, 0.08);
-  --tint-loss: rgba(180, 38, 58, 0.08);
-  --tint-warning: rgba(154, 95, 10, 0.08);
-  --tint-info: rgba(27, 86, 188, 0.08);
+  --tint-profit: rgba(13, 160, 119, 0.10);
+  --tint-loss: rgba(203, 76, 76, 0.10);
+  --tint-warning: rgba(183, 134, 32, 0.12);
+  --tint-info: rgba(27, 86, 188, 0.10);
 
-  --flash-profit: rgba(0, 109, 74, 0.14);
-  --flash-loss: rgba(180, 38, 58, 0.14);
+  --flash-profit: rgba(13, 160, 119, 0.16);
+  --flash-loss: rgba(203, 76, 76, 0.16);
 
   --accent-primary: var(--color-profit);
-  --accent-subtle: rgba(0, 109, 74, 0.14);
-  --accent-glow: rgba(0, 109, 74, 0.08);
+  --accent-subtle: rgba(13, 160, 119, 0.18);
+  --accent-glow: rgba(13, 160, 119, 0.10);
 
-  /* Paper shadows — almost none. Hairline ring carries the weight. */
-  --shadow-panel: 0 0 0 1px var(--border-subtle), 0 1px 2px rgba(20, 22, 26, 0.04);
-  --shadow-float: 0 0 0 1px var(--border-default), 0 12px 32px rgba(20, 22, 26, 0.08);
-  --shadow-glow-profit: 0 0 12px rgba(0, 109, 74, 0.10);
-  --shadow-glow-loss: 0 0 12px rgba(180, 38, 58, 0.10);
+  --shadow-panel: 0 0 0 1px var(--border-subtle), 0 1px 2px rgba(15, 17, 17, 0.04);
+  --shadow-float: 0 0 0 1px var(--border-default), 0 12px 32px rgba(15, 17, 17, 0.08);
+  --shadow-glow-profit: 0 0 12px rgba(13, 160, 119, 0.14);
+  --shadow-glow-loss: 0 0 12px rgba(203, 76, 76, 0.14);
 
-  --ring: 162 100% 21%;
+  --ring: 164 85% 34%;
 
-  /* shadcn HSL vars — re-derived for platinum paper */
-  --background: 42 11% 92%;
-  --foreground: 222 13% 9%;
-  --card: 42 27% 98%;
-  --card-foreground: 222 13% 9%;
-  --popover: 42 27% 98%;
-  --popover-foreground: 222 13% 9%;
-  --primary: 162 100% 21%;
-  --primary-foreground: 42 22% 97%;
-  --secondary: 42 12% 88%;
-  --secondary-foreground: 222 13% 9%;
-  --muted: 42 12% 90%;
-  --muted-foreground: 32 7% 42%;
-  --accent: 42 12% 88%;
-  --accent-foreground: 222 13% 9%;
-  --destructive: 352 65% 42%;
+  --background: 120 6% 96%;
+  --foreground: 180 8% 7%;
+  --card: 0 0% 100%;
+  --card-foreground: 180 8% 7%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 180 8% 7%;
+  --primary: 164 85% 34%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 120 4% 94%;
+  --secondary-foreground: 180 8% 7%;
+  --muted: 120 4% 93%;
+  --muted-foreground: 180 2% 43%;
+  --accent: 120 4% 94%;
+  --accent-foreground: 180 8% 7%;
+  --destructive: 0 56% 54%;
   --destructive-foreground: 0 0% 100%;
-  --border: 42 14% 82%;
-  --input: 42 14% 82%;
+  --border: 180 4% 90%;
+  --input: 180 4% 90%;
 
-  --chart-1: 162 100% 21%;
-  --chart-2: 352 65% 42%;
-  --chart-3: 216 74% 42%;
-  --chart-4: 34 85% 33%;
-  --chart-5: 225 6% 45%;
+  --chart-1: 164 85% 34%;
+  --chart-2: 0 56% 54%;
+  --chart-3: 216 75% 43%;
+  --chart-4: 36 70% 42%;
+  --chart-5: 180 2% 43%;
 
-  --sidebar: 42 11% 92%;
-  --sidebar-foreground: 222 13% 9%;
-  --sidebar-primary: 162 100% 21%;
-  --sidebar-primary-foreground: 42 22% 97%;
-  --sidebar-accent: 42 12% 88%;
-  --sidebar-accent-foreground: 222 13% 9%;
-  --sidebar-border: 42 14% 84%;
-  --sidebar-ring: 162 100% 21%;
+  --sidebar: 120 6% 96%;
+  --sidebar-foreground: 180 8% 7%;
+  --sidebar-primary: 164 85% 34%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 120 4% 94%;
+  --sidebar-accent-foreground: 180 8% 7%;
+  --sidebar-border: 180 4% 90%;
+  --sidebar-ring: 164 85% 34%;
 }
 
 /* First-paint respect for OS preference when the user hasn't explicitly
@@ -457,6 +449,267 @@ pre {
       transform: scale(0.88);
     }
   }
+}
+
+/* ─────────────────────────────────────────────────────────────────────
+   MONO-MINT — neutral grayscale scale + single mint accent.
+   Dark primary, light alt. Consumer-friendly aesthetic with softer
+   radii (20–24px), rounded pills, and a Fraunces display serif for
+   hero numbers. Coexists with the base tokens above; components opt
+   in via the `.mm` namespace and `mm-*` utility classes.
+   ───────────────────────────────────────────────────────────────────── */
+.mm,
+[data-theme='dark'] .mm,
+[data-theme='dark'].mm {
+  /* Type */
+  --mm-display: var(--font-fraunces), 'Instrument Serif', Georgia, serif;
+  --mm-sans: var(--font-inter), 'Söhne', system-ui, sans-serif;
+  --mm-num: var(--font-fraunces), var(--font-inter), sans-serif;
+  --mm-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
+
+  /* Dark neutral scale */
+  --mm-bg: #0f1111;
+  --mm-bg-2: #14181a;
+  --mm-surface: #191e20;
+  --mm-surface-2: #222729;
+  --mm-surface-3: #2c3134;
+  --mm-hair: rgba(255, 255, 255, 0.07);
+  --mm-hair-2: rgba(255, 255, 255, 0.14);
+
+  --mm-ink-0: #f1f3f2;
+  --mm-ink-1: #c5c8c7;
+  --mm-ink-2: #898d8c;
+  --mm-ink-3: #5a5e5d;
+
+  --mm-mint: #34e8b5;
+  --mm-mint-2: #1fc896;
+  --mm-mint-soft: rgba(52, 232, 181, 0.12);
+  --mm-mint-edge: rgba(52, 232, 181, 0.32);
+
+  --mm-up: #34e8b5;
+  --mm-up-soft: rgba(52, 232, 181, 0.12);
+  --mm-dn: #ff7a7a;
+  --mm-dn-soft: rgba(255, 122, 122, 0.12);
+  --mm-warn: #f3c95e;
+  --mm-warn-soft: rgba(243, 201, 94, 0.14);
+}
+
+[data-theme='light'] .mm,
+[data-theme='light'].mm {
+  --mm-bg: #f4f5f4;
+  --mm-bg-2: #ecedec;
+  --mm-surface: #ffffff;
+  --mm-surface-2: #f8f9f8;
+  --mm-surface-3: #eeefee;
+  --mm-hair: rgba(15, 17, 17, 0.08);
+  --mm-hair-2: rgba(15, 17, 17, 0.16);
+
+  --mm-ink-0: #0f1111;
+  --mm-ink-1: #2b2e2e;
+  --mm-ink-2: #6b6f6e;
+  --mm-ink-3: #9a9e9d;
+
+  --mm-mint: #0da077;
+  --mm-mint-2: #07805d;
+  --mm-mint-soft: rgba(13, 160, 119, 0.1);
+  --mm-mint-edge: rgba(13, 160, 119, 0.34);
+
+  --mm-up: #0da077;
+  --mm-up-soft: rgba(13, 160, 119, 0.1);
+  --mm-dn: #cb4c4c;
+  --mm-dn-soft: rgba(203, 76, 76, 0.1);
+  --mm-warn: #b78620;
+  --mm-warn-soft: rgba(183, 134, 32, 0.12);
+}
+
+.mm {
+  font-family: var(--mm-sans);
+  font-feature-settings: 'ss01', 'cv11';
+}
+
+.mm-display {
+  font-family: var(--mm-display);
+  font-weight: 400;
+  letter-spacing: -0.03em;
+}
+
+.mm-num {
+  font-family: var(--mm-num);
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+
+.mm-mono {
+  font-family: var(--mm-mono);
+  font-feature-settings: 'tnum';
+}
+
+.mm-card {
+  background: var(--mm-surface);
+  border: 1px solid var(--mm-hair);
+  border-radius: 24px;
+}
+.mm-card-2 {
+  background: var(--mm-surface-2);
+  border: 1px solid var(--mm-hair);
+  border-radius: 20px;
+}
+.mm-card-lift {
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 8px 24px -8px rgba(0, 0, 0, 0.06);
+}
+
+.mm-eyebrow {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--mm-ink-2);
+  letter-spacing: -0.005em;
+}
+.mm-kicker {
+  font-family: var(--mm-mono);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--mm-ink-2);
+}
+
+.mm-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  border: 1px solid var(--mm-hair-2);
+  background: transparent;
+  color: var(--mm-ink-1);
+  cursor: pointer;
+  font-family: var(--mm-sans);
+  white-space: nowrap;
+  transition: background 120ms, color 120ms, border-color 120ms;
+}
+.mm-pill:hover {
+  background: var(--mm-surface-2);
+  color: var(--mm-ink-0);
+}
+.mm-pill-active {
+  background: var(--mm-ink-0);
+  color: var(--mm-bg);
+  border-color: var(--mm-ink-0);
+}
+.mm-pill-active:hover {
+  background: var(--mm-ink-0);
+  color: var(--mm-bg);
+}
+.mm-pill-mint {
+  background: var(--mm-mint);
+  color: var(--mm-bg);
+  border-color: var(--mm-mint);
+  font-weight: 500;
+}
+
+.mm-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.mm-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: var(--mm-mint);
+  box-shadow: 0 0 0 4px var(--mm-mint-soft);
+  animation: mm-pulse 2s ease-in-out infinite;
+}
+@keyframes mm-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+
+.mm-nav {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 11px 16px;
+  border-radius: 12px;
+  font-size: 13.5px;
+  color: var(--mm-ink-1);
+  cursor: pointer;
+  transition: background 120ms;
+}
+.mm-nav:hover {
+  background: var(--mm-surface-2);
+}
+.mm-nav-active {
+  background: var(--mm-surface-2);
+  color: var(--mm-ink-0);
+  font-weight: 500;
+}
+[data-theme='light'] .mm-nav-active {
+  background: var(--mm-bg-2);
+}
+
+.mm-btn {
+  padding: 10px 16px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-family: var(--mm-sans);
+  font-size: 13px;
+  font-weight: 500;
+  border: 1px solid var(--mm-hair-2);
+  background: transparent;
+  color: var(--mm-ink-0);
+  white-space: nowrap;
+  transition: background 120ms, color 120ms;
+}
+.mm-btn:hover {
+  background: var(--mm-surface-2);
+}
+.mm-btn-mint {
+  background: var(--mm-mint);
+  color: var(--mm-bg);
+  border-color: var(--mm-mint);
+}
+.mm-btn-mint:hover {
+  background: var(--mm-mint-2);
+  color: var(--mm-bg);
+}
+
+.mm-hr {
+  height: 1px;
+  border: 0;
+  background: var(--mm-hair);
+}
+
+.mm-signout-btn {
+  color: var(--mm-ink-2);
+  background: transparent;
+}
+.mm-signout-btn:hover {
+  background: var(--mm-surface-2);
+  color: var(--mm-dn);
+}
+
+.mm-callout {
+  background: var(--mm-mint);
+  color: var(--mm-bg);
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-family: var(--mm-num);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
 }
 
 /* Kill native number spinners where we render our own steppers */

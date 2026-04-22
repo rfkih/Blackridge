@@ -3,8 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
-  LayoutDashboard,
-  TrendingUp,
+  Home,
   Zap,
   FlaskConical,
   BarChart3,
@@ -14,11 +13,14 @@ import {
   LogOut,
   ShieldCheck,
   X,
+  Book,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
 import { useIsAdmin } from '@/hooks/useIsAdmin';
-import { Logotype } from '@/components/brand/Logo';
+import { usePnlSummary } from '@/hooks/useTrades';
+import { usePortfolio } from '@/hooks/usePortfolio';
+import { formatPnl, formatPrice } from '@/lib/formatters';
 
 interface NavItem {
   label: string;
@@ -27,23 +29,18 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { label: 'Dashboard', href: '/', icon: LayoutDashboard },
-  { label: 'Trades', href: '/trades', icon: TrendingUp },
+  { label: 'Home', href: '/', icon: Home },
+  { label: 'Portfolio', href: '/portfolio', icon: Wallet },
+  { label: 'Markets', href: '/market', icon: CandlestickChart },
   { label: 'Strategies', href: '/strategies', icon: Zap },
   { label: 'Backtest', href: '/backtest', icon: FlaskConical },
-  { label: 'P&L Analytics', href: '/pnl', icon: BarChart3 },
-  { label: 'Portfolio', href: '/portfolio', icon: Wallet },
-  { label: 'Market', href: '/market', icon: CandlestickChart },
   { label: 'Monte Carlo', href: '/montecarlo', icon: Dices },
+  { label: 'P&L', href: '/pnl', icon: BarChart3 },
+  { label: 'Journal', href: '/trades', icon: Book },
 ];
 
-// Admin-only entries. Appended to NAV_ITEMS at render time when the current
-// user has ROLE_ADMIN. Kept separate so regular users never even see the
-// link, matching the principle that the UI should mirror the backend's
-// access rules (the backend is still the real gate — every admin endpoint
-// is protected by @PreAuthorize).
 const ADMIN_NAV_ITEMS: NavItem[] = [
-  { label: 'Strategy catalogue', href: '/admin/strategies', icon: ShieldCheck },
+  { label: 'Catalogue', href: '/admin/strategies', icon: ShieldCheck },
 ];
 
 interface SidebarProps {
@@ -55,6 +52,12 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const pathname = usePathname();
   const { user, logout } = useAuth();
   const isAdmin = useIsAdmin();
+
+  const { data: pnlSummary } = usePnlSummary('today');
+  const { data: portfolio } = usePortfolio();
+
+  const equity = portfolio?.totalUsdt ?? 0;
+  const realizedToday = pnlSummary?.realizedPnl ?? 0;
 
   function isActive(href: string) {
     if (href === '/') return pathname === '/';
@@ -68,7 +71,9 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         .join('')
         .toUpperCase()
         .slice(0, 2)
-    : '?';
+    : 'U';
+
+  const [firstName] = (user?.name ?? 'Trader').split(' ');
 
   return (
     <>
@@ -82,168 +87,212 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
 
       <aside
         className={cn(
-          'fixed left-0 top-0 z-40 flex h-full w-[220px] flex-col',
-          'border-r border-bd-subtle bg-bg-base',
+          'fixed left-0 top-0 z-40 flex h-full w-[240px] flex-col',
           'transition-transform duration-base ease-out-quart',
           isOpen ? 'translate-x-0' : '-translate-x-full',
           'lg:static lg:z-auto lg:translate-x-0',
         )}
+        style={{
+          padding: '24px 18px 20px',
+          background: 'var(--mm-bg)',
+          gap: 4,
+        }}
         aria-label="Navigation"
       >
-        {/* Brand lockup — full Meridian Edge wordmark + mark. */}
-        <div className="flex h-12 shrink-0 items-center justify-between pl-5 pr-3">
+        {/* Wordmark */}
+        <div className="flex items-center gap-2.5" style={{ padding: '0 6px 22px' }}>
           <Link
             href="/"
-            className="group flex items-center focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            onClick={onClose}
+            className="flex items-center gap-2.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             aria-label="Meridian Edge — home"
           >
-            <Logotype size="md" />
+            <div
+              style={{
+                width: 34,
+                height: 34,
+                borderRadius: 10,
+                background: 'var(--mm-mint)',
+                color: 'var(--mm-bg)',
+                display: 'grid',
+                placeItems: 'center',
+                fontFamily: 'var(--mm-display)',
+                fontSize: 17,
+                fontWeight: 600,
+              }}
+            >
+              M
+            </div>
+            <div>
+              <div
+                className="mm-display"
+                style={{ fontSize: 19, lineHeight: 1, color: 'var(--mm-ink-0)' }}
+              >
+                Meridian
+              </div>
+              <div style={{ fontSize: 11, color: 'var(--mm-ink-2)', marginTop: 2 }}>Edge</div>
+            </div>
           </Link>
           <button
             type="button"
             onClick={onClose}
-            className="flex size-7 items-center justify-center rounded-sm text-text-muted transition-colors duration-fast hover:bg-bg-hover hover:text-text-primary lg:hidden"
+            className="ml-auto flex size-7 items-center justify-center rounded-md text-[color:var(--mm-ink-2)] transition-colors duration-fast hover:bg-[color:var(--mm-surface-2)] hover:text-[color:var(--mm-ink-0)] lg:hidden"
             aria-label="Close sidebar"
           >
             <X size={14} strokeWidth={1.75} />
           </button>
         </div>
 
-        <div className="hairline-b" />
+        {/* Balance card */}
+        <div className="mm-card-2" style={{ padding: '14px 16px', margin: '0 0 16px' }}>
+          <div style={{ fontSize: 11, color: 'var(--mm-ink-2)' }}>Balance</div>
+          <div
+            className="mm-display"
+            style={{
+              fontSize: 22,
+              marginTop: 4,
+              letterSpacing: '-0.03em',
+              color: 'var(--mm-ink-0)',
+            }}
+          >
+            {equity > 0 ? `$${formatPrice(equity, 0)}` : '—'}
+          </div>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              marginTop: 6,
+              fontSize: 11,
+            }}
+          >
+            <span
+              style={{
+                color: realizedToday >= 0 ? 'var(--mm-up)' : 'var(--mm-dn)',
+                fontFamily: 'var(--mm-num)',
+              }}
+            >
+              {realizedToday >= 0 ? '+' : ''}
+              {formatPnl(realizedToday)}
+            </span>
+            <span style={{ color: 'var(--mm-ink-3)' }}>today</span>
+          </div>
+        </div>
 
-        {/* Nav — active state is a razor-thin profit-green left edge, no pill. */}
-        <nav className="flex-1 overflow-y-auto py-3" aria-label="Main navigation">
-          <p className="label-caps px-5 pb-2">Navigation</p>
-          <ul className="flex flex-col">
-            {NAV_ITEMS.map(({ label, href, icon: Icon }) => {
-              const active = isActive(href);
-              return (
-                <li key={href} className="relative">
-                  {/* Active: solid 2px profit-green left edge, always visible */}
-                  {active && (
-                    <span
-                      aria-hidden="true"
-                      className="absolute left-0 top-0 h-full w-[2px] bg-profit"
-                    />
-                  )}
+        {/* Nav */}
+        <nav
+          aria-label="Main navigation"
+          style={{ display: 'flex', flexDirection: 'column', gap: 2, flex: 1, minHeight: 0 }}
+          className="overflow-y-auto"
+        >
+          {NAV_ITEMS.map(({ label, href, icon: Icon }) => {
+            const active = isActive(href);
+            return (
+              <Link
+                key={href}
+                href={href}
+                onClick={onClose}
+                aria-current={active ? 'page' : undefined}
+                className={cn('mm-nav', active && 'mm-nav-active')}
+              >
+                <span
+                  style={{
+                    display: 'inline-flex',
+                    width: 18,
+                    color: active ? 'var(--mm-mint)' : 'var(--mm-ink-2)',
+                  }}
+                >
+                  <Icon size={18} strokeWidth={1.6} />
+                </span>
+                <span>{label}</span>
+              </Link>
+            );
+          })}
+
+          {isAdmin && (
+            <>
+              <div className="mm-kicker" style={{ padding: '14px 16px 6px', fontSize: 10 }}>
+                Admin
+              </div>
+              {ADMIN_NAV_ITEMS.map(({ label, href, icon: Icon }) => {
+                const active = isActive(href);
+                return (
                   <Link
+                    key={href}
                     href={href}
                     onClick={onClose}
                     aria-current={active ? 'page' : undefined}
-                    className={cn(
-                      'group relative flex items-center gap-3 px-5 py-[9px]',
-                      'text-[13px] font-medium transition-colors duration-fast ease-out-quart',
-                      'focus:outline-none focus-visible:bg-bg-elevated',
-                      active ? 'text-text-primary' : 'text-text-secondary hover:text-text-primary',
-                    )}
+                    className={cn('mm-nav', active && 'mm-nav-active')}
                   >
-                    <Icon
-                      size={15}
-                      strokeWidth={1.75}
-                      className={cn(
-                        'shrink-0 transition-colors duration-fast',
-                        active ? 'text-profit' : 'text-text-muted group-hover:text-text-secondary',
-                      )}
-                      aria-hidden="true"
-                    />
-                    <span className="truncate">{label}</span>
-
-                    {/* Hover underline: scales from left, 120ms. Hidden when active. */}
-                    {!active && (
-                      <span
-                        aria-hidden="true"
-                        className={cn(
-                          'pointer-events-none absolute bottom-0 left-5 right-5 h-px bg-profit',
-                          'origin-left scale-x-0 opacity-0 transition-all duration-fast ease-out-quart',
-                          'group-hover:scale-x-100 group-hover:opacity-60',
-                        )}
-                      />
-                    )}
+                    <span
+                      style={{
+                        display: 'inline-flex',
+                        width: 18,
+                        color: active ? 'var(--mm-mint)' : 'var(--mm-ink-2)',
+                      }}
+                    >
+                      <Icon size={18} strokeWidth={1.6} />
+                    </span>
+                    <span>{label}</span>
                   </Link>
-                </li>
-              );
-            })}
-          </ul>
-
-          {/* Admin-only group. Rendered separately so the label "Admin" is
-              obvious, and hidden entirely for non-admins. */}
-          {isAdmin && (
-            <>
-              <p className="label-caps mt-4 px-5 pb-2">Admin</p>
-              <ul className="flex flex-col">
-                {ADMIN_NAV_ITEMS.map(({ label, href, icon: Icon }) => {
-                  const active = isActive(href);
-                  return (
-                    <li key={href} className="relative">
-                      {active && (
-                        <span
-                          aria-hidden="true"
-                          className="absolute left-0 top-0 h-full w-[2px] bg-profit"
-                        />
-                      )}
-                      <Link
-                        href={href}
-                        onClick={onClose}
-                        aria-current={active ? 'page' : undefined}
-                        className={cn(
-                          'group relative flex items-center gap-3 px-5 py-[9px]',
-                          'text-[13px] font-medium transition-colors duration-fast ease-out-quart',
-                          'focus:outline-none focus-visible:bg-bg-elevated',
-                          active
-                            ? 'text-text-primary'
-                            : 'text-text-secondary hover:text-text-primary',
-                        )}
-                      >
-                        <Icon
-                          size={15}
-                          strokeWidth={1.75}
-                          className={cn(
-                            'shrink-0 transition-colors duration-fast',
-                            active
-                              ? 'text-profit'
-                              : 'text-text-muted group-hover:text-text-secondary',
-                          )}
-                          aria-hidden="true"
-                        />
-                        <span className="truncate">{label}</span>
-                      </Link>
-                    </li>
-                  );
-                })}
-              </ul>
+                );
+              })}
             </>
           )}
         </nav>
 
-        <div className="hairline-b" />
-
-        {/* User footer — square avatar, 6px radius, disciplined row */}
-        <div className="shrink-0 px-3 py-3">
-          <div className="flex items-center gap-2.5 px-2">
-            <div
-              className="flex size-8 shrink-0 items-center justify-center rounded-sm bg-bg-elevated font-mono text-[11px] font-semibold text-text-primary"
-              aria-hidden="true"
-            >
-              {initials}
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-[12px] font-medium leading-tight text-text-primary">
-                {user?.name ?? 'Trader'}
-              </p>
-              <p className="truncate font-mono text-[10px] leading-tight text-text-muted">
-                {user?.email ?? ''}
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={logout}
-              className="flex size-7 shrink-0 items-center justify-center rounded-sm text-text-muted transition-colors duration-fast hover:bg-bg-hover hover:text-loss focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              aria-label="Sign out"
-              title="Sign out"
-            >
-              <LogOut size={13} strokeWidth={1.75} />
-            </button>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 10,
+            padding: '14px 6px 0',
+            marginTop: 12,
+            borderTop: '1px solid var(--mm-hair)',
+          }}
+        >
+          <div
+            aria-hidden="true"
+            style={{
+              width: 32,
+              height: 32,
+              borderRadius: 999,
+              background: 'var(--mm-surface-3)',
+              color: 'var(--mm-ink-1)',
+              display: 'grid',
+              placeItems: 'center',
+              fontFamily: 'var(--mm-display)',
+              fontSize: 14,
+              fontWeight: 500,
+            }}
+          >
+            {initials.slice(0, 1)}
           </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div
+              style={{
+                fontSize: 13,
+                color: 'var(--mm-ink-0)',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+              }}
+            >
+              {firstName}
+            </div>
+            <div style={{ fontSize: 11, color: 'var(--mm-ink-2)' }}>
+              {isAdmin ? 'Admin' : 'Pro member'}
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={logout}
+            className="mm-signout-btn flex size-7 items-center justify-center rounded-md transition-colors duration-fast"
+            aria-label="Sign out"
+            title="Sign out"
+          >
+            <LogOut size={14} strokeWidth={1.75} />
+          </button>
         </div>
       </aside>
     </>

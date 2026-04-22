@@ -188,7 +188,75 @@ export async function getRecentTrades(limit = 10, accountId?: string): Promise<T
   return extractList(data).map(mapTrade);
 }
 
+export interface TradesPageFilters {
+  status?: TradeStatus | 'ALL';
+  strategyCode?: string;
+  symbol?: string;
+  from?: string; // ISO date yyyy-MM-dd
+  to?: string;
+  accountId?: string;
+  page?: number; // zero-indexed
+  size?: number;
+}
+
+export interface TradesPage {
+  content: Trades[];
+  page: number;
+  size: number;
+  total: number;
+}
+
+/**
+ * Paginated trades list. Mirrors `GET /api/v1/trades?status=&strategyCode=&
+ * symbol=&from=&to=&page=&size=`. The backend may emit either a bare array or
+ * the Spring Page envelope depending on filter shape — extractList handles
+ * both, and we synthesise missing page metadata so the caller always gets a
+ * consistent `{ content, page, size, total }` shape.
+ */
+export async function getTradesPage(filters: TradesPageFilters = {}): Promise<TradesPage> {
+  const params: Record<string, unknown> = {};
+  if (filters.status && filters.status !== 'ALL') params.status = filters.status;
+  if (filters.strategyCode) params.strategyCode = filters.strategyCode;
+  if (filters.symbol) params.symbol = filters.symbol.toUpperCase();
+  if (filters.from) params.from = filters.from;
+  if (filters.to) params.to = filters.to;
+  if (filters.accountId) params.accountId = filters.accountId;
+  if (filters.page != null) params.page = filters.page;
+  if (filters.size != null) params.size = filters.size;
+
+  const { data } = await apiClient.get<BackendTrade[] | PageResponse<BackendTrade>>(
+    '/api/v1/trades',
+    { params },
+  );
+
+  const content = extractList(data).map(mapTrade);
+  if (Array.isArray(data)) {
+    return {
+      content,
+      page: filters.page ?? 0,
+      size: filters.size ?? content.length,
+      total: content.length,
+    };
+  }
+  return {
+    content,
+    page: data.page ?? filters.page ?? 0,
+    size: data.size ?? filters.size ?? content.length,
+    total: data.total ?? content.length,
+  };
+}
+
 export async function getTradeById(id: string): Promise<Trades> {
   const { data } = await apiClient.get<BackendTrade>(`/api/v1/trades/${id}`);
   return mapTrade(data);
+}
+
+export async function getTradePositions(id: string): Promise<TradePosition[]> {
+  // Backend returns `{content: []}` page OR raw array. The nested `positions`
+  // on the trade detail usually covers this — this endpoint is kept for flows
+  // that want to refetch legs independently (partial-close live updates).
+  const { data } = await apiClient.get<BackendTradePosition[] | PageResponse<BackendTradePosition>>(
+    `/api/v1/trades/${id}/positions`,
+  );
+  return extractList(data).map(mapPosition);
 }

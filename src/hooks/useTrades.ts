@@ -1,7 +1,14 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { getOpenTrades, getRecentTrades } from '@/lib/api/trades';
+import {
+  getOpenTrades,
+  getRecentTrades,
+  getTradeById,
+  getTradePositions,
+  getTradesPage,
+  type TradesPageFilters,
+} from '@/lib/api/trades';
 import { getDailyPnl, getPnlByStrategy, getPnlSummary } from '@/lib/api/pnl';
 import { QUERY_STALE_TIMES } from '@/lib/constants';
 import { useWsStore } from '@/store/wsStore';
@@ -37,6 +44,51 @@ export function useRecentTrades(limit = 10, accountId?: string) {
   return useQuery({
     queryKey: ['trades', 'recent', limit, accountId ?? null],
     queryFn: () => getRecentTrades(limit, accountId),
+    staleTime: QUERY_STALE_TIMES.closedTrades,
+  });
+}
+
+/**
+ * Paginated + filtered trades list. Filter state is carried in URL search
+ * params at the page layer; this hook just receives the already-parsed
+ * filters as its queryKey so cache entries are scoped to each unique combo.
+ */
+export function useTradesList(filters: TradesPageFilters) {
+  return useQuery({
+    queryKey: [
+      'trades',
+      'list',
+      filters.status ?? 'ALL',
+      filters.strategyCode ?? null,
+      filters.symbol ?? null,
+      filters.from ?? null,
+      filters.to ?? null,
+      filters.accountId ?? null,
+      filters.page ?? 0,
+      filters.size ?? 20,
+    ],
+    queryFn: () => getTradesPage(filters),
+    staleTime: QUERY_STALE_TIMES.closedTrades,
+    // Keep the previous page's data visible while the new page loads so the
+    // table doesn't flash to a skeleton on every sort/filter/paginate.
+    placeholderData: (prev) => prev,
+  });
+}
+
+export function useTrade(id: string | undefined) {
+  return useQuery({
+    queryKey: ['trades', 'detail', id ?? null],
+    queryFn: () => getTradeById(id as string),
+    enabled: Boolean(id),
+    staleTime: QUERY_STALE_TIMES.closedTrades,
+  });
+}
+
+export function useTradePositions(id: string | undefined, options?: { enabled?: boolean }) {
+  return useQuery({
+    queryKey: ['trades', 'positions', id ?? null],
+    queryFn: () => getTradePositions(id as string),
+    enabled: Boolean(id) && (options?.enabled ?? true),
     staleTime: QUERY_STALE_TIMES.closedTrades,
   });
 }

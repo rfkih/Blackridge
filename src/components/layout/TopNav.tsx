@@ -1,46 +1,17 @@
 'use client';
 
-import { usePathname } from 'next/navigation';
-import { Menu, ChevronDown, User, Settings, LogOut, Search } from 'lucide-react';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { Menu, Search, Bell, Sun, Moon } from 'lucide-react';
 import { AccountSwitcher } from '@/components/layout/AccountSwitcher';
-import { ThemeToggle } from '@/components/theme/ThemeToggle';
 import { useWsStore } from '@/store/wsStore';
-import { useAuth } from '@/hooks/useAuth';
+import { useTheme } from '@/components/theme/ThemeProvider';
 import { cn } from '@/lib/utils';
-
-const PAGE_TITLES: Record<string, string> = {
-  '/': 'Dashboard',
-  '/trades': 'Trades',
-  '/strategies': 'Strategies',
-  '/backtest': 'Backtest',
-  '/backtest/new': 'New Backtest',
-  '/pnl': 'P&L Analytics',
-  '/portfolio': 'Portfolio',
-  '/market': 'Market',
-  '/montecarlo': 'Monte Carlo',
-};
-
-function usePageTitle(pathname: string): string {
-  if (pathname in PAGE_TITLES) return PAGE_TITLES[pathname];
-  for (const [key, title] of Object.entries(PAGE_TITLES)) {
-    if (key !== '/' && pathname.startsWith(key)) return title;
-  }
-  return 'Meridian Edge';
-}
 
 type WsStatus = 'connected' | 'reconnecting' | 'disconnected';
 
-const WS_STATUS_META: Record<WsStatus, { label: string; dot: string; pulse: boolean }> = {
-  connected: { label: 'LIVE', dot: 'bg-profit', pulse: true },
-  reconnecting: { label: 'RECONNECTING', dot: 'bg-warning', pulse: true },
-  disconnected: { label: 'OFFLINE', dot: 'bg-loss', pulse: false },
+const WS_STATUS_META: Record<WsStatus, { label: string; color: string; pulse: boolean }> = {
+  connected: { label: 'Live', color: 'var(--mm-up)', pulse: true },
+  reconnecting: { label: 'Syncing', color: 'var(--mm-warn)', pulse: true },
+  disconnected: { label: 'Offline', color: 'var(--mm-dn)', pulse: false },
 };
 
 interface TopNavProps {
@@ -49,9 +20,6 @@ interface TopNavProps {
 }
 
 export function TopNav({ onMenuClick, onCommandOpen }: TopNavProps) {
-  const pathname = usePathname();
-  const pageTitle = usePageTitle(pathname);
-
   const connected = useWsStore((s) => s.connected);
   const reconnecting = useWsStore((s) => s.reconnecting);
   const wsStatus: WsStatus = connected
@@ -61,126 +29,144 @@ export function TopNav({ onMenuClick, onCommandOpen }: TopNavProps) {
       : 'disconnected';
   const wsMeta = WS_STATUS_META[wsStatus];
 
-  const { user, logout } = useAuth();
-
-  const initials = user?.name
-    ? user.name
-        .split(' ')
-        .map((n) => n[0])
-        .join('')
-        .toUpperCase()
-        .slice(0, 2)
-    : '?';
+  const { theme, setTheme } = useTheme();
+  const isLight = theme === 'light';
 
   return (
     <header
-      className={cn(
-        'sticky top-0 z-20 flex h-12 shrink-0 items-center justify-between gap-4 px-4',
-        'bg-bg-base/80 backdrop-blur-md',
-        'hairline-b',
-      )}
+      className="sticky top-0 z-20 flex shrink-0 items-center gap-3"
+      style={{
+        padding: '20px 0 8px',
+        background: 'var(--mm-bg)',
+      }}
     >
-      {/* Left: menu (mobile) + page title as label-caps */}
-      <div className="flex items-center gap-4">
-        <button
-          type="button"
-          onClick={onMenuClick}
-          className="flex size-7 items-center justify-center rounded-sm text-text-muted transition-colors duration-fast hover:bg-bg-hover hover:text-text-primary lg:hidden"
-          aria-label="Open navigation"
+      <button
+        type="button"
+        onClick={onMenuClick}
+        className="flex size-9 shrink-0 items-center justify-center rounded-md transition-colors duration-fast lg:hidden"
+        style={{
+          color: 'var(--mm-ink-2)',
+          background: 'var(--mm-surface)',
+          border: '1px solid var(--mm-hair)',
+        }}
+        aria-label="Open navigation"
+      >
+        <Menu size={16} strokeWidth={1.75} />
+      </button>
+
+      {/* Search trigger */}
+      <button
+        type="button"
+        onClick={onCommandOpen}
+        className="flex flex-1 items-center gap-2.5 text-left transition-colors duration-fast"
+        style={{
+          padding: '11px 16px',
+          borderRadius: 14,
+          background: 'var(--mm-surface)',
+          border: '1px solid var(--mm-hair)',
+          color: 'var(--mm-ink-2)',
+          fontSize: 14,
+          minWidth: 0,
+        }}
+        aria-label="Open command palette"
+      >
+        <Search size={16} strokeWidth={1.6} />
+        <span className="truncate">Search stocks, crypto, strategies…</span>
+        <span
+          className="mm-mono"
+          style={{
+            marginLeft: 'auto',
+            fontSize: 11,
+            color: 'var(--mm-ink-3)',
+            paddingLeft: 12,
+          }}
         >
-          <Menu size={16} strokeWidth={1.75} />
-        </button>
-        <h1 className="label-caps !text-[11px] !text-text-primary">{pageTitle}</h1>
+          ⌘K
+        </span>
+      </button>
+
+      {/* WS status pill */}
+      <div
+        className="mm-pill hidden sm:inline-flex"
+        style={{ padding: '9px 14px', fontSize: 12 }}
+        aria-live="polite"
+        title={`WebSocket: ${wsMeta.label}`}
+      >
+        <span
+          aria-hidden="true"
+          className={cn('inline-block h-[7px] w-[7px] rounded-full', wsMeta.pulse && 'pulse-dot')}
+          style={{ background: wsMeta.color }}
+        />
+        <span style={{ color: 'var(--mm-ink-1)' }}>{wsMeta.label}</span>
       </div>
 
-      {/* Right: WS + ⌘K + account + theme + user */}
-      <div className="flex items-center gap-2">
-        {/* WS status — dot + caps label */}
-        <div className="hidden items-center gap-1.5 pr-2 sm:flex" aria-live="polite">
-          <span
-            aria-hidden="true"
-            className={cn(
-              'inline-block h-[6px] w-[6px] rounded-full',
-              wsMeta.dot,
-              wsMeta.pulse && 'pulse-dot',
-            )}
+      <div className="hidden sm:block">
+        <AccountSwitcher />
+      </div>
+
+      {/* Theme toggle — render both icons/labels so SSR markup is stable; CSS
+          swaps visibility on the hydrated theme. */}
+      <button
+        type="button"
+        onClick={() => setTheme(isLight ? 'dark' : 'light')}
+        className="mm-pill"
+        style={{ padding: '9px 14px', fontSize: 13 }}
+        aria-label={isLight ? 'Switch to dark theme' : 'Switch to light theme'}
+      >
+        <span
+          style={{
+            width: 14,
+            height: 14,
+            display: 'inline-grid',
+            placeItems: 'center',
+            position: 'relative',
+          }}
+          suppressHydrationWarning
+        >
+          <Sun
+            size={14}
+            strokeWidth={1.7}
+            style={{
+              position: 'absolute',
+              opacity: isLight ? 0 : 1,
+              transition: 'opacity 140ms',
+            }}
           />
-          <span className="label-caps !text-[10px] text-text-muted">{wsMeta.label}</span>
-        </div>
+          <Moon
+            size={14}
+            strokeWidth={1.7}
+            style={{
+              position: 'absolute',
+              opacity: isLight ? 1 : 0,
+              transition: 'opacity 140ms',
+            }}
+          />
+        </span>
+        <span suppressHydrationWarning>{isLight ? 'Dark' : 'Light'}</span>
+      </button>
 
-        {/* Command palette trigger — discoverable, not just a hidden shortcut */}
-        <button
-          type="button"
-          onClick={onCommandOpen}
-          aria-label="Open command palette"
-          className={cn(
-            'hidden items-center gap-2 rounded-sm border border-bd-subtle px-2 py-1 sm:inline-flex',
-            'text-text-muted transition-colors duration-fast',
-            'hover:border-bd hover:bg-bg-elevated hover:text-text-secondary',
-            'focus:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-          )}
-        >
-          <Search size={12} strokeWidth={1.75} />
-          <span className="font-mono text-[11px]">Search</span>
-          <kbd className="rounded-sm border border-bd-subtle bg-bg-elevated px-1 py-px font-mono text-[9px] leading-none text-text-muted">
-            ⌘K
-          </kbd>
-        </button>
-
-        <div className="hidden sm:block">
-          <AccountSwitcher />
-        </div>
-
-        <ThemeToggle />
-
-        {/* User dropdown — square avatar, no gradient */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button
-              type="button"
-              className={cn(
-                'flex items-center gap-1.5 rounded-sm px-1 py-1 transition-colors duration-fast',
-                'text-text-secondary hover:bg-bg-hover hover:text-text-primary',
-                'focus:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-              )}
-              aria-label="User menu"
-            >
-              <div
-                aria-hidden="true"
-                className="flex size-6 items-center justify-center rounded-sm bg-bg-elevated font-mono text-[10px] font-semibold text-text-primary"
-              >
-                {initials}
-              </div>
-              <ChevronDown size={12} strokeWidth={1.75} className="opacity-60" />
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-48">
-            <div className="px-2 py-1.5">
-              <p className="truncate text-[12px] font-medium text-text-primary">
-                {user?.name ?? 'Trader'}
-              </p>
-              <p className="truncate font-mono text-[10px] text-text-muted">{user?.email ?? ''}</p>
-            </div>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem className="cursor-pointer gap-2 text-[12px]">
-              <User size={13} strokeWidth={1.75} />
-              Profile
-            </DropdownMenuItem>
-            <DropdownMenuItem className="cursor-pointer gap-2 text-[12px]">
-              <Settings size={13} strokeWidth={1.75} />
-              Settings
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              className="cursor-pointer gap-2 text-[12px] text-loss focus:text-loss"
-              onClick={logout}
-            >
-              <LogOut size={13} strokeWidth={1.75} />
-              Sign out
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
+      {/* Alerts */}
+      <button
+        type="button"
+        className="mm-pill"
+        style={{ padding: '9px 14px', fontSize: 13, position: 'relative' }}
+        aria-label="Alerts"
+      >
+        <Bell size={14} strokeWidth={1.7} />
+        <span>Alerts</span>
+        <span
+          aria-hidden="true"
+          style={{
+            position: 'absolute',
+            top: 7,
+            right: 10,
+            width: 7,
+            height: 7,
+            borderRadius: 999,
+            background: 'var(--mm-dn)',
+          }}
+        />
+      </button>
     </header>
   );
 }

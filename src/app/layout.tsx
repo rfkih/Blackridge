@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Inter, JetBrains_Mono } from 'next/font/google';
+import { Inter, JetBrains_Mono, Fraunces } from 'next/font/google';
 import { Providers } from './providers';
 import { ThemeScript } from '@/components/theme/ThemeScript';
 import { ThemeProvider } from '@/components/theme/ThemeProvider';
@@ -19,6 +19,13 @@ const jetbrainsMono = JetBrains_Mono({
   weight: ['400', '500', '600', '700'],
 });
 
+const fraunces = Fraunces({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-fraunces',
+  weight: ['400', '500', '600'],
+});
+
 export const metadata: Metadata = {
   title: {
     default: 'Meridian Edge',
@@ -36,7 +43,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${jetbrainsMono.variable}`}
+      className={`${inter.variable} ${jetbrainsMono.variable} ${fraunces.variable}`}
       suppressHydrationWarning
     >
       <head>

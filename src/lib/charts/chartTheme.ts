@@ -1,33 +1,35 @@
 // Shared TradingView chart theme constants.
-// All colors reference CSS variable values (not the vars themselves, since TV is canvas-based).
+// TV/Recharts need raw hex values (canvas-based, can't resolve CSS vars at paint
+// time). Keep these in lockstep with the MONO-MINT tokens in globals.css — if
+// you edit `--color-profit` or `--bg-surface`, mirror the change here.
 
 export const TV = {
-  BG: '#111318',
-  SURFACE: '#1A1D24',
-  TEXT: '#8892A4',
-  TEXT_MUTED: '#4A5160',
-  GRID: '#1E2230',
-  BORDER: '#2A2F3A',
-  CROSSHAIR: '#3D4455',
-  LABEL_BG: '#22262F',
-  PROFIT: '#00C896',
-  LOSS: '#FF4D6A',
-  INFO: '#4E9EFF',
-  WARNING: '#F5A623',
-  NEUTRAL: '#8892A4',
+  BG: '#0F1111',
+  SURFACE: '#191E20',
+  TEXT: '#C5C8C7',
+  TEXT_MUTED: '#898D8C',
+  GRID: '#222729',
+  BORDER: '#2C3134',
+  CROSSHAIR: '#898D8C',
+  LABEL_BG: '#222729',
+  PROFIT: '#34E8B5',
+  LOSS: '#FF7A7A',
+  INFO: '#5A9EFF',
+  WARNING: '#F3C95E',
+  NEUTRAL: '#898D8C',
 } as const;
 
 export const INDICATOR_COLORS = {
-  ema20: '#4E9EFF',
-  ema50: '#F5A623',
+  ema20: '#5A9EFF',
+  ema50: '#F3C95E',
   ema200: '#A855F7',
-  bb: '#8892A4',
-  kc: '#14B8A6',
+  bb: '#898D8C',
+  kc: '#1FC896',
   rsi: '#EC4899',
-  macdLine: '#4E9EFF',
-  macdSignal: '#F5A623',
-  macdUp: 'rgba(0,200,150,0.7)',
-  macdDown: 'rgba(255,77,106,0.7)',
+  macdLine: '#5A9EFF',
+  macdSignal: '#F3C95E',
+  macdUp: 'rgba(52, 232, 181, 0.7)',
+  macdDown: 'rgba(255, 122, 122, 0.7)',
 } as const;
 
 export const REFETCH_INTERVALS: Record<string, number> = {

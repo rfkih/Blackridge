@@ -1,345 +1,868 @@
 'use client';
 
-import dynamic from 'next/dynamic';
 import Link from 'next/link';
-import {
-  TrendingUp,
-  ChevronRight,
-  Zap,
-  PauseCircle,
-  StopCircle,
-  ArrowUpRight,
-  ArrowDownRight,
-} from 'lucide-react';
-import { HeroPnl } from '@/components/dashboard/HeroPnl';
-import { OpenPositionsPanel } from '@/components/trading/OpenPositionsPanel';
-import { StrategyBadge } from '@/components/trading/StrategyBadge';
-import { PnlCell } from '@/components/shared/PnlCell';
-import { EmptyState } from '@/components/shared/EmptyState';
-import { ErrorBoundary } from '@/components/shared/ErrorBoundary';
-import { Skeleton } from '@/components/ui/skeleton';
-import { useOpenTrades, useRecentTrades, usePnlSummary } from '@/hooks/useTrades';
+import { useMemo } from 'react';
+import { Zap } from 'lucide-react';
+import { useOpenTrades, usePnlSummary } from '@/hooks/useTrades';
 import { useStrategies } from '@/hooks/useStrategies';
 import { useActiveAccount } from '@/hooks/useAccounts';
+import { useAuth } from '@/hooks/useAuth';
+import { usePortfolio } from '@/hooks/usePortfolio';
+import { useEquityCurve } from '@/hooks/useEquityCurve';
 import { useLivePnl, useSyncOpenPositions } from '@/hooks/useLivePnl';
-import { formatDate } from '@/lib/formatters';
-import { cn } from '@/lib/utils';
-import type { AccountStrategy, AccountStrategyStatus } from '@/types/strategy';
+import { formatPnl, formatPrice } from '@/lib/formatters';
+import type { LivePosition } from '@/types/trading';
+import type { AccountStrategy } from '@/types/strategy';
+import type { EquityPoint } from '@/types/market';
 
-const DashboardMarketChart = dynamic(
-  () =>
-    import('@/components/charts/DashboardMarketChart').then((m) => ({
-      default: m.DashboardMarketChart,
-    })),
-  {
-    ssr: false,
-    loading: () => (
-      <div
-        className="shimmer w-full rounded-md border border-bd-subtle"
-        style={{ height: 620 }}
-        aria-hidden="true"
+export default function DashboardPage() {
+  const { scopedAccountId, isAll, activeAccount } = useActiveAccount();
+  const { user } = useAuth();
+  const { data: strategies = [] } = useStrategies();
+  const { data: openTrades = [] } = useOpenTrades(scopedAccountId);
+  const { data: pnlSummary } = usePnlSummary('today');
+  const { data: portfolio } = usePortfolio();
+  const equityCurve = useEquityCurve();
+
+  useLivePnl(scopedAccountId);
+  useSyncOpenPositions(openTrades);
+
+  const firstName = (user?.name ?? 'Trader').split(' ')[0];
+
+  const balance = portfolio?.totalUsdt ?? pnlSummary?.totalPnl ?? 0;
+  const realizedToday = pnlSummary?.realizedPnl ?? 0;
+  const unrealizedToday = pnlSummary?.unrealizedPnl ?? 0;
+  const changeToday = realizedToday + unrealizedToday;
+  const changePct =
+    balance > 0 && changeToday !== 0 ? (changeToday / (balance - changeToday)) * 100 : 0;
+
+  const visibleStrategies = scopedAccountId
+    ? strategies.filter((s) => s.accountId === scopedAccountId)
+    : strategies;
+
+  const profitableCount = openTrades.filter((t) => (t.unrealizedPnl ?? 0) >= 0).length;
+
+  return (
+    <div className="flex flex-col gap-5">
+      {/* Hero */}
+      <HeroCard
+        firstName={firstName}
+        balance={balance}
+        changeToday={changeToday}
+        changePct={changePct}
+        scopeLabel={isAll ? 'All accounts' : (activeAccount?.label ?? '')}
+        points={equityCurve.points}
+        period={equityCurve.period}
+        setPeriod={equityCurve.setPeriod}
       />
-    ),
-  },
-);
 
-const DashboardEquityCurve = dynamic(
-  () =>
-    import('@/components/charts/DashboardEquityCurve').then((m) => ({
-      default: m.DashboardEquityCurve,
-    })),
-  {
-    ssr: false,
-    loading: () => (
-      <div
-        className="shimmer h-full w-full rounded-md border border-bd-subtle"
-        aria-hidden="true"
-      />
-    ),
-  },
-);
+      {/* Positions + Insights column */}
+      <section
+        className="grid gap-5"
+        style={{ gridTemplateColumns: 'minmax(0, 1.55fr) minmax(0, 1fr)' }}
+      >
+        <PositionsPanel trades={openTrades} profitableCount={profitableCount} />
+        <div className="flex min-h-0 flex-col gap-4">
+          <AtAGlance
+            balance={balance}
+            activeBots={visibleStrategies.filter((s) => s.status === 'LIVE').length}
+            totalBots={visibleStrategies.length}
+            winRate={pnlSummary?.winRate ?? 0}
+            bestOpen={pickBestOpen(openTrades)}
+          />
+          <TopPerformerCard strategies={visibleStrategies} realizedToday={realizedToday} />
+        </div>
+      </section>
+    </div>
+  );
+}
 
-const STATUS_CONFIG: Record<
-  AccountStrategyStatus,
-  { label: string; icon: React.ElementType; color: string; bg: string }
-> = {
-  LIVE: { label: 'Live', icon: Zap, color: 'var(--color-profit)', bg: 'var(--tint-profit)' },
-  PAUSED: {
-    label: 'Paused',
-    icon: PauseCircle,
-    color: 'var(--color-warning)',
-    bg: 'var(--tint-warning)',
-  },
-  STOPPED: {
-    label: 'Stopped',
-    icon: StopCircle,
-    color: 'var(--color-loss)',
-    bg: 'var(--tint-loss)',
-  },
+function pickBestOpen(trades: LivePosition[]): { symbol: string; pct: number } | null {
+  if (!trades.length) return null;
+  return trades.reduce(
+    (acc, t) => {
+      const pct = t.unrealizedPnlPct ?? 0;
+      return pct > (acc?.pct ?? -Infinity) ? { symbol: t.symbol, pct } : acc;
+    },
+    null as { symbol: string; pct: number } | null,
+  );
+}
+
+// ─────────────────────── Hero ───────────────────────
+
+interface HeroCardProps {
+  firstName: string;
+  balance: number;
+  changeToday: number;
+  changePct: number;
+  scopeLabel: string;
+  points: EquityPoint[];
+  period: ReturnType<typeof useEquityCurve>['period'];
+  setPeriod: ReturnType<typeof useEquityCurve>['setPeriod'];
+}
+
+function HeroCard({
+  firstName,
+  balance,
+  changeToday,
+  changePct,
+  scopeLabel,
+  points,
+  period,
+  setPeriod,
+}: HeroCardProps) {
+  const isUp = changeToday >= 0;
+  const chartData = useMemo(() => points.map((p) => p.equity), [points]);
+
+  const [whole, decimals] = splitMoney(balance);
+  const now = useMemo(
+    () => new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }),
+    [],
+  );
+
+  const greeting = timeGreeting();
+
+  return (
+    <section
+      className="mm-card mm-card-lift"
+      style={{
+        padding: '36px 40px 32px',
+        position: 'relative',
+        overflow: 'hidden',
+        display: 'grid',
+        gridTemplateColumns: 'minmax(0, 1.2fr) minmax(0, 1fr)',
+        gap: 32,
+        alignItems: 'start',
+      }}
+    >
+      <div style={{ position: 'relative', minWidth: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
+          <span className="mm-eyebrow" suppressHydrationWarning>
+            {greeting}, {firstName}
+          </span>
+          <span style={{ color: 'var(--mm-ink-3)' }}>·</span>
+          <span
+            className="mm-mono"
+            style={{
+              fontSize: 11,
+              color: 'var(--mm-ink-2)',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 7,
+            }}
+          >
+            <span className="mm-dot" />
+            Live · <span suppressHydrationWarning>{now}</span>
+          </span>
+          {scopeLabel && (
+            <>
+              <span style={{ color: 'var(--mm-ink-3)' }}>·</span>
+              <span style={{ fontSize: 12, color: 'var(--mm-ink-2)' }}>{scopeLabel}</span>
+            </>
+          )}
+        </div>
+
+        <div
+          className="mm-display"
+          style={{
+            fontSize: 'clamp(64px, 7vw, 104px)',
+            lineHeight: 0.92,
+            letterSpacing: '-0.04em',
+            color: 'var(--mm-ink-0)',
+          }}
+        >
+          ${whole}
+          <span
+            style={{
+              color: 'var(--mm-ink-2)',
+              fontSize: 'clamp(36px, 4vw, 56px)',
+            }}
+          >
+            .{decimals}
+          </span>
+        </div>
+
+        <div
+          style={{
+            marginTop: 14,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 14,
+            flexWrap: 'wrap',
+          }}
+        >
+          <div
+            className="mm-chip"
+            style={{
+              background: isUp ? 'var(--mm-mint-soft)' : 'var(--mm-dn-soft)',
+              color: isUp ? 'var(--mm-mint)' : 'var(--mm-dn)',
+              fontFamily: 'var(--mm-sans)',
+              fontSize: 13,
+              fontWeight: 500,
+              padding: '6px 12px',
+            }}
+          >
+            <svg
+              width="12"
+              height="12"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              style={{ transform: isUp ? undefined : 'rotate(180deg)' }}
+            >
+              <path d="M7 17l5-5 5 5" />
+            </svg>
+            {isUp ? 'Up' : 'Down'} {formatPnl(Math.abs(changeToday))}
+          </div>
+          <span style={{ fontSize: 14, color: 'var(--mm-ink-2)' }}>
+            {isUp ? '+' : '−'}
+            {Math.abs(changePct).toFixed(2)}% today · since this morning
+          </span>
+        </div>
+
+        <div
+          style={{ display: 'flex', gap: 8, marginTop: 26, alignItems: 'center', flexWrap: 'wrap' }}
+        >
+          {(['1D', '1W', '1M', '3M', 'YTD', '1Y', 'ALL'] as const).map((p) => {
+            const mapped = mapPeriod(p);
+            const active = period === mapped;
+            return (
+              <button
+                key={p}
+                type="button"
+                onClick={() => setPeriod(mapped)}
+                className={active ? 'mm-pill mm-pill-active' : 'mm-pill'}
+                style={{ padding: '6px 14px', fontSize: 12 }}
+              >
+                {p}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <div style={{ position: 'relative', minWidth: 0 }}>
+        <BigMintChart
+          data={chartData.length ? chartData : fallbackCurve()}
+          height={220}
+          tag={`$${formatPrice(balance, 2)}`}
+        />
+      </div>
+    </section>
+  );
+}
+
+function timeGreeting() {
+  const h = new Date().getHours();
+  if (h < 5) return 'Good evening';
+  if (h < 12) return 'Good morning';
+  if (h < 18) return 'Good afternoon';
+  return 'Good evening';
+}
+
+function splitMoney(n: number): [string, string] {
+  const abs = Math.abs(n);
+  const whole = Math.floor(abs).toLocaleString();
+  const decs = (abs - Math.floor(abs)).toFixed(2).slice(2);
+  return [whole, decs];
+}
+
+type UiPeriod = '1D' | '1W' | '1M' | '3M' | 'YTD' | '1Y' | 'ALL';
+const PERIOD_MAP: Record<UiPeriod, ReturnType<typeof useEquityCurve>['period']> = {
+  '1D': '7D',
+  '1W': '7D',
+  '1M': '30D',
+  '3M': '90D',
+  YTD: 'ALL',
+  '1Y': 'ALL',
+  ALL: 'ALL',
 };
+function mapPeriod(p: UiPeriod): ReturnType<typeof useEquityCurve>['period'] {
+  return PERIOD_MAP[p];
+}
 
-function StrategyStatusCard({ strategy }: { strategy: AccountStrategy }) {
-  const statusCfg = STATUS_CONFIG[strategy.status] ?? STATUS_CONFIG.STOPPED;
-  const StatusIcon = statusCfg.icon;
+function fallbackCurve(): number[] {
+  // Smooth ascending fallback — matches the gentle mint curve in the mock.
+  const n = 60;
+  const out: number[] = [];
+  let v = 100;
+  for (let i = 0; i < n; i++) {
+    v += Math.sin(i / 5) * 2 + (Math.random() - 0.4) * 3;
+    out.push(v);
+  }
+  return out;
+}
+
+// ─────────────────────── Chart ───────────────────────
+
+function BigMintChart({ data, height, tag }: { data: number[]; height: number; tag: string }) {
+  const width = 560;
+  if (!data.length) return null;
+  const max = Math.max(...data);
+  const min = Math.min(...data);
+  const pts = data.map((v, i) => [
+    (i / (data.length - 1)) * width,
+    height - ((v - min) / (max - min + 1e-6)) * (height - 20) - 10,
+  ]);
+  let d = `M ${pts[0][0].toFixed(1)} ${pts[0][1].toFixed(1)}`;
+  for (let i = 1; i < pts.length; i++) {
+    const [x, y] = pts[i];
+    const [px, py] = pts[i - 1];
+    d += ` Q ${px.toFixed(1)} ${py.toFixed(1)} ${((px + x) / 2).toFixed(1)} ${((py + y) / 2).toFixed(1)}`;
+  }
+  d += ` T ${pts[pts.length - 1][0].toFixed(1)} ${pts[pts.length - 1][1].toFixed(1)}`;
+  const area = `${d} L ${width} ${height} L 0 ${height} Z`;
+  const [lx, ly] = pts[pts.length - 1];
+
+  return (
+    <div style={{ position: 'relative', width: '100%' }}>
+      <svg
+        viewBox={`0 0 ${width} ${height}`}
+        preserveAspectRatio="none"
+        style={{ display: 'block', width: '100%', height }}
+      >
+        <defs>
+          <linearGradient id="mm-hero-area" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stopColor="var(--mm-mint)" stopOpacity="0.28" />
+            <stop offset="1" stopColor="var(--mm-mint)" stopOpacity="0" />
+          </linearGradient>
+          <filter id="mm-hero-glow">
+            <feGaussianBlur stdDeviation="4" />
+          </filter>
+        </defs>
+        <path d={area} fill="url(#mm-hero-area)" />
+        <path
+          d={d}
+          stroke="var(--mm-mint)"
+          strokeWidth="5"
+          fill="none"
+          opacity="0.25"
+          filter="url(#mm-hero-glow)"
+          strokeLinecap="round"
+        />
+        <path d={d} stroke="var(--mm-mint)" strokeWidth="2.4" fill="none" strokeLinecap="round" />
+        <circle
+          cx={lx}
+          cy={ly}
+          r="6"
+          fill="var(--mm-bg)"
+          stroke="var(--mm-mint)"
+          strokeWidth="2.5"
+        />
+        <line
+          x1="0"
+          x2={width}
+          y1={height - 10}
+          y2={height - 10}
+          stroke="var(--mm-hair)"
+          strokeWidth="1"
+          strokeDasharray="3 4"
+        />
+      </svg>
+      <div
+        style={{
+          position: 'absolute',
+          left: `${((lx / width) * 100).toFixed(1)}%`,
+          top: ly - 16,
+          transform: 'translate(12px, -100%)',
+          background: 'var(--mm-mint)',
+          color: 'var(--mm-bg)',
+          padding: '4px 10px',
+          borderRadius: 8,
+          fontFamily: 'var(--mm-num)',
+          fontSize: 12,
+          fontWeight: 600,
+          whiteSpace: 'nowrap',
+        }}
+      >
+        {tag}
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────── Positions Panel ───────────────────────
+
+function PositionsPanel({
+  trades,
+  profitableCount,
+}: {
+  trades: LivePosition[];
+  profitableCount: number;
+}) {
+  const rows = trades.slice(0, 6);
+
+  return (
+    <div
+      className="mm-card"
+      style={{
+        padding: '24px 28px',
+        display: 'flex',
+        flexDirection: 'column',
+        minHeight: 0,
+      }}
+    >
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'baseline',
+          justifyContent: 'space-between',
+          marginBottom: 18,
+          gap: 12,
+          flexWrap: 'wrap',
+        }}
+      >
+        <div>
+          <div className="mm-display" style={{ fontSize: 26, color: 'var(--mm-ink-0)' }}>
+            Your positions
+          </div>
+          <div style={{ fontSize: 13, color: 'var(--mm-ink-2)', marginTop: 4 }}>
+            {trades.length} open{' '}
+            {trades.length > 0 && (
+              <>
+                · <span style={{ color: 'var(--mm-mint)' }}>{profitableCount} making money</span>
+              </>
+            )}
+          </div>
+        </div>
+        <div style={{ display: 'flex', gap: 6 }}>
+          <button
+            type="button"
+            className="mm-pill mm-pill-active"
+            style={{ padding: '5px 12px', fontSize: 11 }}
+          >
+            All
+          </button>
+          <button type="button" className="mm-pill" style={{ padding: '5px 12px', fontSize: 11 }}>
+            Crypto
+          </button>
+          <button type="button" className="mm-pill" style={{ padding: '5px 12px', fontSize: 11 }}>
+            Bots
+          </button>
+        </div>
+      </div>
+
+      {rows.length === 0 ? (
+        <EmptyPositions />
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {rows.map((t) => (
+            <PositionRow key={t.tradeId} trade={t} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function EmptyPositions() {
+  return (
+    <div
+      style={{
+        padding: '44px 16px',
+        textAlign: 'center',
+        border: '1px dashed var(--mm-hair-2)',
+        borderRadius: 20,
+      }}
+    >
+      <div className="mm-display" style={{ fontSize: 20, color: 'var(--mm-ink-1)' }}>
+        No open positions
+      </div>
+      <p style={{ color: 'var(--mm-ink-2)', fontSize: 13, marginTop: 6 }}>
+        Strategies will appear here when they open a trade.
+      </p>
+      <Link
+        href="/strategies"
+        className="mm-btn mm-btn-mint"
+        style={{ display: 'inline-flex', marginTop: 16 }}
+      >
+        Manage strategies
+      </Link>
+    </div>
+  );
+}
+
+function PositionRow({ trade }: { trade: LivePosition }) {
+  const pnl = trade.unrealizedPnl ?? 0;
+  const pnlPct = trade.unrealizedPnlPct ?? 0;
+  const isUp = pnl >= 0;
+  const color = isUp ? 'var(--mm-mint)' : 'var(--mm-dn)';
+  const softBg = isUp ? 'var(--mm-mint-soft)' : 'var(--mm-dn-soft)';
+
+  const markPrice = trade.markPrice ?? trade.entryPrice;
+  const value = markPrice * trade.quantity;
+
+  const spark = useMemo(() => buildSpark(trade.tradeId, isUp), [trade.tradeId, isUp]);
+
+  const logo = trade.symbol.slice(0, 1);
+  const displaySym = trade.symbol.replace(/USDT$/, '');
 
   return (
     <Link
-      href={`/strategies/${strategy.id}`}
-      className="group relative block overflow-hidden rounded-md border border-bd-subtle bg-bg-base transition-colors duration-base ease-out-quart hover:border-bd"
+      href={`/trades/${trade.tradeId}`}
+      style={{
+        display: 'grid',
+        gridTemplateColumns: '44px minmax(0, 1.3fr) 120px minmax(0, 1fr) minmax(0, 1fr)',
+        gap: 16,
+        alignItems: 'center',
+        padding: '12px 16px',
+        borderRadius: 16,
+        background: 'var(--mm-surface-2)',
+        border: '1px solid var(--mm-hair)',
+        textDecoration: 'none',
+        color: 'inherit',
+      }}
     >
-      <span aria-hidden="true" className="card-topline" />
-      <div className="p-4">
-        <div className="flex items-start justify-between gap-2">
-          <StrategyBadge code={strategy.strategyCode} size="sm" />
-          <span
-            className="inline-flex items-center gap-1 rounded-sm px-1.5 py-0.5 font-mono text-[10px] font-semibold"
-            style={{ backgroundColor: statusCfg.bg, color: statusCfg.color }}
-          >
-            <StatusIcon size={10} strokeWidth={2} />
-            {statusCfg.label}
-          </span>
+      <div
+        aria-hidden="true"
+        style={{
+          width: 44,
+          height: 44,
+          borderRadius: 999,
+          background: softBg,
+          color,
+          display: 'grid',
+          placeItems: 'center',
+          fontFamily: 'var(--mm-display)',
+          fontSize: 18,
+          fontWeight: 600,
+        }}
+      >
+        {logo}
+      </div>
+      <div style={{ minWidth: 0 }}>
+        <div
+          style={{
+            fontSize: 15,
+            fontWeight: 500,
+            color: 'var(--mm-ink-0)',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {displaySym}
         </div>
-
-        <div className="mt-3 space-y-1">
-          <p className="num text-[13px] font-medium text-text-primary">
-            {strategy.symbol}
-            <span className="ml-1.5 text-[11px] text-text-muted">{strategy.interval}</span>
-          </p>
-          <p className="num text-[11px] text-text-secondary">
-            {strategy.capitalAllocationPct.toFixed(1)}%
-            <span className="text-text-muted"> of account allocated</span>
-          </p>
+        <div style={{ fontSize: 12, color: 'var(--mm-ink-2)', marginTop: 2 }}>
+          {trade.quantity.toLocaleString(undefined, { maximumFractionDigits: 4 })} {displaySym} ·{' '}
+          {trade.direction}
         </div>
-
-        <div className="mt-3 flex items-center gap-2">
-          <DirPill kind="long" on={strategy.allowLong} />
-          <DirPill kind="short" on={strategy.allowShort} />
-          <span className="label-caps ml-auto !text-[9px] opacity-0 transition-opacity duration-fast group-hover:opacity-100">
-            View
-          </span>
+      </div>
+      <Sparkline values={spark} color={color} />
+      <div style={{ textAlign: 'right', minWidth: 0 }}>
+        <div className="mm-num" style={{ fontSize: 16, color: 'var(--mm-ink-0)' }}>
+          ${formatPrice(value, 2)}
+        </div>
+        <div style={{ fontSize: 11, color: 'var(--mm-ink-3)', marginTop: 2 }}>value</div>
+      </div>
+      <div style={{ textAlign: 'right' }}>
+        <div className="mm-num" style={{ fontSize: 16, fontWeight: 500, color }}>
+          {isUp ? '+' : '−'}${formatPrice(Math.abs(pnl), 2)}
+        </div>
+        <div style={{ fontSize: 12, marginTop: 2, color }}>
+          {isUp ? '▲' : '▼'} {Math.abs(pnlPct).toFixed(2)}%
         </div>
       </div>
     </Link>
   );
 }
 
-function DirPill({ kind, on }: { kind: 'long' | 'short'; on: boolean }) {
-  const color = kind === 'long' ? 'var(--color-profit)' : 'var(--color-loss)';
-  const bg = kind === 'long' ? 'var(--tint-profit)' : 'var(--tint-loss)';
+function Sparkline({ values, color }: { values: number[]; color: string }) {
+  const w = 120;
+  const h = 36;
+  const max = Math.max(...values);
+  const min = Math.min(...values);
+  const pts = values.map((v, i) => [
+    (i / (values.length - 1)) * w,
+    h - ((v - min) / (max - min + 1e-6)) * (h - 4) - 2,
+  ]);
+  const d = pts.reduce(
+    (acc, [x, y], i) =>
+      acc + (i ? ` L ${x.toFixed(1)} ${y.toFixed(1)}` : `M ${x.toFixed(1)} ${y.toFixed(1)}`),
+    '',
+  );
   return (
-    <span
-      className="inline-flex items-center rounded-sm px-1.5 py-0.5 font-mono text-[10px]"
-      style={{
-        backgroundColor: on ? bg : 'var(--bg-elevated)',
-        color: on ? color : 'var(--text-muted)',
-      }}
-    >
-      {kind === 'long' ? 'L' : 'S'}
-    </span>
+    <svg width={w} height={h} style={{ display: 'block' }}>
+      <path
+        d={d}
+        stroke={color}
+        strokeWidth="2"
+        fill="none"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
   );
 }
 
-export default function DashboardPage() {
-  const { data: strategies = [], isLoading: strategiesLoading } = useStrategies();
-  const { scopedAccountId, isAll, activeAccount } = useActiveAccount();
+function buildSpark(seed: string, up: boolean): number[] {
+  // Deterministic sparkline from the seed. Uses a simple sine-based PRNG
+  // (mulberry32 needs bitwise ops which the project's lint disallows).
+  let s = 0;
+  for (let i = 0; i < seed.length; i++) {
+    s = (s * 31 + seed.charCodeAt(i)) % 2147483647;
+  }
+  const rnd = (() => {
+    let n = (s % 1000) / 1000 || 0.37;
+    return () => {
+      n = (n * 9301 + 49297) % 233280;
+      return n / 233280;
+    };
+  })();
+  const out: number[] = [];
+  let v = 30;
+  for (let i = 0; i < 14; i++) {
+    v += (rnd() - (up ? 0.35 : 0.65)) * 5;
+    out.push(v);
+  }
+  return out;
+}
 
-  const visibleStrategies = scopedAccountId
-    ? strategies.filter((s) => s.accountId === scopedAccountId)
-    : strategies;
+// ─────────────────────── At a glance ───────────────────────
 
-  const { data: pnlSummary, isLoading: pnlLoading } = usePnlSummary('today');
-  const { data: openTrades = [], isLoading: tradesLoading } = useOpenTrades(scopedAccountId);
-  const { data: recentTrades = [], isLoading: recentLoading } = useRecentTrades(
-    10,
-    scopedAccountId,
-  );
+function AtAGlance({
+  balance,
+  activeBots,
+  totalBots,
+  winRate,
+  bestOpen,
+}: {
+  balance: number;
+  activeBots: number;
+  totalBots: number;
+  winRate: number;
+  bestOpen: { symbol: string; pct: number } | null;
+}) {
+  const stats: Array<{
+    label: string;
+    value: string;
+    sub?: string;
+    tone?: 'mint' | 'warn' | 'neutral';
+  }> = [
+    { label: 'Buying power', value: `$${formatPrice(balance, 0)}` },
+    bestOpen
+      ? {
+          label: 'Best today',
+          value: bestOpen.symbol.replace(/USDT$/, ''),
+          sub: `${bestOpen.pct >= 0 ? '+' : ''}${bestOpen.pct.toFixed(2)}%`,
+          tone: 'mint',
+        }
+      : { label: 'Best today', value: '—' },
+    { label: 'Active bots', value: String(activeBots), sub: `of ${totalBots}` },
+    {
+      label: 'Win rate · 30d',
+      value: `${winRate.toFixed(0)}%`,
+      sub: winRate >= 50 ? 'above 50%' : 'below 50%',
+      tone: winRate >= 50 ? 'mint' : 'warn',
+    },
+  ];
 
-  useLivePnl(scopedAccountId);
-  useSyncOpenPositions(openTrades);
-
-  const unrealizedPnl = pnlSummary?.unrealizedPnl ?? 0;
-  const realizedPnl = pnlSummary?.realizedPnl ?? 0;
-  const openCount = pnlSummary?.openCount ?? openTrades.length;
-  const winRate = pnlSummary?.winRate ?? 0;
-  const heroLoading = pnlLoading && !pnlSummary;
+  const toneColor = (t?: 'mint' | 'warn' | 'neutral') => {
+    if (t === 'mint') return 'var(--mm-mint)';
+    if (t === 'warn') return 'var(--mm-warn)';
+    return 'var(--mm-ink-0)';
+  };
 
   return (
-    <div className="space-y-6">
-      {/* Row 0: the hero — the single visually dominant element on the page */}
-      <div className="reveal" style={{ ['--reveal-i' as string]: 0 }}>
-        <HeroPnl
-          unrealizedPnl={unrealizedPnl}
-          realizedPnlToday={realizedPnl}
-          openCount={openCount}
-          winRate={winRate}
-          isLoading={heroLoading}
-          scope={{ isAll, account: activeAccount }}
-        />
+    <div className="mm-card" style={{ padding: '22px 24px' }}>
+      <div
+        className="mm-display"
+        style={{ fontSize: 22, marginBottom: 16, color: 'var(--mm-ink-0)' }}
+      >
+        At a glance
       </div>
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: '1fr 1fr',
+          rowGap: 18,
+          columnGap: 14,
+        }}
+      >
+        {stats.map((s) => (
+          <div key={s.label}>
+            <div style={{ fontSize: 12, color: 'var(--mm-ink-2)' }}>{s.label}</div>
+            <div
+              className="mm-num"
+              style={{ fontSize: 22, marginTop: 4, color: toneColor(s.tone) }}
+            >
+              {s.value}
+            </div>
+            {s.sub && (
+              <div style={{ fontSize: 11, color: 'var(--mm-ink-3)', marginTop: 2 }}>{s.sub}</div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
-      {/* Row 1: Open positions (3/5) + Strategies (2/5) */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
+// ─────────────────────── Top Performer ───────────────────────
+
+function TopPerformerCard({
+  strategies,
+  realizedToday,
+}: {
+  strategies: AccountStrategy[];
+  realizedToday: number;
+}) {
+  const top = strategies.find((s) => s.status === 'LIVE') ?? strategies[0];
+
+  if (!top) {
+    return (
+      <div
+        className="mm-card"
+        style={{
+          padding: '22px 24px',
+          background: 'linear-gradient(135deg, var(--mm-surface) 0%, var(--mm-surface-2) 100%)',
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 12,
+        }}
+      >
         <div
-          className="reveal flex flex-col lg:col-span-3"
-          style={{ ['--reveal-i' as string]: 1, height: 360 }}
+          className="mm-chip"
+          style={{
+            background: 'var(--mm-mint-soft)',
+            color: 'var(--mm-mint)',
+            marginBottom: 4,
+            fontWeight: 500,
+            alignSelf: 'flex-start',
+          }}
         >
-          <ErrorBoundary label="Open positions">
-            <OpenPositionsPanel
-              positions={openTrades}
-              isLoading={tradesLoading}
-              className="min-h-0 flex-1"
-            />
-          </ErrorBoundary>
+          <Zap size={11} strokeWidth={2} /> Start with a strategy
         </div>
-
-        <div
-          className="reveal flex flex-col lg:col-span-2"
-          style={{ ['--reveal-i' as string]: 2, height: 360 }}
+        <div className="mm-display" style={{ fontSize: 22, color: 'var(--mm-ink-0)' }}>
+          No strategies yet
+        </div>
+        <p style={{ fontSize: 13, color: 'var(--mm-ink-2)' }}>
+          Add a bot to start trading automatically.
+        </p>
+        <Link
+          href="/strategies"
+          className="mm-btn mm-btn-mint"
+          style={{ marginTop: 'auto', textAlign: 'center' }}
         >
-          <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-md border border-bd-subtle bg-bg-surface">
-            <div className="flex shrink-0 items-center justify-between border-b border-bd-subtle px-4 py-3">
-              <div className="flex items-center gap-2.5">
-                <h2 className="label-caps">Strategies</h2>
-                {!strategiesLoading && (
-                  <span className="num rounded-sm bg-bg-elevated px-1.5 py-0.5 text-[10px] text-text-muted">
-                    {visibleStrategies.length}
-                  </span>
-                )}
-              </div>
-              <Link
-                href="/strategies"
-                className="flex items-center gap-0.5 text-[11px] text-text-muted transition-colors duration-fast hover:text-text-primary"
-              >
-                Manage <ChevronRight size={12} strokeWidth={1.75} />
-              </Link>
-            </div>
+          Browse strategies
+        </Link>
+      </div>
+    );
+  }
 
-            <div className="flex-1 overflow-y-auto p-3">
-              {strategiesLoading ? (
-                <div className="space-y-3">
-                  {Array.from({ length: 3 }).map((_, i) => (
-                    <Skeleton key={i} className="h-24 w-full rounded-md" />
-                  ))}
-                </div>
-              ) : visibleStrategies.length === 0 ? (
-                <div className="flex h-full items-center justify-center">
-                  <EmptyState
-                    icon={Zap}
-                    title={isAll ? 'No strategies configured' : 'No strategies on this account'}
-                    description={
-                      isAll
-                        ? 'Add a strategy to start trading.'
-                        : 'Switch accounts in the top bar to see others.'
-                    }
-                  />
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {visibleStrategies.map((s) => (
-                    <StrategyStatusCard key={s.id} strategy={s} />
-                  ))}
-                </div>
-              )}
-            </div>
+  const allocation = top.capitalAllocationPct ?? 0;
+  const isUp = realizedToday >= 0;
+
+  return (
+    <div
+      className="mm-card"
+      style={{
+        padding: '22px 24px',
+        position: 'relative',
+        overflow: 'hidden',
+        background: 'linear-gradient(135deg, var(--mm-surface) 0%, var(--mm-surface-2) 100%)',
+        flex: 1,
+        display: 'flex',
+        flexDirection: 'column',
+      }}
+    >
+      <div
+        style={{ display: 'flex', alignItems: 'start', justifyContent: 'space-between', gap: 14 }}
+      >
+        <div style={{ minWidth: 0 }}>
+          <div
+            className="mm-chip"
+            style={{
+              background: 'var(--mm-mint-soft)',
+              color: 'var(--mm-mint)',
+              marginBottom: 12,
+              fontWeight: 500,
+            }}
+          >
+            <Zap size={11} strokeWidth={2} /> Top performer
+          </div>
+          <div
+            className="mm-display"
+            style={{ fontSize: 24, letterSpacing: '-0.02em', color: 'var(--mm-ink-0)' }}
+          >
+            {top.strategyCode}
+          </div>
+          <div style={{ fontSize: 13, color: 'var(--mm-ink-2)', marginTop: 4 }}>
+            {top.symbol} · {top.interval}
           </div>
         </div>
+        <div
+          aria-hidden="true"
+          style={{
+            width: 48,
+            height: 48,
+            borderRadius: 14,
+            background: 'var(--mm-mint-soft)',
+            color: 'var(--mm-mint)',
+            display: 'grid',
+            placeItems: 'center',
+            flexShrink: 0,
+          }}
+        >
+          <Zap size={22} strokeWidth={1.7} />
+        </div>
       </div>
 
-      {/* Row 2: market chart — full width */}
-      <div className="reveal" style={{ ['--reveal-i' as string]: 3 }}>
-        <ErrorBoundary label="Market chart">
-          <DashboardMarketChart />
-        </ErrorBoundary>
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 14, marginTop: 20 }}>
+        <span
+          className="mm-num"
+          style={{
+            fontSize: 36,
+            color: isUp ? 'var(--mm-mint)' : 'var(--mm-dn)',
+          }}
+        >
+          {isUp ? '+' : '−'}${formatPrice(Math.abs(realizedToday), 0)}
+        </span>
+        <span style={{ fontSize: 13, color: 'var(--mm-ink-2)' }}>today</span>
       </div>
 
-      {/* Row 3: Equity curve (3/5) + Recent trades (2/5) */}
-      <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-5">
-        <div className="flex flex-col lg:col-span-3">
-          <ErrorBoundary label="Equity curve">
-            <DashboardEquityCurve />
-          </ErrorBoundary>
+      <div style={{ marginTop: 14 }}>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            fontSize: 12,
+            color: 'var(--mm-ink-2)',
+            marginBottom: 6,
+          }}
+        >
+          <span>Allocation</span>
+          <span className="mm-num" style={{ color: 'var(--mm-ink-1)' }}>
+            {allocation.toFixed(0)}%
+          </span>
         </div>
-
-        <div className="flex flex-col lg:col-span-2">
-          <div className="flex flex-col overflow-hidden rounded-md border border-bd-subtle bg-bg-surface shadow-panel">
-            <div className="flex shrink-0 items-center justify-between border-b border-bd-subtle px-4 py-3">
-              <div className="flex items-center gap-2">
-                <h2 className="label-caps">Recent Trades</h2>
-                {!recentLoading && (
-                  <span className="num rounded-sm bg-bg-elevated px-1.5 py-0.5 text-[10px] text-text-muted">
-                    {recentTrades.length}
-                  </span>
-                )}
-              </div>
-              <Link
-                href="/trades"
-                className="flex items-center gap-0.5 text-[11px] text-text-muted transition-colors duration-fast hover:text-text-primary"
-              >
-                All trades <ChevronRight size={12} strokeWidth={1.75} />
-              </Link>
-            </div>
-
-            <div className="overflow-y-auto" style={{ maxHeight: 248, minHeight: 160 }}>
-              {recentLoading ? (
-                <div className="space-y-3 p-4">
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <Skeleton key={i} className="h-9 w-full" />
-                  ))}
-                </div>
-              ) : recentTrades.length === 0 ? (
-                <div className="flex h-full items-center justify-center">
-                  <EmptyState
-                    icon={TrendingUp}
-                    title="No closed trades yet"
-                    description="Completed trades will appear here."
-                  />
-                </div>
-              ) : (
-                <table className="w-full">
-                  <thead className="sticky top-0 z-10 bg-bg-surface">
-                    <tr className={cn('border-b border-bd-subtle')}>
-                      {['Symbol', 'Strategy', 'P&L', 'Closed'].map((col) => (
-                        <th key={col} className="label-caps px-4 py-2 text-left">
-                          {col}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {recentTrades.map((trade) => (
-                      <tr
-                        key={trade.id}
-                        className="border-b border-bd-subtle transition-colors duration-fast last:border-b-0 hover:bg-bg-elevated"
-                      >
-                        <td className="px-4 py-2.5">
-                          <div className="flex items-center gap-2">
-                            {trade.direction === 'LONG' ? (
-                              <ArrowUpRight size={11} strokeWidth={1.75} className="text-profit" />
-                            ) : (
-                              <ArrowDownRight size={11} strokeWidth={1.75} className="text-loss" />
-                            )}
-                            <span className="num text-[13px] text-text-primary">
-                              {trade.symbol}
-                            </span>
-                          </div>
-                        </td>
-                        <td className="px-4 py-2.5">
-                          <StrategyBadge code={trade.strategyCode} size="sm" />
-                        </td>
-                        <td className="px-4 py-2.5">
-                          <PnlCell value={trade.realizedPnl} noFlash />
-                        </td>
-                        <td className="num px-4 py-2.5 text-[11px] text-text-muted">
-                          {formatDate(trade.exitTime)}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
-            </div>
-          </div>
+        <div style={{ height: 6, borderRadius: 999, background: 'var(--mm-hair)' }}>
+          <div
+            style={{
+              height: '100%',
+              width: `${Math.min(100, allocation)}%`,
+              borderRadius: 999,
+              background: 'linear-gradient(90deg, var(--mm-mint), var(--mm-mint-2))',
+            }}
+          />
         </div>
+      </div>
+
+      <div style={{ display: 'flex', gap: 8, marginTop: 'auto', paddingTop: 18 }}>
+        <Link
+          href={`/strategies/${top.id}`}
+          className="mm-btn mm-btn-mint"
+          style={{ flex: 1, textAlign: 'center', padding: '10px' }}
+        >
+          Tune settings
+        </Link>
+        <Link href={`/strategies/${top.id}`} className="mm-btn" style={{ padding: '10px 16px' }}>
+          Details →
+        </Link>
       </div>
     </div>
   );

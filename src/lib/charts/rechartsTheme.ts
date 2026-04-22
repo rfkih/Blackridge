@@ -5,18 +5,18 @@
  * here.
  */
 export const CHART_COLORS = {
-  profit: '#00C896',
-  profitBright: '#00E5B0',
-  loss: '#FF4D6A',
-  neutral: '#8892A4',
-  neutralDim: '#4A5160',
-  info: '#4E9EFF',
-  warning: '#F5A623',
-  grid: '#1E2230',
-  axis: '#2A2F3A',
-  surface: '#1A1D24',
-  elevated: '#22262F',
-  textPrimary: '#E8EBF0',
+  profit: '#34E8B5',
+  profitBright: '#5BF0C5',
+  loss: '#FF7A7A',
+  neutral: '#898D8C',
+  neutralDim: '#5A5E5D',
+  info: '#5A9EFF',
+  warning: '#F3C95E',
+  grid: '#222729',
+  axis: '#2C3134',
+  surface: '#191E20',
+  elevated: '#222729',
+  textPrimary: '#F1F3F2',
 } as const;
 
 export const AXIS_TICK = {
