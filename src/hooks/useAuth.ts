@@ -1,4 +1,6 @@
-// SLICE 1: useAuth hook — login / logout / register mutations + /me query.
+// useAuth hook — login / logout / register mutations + /me query.
+// Auth token lives in an HttpOnly cookie set by the backend on login/register.
+// /me is used on mount to rehydrate the user if the cookie is still valid.
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect } from 'react';
@@ -84,10 +86,14 @@ export function useAuth() {
   const setUser = useAuthStore((s) => s.setUser);
   const clearAuth = useAuthStore((s) => s.clearAuth);
 
+  // Re-fetch /me on mount when we have a locally-cached user but no token in
+  // memory — this is the post-refresh case where the HttpOnly cookie still
+  // auths but the in-memory token is gone. Also fires when token is present
+  // but user is absent (cold boot after login).
   const meQuery = useQuery({
     queryKey: ME_QUERY_KEY,
     queryFn: fetchMe,
-    enabled: Boolean(token) && !user,
+    enabled: (Boolean(token) && !user) || (!token && Boolean(user)),
     staleTime: 60_000,
     retry: 0,
   });
@@ -137,7 +143,16 @@ export function useAuth() {
     [registerMutation],
   );
 
-  const logout = useCallback(() => {
+  const logout = useCallback(async () => {
+    // Best-effort server-side cookie clear — clears the HttpOnly JWT on the
+    // API origin. We don't want a network failure to strand the user in a
+    // "looks logged in locally" state, so swallow errors and clear local
+    // state unconditionally (which also clears the signal cookie).
+    try {
+      await apiClient.post('/api/v1/users/logout');
+    } catch {
+      /* ignore */
+    }
     clearAuth();
     queryClient.removeQueries({ queryKey: ME_QUERY_KEY });
     queryClient.clear();

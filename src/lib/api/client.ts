@@ -11,9 +11,29 @@ export const apiClient: AxiosInstance = axios.create({
   baseURL: env.apiUrl,
   headers: { 'Content-Type': 'application/json' },
   timeout: 20_000,
+  // Send the HttpOnly auth cookie on every API call. The server authenticates
+  // from the cookie alone — the token no longer lives in JS-readable storage,
+  // so an XSS payload on our origin cannot exfiltrate it.
+  withCredentials: true,
 });
 
 apiClient.interceptors.request.use((config) => {
+  // Safety belt — if a request URL resolves outside our API origin, refuse to
+  // attach the cookie/bearer by dropping withCredentials for that call. The
+  // Axios default `withCredentials: true` already scopes cookies to the target
+  // origin (browser SOP), but this guards against a misconfigured caller that
+  // passes a full https://attacker.example URL through `apiClient`.
+  const rawUrl = config.url ?? '';
+  const isAbsolute = /^https?:/i.test(rawUrl);
+  if (isAbsolute && !rawUrl.startsWith(env.apiUrl)) {
+    config.withCredentials = false;
+    if (config.headers) delete config.headers.Authorization;
+    return config;
+  }
+
+  // Bearer fallback kept for dual-mode support during the cookie migration
+  // and for environments where cookies aren't available (e.g. a native mobile
+  // client that may use this module in the future).
   const { token } = useAuthStore.getState();
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
@@ -72,6 +92,13 @@ function isAuthPath(pathname: string): boolean {
   );
 }
 
+// Module-level latch — the dashboard fires many queries in parallel on mount,
+// and every single one returns 401 when the JWT cookie has expired. Without
+// this guard each one calls `window.location.assign(...)`, producing a storm
+// of navigations to /login?next=/... that looks like a redirect loop (and
+// flashes the PageLoader between each).
+let redirectingToLogin = false;
+
 apiClient.interceptors.response.use(
   (response) => {
     // Unwrap the backend envelope: { responseCode, responseDesc, data, errorMessage }
@@ -88,9 +115,19 @@ apiClient.interceptors.response.use(
   (error: AxiosError) => {
     logDevAxiosFailure(error);
     if (error.response?.status === 401) {
+      // Clear local auth state on every 401 — cheap and idempotent, and
+      // critically: it clears the `blackheart-session` signal cookie so Next
+      // middleware bounces the next navigation at the edge instead of letting
+      // more API calls through.
       const { clearAuth } = useAuthStore.getState();
       clearAuth();
-      if (typeof window !== 'undefined' && !isAuthPath(window.location.pathname)) {
+
+      if (
+        typeof window !== 'undefined' &&
+        !redirectingToLogin &&
+        !isAuthPath(window.location.pathname)
+      ) {
+        redirectingToLogin = true;
         const next = encodeURIComponent(window.location.pathname + window.location.search);
         window.location.assign(`/login?next=${next}`);
       }

@@ -68,7 +68,10 @@
       "Bash(node -e \"console.log\\(require\\('./package.json'\\).dependencies.zustand\\)\")",
       "Bash(npx prettier *)",
       "Read(//c/MyFiles/blackheart/blackheart/**)",
-      "Read(//c/MyFiles/blackheart/blackheart/src/main/java/id/co/blackheart/**)"
+      "Read(//c/MyFiles/blackheart/blackheart/src/main/java/id/co/blackheart/**)",
+      "Bash(./gradlew.bat --offline compileJava)",
+      "Bash(./gradlew.bat compileJava)",
+      "Bash(python *)"
     ]
   }
 }

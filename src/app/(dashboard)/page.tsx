@@ -298,11 +298,17 @@ function mapPeriod(p: UiPeriod): ReturnType<typeof useEquityCurve>['period'] {
 
 function fallbackCurve(): number[] {
   // Smooth ascending fallback — matches the gentle mint curve in the mock.
+  // Intentionally deterministic: the previous version used Math.random() which
+  // produced different paths on server vs. client, tripping React's hydration
+  // mismatch warning on every dashboard load. A seeded noise term keeps the
+  // shape visually varied without introducing non-determinism.
   const n = 60;
   const out: number[] = [];
   let v = 100;
   for (let i = 0; i < n; i++) {
-    v += Math.sin(i / 5) * 2 + (Math.random() - 0.4) * 3;
+    // Two offset sines give a richer curve than a single wave; no random input.
+    const noise = Math.sin(i / 2.3) * 1.4 + Math.sin(i / 7.1 + 1.2) * 1.9;
+    v += Math.sin(i / 5) * 2 + noise;
     out.push(v);
   }
   return out;

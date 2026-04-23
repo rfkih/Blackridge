@@ -637,6 +637,59 @@ pre {
   }
 }
 
+/* ─── PageLoader animations ───────────────────────────────────────
+   Shared by <PageLoader> and Next.js automatic loading.tsx. Kept
+   here (not inline on the component) so duration tweaks flow through
+   every usage at once. */
+@keyframes mm-spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes mm-spin-reverse {
+  from {
+    transform: rotate(360deg);
+  }
+  to {
+    transform: rotate(0deg);
+  }
+}
+@keyframes mm-dot {
+  0%,
+  80%,
+  100% {
+    opacity: 0.25;
+    transform: translateY(0);
+  }
+  40% {
+    opacity: 1;
+    transform: translateY(-1px);
+  }
+}
+@keyframes mm-scan {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(300%);
+  }
+}
+
+/* Respect the user's motion preference — keep the loader visible but
+   strip the continuous animation so it doesn't trigger vestibular
+   discomfort. */
+@media (prefers-reduced-motion: reduce) {
+  [class*='animate-[mm-spin-slow'],
+  [class*='animate-[mm-spin-reverse'],
+  [class*='animate-[mm-dot'],
+  [class*='animate-[mm-scan'] {
+    animation: none !important;
+  }
+}
+
 .mm-nav {
   display: flex;
   align-items: center;

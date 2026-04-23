@@ -1,24 +1,38 @@
-// SLICE 1: JWT + user state (Zustand) with persist (localStorage) + cookie mirror for middleware.
+// Auth state store. The JWT itself lives exclusively in the HttpOnly cookie
+// `blackheart-token` issued by the backend on the API origin — it is NOT
+// persisted to localStorage and is NOT written to document.cookie from JS.
+// An XSS payload on our origin cannot lift the token.
+//
+// Separately we write a tiny non-sensitive SIGNAL cookie `blackheart-session`
+// on the frontend origin. Next middleware route-gates on it because Next runs
+// on a different origin than the API and therefore can't see the HttpOnly
+// token cookie directly. The signal cookie is UX-only — spoofing it yields a
+// dashboard shell whose first /me call 401s and bounces back to /login. The
+// real auth is always enforced server-side.
 import { useEffect, useState } from 'react';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import type { User } from '@/types/api';
 import { usePositionStore } from './positionStore';
 
-const TOKEN_COOKIE = 'blackheart-token';
-const TOKEN_COOKIE_MAX_AGE = 60 * 60 * 24 * 30; // 30 days
+// Matches the middleware's cookie name + Spring's JWT cookie TTL default
+// (15 min). Short TTL on the signal keeps idle tabs from lingering with a
+// "logged in" UX shell after the server session has already expired.
+const SIGNAL_COOKIE = 'blackheart-session';
+const SIGNAL_MAX_AGE_SECONDS = 60 * 60 * 24; // 1 day ceiling — /me call is the real gate.
 
-function writeTokenCookie(token: string | null) {
+function writeSignalCookie(present: boolean) {
   if (typeof document === 'undefined') return;
-  const secure = process.env.NODE_ENV === 'production' ? '; secure' : '';
-  if (token) {
-    document.cookie = `${TOKEN_COOKIE}=${encodeURIComponent(token)}; path=/; samesite=lax; max-age=${TOKEN_COOKIE_MAX_AGE}${secure}`;
+  const secure = typeof window !== 'undefined' && window.location.protocol === 'https:' ? '; secure' : '';
+  if (present) {
+    document.cookie = `${SIGNAL_COOKIE}=1; path=/; samesite=lax; max-age=${SIGNAL_MAX_AGE_SECONDS}${secure}`;
   } else {
-    document.cookie = `${TOKEN_COOKIE}=; path=/; samesite=lax; max-age=0${secure}`;
+    document.cookie = `${SIGNAL_COOKIE}=; path=/; samesite=lax; max-age=0${secure}`;
   }
 }
 
 interface AuthStore {
+  /** In-memory only. Not persisted. Lost on hard refresh. */
   token: string | null;
   user: User | null;
   isAuthenticated: boolean;
@@ -34,12 +48,15 @@ export const useAuthStore = create<AuthStore>()(
       user: null,
       isAuthenticated: false,
       setAuth: (token, user) => {
-        writeTokenCookie(token);
+        writeSignalCookie(true);
         set({ token, user, isAuthenticated: true });
       },
-      setUser: (user) => set({ user }),
+      setUser: (user) => {
+        writeSignalCookie(true);
+        set({ user, isAuthenticated: true });
+      },
       clearAuth: () => {
-        writeTokenCookie(null);
+        writeSignalCookie(false);
         // Clear cross-store state that belongs to the previous session — leaving
         // these around bleeds yesterday's open positions/PnL into the new login.
         usePositionStore.getState().reset();
@@ -47,16 +64,15 @@ export const useAuthStore = create<AuthStore>()(
       },
     }),
     {
-      name: 'blackheart:token',
+      name: 'blackheart:auth',
       storage: createJSONStorage(() => localStorage),
-      partialize: (state) => ({
-        token: state.token,
-        user: state.user,
-        isAuthenticated: state.isAuthenticated,
-      }),
+      // Persist only non-sensitive profile data — token and isAuthenticated
+      // are rehydrated from the HttpOnly cookie via /api/v1/users/me on mount.
+      partialize: (state) => ({ user: state.user }),
       onRehydrateStorage: () => (state) => {
-        // Keep cookie in sync with persisted token (e.g. after browser restart).
-        if (state?.token) writeTokenCookie(state.token);
+        // Keep the signal cookie in sync with the persisted user, so a
+        // reopened tab doesn't flicker through /login before /me completes.
+        if (state?.user) writeSignalCookie(true);
       },
     },
   ),
