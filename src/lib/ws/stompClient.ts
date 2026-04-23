@@ -3,12 +3,24 @@ import { WS_URL } from '@/lib/constants';
 import { useWsStore } from '@/store/wsStore';
 
 let stompClient: Client | null = null;
+// Tracked so we can detect a token change on re-init and spin up a fresh
+// client with the new Bearer — a plain `stompClient?.active` short-circuit
+// would keep the old token alive after a re-login.
+let currentToken: string | null = null;
 // True while we're intentionally tearing down — suppresses the spurious
 // "reconnecting" flash that would otherwise fire from the final onWebSocketClose.
 let intentionalDisconnect = false;
 
 export function initStompClient(token: string | null): void {
-  if (stompClient?.active) return;
+  if (stompClient?.active && currentToken === token) return;
+  // Token changed while a client was still live — drop it so we can activate
+  // a new one with the updated CONNECT header.
+  if (stompClient) {
+    intentionalDisconnect = true;
+    void stompClient.deactivate();
+    stompClient = null;
+  }
+  currentToken = token;
   intentionalDisconnect = false;
 
   stompClient = new Client({
@@ -49,6 +61,7 @@ export function disconnectStompClient(): void {
     intentionalDisconnect = true;
     void stompClient.deactivate();
     stompClient = null;
+    currentToken = null;
     const { setConnected, setReconnecting } = useWsStore.getState();
     setConnected(false);
     setReconnecting(false);

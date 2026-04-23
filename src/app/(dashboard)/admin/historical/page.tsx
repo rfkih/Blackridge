@@ -24,11 +24,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useIsAdmin } from '@/hooks/useIsAdmin';
-import { useAuthStore } from '@/store/authStore';
-import {
-  useBackfillVcbIndicators,
-  useWarmupHistorical,
-} from '@/hooks/useHistoricalBackfill';
+import { useAuthHydrated } from '@/store/authStore';
+import { useBackfillVcbIndicators, useWarmupHistorical } from '@/hooks/useHistoricalBackfill';
 import { normalizeError } from '@/lib/api/client';
 import { toast } from '@/hooks/useToast';
 import { INTERVALS } from '@/lib/constants';
@@ -50,14 +47,15 @@ function defaultDateRange(): { from: string; to: string } {
 export default function AdminHistoricalPage() {
   const router = useRouter();
   const isAdmin = useIsAdmin();
-  const user = useAuthStore((s) => s.user);
-  const userResolved = user !== undefined;
+  // Wait for persist middleware to rehydrate — initial state is `user: null`,
+  // which would flash a redirect for an admin on hard refresh otherwise.
+  const hydrated = useAuthHydrated();
 
   useEffect(() => {
-    if (userResolved && !isAdmin) router.replace('/');
-  }, [userResolved, isAdmin, router]);
+    if (hydrated && !isAdmin) router.replace('/');
+  }, [hydrated, isAdmin, router]);
 
-  if (!userResolved) return null;
+  if (!hydrated) return null;
   if (!isAdmin) return null;
 
   return (
@@ -178,10 +176,7 @@ function VcbBackfillCard() {
   }, [from, to]);
 
   const canSubmit =
-    symbol.trim().length >= 3 &&
-    interval.length > 0 &&
-    !rangeError &&
-    !mutation.isPending;
+    symbol.trim().length >= 3 && interval.length > 0 && !rangeError && !mutation.isPending;
 
   const handleSubmit = () => {
     if (!canSubmit) return;
@@ -275,9 +270,7 @@ function VcbBackfillCard() {
             isPending={mutation.isPending}
             isSuccess={mutation.isSuccess}
             errorText={mutation.isError ? normalizeError(mutation.error) : null}
-            successText={
-              mutation.data ? `${mutation.data.recordsUpdated} rows updated` : null
-            }
+            successText={mutation.data ? `${mutation.data.recordsUpdated} rows updated` : null}
           />
           <Button onClick={handleSubmit} disabled={!canSubmit} className="gap-1.5">
             {mutation.isPending ? (
@@ -404,10 +397,9 @@ function AdminNotice() {
       />
       <div className="text-[12px] leading-relaxed text-text-secondary">
         <span className="font-semibold text-text-primary">Admin action</span> — backfills overwrite
-        derived data on the primary market-data store. Avoid running wide ranges during market
-        hours if the feature pipeline is live.
+        derived data on the primary market-data store. Avoid running wide ranges during market hours
+        if the feature pipeline is live.
       </div>
     </div>
   );
 }
-

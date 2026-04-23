@@ -22,7 +22,7 @@ import {
   useStrategyDefinitions,
 } from '@/hooks/useStrategyDefinitions';
 import { useIsAdmin } from '@/hooks/useIsAdmin';
-import { useAuthStore } from '@/store/authStore';
+import { useAuthHydrated } from '@/store/authStore';
 import { normalizeError } from '@/lib/api/client';
 import { toast } from '@/hooks/useToast';
 import { cn } from '@/lib/utils';
@@ -35,14 +35,17 @@ export default function AdminStrategiesPage() {
   // The route is client-gated: non-admins get redirected to the dashboard
   // on render. The backend still enforces ROLE_ADMIN on every write — this
   // redirect is UX, not security.
-  const user = useAuthStore((s) => s.user);
-  const userResolved = user !== undefined;
+  //
+  // Wait for the persist middleware to rehydrate before reading role —
+  // Zustand initialises `user: null` which would otherwise flash a redirect
+  // for any admin who just hit F5.
+  const hydrated = useAuthHydrated();
 
   useEffect(() => {
-    if (userResolved && !isAdmin) {
+    if (hydrated && !isAdmin) {
       router.replace('/');
     }
-  }, [userResolved, isAdmin, router]);
+  }, [hydrated, isAdmin, router]);
 
   const { data: rows = [], isLoading, isError, refetch } = useStrategyDefinitions();
   const deprecateMutation = useDeprecateStrategyDefinition();
@@ -94,7 +97,7 @@ export default function AdminStrategiesPage() {
 
   // Before we know the user's role, render nothing — prevents a flash of
   // admin chrome for a regular user who lands here by typing the URL.
-  if (!userResolved) return null;
+  if (!hydrated) return null;
   if (!isAdmin) return null;
 
   return (

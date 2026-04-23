@@ -14,12 +14,11 @@ export interface VcbBackfillResult {
   recordsUpdated: number;
 }
 
-// Note: backend path is literally `/backill` (typo preserved on the server).
 export async function backfillHistoricalData(
   symbol: string,
   interval: string,
 ): Promise<WarmupResult> {
-  const { data } = await apiClient.post<WarmupResult>('/api/v1/historical/backill', null, {
+  const { data } = await apiClient.post<WarmupResult>('/api/v1/historical/backfill', null, {
     params: { symbol, interval },
   });
   return data;

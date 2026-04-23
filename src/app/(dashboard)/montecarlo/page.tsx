@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import nextDynamic from 'next/dynamic';
 import { AlertCircle, Dice5, Loader2, Percent, Play, Target, TrendingUp } from 'lucide-react';
 import { z } from 'zod';
@@ -90,12 +90,12 @@ export default function MonteCarloPage() {
   const [submitError, setSubmitError] = useState<string | null>(null);
 
   // Pull a sized page of completed runs so the dropdown has a healthy set
-  // without relying on the backend's default 20-row page.
+  // without relying on the backend's default 20-row page. The server-side
+  // `status: 'COMPLETED'` filter is authoritative — no client re-filter.
   const runsQ = useBacktestRuns({ status: 'COMPLETED', size: 100 });
-  const completedRuns = useMemo(
-    () => (runsQ.data?.content ?? []).filter((r) => r.status === 'COMPLETED'),
-    [runsQ.data?.content],
-  );
+  const completedRuns = runsQ.data?.content ?? [];
+  const totalCompleted = runsQ.data?.total ?? completedRuns.length;
+  const isDropdownTruncated = totalCompleted > completedRuns.length;
 
   const mutation = useMonteCarlo();
 
@@ -162,7 +162,15 @@ export default function MonteCarloPage() {
         onSubmit={handleSubmit}
         className="grid grid-cols-1 gap-3 rounded-md border border-bd-subtle bg-bg-surface p-4 md:grid-cols-2 lg:grid-cols-3"
       >
-        <Field label="Source Backtest" error={errors.backtestRunId} hint="Must be a COMPLETED run.">
+        <Field
+          label="Source Backtest"
+          error={errors.backtestRunId}
+          hint={
+            isDropdownTruncated
+              ? `Showing 100 of ${totalCompleted} completed runs — older runs hidden.`
+              : 'Must be a COMPLETED run.'
+          }
+        >
           <select
             value={form.backtestRunId}
             onChange={(e) => updateField('backtestRunId', e.target.value)}

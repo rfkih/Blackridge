@@ -10,6 +10,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { usePortfolio } from '@/hooks/usePortfolio';
 import { useEquityCurve } from '@/hooks/useEquityCurve';
 import { useLivePnl, useSyncOpenPositions } from '@/hooks/useLivePnl';
+import { usePositionStore } from '@/store/positionStore';
 import { formatPnl, formatPrice } from '@/lib/formatters';
 import type { LivePosition } from '@/types/trading';
 import type { AccountStrategy } from '@/types/strategy';
@@ -265,9 +266,20 @@ function timeGreeting() {
 
 function splitMoney(n: number): [string, string] {
   const abs = Math.abs(n);
-  const whole = Math.floor(abs).toLocaleString();
+  const sign = n < 0 ? '-' : '';
+  const whole = `${sign}${Math.floor(abs).toLocaleString()}`;
   const decs = (abs - Math.floor(abs)).toFixed(2).slice(2);
   return [whole, decs];
+}
+
+function minMax(data: number[]): { min: number; max: number } {
+  let min = Infinity;
+  let max = -Infinity;
+  for (const v of data) {
+    if (v < min) min = v;
+    if (v > max) max = v;
+  }
+  return { min, max };
 }
 
 type UiPeriod = '1D' | '1W' | '1M' | '3M' | 'YTD' | '1Y' | 'ALL';
@@ -301,8 +313,7 @@ function fallbackCurve(): number[] {
 function BigMintChart({ data, height, tag }: { data: number[]; height: number; tag: string }) {
   const width = 560;
   if (!data.length) return null;
-  const max = Math.max(...data);
-  const min = Math.min(...data);
+  const { min, max } = minMax(data);
   const pts = data.map((v, i) => [
     (i / (data.length - 1)) * width,
     height - ((v - min) / (max - min + 1e-6)) * (height - 20) - 10,
@@ -486,16 +497,22 @@ function EmptyPositions() {
 }
 
 function PositionRow({ trade }: { trade: LivePosition }) {
-  const pnl = trade.unrealizedPnl ?? 0;
+  // Live WS frames update pnlMap + markMap in the store. Prefer those over
+  // the REST snapshot so the row doesn't lag the ticker by ~15s.
+  const livePnl = usePositionStore((s) => s.pnlMap[trade.tradeId]);
+  const liveMark = usePositionStore((s) => s.markMap[trade.tradeId]);
+  const pnl = livePnl ?? trade.unrealizedPnl ?? 0;
   const pnlPct = trade.unrealizedPnlPct ?? 0;
   const isUp = pnl >= 0;
   const color = isUp ? 'var(--mm-mint)' : 'var(--mm-dn)';
   const softBg = isUp ? 'var(--mm-mint-soft)' : 'var(--mm-dn-soft)';
 
-  const markPrice = trade.markPrice ?? trade.entryPrice;
-  const value = markPrice * trade.quantity;
+  // Never silently substitute entryPrice for mark — that masks "no live tick"
+  // as "no movement since open". Show `—` until a real mark arrives.
+  const markPrice = liveMark ?? trade.markPrice ?? null;
+  const value = markPrice != null ? markPrice * trade.quantity : null;
 
-  const spark = useMemo(() => buildSpark(trade.tradeId, isUp), [trade.tradeId, isUp]);
+  const spark = useMemo(() => buildSpark(trade.tradeId), [trade.tradeId]);
 
   const logo = trade.symbol.slice(0, 1);
   const displaySym = trade.symbol.replace(/USDT$/, '');
@@ -554,7 +571,7 @@ function PositionRow({ trade }: { trade: LivePosition }) {
       <Sparkline values={spark} color={color} />
       <div style={{ textAlign: 'right', minWidth: 0 }}>
         <div className="mm-num" style={{ fontSize: 16, color: 'var(--mm-ink-0)' }}>
-          ${formatPrice(value, 2)}
+          {value != null ? `$${formatPrice(value, 2)}` : '—'}
         </div>
         <div style={{ fontSize: 11, color: 'var(--mm-ink-3)', marginTop: 2 }}>value</div>
       </div>
@@ -573,8 +590,7 @@ function PositionRow({ trade }: { trade: LivePosition }) {
 function Sparkline({ values, color }: { values: number[]; color: string }) {
   const w = 120;
   const h = 36;
-  const max = Math.max(...values);
-  const min = Math.min(...values);
+  const { min, max } = minMax(values);
   const pts = values.map((v, i) => [
     (i / (values.length - 1)) * w,
     h - ((v - min) / (max - min + 1e-6)) * (h - 4) - 2,
@@ -598,9 +614,10 @@ function Sparkline({ values, color }: { values: number[]; color: string }) {
   );
 }
 
-function buildSpark(seed: string, up: boolean): number[] {
-  // Deterministic sparkline from the seed. Uses a simple sine-based PRNG
-  // (mulberry32 needs bitwise ops which the project's lint disallows).
+function buildSpark(seed: string): number[] {
+  // Deterministic sparkline from the seed. Stable across PnL sign flips —
+  // the stroke colour already conveys direction; reshaping the curve on every
+  // zero-cross made the row visually jitter on scalping symbols.
   let s = 0;
   for (let i = 0; i < seed.length; i++) {
     s = (s * 31 + seed.charCodeAt(i)) % 2147483647;
@@ -615,7 +632,7 @@ function buildSpark(seed: string, up: boolean): number[] {
   const out: number[] = [];
   let v = 30;
   for (let i = 0; i < 14; i++) {
-    v += (rnd() - (up ? 0.35 : 0.65)) * 5;
+    v += (rnd() - 0.5) * 5;
     out.push(v);
   }
   return out;

@@ -307,40 +307,66 @@ export function BacktestAnnotatedChart({
     const chart = chartRef.current;
     if (!chart) return;
 
+    // TV fires crosshair events at mouse-move rate. Coalesce with rAF and
+    // short-circuit on identical tradeId so we don't re-render the tooltip
+    // subtree dozens of times per second when the cursor is parked on one
+    // marker. Without this, a 200-trade chart burns a few ms of React work
+    // on every pixel moved.
+    let rafId: number | null = null;
+    let pending: HoverState | null = null;
+    let lastPayload: HoverState | null = null;
+
+    const commit = () => {
+      rafId = null;
+      const next = pending;
+      pending = null;
+      if (next === null && lastPayload === null) return;
+      if (
+        next &&
+        lastPayload &&
+        next.tradeId === lastPayload.tradeId &&
+        next.x === lastPayload.x &&
+        next.y === lastPayload.y
+      )
+        return;
+      lastPayload = next;
+      setHover(next);
+    };
+
     const handler = (param: MouseEventParams<Time>) => {
-      if (!param.point || !param.time) {
-        setHover(null);
-        return;
-      }
-      const bucket = metaByTime.get(param.time as number);
-      if (!bucket?.length) {
-        setHover(null);
-        return;
-      }
-      // Same disambiguation as the click handler — pick the leg whose price is
-      // closest to the cursor's price.
-      let chosen = bucket[0];
-      const series = seriesRef.current;
-      if (bucket.length > 1 && series) {
-        const cursorPrice = series.coordinateToPrice(param.point.y);
-        if (cursorPrice != null && Number.isFinite(cursorPrice)) {
-          let bestDist = Infinity;
-          for (const m of bucket) {
-            const d = Math.abs(m.price - cursorPrice);
-            if (d < bestDist) {
-              bestDist = d;
-              chosen = m;
+      let nextHover: HoverState | null = null;
+      if (param.point && param.time) {
+        const bucket = metaByTime.get(param.time as number);
+        if (bucket?.length) {
+          // Same disambiguation as the click handler — pick the leg whose
+          // price is closest to the cursor's price.
+          let chosen = bucket[0];
+          const series = seriesRef.current;
+          if (bucket.length > 1 && series) {
+            const cursorPrice = series.coordinateToPrice(param.point.y);
+            if (cursorPrice != null && Number.isFinite(cursorPrice)) {
+              let bestDist = Infinity;
+              for (const m of bucket) {
+                const d = Math.abs(m.price - cursorPrice);
+                if (d < bestDist) {
+                  bestDist = d;
+                  chosen = m;
+                }
+              }
             }
           }
+          nextHover = { tradeId: chosen.tradeId, x: param.point.x, y: param.point.y };
         }
       }
-      setHover({ tradeId: chosen.tradeId, x: param.point.x, y: param.point.y });
+      pending = nextHover;
+      if (rafId == null) rafId = requestAnimationFrame(commit);
     };
 
     chart.subscribeCrosshairMove(handler);
     crosshairRef.current = handler;
 
     return () => {
+      if (rafId != null) cancelAnimationFrame(rafId);
       try {
         chart.unsubscribeCrosshairMove(handler);
       } catch {
