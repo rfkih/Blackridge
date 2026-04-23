@@ -40,7 +40,13 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
         <main
           key={pathname}
           className="page-enter flex-1 overflow-y-auto"
-          style={{ padding: '24px 28px 24px 0', color: 'var(--mm-ink-0)' }}
+          style={{
+            padding: '24px 28px 24px 0',
+            color: 'var(--mm-ink-0)',
+            // Hint the compositor — cheaper opacity/transform transitions on
+            // the top-level main during route animation.
+            willChange: 'opacity, transform',
+          }}
         >
           {children}
         </main>
