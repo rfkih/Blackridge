@@ -7,6 +7,9 @@ export interface AccountStrategy {
   id: UUID;
   accountId: UUID;
   strategyCode: StrategyCode | string;
+  /** User-facing preset label. Several presets can share the same (strategy, symbol, interval);
+   *  only one can be LIVE at a time. */
+  presetName: string;
   symbol: string;
   interval: Interval | string;
   status: AccountStrategyStatus;

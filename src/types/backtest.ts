@@ -2,8 +2,9 @@ import type { Interval, StrategyCode } from '@/lib/constants';
 import type { EpochMs, ISO8601, UUID } from './api';
 import type { PositionExitReason, PositionType, TradeDirection } from './trading';
 
-/** Backend's BacktestRun.status values (see BacktestService.STATUS_*). */
-export type BacktestStatus = 'RUNNING' | 'COMPLETED' | 'FAILED';
+/** Backend's BacktestRun.status values. PENDING is the brief window after
+ *  submission and before the async worker picks up the run. */
+export type BacktestStatus = 'PENDING' | 'RUNNING' | 'COMPLETED' | 'FAILED';
 
 /**
  * Raw backend response for GET /api/v1/backtest/:id and the list endpoint —
@@ -44,6 +45,8 @@ export interface BackendBacktestRun {
   symbol?: string | null;
   interval?: string | null;
   status?: string | null;
+  /** 0–100 while the run is PENDING/RUNNING. */
+  progressPercent?: number | null;
   fromDate?: ISO8601 | null;
   toDate?: ISO8601 | null;
   initialCapital?: number | string | null;
@@ -143,6 +146,9 @@ export interface BacktestRun {
   symbol: string;
   interval: Interval | string;
   status: BacktestStatus | string;
+  /** 0–100 while the async worker is iterating candles. 100 on COMPLETED.
+   *  Frozen at the last reported value on FAILED. */
+  progressPercent: number;
   /** Window the backtest ran over — renamed from legacy startTime/endTime. */
   fromDate: ISO8601;
   toDate: ISO8601;
@@ -179,6 +185,15 @@ export interface BacktestRunPayload {
   riskPerTradePct?: number;
   feeRate?: number;
   slippageRate?: number;
+  /** Trade-sizing inputs. Must be set or the backend sizes every order to zero
+   *  (StrategyHelper.resolveRiskPct returns null → sizing bails → zero trades).
+   *  See buildBacktestPayload.DEFAULT_SIZING. */
+  minNotional?: number;
+  minQty?: number;
+  qtyStep?: number;
+  maxOpenPositions?: number;
+  allowLong?: boolean;
+  allowShort?: boolean;
   /** Per-strategy diff-vs-defaults from the wizard Step 2. */
   strategyParamOverrides: Record<string, Record<string, unknown>>;
 }

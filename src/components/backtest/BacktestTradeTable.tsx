@@ -1,7 +1,8 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
+import { ChevronDown, ChevronsUpDown, ChevronUp } from 'lucide-react';
 import { formatDate, formatDuration, formatPrice, formatRMultiple } from '@/lib/formatters';
 import { cn } from '@/lib/utils';
 import { legHitMap } from '@/lib/backtest/buildTradeMarkers';
@@ -19,21 +20,64 @@ interface BacktestTradeTableProps {
   scrollTrigger?: number;
 }
 
-const COLUMNS = [
-  { key: 'index', label: '#' },
-  { key: 'direction', label: 'Side' },
-  { key: 'entryTime', label: 'Entry Time' },
-  { key: 'entryPrice', label: 'Entry' },
-  { key: 'exitTime', label: 'Exit Time' },
-  { key: 'exitPrice', label: 'Exit' },
-  { key: 'sl', label: 'SL' },
-  { key: 'tp1', label: 'TP1' },
-  { key: 'tp2', label: 'TP2' },
-  { key: 'legs', label: 'Legs' },
-  { key: 'pnl', label: 'P&L' },
-  { key: 'r', label: 'R' },
-  { key: 'duration', label: 'Duration' },
+/**
+ * Sortable trade keys. `legs` is categorical (three hit-states per leg) and
+ * doesn't have a meaningful linear ordering, so it's deliberately excluded
+ * from the sort cycle. Everything else maps to a numeric / string extractor
+ * in {@link SORT_EXTRACTORS} below.
+ */
+type SortKey =
+  | 'index'
+  | 'direction'
+  | 'entryTime'
+  | 'entryPrice'
+  | 'exitTime'
+  | 'exitPrice'
+  | 'sl'
+  | 'tp1'
+  | 'tp2'
+  | 'pnl'
+  | 'r'
+  | 'duration';
+
+type SortDir = 'asc' | 'desc';
+
+const COLUMNS: Array<{ key: SortKey | 'legs'; label: string; sortable: boolean }> = [
+  { key: 'index', label: '#', sortable: true },
+  { key: 'direction', label: 'Side', sortable: true },
+  { key: 'entryTime', label: 'Entry Time', sortable: true },
+  { key: 'entryPrice', label: 'Entry', sortable: true },
+  { key: 'exitTime', label: 'Exit Time', sortable: true },
+  { key: 'exitPrice', label: 'Exit', sortable: true },
+  { key: 'sl', label: 'SL', sortable: true },
+  { key: 'tp1', label: 'TP1', sortable: true },
+  { key: 'tp2', label: 'TP2', sortable: true },
+  { key: 'legs', label: 'Legs', sortable: false },
+  { key: 'pnl', label: 'P&L', sortable: true },
+  { key: 'r', label: 'R', sortable: true },
+  { key: 'duration', label: 'Duration', sortable: true },
 ];
+
+/**
+ * Pulls a comparable value out of a trade for each sort key. Returning
+ * {@code null} pushes the row to the bottom regardless of direction —
+ * users rarely want "N/A" cells pretending to be the smallest or largest
+ * value in the column.
+ */
+const SORT_EXTRACTORS: Record<SortKey, (t: BacktestTrade) => number | string | null> = {
+  index: (t) => t.entryTime, // # mirrors chronological order
+  direction: (t) => t.direction,
+  entryTime: (t) => t.entryTime,
+  entryPrice: (t) => t.entryPrice,
+  exitTime: (t) => t.exitTime,
+  exitPrice: (t) => t.exitPrice,
+  sl: (t) => t.stopLossPrice,
+  tp1: (t) => t.tp1Price,
+  tp2: (t) => t.tp2Price,
+  pnl: (t) => t.realizedPnl,
+  r: (t) => t.rMultiple,
+  duration: (t) => (t.exitTime != null ? t.exitTime - t.entryTime : null),
+};
 
 // CSS grid template — keeps header + virtualized rows perfectly aligned.
 // Total minimum width drives the horizontal scroll for narrower viewports.
@@ -49,8 +93,55 @@ export function BacktestTradeTable({
 }: BacktestTradeTableProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // Sort chronologically for a natural read order.
-  const ordered = useMemo(() => [...trades].sort((a, b) => a.entryTime - b.entryTime), [trades]);
+  // Default view = chronological entry. Clicking a header cycles asc → desc →
+  // back to the default; see handleSort below.
+  const [sortKey, setSortKey] = useState<SortKey>('index');
+  const [sortDir, setSortDir] = useState<SortDir>('asc');
+
+  const ordered = useMemo(() => {
+    const extractor = SORT_EXTRACTORS[sortKey];
+    const copy = [...trades];
+    copy.sort((a, b) => {
+      const va = extractor(a);
+      const vb = extractor(b);
+      // Null always trails, regardless of direction. Keeps "no exit yet"
+      // rows at the bottom when sorting on exitTime/exitPrice/duration.
+      if (va == null && vb == null) return 0;
+      if (va == null) return 1;
+      if (vb == null) return -1;
+      let cmp: number;
+      if (typeof va === 'number' && typeof vb === 'number') {
+        cmp = va - vb;
+      } else {
+        cmp = String(va).localeCompare(String(vb));
+      }
+      if (cmp === 0) {
+        // Deterministic tiebreaker — entryTime, then id — so React/virtualizer
+        // keys stay stable across equal sort values.
+        cmp = a.entryTime - b.entryTime;
+        if (cmp === 0) cmp = a.id.localeCompare(b.id);
+      }
+      return sortDir === 'asc' ? cmp : -cmp;
+    });
+    return copy;
+  }, [trades, sortKey, sortDir]);
+
+  const handleSort = useCallback(
+    (key: SortKey) => {
+      setSortKey((prevKey) => {
+        if (prevKey !== key) {
+          // New column — start at asc for natural order; but default sort
+          // (pnl, r, duration, exit*) feels more useful descending.
+          const preferDesc: SortKey[] = ['pnl', 'r', 'duration', 'exitTime', 'entryTime'];
+          setSortDir(preferDesc.includes(key) ? 'desc' : 'asc');
+          return key;
+        }
+        setSortDir((prevDir) => (prevDir === 'asc' ? 'desc' : 'asc'));
+        return prevKey;
+      });
+    },
+    [],
+  );
 
   const indexById = useMemo(() => {
     const m = new Map<string, number>();
@@ -107,15 +198,41 @@ export function BacktestTradeTable({
             className="border-b border-bd-subtle bg-bg-surface"
             style={{ display: 'grid', gridTemplateColumns: GRID_TEMPLATE }}
           >
-            {COLUMNS.map((col) => (
-              <div
-                key={col.key}
-                role="columnheader"
-                className="label-caps whitespace-nowrap px-3 py-2.5 text-left"
-              >
-                {col.label}
-              </div>
-            ))}
+            {COLUMNS.map((col) => {
+              const isActive = col.sortable && col.key === sortKey;
+              const ariaSort = isActive
+                ? sortDir === 'asc'
+                  ? 'ascending'
+                  : 'descending'
+                : 'none';
+              return (
+                <div
+                  key={col.key}
+                  role="columnheader"
+                  aria-sort={col.sortable ? ariaSort : undefined}
+                  className="label-caps whitespace-nowrap px-3 py-2.5 text-left"
+                >
+                  {col.sortable ? (
+                    <button
+                      type="button"
+                      onClick={() => handleSort(col.key as SortKey)}
+                      className={cn(
+                        'group inline-flex items-center gap-1 transition-colors duration-fast',
+                        'focus:outline-none focus-visible:text-[var(--accent-primary)]',
+                        isActive
+                          ? 'text-[var(--accent-primary)]'
+                          : 'text-text-muted hover:text-text-primary',
+                      )}
+                    >
+                      <span>{col.label}</span>
+                      <SortGlyph active={isActive} dir={sortDir} />
+                    </button>
+                  ) : (
+                    <span>{col.label}</span>
+                  )}
+                </div>
+              );
+            })}
           </div>
 
           {/* Vertical scroll viewport — only the row in view is rendered. */}
@@ -144,6 +261,28 @@ export function BacktestTradeTable({
         </div>
       </div>
     </div>
+  );
+}
+
+// ─── Sort glyph ───────────────────────────────────────────────────────────────
+
+function SortGlyph({ active, dir }: { active: boolean; dir: SortDir }) {
+  if (!active) {
+    // Subtle double-chevron hint that the column is clickable. Keeps header
+    // chrome consistent across all sortable columns without screaming.
+    return (
+      <ChevronsUpDown
+        size={11}
+        strokeWidth={2}
+        className="opacity-40 transition-opacity group-hover:opacity-90"
+        aria-hidden="true"
+      />
+    );
+  }
+  return dir === 'asc' ? (
+    <ChevronUp size={12} strokeWidth={2.25} aria-hidden="true" />
+  ) : (
+    <ChevronDown size={12} strokeWidth={2.25} aria-hidden="true" />
   );
 }
 

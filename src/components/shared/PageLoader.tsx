@@ -98,7 +98,7 @@ export function PageLoader({ label = 'Loading', fullscreen = true, className }: 
           <div
             className="absolute inset-0 flex items-center justify-center"
             style={{
-              filter: 'drop-shadow(0 0 10px rgba(52, 232, 181, 0.35))',
+              filter: 'drop-shadow(0 0 10px rgba(31, 200, 150, 0.35))',
             }}
           >
             <span className="animate-[mm-pulse_2s_ease-in-out_infinite] text-[var(--color-profit)]">
@@ -143,7 +143,7 @@ export function PageLoader({ label = 'Loading', fullscreen = true, className }: 
               style={{
                 background:
                   'linear-gradient(90deg, transparent, var(--color-profit), transparent)',
-                boxShadow: '0 0 8px rgba(52, 232, 181, 0.45)',
+                boxShadow: '0 0 8px rgba(31, 200, 150, 0.45)',
               }}
             />
           </div>

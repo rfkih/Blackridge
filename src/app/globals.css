@@ -59,34 +59,37 @@
   --text-muted: #898d8c;
   --text-inverse: #0f1111;
 
-  /* Semantic — mint profit + warm-coral loss */
-  --color-profit: #34e8b5;
+  /* Semantic — deep emerald profit + warm-coral loss.
+     Mint was #34e8b5 (L ≈ 56%); shifted one step darker to #1fc896
+     (L ≈ 45%) for a more premium, less neon tone while staying vivid
+     enough for P&L legibility against the near-black surfaces. */
+  --color-profit: #1fc896;
   --color-loss: #ff7a7a;
   --color-warning: #f3c95e;
   --color-info: #5a9eff;
   --color-neutral: #898d8c;
 
   /* Profit / loss soft tints for backgrounds (cell flash, pill bg) */
-  --tint-profit: rgba(52, 232, 181, 0.12);
+  --tint-profit: rgba(31, 200, 150, 0.14);
   --tint-loss: rgba(255, 122, 122, 0.12);
   --tint-warning: rgba(243, 201, 94, 0.14);
   --tint-info: rgba(90, 158, 255, 0.12);
 
   /* Flash for PnlCell tick animation */
-  --flash-profit: rgba(52, 232, 181, 0.18);
+  --flash-profit: rgba(31, 200, 150, 0.20);
   --flash-loss: rgba(255, 122, 122, 0.18);
 
-  /* Accent = mint. Everything live / focused / active pulls from profit-up. */
+  /* Accent = deep mint. Everything live / focused / active pulls from profit-up. */
   --accent-primary: var(--color-profit);
-  --accent-subtle: rgba(52, 232, 181, 0.22);
-  --accent-glow: rgba(52, 232, 181, 0.12);
+  --accent-subtle: rgba(31, 200, 150, 0.24);
+  --accent-glow: rgba(31, 200, 150, 0.14);
 
   --shadow-panel: 0 0 0 1px var(--border-subtle), 0 1px 2px rgba(0, 0, 0, 0.4);
   --shadow-float: 0 0 0 1px var(--border-default), 0 8px 32px rgba(0, 0, 0, 0.48);
-  --shadow-glow-profit: 0 0 16px rgba(52, 232, 181, 0.22);
+  --shadow-glow-profit: 0 0 16px rgba(31, 200, 150, 0.24);
   --shadow-glow-loss: 0 0 16px rgba(255, 122, 122, 0.22);
 
-  --ring: 162 78% 56%;
+  --ring: 162 73% 45%;
 
   /* ── shadcn/ui HSL vars ─────────── */
   --background: 180 8% 7%;
@@ -151,31 +154,33 @@
   --text-muted: #6b6f6e;
   --text-inverse: #ffffff;
 
-  /* Semantic — deeper mint + coral for on-paper legibility */
-  --color-profit: #0da077;
+  /* Semantic — deeper emerald + coral for on-paper legibility.
+     Light-mode mint was #0da077; shifted to #0a7f5e for a richer, less
+     neon green on the pale surface (contrast ratio still AA for body text). */
+  --color-profit: #0a7f5e;
   --color-loss: #cb4c4c;
   --color-warning: #b78620;
   --color-info: #1b56bc;
   --color-neutral: #6b6f6e;
 
-  --tint-profit: rgba(13, 160, 119, 0.10);
+  --tint-profit: rgba(10, 127, 94, 0.12);
   --tint-loss: rgba(203, 76, 76, 0.10);
   --tint-warning: rgba(183, 134, 32, 0.12);
   --tint-info: rgba(27, 86, 188, 0.10);
 
-  --flash-profit: rgba(13, 160, 119, 0.16);
+  --flash-profit: rgba(10, 127, 94, 0.18);
   --flash-loss: rgba(203, 76, 76, 0.16);
 
   --accent-primary: var(--color-profit);
-  --accent-subtle: rgba(13, 160, 119, 0.18);
-  --accent-glow: rgba(13, 160, 119, 0.10);
+  --accent-subtle: rgba(10, 127, 94, 0.22);
+  --accent-glow: rgba(10, 127, 94, 0.12);
 
   --shadow-panel: 0 0 0 1px var(--border-subtle), 0 1px 2px rgba(15, 17, 17, 0.04);
   --shadow-float: 0 0 0 1px var(--border-default), 0 12px 32px rgba(15, 17, 17, 0.08);
-  --shadow-glow-profit: 0 0 12px rgba(13, 160, 119, 0.14);
+  --shadow-glow-profit: 0 0 12px rgba(10, 127, 94, 0.18);
   --shadow-glow-loss: 0 0 12px rgba(203, 76, 76, 0.14);
 
-  --ring: 164 85% 34%;
+  --ring: 163 85% 27%;
 
   --background: 120 6% 96%;
   --foreground: 180 8% 7%;
@@ -481,13 +486,13 @@ pre {
   --mm-ink-2: #898d8c;
   --mm-ink-3: #5a5e5d;
 
-  --mm-mint: #34e8b5;
-  --mm-mint-2: #1fc896;
-  --mm-mint-soft: rgba(52, 232, 181, 0.12);
-  --mm-mint-edge: rgba(52, 232, 181, 0.32);
+  --mm-mint: #1fc896;
+  --mm-mint-2: #17a57a;
+  --mm-mint-soft: rgba(31, 200, 150, 0.14);
+  --mm-mint-edge: rgba(31, 200, 150, 0.34);
 
-  --mm-up: #34e8b5;
-  --mm-up-soft: rgba(52, 232, 181, 0.12);
+  --mm-up: #1fc896;
+  --mm-up-soft: rgba(31, 200, 150, 0.14);
   --mm-dn: #ff7a7a;
   --mm-dn-soft: rgba(255, 122, 122, 0.12);
   --mm-warn: #f3c95e;
@@ -509,13 +514,13 @@ pre {
   --mm-ink-2: #6b6f6e;
   --mm-ink-3: #9a9e9d;
 
-  --mm-mint: #0da077;
-  --mm-mint-2: #07805d;
-  --mm-mint-soft: rgba(13, 160, 119, 0.1);
-  --mm-mint-edge: rgba(13, 160, 119, 0.34);
+  --mm-mint: #0a7f5e;
+  --mm-mint-2: #066148;
+  --mm-mint-soft: rgba(10, 127, 94, 0.12);
+  --mm-mint-edge: rgba(10, 127, 94, 0.36);
 
-  --mm-up: #0da077;
-  --mm-up-soft: rgba(13, 160, 119, 0.1);
+  --mm-up: #0a7f5e;
+  --mm-up-soft: rgba(10, 127, 94, 0.12);
   --mm-dn: #cb4c4c;
   --mm-dn-soft: rgba(203, 76, 76, 0.1);
   --mm-warn: #b78620;

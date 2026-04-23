@@ -11,6 +11,7 @@ import {
   getAccountStrategyById,
   createAccountStrategy,
   deleteAccountStrategy,
+  activateAccountStrategy,
   type CreateAccountStrategyPayload,
 } from '@/lib/api/strategies';
 import {
@@ -149,6 +150,22 @@ export function useDeleteStrategy() {
     onSuccess: (_, accountStrategyId) => {
       queryClient.invalidateQueries({ queryKey: ['strategies'] });
       queryClient.removeQueries({ queryKey: ['strategy', accountStrategyId] });
+    },
+  });
+}
+
+/**
+ * Flip a preset to the active one for its (account, strategy, symbol, interval).
+ * The backend atomically deactivates any sibling that's currently enabled.
+ * Refetches the full strategies list so group headers rerender correctly.
+ */
+export function useActivateStrategy() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (accountStrategyId: string) => activateAccountStrategy(accountStrategyId),
+    onSuccess: (strategy) => {
+      queryClient.invalidateQueries({ queryKey: ['strategies'] });
+      queryClient.setQueryData(['strategy', strategy.id], strategy);
     },
   });
 }

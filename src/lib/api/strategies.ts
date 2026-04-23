@@ -25,6 +25,7 @@ function mapAccountStrategy(s: BackendAccountStrategy): AccountStrategy {
     id: s.accountStrategyId,
     accountId: s.accountId,
     strategyCode: s.strategyCode,
+    presetName: (s.presetName ?? '').trim() || 'Default',
     symbol: s.symbol,
     interval: s.intervalName,
     status: (s.enabled ? 'LIVE' : 'STOPPED') as AccountStrategyStatus,
@@ -55,6 +56,8 @@ export async function getAccountStrategyById(id: string): Promise<AccountStrateg
 export interface CreateAccountStrategyPayload {
   accountId: string;
   strategyCode: string;
+  /** Optional user-facing preset label. Backend auto-names as "Preset N" if omitted. */
+  presetName?: string;
   symbol: string;
   intervalName: string;
   allowLong: boolean;
@@ -77,4 +80,16 @@ export async function createAccountStrategy(
 
 export async function deleteAccountStrategy(id: string): Promise<void> {
   await apiClient.delete(`/api/v1/account-strategies/${id}`);
+}
+
+/**
+ * Activate this preset for its (account, strategy, symbol, interval) tuple.
+ * Any currently-active sibling is deactivated atomically. Rejects (409) if a
+ * sibling with open trades would have to be deactivated first.
+ */
+export async function activateAccountStrategy(id: string): Promise<AccountStrategy> {
+  const { data } = await apiClient.post<BackendAccountStrategy>(
+    `/api/v1/account-strategies/${id}/activate`,
+  );
+  return mapAccountStrategy(data);
 }

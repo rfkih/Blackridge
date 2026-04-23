@@ -52,6 +52,9 @@ export interface BackendAccountStrategy {
   accountId: UUID;
   strategyDefinitionId?: UUID | null;
   strategyCode: string;
+  /** User-facing preset label. Multiple presets can share the same strategy/symbol/interval;
+   *  only one is `enabled` at a time. */
+  presetName?: string | null;
   symbol: string;
   intervalName: string; // frontend: interval
   enabled: boolean; // frontend: derives `status` from this

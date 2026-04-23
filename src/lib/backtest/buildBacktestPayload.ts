@@ -58,6 +58,37 @@ function pickDefaultAccountStrategyId(
   return first;
 }
 
+/**
+ * Trade-sizing defaults the wizard doesn't collect from the user yet.
+ *
+ * <p>Without these, the backend persists {@code null} for {@code riskPerTradePct},
+ * {@code minNotional}, {@code minQty}, {@code qtyStep}, {@code maxOpenPositions}
+ * on the {@code BacktestRun} row. During execution, {@code StrategyHelper.resolveRiskPct}
+ * returns {@code null} (no risk-snapshot, no runtime-config risk) → position
+ * sizing bails → every signal produces a zero-sized order → the run completes
+ * with <b>zero trades</b> even though signals fired. That is exactly the
+ * "frontend gives 0 trades but Postman works" symptom.
+ *
+ * <p>These values match the shape the platform was originally tuned with.
+ * Make them user-configurable (add to {@code BacktestWizardConfig} and the
+ * Step-1 form) once the UX design for per-run sizing is decided.
+ */
+const DEFAULT_SIZING = {
+  /** 0.9% of equity risked per trade. */
+  riskPerTradePct: 0.9,
+  /** Binance spot taker fee (0.075%). */
+  feeRate: 0.00075,
+  /** No slippage by default — deterministic replays. */
+  slippageRate: 0,
+  /** Binance min-notional ≈ $5; 7 USDT gives a safety cushion. */
+  minNotional: 7,
+  minQty: 0.000001,
+  qtyStep: 0.000001,
+  maxOpenPositions: 1,
+  allowLong: true,
+  allowShort: false,
+} as const;
+
 export function buildBacktestPayload(
   config: BacktestWizardConfig,
   paramOverrides: Record<string, Record<string, unknown>>,
@@ -82,6 +113,17 @@ export function buildBacktestPayload(
     startTime: dateToLocalDateTime(config.fromDate),
     endTime: dateToLocalDateTime(config.toDate),
     initialCapital: config.initialCapital,
+    // Trade-sizing fields — without these, signals fire but every position
+    // sizes to zero. See DEFAULT_SIZING for the rationale behind each value.
+    riskPerTradePct: DEFAULT_SIZING.riskPerTradePct,
+    feeRate: DEFAULT_SIZING.feeRate,
+    slippageRate: DEFAULT_SIZING.slippageRate,
+    minNotional: DEFAULT_SIZING.minNotional,
+    minQty: DEFAULT_SIZING.minQty,
+    qtyStep: DEFAULT_SIZING.qtyStep,
+    maxOpenPositions: DEFAULT_SIZING.maxOpenPositions,
+    allowLong: DEFAULT_SIZING.allowLong,
+    allowShort: DEFAULT_SIZING.allowShort,
     strategyParamOverrides: Object.fromEntries(
       config.strategyCodes.map((code) => [
         code,

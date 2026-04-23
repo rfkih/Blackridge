@@ -574,6 +574,12 @@ interface StatusStyle {
 }
 
 const STATUS_META: Record<BacktestStatus, StatusStyle> = {
+  PENDING: {
+    label: 'Queued',
+    text: 'var(--color-warning)',
+    bg: 'var(--tint-warning)',
+    dotPulse: true,
+  },
   RUNNING: { label: 'Running', text: 'var(--color-info)', bg: 'var(--tint-info)', dotPulse: true },
   COMPLETED: {
     label: 'Complete',

@@ -12,7 +12,7 @@ export const TV = {
   BORDER: '#2C3134',
   CROSSHAIR: '#898D8C',
   LABEL_BG: '#222729',
-  PROFIT: '#34E8B5',
+  PROFIT: '#1FC896',
   LOSS: '#FF7A7A',
   INFO: '#5A9EFF',
   WARNING: '#F3C95E',
@@ -24,11 +24,11 @@ export const INDICATOR_COLORS = {
   ema50: '#F3C95E',
   ema200: '#A855F7',
   bb: '#898D8C',
-  kc: '#1FC896',
+  kc: '#17A57A',
   rsi: '#EC4899',
   macdLine: '#5A9EFF',
   macdSignal: '#F3C95E',
-  macdUp: 'rgba(52, 232, 181, 0.7)',
+  macdUp: 'rgba(31, 200, 150, 0.7)',
   macdDown: 'rgba(255, 122, 122, 0.7)',
 } as const;
 

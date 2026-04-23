@@ -19,9 +19,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { INTERVALS, STRATEGY_CODES } from '@/lib/constants';
+import { INTERVALS } from '@/lib/constants';
 import { normalizeError } from '@/lib/api/client';
 import { useCreateStrategy } from '@/hooks/useStrategies';
+import { useStrategyDefinitions } from '@/hooks/useStrategyDefinitions';
 import { toast } from '@/hooks/useToast';
 import type { AccountSummary } from '@/types/account';
 
@@ -35,6 +36,7 @@ interface NewStrategyDialogProps {
 interface FormState {
   accountId: string;
   strategyCode: string;
+  presetName: string;
   symbol: string;
   intervalName: string;
   allowLong: boolean;
@@ -48,7 +50,11 @@ interface FormState {
 function initialState(defaultAccountId?: string): FormState {
   return {
     accountId: defaultAccountId ?? '',
-    strategyCode: 'LSR_V2',
+    // Left blank — the effect below fills it from the live strategy-definitions
+    // catalogue once loaded, so we never ship a hard-coded "LSR_V2" that could
+    // be stale / deprecated / absent on a given instance.
+    strategyCode: '',
+    presetName: '',
     symbol: 'BTCUSDT',
     intervalName: '1h',
     allowLong: true,
@@ -69,6 +75,10 @@ export function NewStrategyDialog({
   const [form, setForm] = useState<FormState>(() => initialState(defaultAccountId));
   const [error, setError] = useState<string | null>(null);
   const createMutation = useCreateStrategy();
+  const {
+    data: strategyDefinitions = [],
+    isLoading: isDefinitionsLoading,
+  } = useStrategyDefinitions();
 
   useEffect(() => {
     if (open) {
@@ -78,6 +88,30 @@ export function NewStrategyDialog({
   }, [open, defaultAccountId]);
 
   const activeAccounts = useMemo(() => accounts.filter((a) => a.active), [accounts]);
+
+  /** Only ACTIVE strategy definitions qualify as choices — DEPRECATED / INACTIVE
+   *  rows stay selectable in detail pages for historical attribution, but a
+   *  fresh strategy should never be created against them. */
+  const activeDefinitions = useMemo(
+    () =>
+      strategyDefinitions
+        .filter((d) => d.status === 'ACTIVE')
+        .sort((a, b) => a.strategyCode.localeCompare(b.strategyCode)),
+    [strategyDefinitions],
+  );
+
+  // Auto-select the first ACTIVE strategy when the dialog opens and definitions
+  // finish loading. If the user has already picked something, respect their
+  // choice. If the previously-picked code has since been deprecated, fall back
+  // to the first ACTIVE to avoid submitting a dead code.
+  useEffect(() => {
+    if (!open) return;
+    if (activeDefinitions.length === 0) return;
+    const codeStillValid = activeDefinitions.some((d) => d.strategyCode === form.strategyCode);
+    if (!form.strategyCode || !codeStillValid) {
+      setForm((s) => ({ ...s, strategyCode: activeDefinitions[0].strategyCode }));
+    }
+  }, [open, activeDefinitions, form.strategyCode]);
 
   const canSubmit =
     Boolean(form.accountId) &&
@@ -93,10 +127,12 @@ export function NewStrategyDialog({
 
   const handleSubmit = () => {
     setError(null);
+    const trimmedPreset = form.presetName.trim();
     createMutation.mutate(
       {
         accountId: form.accountId,
         strategyCode: form.strategyCode,
+        presetName: trimmedPreset.length > 0 ? trimmedPreset : undefined,
         symbol: form.symbol.trim().toUpperCase(),
         intervalName: form.intervalName,
         allowLong: form.allowLong,
@@ -161,18 +197,41 @@ export function NewStrategyDialog({
             <Select
               value={form.strategyCode}
               onValueChange={(v) => setForm((s) => ({ ...s, strategyCode: v }))}
+              disabled={isDefinitionsLoading || activeDefinitions.length === 0}
             >
               <SelectTrigger>
-                <SelectValue />
+                <SelectValue
+                  placeholder={
+                    isDefinitionsLoading
+                      ? 'Loading strategies…'
+                      : activeDefinitions.length === 0
+                        ? 'No active strategies'
+                        : 'Select a strategy'
+                  }
+                />
               </SelectTrigger>
               <SelectContent>
-                {STRATEGY_CODES.map((code) => (
-                  <SelectItem key={code} value={code}>
-                    {code}
+                {activeDefinitions.map((def) => (
+                  <SelectItem key={def.id || def.strategyCode} value={def.strategyCode}>
+                    <span className="flex flex-col">
+                      <span className="font-mono text-xs">{def.strategyCode}</span>
+                      {def.strategyName && def.strategyName !== def.strategyCode && (
+                        <span className="text-[10px] text-[var(--text-muted)]">
+                          {def.strategyName}
+                          {def.strategyType ? ` · ${def.strategyType}` : ''}
+                        </span>
+                      )}
+                    </span>
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
+            {!isDefinitionsLoading && activeDefinitions.length === 0 && (
+              <p className="text-[10px] text-[var(--color-warning)]">
+                No ACTIVE strategy definitions exist. Ask an admin to register one via
+                the strategy catalogue before creating a preset.
+              </p>
+            )}
           </div>
 
           <div className="flex flex-col gap-1.5">
@@ -206,6 +265,22 @@ export function NewStrategyDialog({
               className="font-mono"
               placeholder="BTCUSDT"
             />
+          </div>
+
+          <div className="col-span-2 flex flex-col gap-1.5">
+            <Label className="text-xs uppercase tracking-wider text-[var(--text-muted)]">
+              Preset name <span className="normal-case text-[var(--text-muted)]">(optional)</span>
+            </Label>
+            <Input
+              value={form.presetName}
+              onChange={(e) => setForm((s) => ({ ...s, presetName: e.target.value }))}
+              maxLength={80}
+              placeholder="e.g. Aggressive · Conservative · V2-tuned"
+            />
+            <p className="text-[10px] text-[var(--text-muted)]">
+              Multiple presets can share the same strategy + symbol + interval. Only one is
+              active at a time. Leave blank to auto-name.
+            </p>
           </div>
 
           <div className="flex flex-col gap-1.5">

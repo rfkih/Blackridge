@@ -14,12 +14,14 @@ import { ErrorBoundary } from '@/components/shared/ErrorBoundary';
 import {
   useBacktestCandles,
   useBacktestEquityPoints,
+  useBacktestProgressStream,
   useBacktestRun,
   useBacktestTrades,
 } from '@/hooks/useBacktest';
 import { useBacktestParamStore } from '@/store/backtestParamStore';
 import { cn } from '@/lib/utils';
 import type { BacktestEquityPoint, BacktestRun, BacktestTrade } from '@/types/backtest';
+import { BacktestProgressBar } from '@/components/backtest/BacktestProgressBar';
 import type { CandleData } from '@/types/market';
 
 // Module-level empty arrays so render-time fallbacks don't churn referential
@@ -53,6 +55,9 @@ export default function BacktestResultPage({ params }: { params: { id: string } 
   const idIsValid = typeof id === 'string' && id.length > 0 && id !== 'undefined' && id !== 'null';
 
   const runQ = useBacktestRun(idIsValid ? id : undefined);
+  // Realtime progress via STOMP (`/topic/backtest/{id}`). No-op when the
+  // socket isn't connected — the REST poll above still drives the bar.
+  useBacktestProgressStream(idIsValid ? id : undefined);
   const tradesQ = useBacktestTrades(idIsValid ? id : undefined);
   const candlesQ = useBacktestCandles(idIsValid ? id : undefined);
   const equityQ = useBacktestEquityPoints(idIsValid ? id : undefined);
@@ -146,6 +151,8 @@ export default function BacktestResultPage({ params }: { params: { id: string } 
   return (
     <div className="space-y-6">
       <ResultHeader run={runQ.data} isLoading={runQ.isLoading} onRerun={handleRerun} />
+
+      {runQ.data && <BacktestProgressBar run={runQ.data} />}
 
       <BacktestMetricsGrid metrics={runQ.data?.metrics ?? null} isLoading={runQ.isLoading} />
 
@@ -317,6 +324,8 @@ function RunStatusPill({ status }: { status: string | undefined }) {
       return { bg: 'var(--tint-profit)', fg: 'var(--color-profit)', label: 'Complete' };
     if (normalised === 'RUNNING')
       return { bg: 'var(--tint-info)', fg: 'var(--color-info)', label: 'Running' };
+    if (normalised === 'PENDING')
+      return { bg: 'var(--tint-warning)', fg: 'var(--color-warning)', label: 'Queued' };
     if (normalised === 'FAILED')
       return { bg: 'var(--tint-loss)', fg: 'var(--color-loss)', label: 'Failed' };
     return { bg: 'var(--bg-elevated)', fg: 'var(--text-muted)', label: status };
