@@ -15,6 +15,7 @@ import {
   X,
   Book,
   Database,
+  Settings,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
@@ -38,6 +39,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'Monte Carlo', href: '/montecarlo', icon: Dices },
   { label: 'P&L', href: '/pnl', icon: BarChart3 },
   { label: 'Journal', href: '/trades', icon: Book },
+  { label: 'Settings', href: '/settings', icon: Settings },
 ];
 
 const ADMIN_NAV_ITEMS: NavItem[] = [

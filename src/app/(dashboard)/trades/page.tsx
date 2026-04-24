@@ -13,8 +13,11 @@ import {
   ArrowDownRight,
   ArrowUpRight,
   ChevronRight,
-  Layers,
+  Download,
   ListFilter,
+  Plus,
+  Receipt,
+  Search,
   TrendingUp,
   X,
 } from 'lucide-react';
@@ -280,36 +283,96 @@ function TradesPageContent() {
 
   return (
     <div className="flex flex-col gap-5">
-      <header className="flex flex-wrap items-end justify-between gap-4">
+      {/* ── Header — TRADE LEDGER kicker + Journal serif + action buttons ── */}
+      <section
+        className="mm-card"
+        style={{
+          padding: '20px 24px',
+          display: 'grid',
+          gridTemplateColumns: '1fr auto',
+          gap: 20,
+          alignItems: 'center',
+        }}
+      >
         <div>
-          <p className="label-caps">Trades</p>
-          <h1 className="mt-1 font-display text-[24px] font-semibold tracking-tighter text-text-primary">
-            Ledger
-          </h1>
-          <p className="mt-1 text-[13px] text-text-secondary">
-            Every execution — open, partial, closed. Filter by status, strategy, symbol, or date.
-          </p>
+          <div className="mm-kicker">TRADE LEDGER</div>
+          <div
+            style={{ display: 'flex', alignItems: 'baseline', gap: 14, marginTop: 6, flexWrap: 'wrap' }}
+          >
+            <h1
+              className="font-display"
+              style={{ fontSize: 30, letterSpacing: '-0.03em', lineHeight: 1 }}
+            >
+              Journal
+            </h1>
+            <span style={{ color: 'var(--mm-ink-2)', fontSize: 13 }}>
+              {tradesQuery.data?.total ?? 0} total · page {filters.page + 1} of {totalPages}
+              {filters.from && filters.to ? ` · ${filters.from} → ${filters.to}` : ''}
+            </span>
+          </div>
         </div>
-        <div className="flex items-center gap-2 text-[11px] text-text-muted">
-          <Layers size={12} strokeWidth={1.75} />
-          {tradesQuery.data?.total ?? 0} total · page {filters.page + 1} of {totalPages}
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button type="button" className="mm-btn" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+            <Download size={12} strokeWidth={1.75} /> CSV
+          </button>
+          <button type="button" className="mm-btn" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+            <Receipt size={12} strokeWidth={1.75} /> FIFO · tax
+          </button>
+          <button
+            type="button"
+            className="mm-btn mm-btn-mint"
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
+          >
+            <Plus size={12} strokeWidth={2} /> Log manual
+          </button>
         </div>
-      </header>
+      </section>
 
-      {/* Filter bar */}
-      <section className="flex flex-wrap items-center gap-3 rounded-md border border-bd-subtle bg-bg-surface p-3">
-        <div className="flex items-center gap-1">
+      {/* ── Stats strip (design pack). Computed from the currently-visible
+           server page — server-side aggregates would be more accurate but
+           require a new endpoint. This is honest to what's on screen. ── */}
+      <JournalStatsStrip trades={tradesQuery.data?.content ?? []} />
+
+      {/* ── Filter bar — design pack's pill treatment ── */}
+      <section
+        className="mm-card"
+        style={{
+          padding: '12px 16px',
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: 10,
+          alignItems: 'center',
+        }}
+      >
+        {/* Search field — pill shaped, icon-led. Decorative for now — real
+            server-side search on symbol/strategy/notes is an open TODO. */}
+        <div
+          style={{
+            flex: '0 1 280px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            padding: '7px 12px',
+            borderRadius: 999,
+            background: 'var(--mm-surface-2)',
+            fontSize: 12,
+            color: 'var(--mm-ink-3)',
+            minWidth: 0,
+          }}
+        >
+          <Search size={12} strokeWidth={1.75} aria-hidden="true" />
+          <span>Search symbol, strategy, note…</span>
+        </div>
+
+        {/* Status pills (All / Open / Partial / Closed) matching the pack */}
+        <div style={{ display: 'flex', gap: 6 }}>
           {STATUSES.map((s) => (
             <button
               key={s}
               type="button"
               onClick={() => patchFilters({ status: s })}
-              className={cn(
-                'rounded-sm px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider transition-colors',
-                filters.status === s
-                  ? 'bg-[var(--accent-subtle)] text-[var(--accent-primary)]'
-                  : 'text-text-muted hover:bg-bg-elevated hover:text-text-secondary',
-              )}
+              className={cn('mm-pill', filters.status === s && 'mm-pill-active')}
+              style={{ padding: '5px 12px', fontSize: 11 }}
               aria-pressed={filters.status === s}
             >
               {STATUS_META[s].label}
@@ -317,17 +380,19 @@ function TradesPageContent() {
           ))}
         </div>
 
-        <div className="h-5 w-px bg-bd-subtle" aria-hidden="true" />
+        <div style={{ flex: 1 }} aria-hidden="true" />
 
-        <div className="flex items-center gap-2 text-[11px] text-text-muted">
-          <span>Strategy</span>
+        {/* Strategy */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <span style={{ fontSize: 11, color: 'var(--mm-ink-3)' }}>Strategy</span>
           <select
             aria-label="Filter by strategy"
             value={filters.strategyCode}
             onChange={(e) => patchFilters({ strategyCode: e.target.value })}
-            className="h-8 rounded-md border border-bd-subtle bg-bg-base px-2 text-[12px] text-text-primary focus:outline-none"
+            className="mm-btn"
+            style={{ padding: '5px 10px', fontSize: 12, cursor: 'pointer' }}
           >
-            <option value="">All</option>
+            <option value="">any</option>
             {uniqueStrategyCodes.map((code) => (
               <option key={code} value={code}>
                 {code}
@@ -336,36 +401,46 @@ function TradesPageContent() {
           </select>
         </div>
 
-        <div className="flex items-center gap-2 text-[11px] text-text-muted">
-          <span>Symbol</span>
+        {/* Symbol */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <span style={{ fontSize: 11, color: 'var(--mm-ink-3)' }}>Symbol</span>
           <input
             aria-label="Filter by symbol"
             type="text"
             value={filters.symbol}
             onChange={(e) => patchFilters({ symbol: e.target.value.toUpperCase() })}
-            placeholder="BTCUSDT"
-            className="h-8 w-[120px] rounded-md border border-bd-subtle bg-bg-base px-2 font-mono text-[12px] uppercase text-text-primary placeholder:normal-case placeholder:text-[var(--text-muted)] focus:border-[var(--accent-primary)] focus:outline-none"
+            placeholder="any"
+            className="mm-btn"
+            style={{
+              padding: '5px 10px',
+              fontSize: 12,
+              width: 110,
+              fontFamily: 'var(--font-mono)',
+              textTransform: 'uppercase',
+              cursor: 'text',
+            }}
           />
         </div>
 
-        <div className="flex items-center gap-2 text-[11px] text-text-muted">
-          <span>From</span>
+        {/* Dates */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <span style={{ fontSize: 11, color: 'var(--mm-ink-3)' }}>From</span>
           <input
             aria-label="From date"
             type="date"
             value={filters.from}
             onChange={(e) => patchFilters({ from: e.target.value })}
-            className="h-8 rounded-md border border-bd-subtle bg-bg-base px-2 text-[12px] text-text-primary focus:outline-none"
+            className="mm-btn"
+            style={{ padding: '5px 10px', fontSize: 12, cursor: 'pointer' }}
           />
-        </div>
-        <div className="flex items-center gap-2 text-[11px] text-text-muted">
-          <span>To</span>
+          <span style={{ fontSize: 11, color: 'var(--mm-ink-3)' }}>To</span>
           <input
             aria-label="To date"
             type="date"
             value={filters.to}
             onChange={(e) => patchFilters({ to: e.target.value })}
-            className="h-8 rounded-md border border-bd-subtle bg-bg-base px-2 text-[12px] text-text-primary focus:outline-none"
+            className="mm-btn"
+            style={{ padding: '5px 10px', fontSize: 12, cursor: 'pointer' }}
           />
         </div>
 
@@ -373,10 +448,11 @@ function TradesPageContent() {
           <button
             type="button"
             onClick={() => patchFilters({ status: 'ALL', strategyCode: '', symbol: '' })}
-            className="ml-auto inline-flex h-8 items-center gap-1 rounded-md border border-bd-subtle bg-bg-base px-2.5 text-[11px] text-text-muted transition-colors hover:border-bd hover:text-text-primary"
+            className="mm-btn mm-btn-ghost"
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11, padding: '5px 10px' }}
           >
             <X size={11} strokeWidth={1.75} />
-            Clear filters
+            Clear
           </button>
         )}
       </section>
@@ -490,4 +566,179 @@ function LivePnlOrRealizedCell({ trade }: { trade: Trades }) {
     return <PnlCell value={value} />;
   }
   return <PnlCell value={trade.realizedPnl} noFlash />;
+}
+
+// ─── Journal stats strip ─────────────────────────────────────────────────────
+//
+// Five-card grid matching the design pack: big cumulative P&L card with a
+// cumulative-equity sparkline, followed by win rate, profit factor, avg
+// winner, avg loser. Computed from whatever trades are on the current page
+// — a real-deal aggregate across all filtered history is a server-side job
+// and would need a new endpoint. This trades server accuracy for "numbers
+// react live to filters you can see," which is the right trade for a page
+// that's primarily a ledger browser.
+
+interface JournalStats {
+  cumulativePnl: number;
+  winRate: number | null;
+  profitFactor: number | null;
+  avgWin: number | null;
+  avgLoss: number | null;
+  cumSeries: number[];
+}
+
+function computeJournalStats(trades: Trades[]): JournalStats {
+  const closed = trades.filter((t) => t.status !== 'OPEN' && Number.isFinite(t.realizedPnl));
+  // Chronological order for a cumulative series that reads left→right as
+  // "how did this book evolve over the filtered window."
+  const byEntry = [...closed].sort((a, b) => a.entryTime - b.entryTime);
+  const cumSeries: number[] = [];
+  let running = 0;
+  for (const t of byEntry) {
+    running += t.realizedPnl;
+    cumSeries.push(running);
+  }
+  const wins = closed.filter((t) => t.realizedPnl > 0);
+  const losses = closed.filter((t) => t.realizedPnl < 0);
+  const winRate = closed.length > 0 ? wins.length / closed.length : null;
+  const grossProfit = wins.reduce((acc, t) => acc + t.realizedPnl, 0);
+  const grossLoss = losses.reduce((acc, t) => acc + Math.abs(t.realizedPnl), 0);
+  const profitFactor = grossLoss > 0 ? grossProfit / grossLoss : null;
+  const avgWin = wins.length > 0 ? grossProfit / wins.length : null;
+  const avgLoss = losses.length > 0 ? -(grossLoss / losses.length) : null;
+  return {
+    cumulativePnl: running,
+    winRate,
+    profitFactor,
+    avgWin,
+    avgLoss,
+    cumSeries,
+  };
+}
+
+function JournalStatsStrip({ trades }: { trades: Trades[] }) {
+  const stats = useMemo(() => computeJournalStats(trades), [trades]);
+  const cumFmt = formatSignedUsd(stats.cumulativePnl);
+  const cumUp = stats.cumulativePnl >= 0;
+
+  return (
+    <section
+      className="grid gap-3.5"
+      style={{ gridTemplateColumns: '1.6fr 1fr 1fr 1fr 1fr' }}
+    >
+      <div className="mm-card" style={{ padding: '18px 22px' }}>
+        <div className="mm-kicker">CUMULATIVE P&amp;L</div>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginTop: 6 }}>
+          <span
+            style={{
+              fontSize: 26,
+              fontFamily: 'var(--font-num)',
+              fontVariantNumeric: 'tabular-nums',
+              letterSpacing: '-0.02em',
+              color: cumUp ? 'var(--mm-up)' : 'var(--mm-dn)',
+            }}
+          >
+            {cumFmt}
+          </span>
+        </div>
+        <div style={{ marginTop: 8 }}>
+          <StatsSparkline values={stats.cumSeries} color={cumUp ? 'var(--mm-up)' : 'var(--mm-dn)'} />
+        </div>
+      </div>
+
+      <StatCard label="WIN RATE" value={stats.winRate != null ? `${(stats.winRate * 100).toFixed(1)}%` : '—'} />
+      <StatCard
+        label="PROFIT FACTOR"
+        value={stats.profitFactor != null ? stats.profitFactor.toFixed(2) : '—'}
+        color="var(--mm-mint)"
+      />
+      <StatCard
+        label="AVG WINNER"
+        value={stats.avgWin != null ? formatSignedUsd(stats.avgWin) : '—'}
+        color="var(--mm-up)"
+      />
+      <StatCard
+        label="AVG LOSER"
+        value={stats.avgLoss != null ? formatSignedUsd(stats.avgLoss) : '—'}
+        color="var(--mm-dn)"
+      />
+    </section>
+  );
+}
+
+function StatCard({ label, value, color }: { label: string; value: string; color?: string }) {
+  return (
+    <div className="mm-card" style={{ padding: '18px 22px' }}>
+      <div className="mm-kicker">{label}</div>
+      <div
+        style={{
+          fontSize: 22,
+          marginTop: 8,
+          fontFamily: 'var(--font-num)',
+          fontVariantNumeric: 'tabular-nums',
+          letterSpacing: '-0.02em',
+          color: color ?? 'var(--mm-ink-0)',
+        }}
+      >
+        {value}
+      </div>
+    </div>
+  );
+}
+
+function formatSignedUsd(value: number): string {
+  const sign = value >= 0 ? '+' : '−';
+  const abs = Math.abs(value);
+  const formatted = abs >= 1000 ? abs.toLocaleString('en-US', { maximumFractionDigits: 0 }) : abs.toFixed(2);
+  return `${sign}$${formatted}`;
+}
+
+/** Compact SVG polyline for the stats-strip hero card. Kept inline — we only
+ *  need it here, and the existing chart libraries are overkill for a 320×48
+ *  sparkline with no axes, tooltips, or interaction. */
+function StatsSparkline({
+  values,
+  color,
+  width = 320,
+  height = 48,
+}: {
+  values: number[];
+  color: string;
+  width?: number;
+  height?: number;
+}) {
+  if (values.length < 2) {
+    return (
+      <div
+        style={{
+          width,
+          height,
+          borderRadius: 4,
+          background:
+            'linear-gradient(90deg, var(--mm-hair) 0%, var(--mm-hair-2) 50%, var(--mm-hair) 100%)',
+          opacity: 0.5,
+        }}
+        aria-hidden="true"
+      />
+    );
+  }
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const range = max - min || 1;
+  const step = width / (values.length - 1);
+  const points = values
+    .map((v, i) => `${(i * step).toFixed(1)},${(height - ((v - min) / range) * height).toFixed(1)}`)
+    .join(' ');
+  return (
+    <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} aria-hidden="true">
+      <polyline
+        points={points}
+        fill="none"
+        stroke={color}
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
 }
