@@ -11,7 +11,7 @@ import { usePortfolio } from '@/hooks/usePortfolio';
 import { useEquityCurve } from '@/hooks/useEquityCurve';
 import { useLivePnl, useSyncOpenPositions } from '@/hooks/useLivePnl';
 import { usePositionStore } from '@/store/positionStore';
-import { formatPnl, formatPrice } from '@/lib/formatters';
+import { useCurrencyFormatter } from '@/hooks/useCurrency';
 import type { LivePosition } from '@/types/trading';
 import type { AccountStrategy } from '@/types/strategy';
 import type { EquityPoint } from '@/types/market';
@@ -112,10 +112,9 @@ function HeroCard({
   period,
   setPeriod,
 }: HeroCardProps) {
+  const formatCurrency = useCurrencyFormatter();
   const isUp = changeToday >= 0;
   const chartData = useMemo(() => points.map((p) => p.equity), [points]);
-
-  const [whole, decimals] = splitMoney(balance);
   const now = useMemo(
     () => new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }),
     [],
@@ -172,15 +171,7 @@ function HeroCard({
             color: 'var(--mm-ink-0)',
           }}
         >
-          ${whole}
-          <span
-            style={{
-              color: 'var(--mm-ink-2)',
-              fontSize: 'clamp(36px, 4vw, 56px)',
-            }}
-          >
-            .{decimals}
-          </span>
+          {formatCurrency(balance)}
         </div>
 
         <div
@@ -216,7 +207,7 @@ function HeroCard({
             >
               <path d="M7 17l5-5 5 5" />
             </svg>
-            {isUp ? 'Up' : 'Down'} {formatPnl(Math.abs(changeToday))}
+            {isUp ? 'Up' : 'Down'} {formatCurrency(Math.abs(changeToday))}
           </div>
           <span style={{ fontSize: 14, color: 'var(--mm-ink-2)' }}>
             {isUp ? '+' : '−'}
@@ -249,7 +240,7 @@ function HeroCard({
         <BigMintChart
           data={chartData.length ? chartData : fallbackCurve()}
           height={220}
-          tag={`$${formatPrice(balance, 2)}`}
+          tag={formatCurrency(balance)}
         />
       </div>
     </section>
@@ -262,14 +253,6 @@ function timeGreeting() {
   if (h < 12) return 'Good morning';
   if (h < 18) return 'Good afternoon';
   return 'Good evening';
-}
-
-function splitMoney(n: number): [string, string] {
-  const abs = Math.abs(n);
-  const sign = n < 0 ? '-' : '';
-  const whole = `${sign}${Math.floor(abs).toLocaleString()}`;
-  const decs = (abs - Math.floor(abs)).toFixed(2).slice(2);
-  return [whole, decs];
 }
 
 function minMax(data: number[]): { min: number; max: number } {
@@ -507,6 +490,7 @@ function PositionRow({ trade }: { trade: LivePosition }) {
   // the REST snapshot so the row doesn't lag the ticker by ~15s.
   const livePnl = usePositionStore((s) => s.pnlMap[trade.tradeId]);
   const liveMark = usePositionStore((s) => s.markMap[trade.tradeId]);
+  const formatCurrency = useCurrencyFormatter();
   const pnl = livePnl ?? trade.unrealizedPnl ?? 0;
   const pnlPct = trade.unrealizedPnlPct ?? 0;
   const isUp = pnl >= 0;
@@ -577,13 +561,13 @@ function PositionRow({ trade }: { trade: LivePosition }) {
       <Sparkline values={spark} color={color} />
       <div style={{ textAlign: 'right', minWidth: 0 }}>
         <div className="mm-num" style={{ fontSize: 16, color: 'var(--mm-ink-0)' }}>
-          {value != null ? `$${formatPrice(value, 2)}` : '—'}
+          {value != null ? formatCurrency(value) : '—'}
         </div>
         <div style={{ fontSize: 11, color: 'var(--mm-ink-3)', marginTop: 2 }}>value</div>
       </div>
       <div style={{ textAlign: 'right' }}>
         <div className="mm-num" style={{ fontSize: 16, fontWeight: 500, color }}>
-          {isUp ? '+' : '−'}${formatPrice(Math.abs(pnl), 2)}
+          {formatCurrency(pnl, { withSign: true })}
         </div>
         <div style={{ fontSize: 12, marginTop: 2, color }}>
           {isUp ? '▲' : '▼'} {Math.abs(pnlPct).toFixed(2)}%
@@ -659,13 +643,14 @@ function AtAGlance({
   winRate: number;
   bestOpen: { symbol: string; pct: number } | null;
 }) {
+  const formatCurrency = useCurrencyFormatter();
   const stats: Array<{
     label: string;
     value: string;
     sub?: string;
     tone?: 'mint' | 'warn' | 'neutral';
   }> = [
-    { label: 'Buying power', value: `$${formatPrice(balance, 0)}` },
+    { label: 'Buying power', value: formatCurrency(balance) },
     bestOpen
       ? {
           label: 'Best today',
@@ -733,6 +718,7 @@ function TopPerformerCard({
   strategies: AccountStrategy[];
   realizedToday: number;
 }) {
+  const formatCurrency = useCurrencyFormatter();
   const top = strategies.find((s) => s.status === 'LIVE') ?? strategies[0];
 
   if (!top) {
@@ -843,7 +829,7 @@ function TopPerformerCard({
             color: isUp ? 'var(--mm-mint)' : 'var(--mm-dn)',
           }}
         >
-          {isUp ? '+' : '−'}${formatPrice(Math.abs(realizedToday), 0)}
+          {formatCurrency(realizedToday, { withSign: true })}
         </span>
         <span style={{ fontSize: 13, color: 'var(--mm-ink-2)' }}>today</span>
       </div>

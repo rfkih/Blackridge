@@ -1,7 +1,7 @@
 'use client';
 
 import { StatCard } from '@/components/shared/StatCard';
-import { formatPrice } from '@/lib/formatters';
+import { useCurrencyFormatter } from '@/hooks/useCurrency';
 import type { BacktestMetrics } from '@/types/backtest';
 
 interface BacktestMetricsGridProps {
@@ -16,8 +16,8 @@ function formatNum(n: number | null | undefined, digits = 2): string {
 
 export function BacktestMetricsGrid({ metrics, isLoading }: BacktestMetricsGridProps) {
   const m = metrics;
+  const formatCurrency = useCurrencyFormatter();
   const totalReturnColor = m == null ? 'neutral' : m.totalReturn >= 0 ? 'profit' : 'loss';
-  const totalReturnPrefix = m && m.totalReturn >= 0 ? '+' : '';
   const totalReturnPctPrefix = m && m.totalReturnPct >= 0 ? '+' : '';
 
   return (
@@ -27,7 +27,7 @@ export function BacktestMetricsGrid({ metrics, isLoading }: BacktestMetricsGridP
         isLoading={isLoading}
         value={m ? `${totalReturnPctPrefix}${formatNum(m.totalReturnPct)}%` : '—'}
         valueColor={totalReturnColor}
-        sub={m ? `${totalReturnPrefix}${formatPrice(m.totalReturn)} USDT` : undefined}
+        sub={m ? formatCurrency(m.totalReturn, { withSign: true }) : undefined}
         subColor={totalReturnColor === 'neutral' ? 'neutral' : totalReturnColor}
       />
       <StatCard
@@ -61,7 +61,7 @@ export function BacktestMetricsGrid({ metrics, isLoading }: BacktestMetricsGridP
         value={m ? `−${formatNum(m.maxDrawdownPct)}%` : '—'}
         valueColor={m?.maxDrawdownPct ? 'loss' : 'neutral'}
         sub={
-          m && m.maxDrawdown != null ? `−${formatPrice(Math.abs(m.maxDrawdown))} USDT` : undefined
+          m && m.maxDrawdown != null ? formatCurrency(-Math.abs(m.maxDrawdown), { withSign: true }) : undefined
         }
         subColor="loss"
       />
@@ -70,8 +70,10 @@ export function BacktestMetricsGrid({ metrics, isLoading }: BacktestMetricsGridP
         isLoading={isLoading}
         value={
           m && (m.avgWinUsdt != null || m.avgLossUsdt != null)
-            ? `${m.avgWinUsdt != null ? `+${formatPrice(m.avgWinUsdt)}` : '—'} / ${
-                m.avgLossUsdt != null ? `−${formatPrice(Math.abs(m.avgLossUsdt))}` : '—'
+            ? `${m.avgWinUsdt != null ? formatCurrency(m.avgWinUsdt, { withSign: true }) : '—'} / ${
+                m.avgLossUsdt != null
+                  ? formatCurrency(-Math.abs(m.avgLossUsdt), { withSign: true })
+                  : '—'
               }`
             : '—'
         }

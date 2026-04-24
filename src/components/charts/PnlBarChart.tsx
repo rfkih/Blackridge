@@ -13,7 +13,7 @@ import {
   YAxis,
 } from 'recharts';
 import { AXIS_TICK, CHART_COLORS, TOOLTIP_CONTENT_STYLE } from '@/lib/charts/rechartsTheme';
-import { formatPnl } from '@/lib/formatters';
+import { useCurrencyFormatter } from '@/hooks/useCurrency';
 import type { DailyPnl } from '@/types/pnl';
 
 interface PnlBarChartProps {
@@ -26,32 +26,32 @@ interface TooltipItem {
   value: number;
 }
 
-function PnlBarTooltip({ active, payload }: { active?: boolean; payload?: TooltipItem[] }) {
-  if (!active || !payload?.length) return null;
-  const d = payload[0]?.payload;
-  if (!d) return null;
-  const up = d.realizedPnl >= 0;
-  return (
-    <div
-      className="rounded-md border border-[var(--border-default)] px-3 py-2 text-left"
-      style={{ background: 'var(--bg-elevated)', minWidth: 150 }}
-    >
-      <p className="mb-1 font-mono text-[10px] text-[var(--text-muted)]">{d.date}</p>
-      <p
-        className="font-display text-sm font-semibold tabular-nums"
-        style={{ color: up ? CHART_COLORS.profit : CHART_COLORS.loss }}
-      >
-        {formatPnl(d.realizedPnl)}
-      </p>
-      <p className="mt-0.5 font-mono text-[11px] text-[var(--text-muted)]">
-        {d.tradeCount} trade{d.tradeCount === 1 ? '' : 's'}
-      </p>
-    </div>
-  );
-}
-
 export function PnlBarChart({ data, height = 260 }: PnlBarChartProps) {
   const memoData = useMemo(() => data, [data]);
+  const formatCurrency = useCurrencyFormatter();
+  const PnlBarTooltip = ({ active, payload }: { active?: boolean; payload?: TooltipItem[] }) => {
+    if (!active || !payload?.length) return null;
+    const d = payload[0]?.payload;
+    if (!d) return null;
+    const up = d.realizedPnl >= 0;
+    return (
+      <div
+        className="rounded-md border border-[var(--border-default)] px-3 py-2 text-left"
+        style={{ background: 'var(--bg-elevated)', minWidth: 150 }}
+      >
+        <p className="mb-1 font-mono text-[10px] text-[var(--text-muted)]">{d.date}</p>
+        <p
+          className="font-display text-sm font-semibold tabular-nums"
+          style={{ color: up ? CHART_COLORS.profit : CHART_COLORS.loss }}
+        >
+          {formatCurrency(d.realizedPnl, { withSign: true })}
+        </p>
+        <p className="mt-0.5 font-mono text-[11px] text-[var(--text-muted)]">
+          {d.tradeCount} trade{d.tradeCount === 1 ? '' : 's'}
+        </p>
+      </div>
+    );
+  };
 
   return (
     <ResponsiveContainer width="100%" height={height}>

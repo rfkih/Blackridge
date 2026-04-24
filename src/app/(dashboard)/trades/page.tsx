@@ -31,6 +31,7 @@ import { useStrategies } from '@/hooks/useStrategies';
 import { useActiveAccount } from '@/hooks/useAccounts';
 import { usePositionStore } from '@/store/positionStore';
 import { useLivePnl, useSyncOpenPositions } from '@/hooks/useLivePnl';
+import { useCurrencyFormatter } from '@/hooks/useCurrency';
 import { formatDate, formatDuration } from '@/lib/formatters';
 import { cn } from '@/lib/utils';
 import type { TradeStatus, Trades } from '@/types/trading';
@@ -618,7 +619,8 @@ function computeJournalStats(trades: Trades[]): JournalStats {
 
 function JournalStatsStrip({ trades }: { trades: Trades[] }) {
   const stats = useMemo(() => computeJournalStats(trades), [trades]);
-  const cumFmt = formatSignedUsd(stats.cumulativePnl);
+  const formatCurrency = useCurrencyFormatter();
+  const cumFmt = formatCurrency(stats.cumulativePnl, { withSign: true });
   const cumUp = stats.cumulativePnl >= 0;
 
   return (
@@ -654,12 +656,12 @@ function JournalStatsStrip({ trades }: { trades: Trades[] }) {
       />
       <StatCard
         label="AVG WINNER"
-        value={stats.avgWin != null ? formatSignedUsd(stats.avgWin) : '—'}
+        value={stats.avgWin != null ? formatCurrency(stats.avgWin, { withSign: true }) : '—'}
         color="var(--mm-up)"
       />
       <StatCard
         label="AVG LOSER"
-        value={stats.avgLoss != null ? formatSignedUsd(stats.avgLoss) : '—'}
+        value={stats.avgLoss != null ? formatCurrency(stats.avgLoss, { withSign: true }) : '—'}
         color="var(--mm-dn)"
       />
     </section>
@@ -684,13 +686,6 @@ function StatCard({ label, value, color }: { label: string; value: string; color
       </div>
     </div>
   );
-}
-
-function formatSignedUsd(value: number): string {
-  const sign = value >= 0 ? '+' : '−';
-  const abs = Math.abs(value);
-  const formatted = abs >= 1000 ? abs.toLocaleString('en-US', { maximumFractionDigits: 0 }) : abs.toFixed(2);
-  return `${sign}$${formatted}`;
 }
 
 /** Compact SVG polyline for the stats-strip hero card. Kept inline — we only

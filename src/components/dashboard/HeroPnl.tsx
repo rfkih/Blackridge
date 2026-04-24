@@ -2,7 +2,7 @@
 
 import { ArrowDownRight, ArrowUpRight, Layers } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { formatPnl, formatPrice } from '@/lib/formatters';
+import { useCurrencyFormatter } from '@/hooks/useCurrency';
 import { cn } from '@/lib/utils';
 import type { AccountSummary } from '@/types/account';
 
@@ -26,6 +26,7 @@ export function HeroPnl({
   isLoading,
   scope,
 }: HeroPnlProps) {
+  const formatCurrency = useCurrencyFormatter();
   const isUp = unrealizedPnl >= 0;
   const pnlColor = isUp ? 'var(--color-profit)' : 'var(--color-loss)';
 
@@ -70,7 +71,7 @@ export function HeroPnl({
                   fontWeight: 600,
                 }}
               >
-                {formatHeroPnl(unrealizedPnl)}
+                {formatCurrency(unrealizedPnl, { withSign: true })}
               </h1>
             )}
             <p className="num mt-3 text-[11px] text-text-muted">
@@ -92,7 +93,7 @@ export function HeroPnl({
         <div className="flex flex-col bg-bg-surface">
           <ScoreRow
             label="Realized · Today"
-            value={formatPnl(realizedPnlToday)}
+            value={formatCurrency(realizedPnlToday, { withSign: true })}
             valueColor={realizedPnlToday >= 0 ? 'var(--color-profit)' : 'var(--color-loss)'}
             isLoading={isLoading}
           />
@@ -185,8 +186,3 @@ function ScoreRow({
   );
 }
 
-function formatHeroPnl(n: number): string {
-  if (!Number.isFinite(n)) return '—';
-  const sign = n >= 0 ? '+' : '−';
-  return `${sign}${formatPrice(Math.abs(n), 2)}`;
-}

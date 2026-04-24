@@ -75,7 +75,13 @@
       "Bash(mkdir -p /tmp/design-pkg)",
       "Bash(tar -xzf \"C:/Users/rfkih/.claude/projects/C--MyFiles-blackheart-front-end/77c2d37b-2880-4c0a-8bc3-905daadba413/tool-results/webfetch-1776988715459-h6ub54.bin\" -C /tmp/design-pkg)",
       "Bash(cp \"C:/Users/rfkih/.claude/projects/C--MyFiles-blackheart-front-end/77c2d37b-2880-4c0a-8bc3-905daadba413/tool-results/webfetch-1776988715459-h6ub54.bin\" /tmp/design.tar.gz)",
-      "Bash(tar -xzf /tmp/design.tar.gz -C /tmp/design-pkg)"
+      "Bash(tar -xzf /tmp/design.tar.gz -C /tmp/design-pkg)",
+      "Bash(mvn -q -DskipTests compile)",
+      "Bash(./gradlew -q compileJava)",
+      "Bash(grep -n \"formatPnl\\\\|formatPrice\\\\|\\\\\\\\$\\\\\\\\{\" \"C:/MyFiles/blackheart/front-end/src/app/\\(dashboard\\)/trades/page.tsx\")",
+      "Bash(grep -n \"USDT\\\\|formatUsdt\\\\|\\\\\\\\$\" \"C:/MyFiles/blackheart/front-end/src/app/\\(dashboard\\)/trades/page.tsx\")",
+      "Bash(grep -n \"realizedPnl\\\\|cumulative\\\\|sign.*\\\\\\\\+\" \"C:/MyFiles/blackheart/front-end/src/app/\\(dashboard\\)/trades/page.tsx\")",
+      "Bash(grep -n \"\\\\\\\\-\\\\\\\\-dur-base\\\\|--dur-\" \"C:/MyFiles/blackheart/front-end/src/app/globals.css\")"
     ]
   }
 }

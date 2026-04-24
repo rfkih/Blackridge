@@ -2,7 +2,13 @@
 
 import { useEffect, useMemo } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { createAccount, getMyAccounts, type CreateAccountPayload } from '@/lib/api/accounts';
+import {
+  createAccount,
+  getMyAccounts,
+  rotateAccountCredentials,
+  type CreateAccountPayload,
+  type RotateAccountCredentialsPayload,
+} from '@/lib/api/accounts';
 import { QUERY_STALE_TIMES } from '@/lib/constants';
 import { useAccountStore } from '@/store/accountStore';
 import { useAuthStore } from '@/store/authStore';
@@ -100,6 +106,28 @@ export function useCreateAccount() {
       if (existingSelection == null) {
         setSelection(account.id);
       }
+    },
+  });
+}
+
+/**
+ * Rotate the Binance API key + secret for an account the user owns. Summary
+ * shape is unchanged, but we still refresh the accounts query so any stale
+ * derived data (e.g. a disabled "active" flag the backend might toggle on
+ * the next health check) picks up.
+ */
+export function useRotateAccountCredentials() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      accountId,
+      payload,
+    }: {
+      accountId: string;
+      payload: RotateAccountCredentialsPayload;
+    }) => rotateAccountCredentials(accountId, payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['accounts'] });
     },
   });
 }

@@ -156,6 +156,14 @@ export default function BacktestResultPage({ params }: { params: { id: string } 
 
       <BacktestMetricsGrid metrics={runQ.data?.metrics ?? null} isLoading={runQ.isLoading} />
 
+      <ErrorBoundary label="Equity curve">
+        <BacktestEquityPanel
+          points={equityQ.data ?? EMPTY_EQUITY}
+          initialCapital={runQ.data?.initialCapital ?? 0}
+          isLoading={equityQ.isLoading}
+        />
+      </ErrorBoundary>
+
       <section className="overflow-hidden rounded-md border border-bd-subtle bg-bg-surface">
         <div className="flex items-center justify-between border-b border-bd-subtle px-4 py-3">
           <h3 className="font-display text-[13px] font-semibold text-text-primary">
@@ -192,14 +200,6 @@ export default function BacktestResultPage({ params }: { params: { id: string } 
           </ErrorBoundary>
         )}
       </section>
-
-      <ErrorBoundary label="Equity curve">
-        <BacktestEquityPanel
-          points={equityQ.data ?? EMPTY_EQUITY}
-          initialCapital={runQ.data?.initialCapital ?? 0}
-          isLoading={equityQ.isLoading}
-        />
-      </ErrorBoundary>
 
       <section className="space-y-2">
         <div className="flex items-baseline justify-between">

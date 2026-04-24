@@ -6,7 +6,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { PriceCell } from '@/components/shared/PriceCell';
 import { usePositionStore } from '@/store/positionStore';
-import { formatPnl, formatPercent, formatAge } from '@/lib/formatters';
+import { useCurrencyFormatter } from '@/hooks/useCurrency';
+import { formatPercent, formatAge } from '@/lib/formatters';
 import { cn } from '@/lib/utils';
 import type { LivePosition } from '@/types/trading';
 
@@ -22,6 +23,7 @@ function LivePnlCell({ tradeId, basePnl, basePct }: LivePnlCellProps) {
   // Per-tradeId selector: this row only re-renders when ITS pnl value changes,
   // not on every WS frame for any other trade.
   const livePnlRaw = usePositionStore((s) => s.pnlMap[tradeId]);
+  const formatCurrency = useCurrencyFormatter();
   const livePnl = livePnlRaw ?? basePnl ?? 0;
   const [flash, setFlash] = useState<'profit' | 'loss' | null>(null);
   const prevRef = useRef(livePnl);
@@ -52,7 +54,7 @@ function LivePnlCell({ tradeId, basePnl, basePct }: LivePnlCellProps) {
               : 'transparent',
       }}
     >
-      {formatPnl(livePnl)}
+      {formatCurrency(livePnl, { withSign: true })}
       <span className="ml-1.5 text-xs opacity-60">{formatPercent(basePct)}</span>
     </span>
   );

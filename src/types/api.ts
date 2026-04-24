@@ -90,6 +90,7 @@ export interface User {
   name: string;
   role?: string;
   createdAt?: ISO8601;
+  phoneNumber?: string | null;
 }
 
 export type AccountVenue = 'BINANCE_SPOT' | 'BINANCE_FUTURES';

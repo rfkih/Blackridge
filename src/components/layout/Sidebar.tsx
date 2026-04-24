@@ -22,7 +22,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useIsAdmin } from '@/hooks/useIsAdmin';
 import { usePnlSummary } from '@/hooks/useTrades';
 import { usePortfolio } from '@/hooks/usePortfolio';
-import { formatPnl, formatPrice } from '@/lib/formatters';
+import { useCurrencyFormatter } from '@/hooks/useCurrency';
 
 interface NavItem {
   label: string;
@@ -59,6 +59,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
 
   const { data: pnlSummary } = usePnlSummary('today');
   const { data: portfolio } = usePortfolio();
+  const formatCurrency = useCurrencyFormatter();
 
   const equity = portfolio?.totalUsdt ?? 0;
   const realizedToday = pnlSummary?.realizedPnl ?? 0;
@@ -159,7 +160,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
               color: 'var(--mm-ink-0)',
             }}
           >
-            {equity > 0 ? `$${formatPrice(equity, 0)}` : '—'}
+            {equity > 0 ? formatCurrency(equity) : '—'}
           </div>
           <div
             style={{
@@ -176,8 +177,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                 fontFamily: 'var(--mm-num)',
               }}
             >
-              {realizedToday >= 0 ? '+' : ''}
-              {formatPnl(realizedToday)}
+              {formatCurrency(realizedToday, { withSign: true })}
             </span>
             <span style={{ color: 'var(--mm-ink-3)' }}>today</span>
           </div>

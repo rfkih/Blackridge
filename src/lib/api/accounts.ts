@@ -52,3 +52,24 @@ export async function createAccount(payload: CreateAccountPayload): Promise<Acco
   const { data } = await apiClient.post<BackendAccountSummary>('/api/v1/accounts', payload);
   return mapAccount(data);
 }
+
+/**
+ * Payload for {@link rotateAccountCredentials}. Binance API keys can't be
+ * mutated in place on the exchange, so rotation is always a full key+secret
+ * replacement. The backend re-encrypts both values at rest.
+ */
+export interface RotateAccountCredentialsPayload {
+  apiKey: string;
+  apiSecret: string;
+}
+
+export async function rotateAccountCredentials(
+  accountId: string,
+  payload: RotateAccountCredentialsPayload,
+): Promise<AccountSummary> {
+  const { data } = await apiClient.patch<BackendAccountSummary>(
+    `/api/v1/accounts/${accountId}/credentials`,
+    payload,
+  );
+  return mapAccount(data);
+}

@@ -32,6 +32,7 @@ function mapUser(u: BackendUser | undefined | null): User {
     name: u.fullName,
     role: u.role,
     createdAt: u.createdTime,
+    phoneNumber: u.phoneNumber,
   };
 }
 

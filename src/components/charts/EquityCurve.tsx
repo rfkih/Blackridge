@@ -10,7 +10,8 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
-import { formatDate, formatPrice } from '@/lib/formatters';
+import { useCurrencyFormatter } from '@/hooks/useCurrency';
+import { formatDate } from '@/lib/formatters';
 
 export interface EquityCurvePoint {
   ts: number;
@@ -27,44 +28,36 @@ interface TooltipItem {
   payload: { ts: number; equity: number };
 }
 
-function EquityTooltip({
-  active,
-  payload,
-  initialCapital,
-}: {
-  active?: boolean;
-  payload?: TooltipItem[];
-  initialCapital: number;
-}) {
-  if (!active || !payload?.length) return null;
-  const d = payload[0]?.payload;
-  if (!d) return null;
-  const change = d.equity - initialCapital;
-  const pct = initialCapital !== 0 ? (change / initialCapital) * 100 : 0;
-  const up = change >= 0;
-  return (
-    <div
-      className="rounded-md border border-[var(--border-default)] px-3 py-2 text-left"
-      style={{ background: 'var(--bg-elevated)', minWidth: 150 }}
-    >
-      <p className="mb-1 font-mono text-[10px] text-[var(--text-muted)]">{formatDate(d.ts)}</p>
-      <p className="font-display text-sm font-semibold tabular-nums text-[var(--text-primary)]">
-        ${formatPrice(d.equity)}
-      </p>
-      <p
-        className="mt-0.5 font-mono text-[11px] tabular-nums"
-        style={{ color: up ? 'var(--color-profit)' : 'var(--color-loss)' }}
-      >
-        {up ? '+' : ''}
-        {formatPrice(change)} ({pct.toFixed(2)}%)
-      </p>
-    </div>
-  );
-}
-
 export function EquityCurve({ points, initialCapital, height = 220 }: EquityCurveProps) {
   const capital = initialCapital ?? points[0]?.equity ?? 0;
   const data = useMemo(() => points.map((p) => ({ ts: p.ts, equity: p.equity })), [points]);
+  const formatCurrency = useCurrencyFormatter();
+
+  const EquityTooltip = ({ active, payload }: { active?: boolean; payload?: TooltipItem[] }) => {
+    if (!active || !payload?.length) return null;
+    const d = payload[0]?.payload;
+    if (!d) return null;
+    const change = d.equity - capital;
+    const pct = capital !== 0 ? (change / capital) * 100 : 0;
+    const up = change >= 0;
+    return (
+      <div
+        className="rounded-md border border-[var(--border-default)] px-3 py-2 text-left"
+        style={{ background: 'var(--bg-elevated)', minWidth: 150 }}
+      >
+        <p className="mb-1 font-mono text-[10px] text-[var(--text-muted)]">{formatDate(d.ts)}</p>
+        <p className="font-display text-sm font-semibold tabular-nums text-[var(--text-primary)]">
+          {formatCurrency(d.equity)}
+        </p>
+        <p
+          className="mt-0.5 font-mono text-[11px] tabular-nums"
+          style={{ color: up ? 'var(--color-profit)' : 'var(--color-loss)' }}
+        >
+          {formatCurrency(change, { withSign: true })} ({pct.toFixed(2)}%)
+        </p>
+      </div>
+    );
+  };
 
   const [yMin, yMax] = useMemo(() => {
     if (!data.length) return [0, 1];
@@ -114,7 +107,7 @@ export function EquityCurve({ points, initialCapital, height = 220 }: EquityCurv
           tickLine={false}
           width={56}
         />
-        <Tooltip content={<EquityTooltip initialCapital={capital} />} />
+        <Tooltip content={<EquityTooltip />} />
         <ReferenceLine y={capital} stroke="#2A2F3A" strokeDasharray="3 3" />
         <Area
           type="monotone"

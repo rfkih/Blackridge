@@ -14,7 +14,14 @@ import type {
   Time,
 } from 'lightweight-charts';
 import { TV } from '@/lib/charts/chartTheme';
-import { buildTradeMarkers, legHitMap, type MarkerMeta } from '@/lib/backtest/buildTradeMarkers';
+import {
+  buildTradeMarkers,
+  deriveTradeOutcome,
+  legHitMap,
+  type HitLine,
+  type MarkerMeta,
+  type OutcomeTone,
+} from '@/lib/backtest/buildTradeMarkers';
 import { formatPnl, formatPrice } from '@/lib/formatters';
 import type { BacktestTrade } from '@/types/backtest';
 import type { CandleData } from '@/types/market';
@@ -252,29 +259,49 @@ export function BacktestAnnotatedChart({
     const trade = tradeById.get(selectedTradeId);
     if (!trade) return;
 
+    const hitLine = deriveTradeOutcome(trade.positions).hitLine;
+
     // Import LineStyle lazily; it's part of the same module we already loaded.
     void (async () => {
       const { LineStyle } = await import('lightweight-charts');
       if (!seriesRef.current) return;
       const activeSeries = seriesRef.current;
 
-      const add = (price: number | null | undefined, color: string, title: string) => {
+      const add = (
+        price: number | null | undefined,
+        color: string,
+        title: string,
+        which: HitLine,
+      ) => {
         if (price == null || !Number.isFinite(price)) return;
+        const wasHit = which != null && hitLine === which;
+        // Emphasise the horizontal the trade actually closed on: solid + thicker
+        // + a "✓ hit" label suffix. Other lines stay in the ambient dashed state.
         const line = activeSeries.createPriceLine({
           price,
           color,
-          lineWidth: 1,
-          lineStyle: LineStyle.Dashed,
+          lineWidth: wasHit ? 2 : 1,
+          lineStyle: wasHit ? LineStyle.Solid : LineStyle.Dashed,
           axisLabelVisible: true,
-          title,
+          title: wasHit ? `${title} · hit` : title,
         });
         priceLineRefs.current.push(line);
       };
 
-      add(trade.stopLossPrice, '#FF4D6A', 'SL');
-      add(trade.tp1Price, '#00C896', 'TP1');
-      add(trade.tp2Price, '#00E5B0', 'TP2');
-      add(trade.entryPrice, '#4E9EFF', 'ENTRY');
+      add(trade.stopLossPrice, '#FF4D6A', 'SL', 'SL');
+      add(trade.tp1Price, '#00C896', 'TP1', 'TP1');
+      add(trade.tp2Price, '#00E5B0', 'TP2', 'TP2');
+      // Runner trailing stop has no fixed price — exitPrice of the RUNNER leg
+      // is the best anchor we have for "where the trail actually closed".
+      if (hitLine === 'RUNNER') {
+        const runnerLeg = trade.positions.find(
+          (p) => p.type === 'RUNNER' && p.exitReason === 'RUNNER_CLOSE',
+        );
+        if (runnerLeg?.exitPrice != null && Number.isFinite(runnerLeg.exitPrice)) {
+          add(runnerLeg.exitPrice, '#4E9EFF', 'TRAIL', 'RUNNER');
+        }
+      }
+      add(trade.entryPrice, '#4E9EFF', 'ENTRY', null);
     })();
   }, [ready, selectedTradeId, tradeById]);
 
@@ -413,6 +440,8 @@ function TradeMarkerTooltip({ trade, x, y }: { trade: BacktestTrade; x: number; 
   const legs = (Object.keys(hits) as Array<keyof typeof hits>).filter(
     (k) => hits[k] === 'TP_HIT' || hits[k] === 'RUNNER_CLOSE',
   );
+  const outcome = deriveTradeOutcome(trade.positions);
+  const outcomeColors = tooltipOutcomeColors(outcome.tone);
   return (
     <div
       className="pointer-events-none absolute z-10 rounded-md border border-[var(--border-default)] px-2.5 py-2 font-mono text-[11px] text-[var(--text-primary)] shadow-lg"
@@ -420,7 +449,7 @@ function TradeMarkerTooltip({ trade, x, y }: { trade: BacktestTrade; x: number; 
         background: 'var(--bg-elevated)',
         left: Math.min(x + 12, 400),
         top: Math.max(y - 70, 8),
-        minWidth: 180,
+        minWidth: 200,
       }}
     >
       <div className="flex items-center gap-2">
@@ -434,13 +463,20 @@ function TradeMarkerTooltip({ trade, x, y }: { trade: BacktestTrade; x: number; 
         >
           {trade.direction}
         </span>
-        <span className="tabular-nums text-[var(--text-secondary)]">
-          {formatPrice(trade.entryPrice)}
-          {trade.exitPrice != null && ` → ${formatPrice(trade.exitPrice)}`}
+        <span
+          className="rounded-sm px-1.5 py-0.5 text-[10px] font-semibold tracking-wider"
+          title={outcome.description}
+          style={{ background: outcomeColors.bg, color: outcomeColors.fg }}
+        >
+          {outcome.label}
         </span>
       </div>
+      <div className="mt-1.5 tabular-nums text-[var(--text-secondary)]">
+        {formatPrice(trade.entryPrice)}
+        {trade.exitPrice != null && ` → ${formatPrice(trade.exitPrice)}`}
+      </div>
       <div
-        className="mt-1.5 tabular-nums"
+        className="mt-1 tabular-nums"
         style={{
           color: trade.realizedPnl >= 0 ? 'var(--color-profit)' : 'var(--color-loss)',
         }}
@@ -454,4 +490,19 @@ function TradeMarkerTooltip({ trade, x, y }: { trade: BacktestTrade; x: number; 
       )}
     </div>
   );
+}
+
+function tooltipOutcomeColors(tone: OutcomeTone): { bg: string; fg: string } {
+  switch (tone) {
+    case 'profit':
+      return { bg: 'rgba(0,200,150,0.15)', fg: 'var(--color-profit)' };
+    case 'loss':
+      return { bg: 'rgba(255,77,106,0.15)', fg: 'var(--color-loss)' };
+    case 'warning':
+      return { bg: 'rgba(245,166,35,0.15)', fg: 'var(--color-warning)' };
+    case 'info':
+      return { bg: 'rgba(78,158,255,0.15)', fg: 'var(--color-info)' };
+    default:
+      return { bg: 'var(--bg-surface)', fg: 'var(--text-muted)' };
+  }
 }

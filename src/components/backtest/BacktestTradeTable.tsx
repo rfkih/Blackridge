@@ -5,7 +5,12 @@ import { useVirtualizer } from '@tanstack/react-virtual';
 import { ChevronDown, ChevronsUpDown, ChevronUp } from 'lucide-react';
 import { formatDate, formatDuration, formatPrice, formatRMultiple } from '@/lib/formatters';
 import { cn } from '@/lib/utils';
-import { legHitMap } from '@/lib/backtest/buildTradeMarkers';
+import {
+  deriveTradeOutcome,
+  legHitMap,
+  type OutcomeTone,
+  type TradeOutcome,
+} from '@/lib/backtest/buildTradeMarkers';
 import type { BacktestTrade } from '@/types/backtest';
 import type { PositionExitReason, PositionType } from '@/types/trading';
 
@@ -36,6 +41,7 @@ type SortKey =
   | 'sl'
   | 'tp1'
   | 'tp2'
+  | 'outcome'
   | 'pnl'
   | 'r'
   | 'duration';
@@ -53,6 +59,7 @@ const COLUMNS: Array<{ key: SortKey | 'legs'; label: string; sortable: boolean }
   { key: 'tp1', label: 'TP1', sortable: true },
   { key: 'tp2', label: 'TP2', sortable: true },
   { key: 'legs', label: 'Legs', sortable: false },
+  { key: 'outcome', label: 'Outcome', sortable: true },
   { key: 'pnl', label: 'P&L', sortable: true },
   { key: 'r', label: 'R', sortable: true },
   { key: 'duration', label: 'Duration', sortable: true },
@@ -74,6 +81,7 @@ const SORT_EXTRACTORS: Record<SortKey, (t: BacktestTrade) => number | string | n
   sl: (t) => t.stopLossPrice,
   tp1: (t) => t.tp1Price,
   tp2: (t) => t.tp2Price,
+  outcome: (t) => deriveTradeOutcome(t.positions).label,
   pnl: (t) => t.realizedPnl,
   r: (t) => t.rMultiple,
   duration: (t) => (t.exitTime != null ? t.exitTime - t.entryTime : null),
@@ -81,7 +89,8 @@ const SORT_EXTRACTORS: Record<SortKey, (t: BacktestTrade) => number | string | n
 
 // CSS grid template — keeps header + virtualized rows perfectly aligned.
 // Total minimum width drives the horizontal scroll for narrower viewports.
-const GRID_TEMPLATE = '40px 60px 150px 84px 150px 84px 80px 80px 80px 110px 100px 64px 100px';
+const GRID_TEMPLATE =
+  '40px 60px 150px 84px 150px 84px 80px 80px 80px 110px 92px 100px 64px 100px';
 const ROW_HEIGHT = 36; // matches .py-2 + content baseline; virtualizer needs a stable estimate
 const VIEWPORT_MAX_HEIGHT = 480;
 
@@ -192,7 +201,7 @@ export function BacktestTradeTable({
     >
       {/* Horizontal scroll wrapper so narrow viewports don't squash columns. */}
       <div className="overflow-x-auto">
-        <div style={{ minWidth: 1100 }}>
+        <div style={{ minWidth: 1200 }}>
           <div
             role="row"
             className="border-b border-bd-subtle bg-bg-surface"
@@ -301,6 +310,7 @@ function VirtualRow({ trade, index, isSelected, top, onClick }: VirtualRowProps)
   const pnlUp = trade.realizedPnl >= 0;
   const isLong = trade.direction === 'LONG';
   const hits = legHitMap(trade.positions);
+  const outcome = deriveTradeOutcome(trade.positions);
 
   return (
     <div
@@ -355,6 +365,9 @@ function VirtualRow({ trade, index, isSelected, top, onClick }: VirtualRowProps)
       <Cell muted>{formatPrice(trade.tp2Price)}</Cell>
       <Cell>
         <LegDots hits={hits} />
+      </Cell>
+      <Cell>
+        <OutcomePill outcome={outcome} />
       </Cell>
       <Cell>
         <span
@@ -431,6 +444,47 @@ function LegDots({ hits }: { hits: Partial<Record<PositionType, PositionExitReas
       })}
     </div>
   );
+}
+
+/**
+ * Colored pill summarizing how the trade ended (SL / TP / Trail / mix).
+ * The hook is purely visual; sort keys + derivation live in the table logic.
+ */
+function OutcomePill({ outcome }: { outcome: TradeOutcome }) {
+  const { bg, fg } = outcomePillColors(outcome.tone);
+  return (
+    <span
+      className="font-mono text-[10px] font-semibold tracking-wider"
+      title={outcome.description}
+      aria-label={outcome.description}
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        padding: '2px 8px',
+        borderRadius: 999,
+        background: bg,
+        color: fg,
+        whiteSpace: 'nowrap',
+      }}
+    >
+      {outcome.label}
+    </span>
+  );
+}
+
+function outcomePillColors(tone: OutcomeTone): { bg: string; fg: string } {
+  switch (tone) {
+    case 'profit':
+      return { bg: 'rgba(0,200,150,0.15)', fg: 'var(--color-profit)' };
+    case 'loss':
+      return { bg: 'rgba(255,77,106,0.15)', fg: 'var(--color-loss)' };
+    case 'warning':
+      return { bg: 'rgba(245,166,35,0.15)', fg: 'var(--color-warning)' };
+    case 'info':
+      return { bg: 'rgba(78,158,255,0.15)', fg: 'var(--color-info)' };
+    default:
+      return { bg: 'var(--bg-elevated)', fg: 'var(--text-muted)' };
+  }
 }
 
 function legDotColor(reason: PositionExitReason | null | undefined): string {

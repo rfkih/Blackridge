@@ -14,7 +14,8 @@ import {
 import { ChartPanelShell } from './ChartPanelShell';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useEquityCurve, type EquityPeriod } from '@/hooks/useEquityCurve';
-import { formatPrice, formatDate } from '@/lib/formatters';
+import { useCurrencyFormatter } from '@/hooks/useCurrency';
+import { formatDate } from '@/lib/formatters';
 import { cn } from '@/lib/utils';
 import { TrendingUp, TrendingDown } from 'lucide-react';
 
@@ -24,46 +25,6 @@ const PERIODS: EquityPeriod[] = ['7D', '30D', '90D', 'ALL'];
 
 interface EquityPayloadItem {
   payload: { time: number; equity: number; drawdown: number };
-}
-
-function EquityTooltip({
-  active,
-  payload,
-  initialCapital,
-}: {
-  active?: boolean;
-  payload?: EquityPayloadItem[];
-  initialCapital: number;
-}) {
-  if (!active || !payload?.length) return null;
-  const d = payload[0]?.payload;
-  if (!d) return null;
-  const change = d.equity - initialCapital;
-  const changePct = initialCapital !== 0 ? (change / initialCapital) * 100 : 0;
-
-  return (
-    <div
-      className="rounded-md border border-[var(--border-default)] px-3.5 py-3 text-left"
-      style={{ background: 'var(--bg-elevated)', minWidth: 160 }}
-    >
-      <p className="mb-2 font-mono text-[10px] text-[var(--text-muted)]">{formatDate(d.time)}</p>
-      <p className="font-display text-lg font-semibold tabular-nums text-[var(--text-primary)]">
-        ${formatPrice(d.equity)}
-      </p>
-      <p
-        className={cn(
-          'mt-0.5 font-mono text-xs tabular-nums',
-          change >= 0 ? 'text-[var(--color-profit)]' : 'text-[var(--color-loss)]',
-        )}
-      >
-        {change >= 0 ? '+' : ''}
-        {formatPrice(change)} ({changePct.toFixed(2)}%)
-      </p>
-      <p className="mt-1.5 font-mono text-[10px] text-[var(--color-loss)]">
-        DD: {d.drawdown.toFixed(2)}%
-      </p>
-    </div>
-  );
 }
 
 // ─── Period tabs ──────────────────────────────────────────────────────────────
@@ -100,8 +61,45 @@ function PeriodTabs({
 
 export function DashboardEquityCurve({ className }: { className?: string }) {
   const { period, setPeriod, points, stats, isLoading, initialCapital } = useEquityCurve();
+  const formatCurrency = useCurrencyFormatter();
 
   const isProfit = (stats?.change ?? 0) >= 0;
+
+  const EquityTooltip = ({
+    active,
+    payload,
+  }: {
+    active?: boolean;
+    payload?: EquityPayloadItem[];
+  }) => {
+    if (!active || !payload?.length) return null;
+    const d = payload[0]?.payload;
+    if (!d) return null;
+    const change = d.equity - initialCapital;
+    const changePct = initialCapital !== 0 ? (change / initialCapital) * 100 : 0;
+    return (
+      <div
+        className="rounded-md border border-[var(--border-default)] px-3.5 py-3 text-left"
+        style={{ background: 'var(--bg-elevated)', minWidth: 160 }}
+      >
+        <p className="mb-2 font-mono text-[10px] text-[var(--text-muted)]">{formatDate(d.time)}</p>
+        <p className="font-display text-lg font-semibold tabular-nums text-[var(--text-primary)]">
+          {formatCurrency(d.equity)}
+        </p>
+        <p
+          className={cn(
+            'mt-0.5 font-mono text-xs tabular-nums',
+            change >= 0 ? 'text-[var(--color-profit)]' : 'text-[var(--color-loss)]',
+          )}
+        >
+          {formatCurrency(change, { withSign: true })} ({changePct.toFixed(2)}%)
+        </p>
+        <p className="mt-1.5 font-mono text-[10px] text-[var(--color-loss)]">
+          DD: {d.drawdown.toFixed(2)}%
+        </p>
+      </div>
+    );
+  };
 
   const chartData = useMemo(() => points.map((p) => ({ ...p, timestamp: p.time })), [points]);
 
@@ -132,7 +130,7 @@ export function DashboardEquityCurve({ className }: { className?: string }) {
         ) : (
           <div className="flex items-baseline gap-3">
             <span className="font-display text-2xl font-semibold tabular-nums text-[var(--text-primary)]">
-              ${formatPrice(stats?.latest ?? initialCapital)}
+              {formatCurrency(stats?.latest ?? initialCapital)}
             </span>
             <span
               className={cn(
@@ -141,11 +139,11 @@ export function DashboardEquityCurve({ className }: { className?: string }) {
               )}
             >
               {isProfit ? <TrendingUp size={13} /> : <TrendingDown size={13} />}
-              {isProfit ? '+' : ''}
-              {formatPrice(stats?.change ?? 0)} ({(stats?.changePct ?? 0).toFixed(2)}%)
+              {formatCurrency(stats?.change ?? 0, { withSign: true })} (
+              {(stats?.changePct ?? 0).toFixed(2)}%)
             </span>
             <span className="text-xs text-[var(--text-muted)]">
-              from ${formatPrice(initialCapital)} initial
+              from {formatCurrency(initialCapital)} initial
             </span>
           </div>
         )}
@@ -183,7 +181,7 @@ export function DashboardEquityCurve({ className }: { className?: string }) {
                 tickLine={false}
                 width={52}
               />
-              <Tooltip content={<EquityTooltip initialCapital={initialCapital} />} />
+              <Tooltip content={<EquityTooltip />} />
               <ReferenceLine y={initialCapital} stroke="#2A2F3A" strokeDasharray="3 3" />
               <Area
                 type="monotone"

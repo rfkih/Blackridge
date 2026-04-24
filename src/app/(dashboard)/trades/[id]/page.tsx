@@ -12,7 +12,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useTrade } from '@/hooks/useTrades';
 import { usePositionStore } from '@/store/positionStore';
 import { useLivePnl } from '@/hooks/useLivePnl';
-import { formatDate, formatDuration, formatPnl } from '@/lib/formatters';
+import { useCurrencyFormatter } from '@/hooks/useCurrency';
+import { formatDate, formatDuration } from '@/lib/formatters';
 import type { TradePosition, TradeStatus, Trades } from '@/types/trading';
 
 const LEG_ORDER: Record<TradePosition['type'], number> = {
@@ -24,6 +25,7 @@ const LEG_ORDER: Record<TradePosition['type'], number> = {
 
 export default function TradeDetailPage({ params }: { params: { id: string } }) {
   const tradeQuery = useTrade(params.id);
+  const formatCurrency = useCurrencyFormatter();
 
   // Start live P&L for the trade's account. The positionStore is keyed by
   // tradeId so subscribing is cheap whether or not this specific trade is
@@ -126,7 +128,7 @@ export default function TradeDetailPage({ params }: { params: { id: string } }) 
         </SummaryCell>
         <SummaryCell label="Fees">
           <span className="font-mono text-[14px] tabular-nums text-text-primary">
-            {formatPnl(-Math.abs(trade.feeUsdt))}
+            {formatCurrency(-Math.abs(trade.feeUsdt), { withSign: true })}
           </span>
         </SummaryCell>
         <SummaryCell label="Net P&L">

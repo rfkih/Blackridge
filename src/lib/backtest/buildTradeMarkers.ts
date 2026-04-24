@@ -154,3 +154,132 @@ export function legHitMap(positions: BacktestTradePosition[]) {
   for (const p of positions) map[p.type] = p.exitReason;
   return map;
 }
+
+/** Which price line the trade actually hit when it closed. Used to highlight
+ *  the corresponding horizontal on the chart so the user can see at a glance
+ *  whether a trade took profit, stopped out, or trailed.
+ *
+ *  Priority mirrors typical outcome reporting: a trade that tagged TP1 and
+ *  then had its runner stopped out still counts as "TP hit" for the purpose
+ *  of line highlighting (TP1 is the more informative anchor to show). */
+export type HitLine = 'SL' | 'TP1' | 'TP2' | 'RUNNER' | null;
+
+/** Tone keys the UI maps to Meridian Edge colors. Keeps the derivation pure
+ *  (no React/theme dependency) so it can be used in tooltips, tables, etc. */
+export type OutcomeTone = 'profit' | 'loss' | 'warning' | 'info' | 'muted';
+
+export interface TradeOutcome {
+  /** Short label rendered in pills: "TP", "SL", "Trail", "TP + Trail"… */
+  label: string;
+  /** Verbose, one-line description for tooltips / aria-labels. */
+  description: string;
+  tone: OutcomeTone;
+  /** Which on-chart horizontal price line should be emphasised for the
+   *  selected trade. `null` when the trade didn't actually touch a line
+   *  (BACKTEST_END, manual close, still open). */
+  hitLine: HitLine;
+}
+
+/**
+ * Reduce a trade's per-leg exit reasons down to a single at-a-glance outcome.
+ *
+ * <p>Rules, in priority order:
+ * <ol>
+ *   <li>Every leg stopped out → "SL".</li>
+ *   <li>Any TP hit, then a subsequent SL on a later leg → "TP → SL" (banana split).</li>
+ *   <li>TP hit AND runner trailed → "TP + Trail".</li>
+ *   <li>Runner trailed only → "Trail".</li>
+ *   <li>Any TP hit → "TP" (TP1, TP2, or both).</li>
+ *   <li>Manual close → "Manual".</li>
+ *   <li>Backtest ended with legs still open → "End".</li>
+ *   <li>No exit reasons at all → "Open".</li>
+ * </ol>
+ */
+export function deriveTradeOutcome(positions: BacktestTradePosition[]): TradeOutcome {
+  const hits = legHitMap(positions);
+  const reasons = Object.values(hits).filter((r): r is PositionExitReason => r != null);
+
+  if (reasons.length === 0) {
+    return { label: 'Open', description: 'No legs closed yet', tone: 'muted', hitLine: null };
+  }
+
+  const hasTp = reasons.includes('TP_HIT');
+  const hasSl = reasons.includes('SL_HIT');
+  const hasRunner = reasons.includes('RUNNER_CLOSE');
+  const hasManual = reasons.includes('MANUAL_CLOSE');
+  const hasEnd = reasons.includes('BACKTEST_END');
+
+  const tp1 = hits.TP1 ?? hits.SINGLE;
+  const tp2 = hits.TP2;
+  const runner = hits.RUNNER;
+
+  // Pick the most representative price line to highlight. Prefer the
+  // earliest-hit profit anchor, fall back to the stop when no profit leg
+  // fired.
+  const hitLine: HitLine = (() => {
+    if (tp1 === 'TP_HIT') return 'TP1';
+    if (tp2 === 'TP_HIT') return 'TP2';
+    if (runner === 'RUNNER_CLOSE') return 'RUNNER';
+    if (hasSl) return 'SL';
+    return null;
+  })();
+
+  if (hasTp && hasSl) {
+    return {
+      label: 'TP → SL',
+      description: 'Took profit on one leg, stopped out on another',
+      tone: 'warning',
+      hitLine,
+    };
+  }
+  if (hasTp && hasRunner) {
+    return {
+      label: 'TP + Trail',
+      description: 'Took profit and closed runner on trailing stop',
+      tone: 'profit',
+      hitLine,
+    };
+  }
+  if (hasRunner) {
+    return {
+      label: 'Trail',
+      description: 'Closed on trailing stop (runner)',
+      tone: 'info',
+      hitLine,
+    };
+  }
+  if (hasTp) {
+    const multi = tp1 === 'TP_HIT' && tp2 === 'TP_HIT';
+    return {
+      label: multi ? 'TP1 + TP2' : tp2 === 'TP_HIT' ? 'TP2' : 'TP',
+      description: multi ? 'Both take-profit targets hit' : 'Take-profit target hit',
+      tone: 'profit',
+      hitLine,
+    };
+  }
+  if (hasSl) {
+    return {
+      label: 'SL',
+      description: 'Stopped out before any profit target',
+      tone: 'loss',
+      hitLine,
+    };
+  }
+  if (hasManual) {
+    return {
+      label: 'Manual',
+      description: 'Closed manually',
+      tone: 'warning',
+      hitLine: null,
+    };
+  }
+  if (hasEnd) {
+    return {
+      label: 'End',
+      description: 'Backtest ended with leg still open',
+      tone: 'muted',
+      hitLine: null,
+    };
+  }
+  return { label: '—', description: 'Unknown outcome', tone: 'muted', hitLine: null };
+}

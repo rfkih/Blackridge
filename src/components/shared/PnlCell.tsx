@@ -2,7 +2,8 @@
 
 import { memo, useEffect, useRef, useState } from 'react';
 import { cn } from '@/lib/utils';
-import { formatPnl, formatPercent } from '@/lib/formatters';
+import { formatPercent } from '@/lib/formatters';
+import { useCurrencyFormatter } from '@/hooks/useCurrency';
 
 interface PnlCellProps {
   value: number | null | undefined;
@@ -20,6 +21,7 @@ export const PnlCell = memo(function PnlCell({
   className,
   noFlash,
 }: PnlCellProps) {
+  const formatCurrency = useCurrencyFormatter();
   const isProfit = (value ?? 0) >= 0;
   const color =
     value == null ? 'var(--text-muted)' : isProfit ? 'var(--color-profit)' : 'var(--color-loss)';
@@ -52,7 +54,9 @@ export const PnlCell = memo(function PnlCell({
       )}
       style={{ color }}
     >
-      {formatPnl(value)}
+      {value == null || !Number.isFinite(value)
+        ? '—'
+        : formatCurrency(value, { withSign: true })}
       {showPercent && percentValue !== undefined && (
         <span className="ml-1.5 opacity-70">{formatPercent(percentValue)}</span>
       )}

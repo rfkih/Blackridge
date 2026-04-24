@@ -38,6 +38,10 @@
   --dur-fast: 120ms;
   --dur-base: 180ms;
   --dur-slow: 280ms;
+  /* Theme crossfade only — intentionally longer than --dur-slow so the
+     dark↔light swap reads as a deliberate transition, not a pop. Used by the
+     html/body fallback transition and the view-transitions keyframes. */
+  --dur-theme: 700ms;
 }
 
 /* ── DARK THEME (default) ────────────────────────────────────────────
@@ -256,14 +260,14 @@
      where supported; this handles the fallback. */
   html {
     transition:
-      background-color var(--dur-base) var(--ease-out-quart),
-      color var(--dur-base) var(--ease-out-quart);
+      background-color var(--dur-theme) var(--ease-out-quart),
+      color var(--dur-theme) var(--ease-out-quart);
   }
 
   body {
     transition:
-      background-color var(--dur-base) var(--ease-out-quart),
-      color var(--dur-base) var(--ease-out-quart);
+      background-color var(--dur-theme) var(--ease-out-quart),
+      color var(--dur-theme) var(--ease-out-quart);
   }
 
   ::selection {
@@ -311,12 +315,14 @@ pre {
 }
 
 /* ── View-transitions: simple crossfade on theme change ─────────────
-   Both snapshots cross-dissolve over 180ms, ease-out-quart. No spatial
-   motion — color is the only thing that changes, eyes stay still. */
+   Both snapshots cross-dissolve over --dur-theme (slower than the normal
+   UI transition so the swap reads as a deliberate mode change), ease-out-
+   quart. No spatial motion — color is the only thing that changes, eyes
+   stay still. */
 @supports (view-transition-name: root) {
   ::view-transition-old(root),
   ::view-transition-new(root) {
-    animation-duration: var(--dur-base);
+    animation-duration: var(--dur-theme);
     animation-timing-function: var(--ease-out-quart);
     mix-blend-mode: normal;
   }

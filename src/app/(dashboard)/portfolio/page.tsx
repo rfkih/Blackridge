@@ -5,8 +5,9 @@ import { AlertCircle, RefreshCw, Wallet } from 'lucide-react';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { Skeleton } from '@/components/ui/skeleton';
 import { usePortfolio } from '@/hooks/usePortfolio';
-import { formatPrice } from '@/lib/formatters';
-import { cn } from '@/lib/utils';
+import { usePnlSummary } from '@/hooks/useTrades';
+import { useActiveAccount } from '@/hooks/useAccounts';
+import { useCurrencyFormatter } from '@/hooks/useCurrency';
 import type { PortfolioAsset } from '@/types/portfolio';
 
 interface EnrichedAsset extends PortfolioAsset {
@@ -16,13 +17,14 @@ interface EnrichedAsset extends PortfolioAsset {
 
 export default function PortfolioPage() {
   const { data, isLoading, isError, refetch, isFetching } = usePortfolio();
+  const { data: pnlToday } = usePnlSummary('today');
+  const { accounts } = useActiveAccount();
+  const formatCurrency = useCurrencyFormatter();
 
   const totalUsdt = data?.totalUsdt ?? 0;
   const availableUsdt = data?.availableUsdt ?? 0;
   const lockedUsdt = data?.lockedUsdt ?? 0;
 
-  // Enrich + sort descending by USDT value. Tiny dust rows stay at the bottom
-  // but still render so users can see what's in the account.
   const rows = useMemo<EnrichedAsset[]>(() => {
     const assets = data?.assets ?? [];
     if (!assets.length) return [];
@@ -35,267 +37,753 @@ export default function PortfolioPage() {
       .sort((a, b) => b.usdtValue - a.usdtValue);
   }, [data?.assets, totalUsdt]);
 
-  return (
-    <div className="space-y-6">
-      <header className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <p className="label-caps">Portfolio</p>
-          <h1 className="mt-1 font-display text-[24px] font-semibold tracking-tighter text-text-primary">
-            Balances
-          </h1>
-          <p className="mt-1 text-[13px] text-text-secondary">
-            Live account balances, refreshing every 30 seconds.
-          </p>
-        </div>
-        <LiveIndicator active={isFetching && !isLoading} />
-      </header>
+  const realizedToday = pnlToday?.realizedPnl ?? 0;
+  const unrealizedOpen = pnlToday?.unrealizedPnl ?? 0;
 
-      <HeroValue
-        totalUsdt={totalUsdt}
-        availableUsdt={availableUsdt}
-        lockedUsdt={lockedUsdt}
-        isLoading={isLoading}
+  // Derive a real allocation from the holdings. Stablecoins form their own
+  // sleeve; the rest bucket into "Crypto". Locked USDT shows as a separate
+  // tint. Keeps the donut honest — no sleeves the platform doesn't track.
+  const allocation = useMemo(() => {
+    const stableTickers = new Set(['USDT', 'USDC', 'BUSD', 'DAI', 'TUSD', 'USDP']);
+    let stableValue = 0;
+    let cryptoValue = 0;
+    for (const a of rows) {
+      if (stableTickers.has(a.asset)) stableValue += a.usdtValue;
+      else cryptoValue += a.usdtValue;
+    }
+    const lockedCash = Math.max(0, lockedUsdt);
+    const total = Math.max(1, cryptoValue + stableValue + lockedCash);
+    return [
+      { label: 'Crypto', pct: (cryptoValue / total) * 100, color: 'var(--mm-mint)' },
+      { label: 'Stable', pct: (stableValue / total) * 100, color: 'var(--mm-ink-0)' },
+      { label: 'Locked', pct: (lockedCash / total) * 100, color: 'var(--mm-ink-3)' },
+    ].filter((s) => s.pct > 0);
+  }, [rows, lockedUsdt]);
+
+  if (isError) {
+    return (
+      <EmptyState
+        icon={AlertCircle}
+        title="Couldn't load portfolio"
+        description="The balances endpoint returned an error."
+        action={
+          <button
+            type="button"
+            onClick={() => refetch()}
+            className="mm-btn mm-btn-mint"
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
+          >
+            <RefreshCw size={12} strokeWidth={2} /> Retry
+          </button>
+        }
       />
+    );
+  }
 
-      {isError ? (
-        <ErrorState onRetry={() => refetch()} />
-      ) : isLoading ? (
-        <TableSkeleton />
-      ) : rows.length === 0 ? (
-        <EmptyState
-          icon={Wallet}
-          title="No balances yet"
-          description="Your Binance account has no assets, or hasn't been synced yet."
-        />
-      ) : (
-        <BalanceTable rows={rows} />
-      )}
+  return (
+    <div className="flex flex-col gap-5">
+      {/* ─── Hero bar (design pack 05 · Portfolio) ─── */}
+      <section
+        className="mm-card mm-card-lift"
+        style={{
+          padding: '28px 32px',
+          position: 'relative',
+          overflow: 'hidden',
+        }}
+      >
+        {/* Mint scanning band at the top — pack's signature. */}
+        <div className="mm-band" />
+
+        {/* Left: total + delta chip + 4 sub-stats */}
+        <div>
+          <div className="mm-kicker">TOTAL VALUE · ALL DESKS</div>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 14, marginTop: 10 }}>
+            {isLoading ? (
+              <Skeleton className="h-[72px] w-[360px]" />
+            ) : (
+              <span
+                className="font-display"
+                style={{
+                  fontSize: 72,
+                  lineHeight: 0.95,
+                  letterSpacing: '-0.035em',
+                  color: 'var(--mm-ink-0)',
+                }}
+              >
+                {formatCurrency(totalUsdt)}
+              </span>
+            )}
+          </div>
+
+          <div
+            style={{
+              marginTop: 14,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 14,
+              flexWrap: 'wrap',
+            }}
+          >
+            <DeltaChip value={realizedToday + unrealizedOpen} period="today" />
+          </div>
+
+          <div
+            style={{
+              marginTop: 28,
+              display: 'grid',
+              gridTemplateColumns: 'repeat(4, 1fr)',
+              gap: 18,
+            }}
+          >
+            <HeroStat
+              label="Cash buying power"
+              value={isLoading ? '—' : formatCurrency(availableUsdt)}
+              sub={
+                rows.length > 0 ? `${rows.length} asset${rows.length === 1 ? '' : 's'}` : undefined
+              }
+            />
+            <HeroStat
+              label="Locked"
+              value={isLoading ? '—' : formatCurrency(lockedUsdt)}
+              sub={
+                totalUsdt > 0
+                  ? `${((lockedUsdt / totalUsdt) * 100).toFixed(1)}% of total`
+                  : undefined
+              }
+            />
+            <HeroStat
+              label="Accounts"
+              value={accounts.length.toString()}
+              sub={
+                accounts.filter((a) => a.active).length > 0
+                  ? `${accounts.filter((a) => a.active).length} active`
+                  : 'none active'
+              }
+            />
+            <HeroStat
+              label="Day P&L"
+              value={formatCurrency(realizedToday, { withSign: true })}
+              sub={
+                unrealizedOpen !== 0
+                  ? `${formatCurrency(unrealizedOpen, { withSign: true })} unrealized`
+                  : undefined
+              }
+              tone={realizedToday >= 0 ? 'up' : 'down'}
+            />
+          </div>
+        </div>
+
+      </section>
+
+      {/* ─── Middle row — Allocation / Risk / Performance ─── */}
+      <section
+        className="grid gap-5"
+        style={{ gridTemplateColumns: 'repeat(3, minmax(0, 1fr))' }}
+      >
+        <AllocationCard slices={allocation} isLoading={isLoading} />
+        <RiskCard totalUsdt={totalUsdt} rows={rows} lockedUsdt={lockedUsdt} />
+        <PerformanceCard />
+      </section>
+
+      {/* ─── Holdings table ─── */}
+      <section
+        className="mm-card"
+        style={{
+          padding: '18px 22px 8px',
+          display: 'flex',
+          flexDirection: 'column',
+          minHeight: 0,
+          flex: 1,
+        }}
+      >
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'baseline',
+            justifyContent: 'space-between',
+            paddingRight: 4,
+            gap: 10,
+            flexWrap: 'wrap',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}>
+            <h2 className="font-display" style={{ fontSize: 22, letterSpacing: '-0.02em' }}>
+              Holdings
+            </h2>
+            <span style={{ fontSize: 12, color: 'var(--mm-ink-2)' }}>
+              {isLoading
+                ? 'Loading…'
+                : rows.length === 0
+                  ? 'No assets'
+                  : `${rows.length} asset${rows.length === 1 ? '' : 's'}${
+                      isFetching ? ' · refreshing' : ''
+                    }`}
+            </span>
+          </div>
+          <button
+            type="button"
+            className="mm-btn"
+            onClick={() => refetch()}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
+          >
+            <RefreshCw size={12} strokeWidth={1.75} /> Refresh
+          </button>
+        </div>
+
+        <div
+          className="font-mono"
+          style={{
+            marginTop: 14,
+            display: 'grid',
+            gridTemplateColumns: '36px 1.4fr 1fr 1fr 1fr 1fr 110px',
+            gap: 14,
+            padding: '10px 8px',
+            borderTop: '1px solid var(--mm-hair)',
+            borderBottom: '1px solid var(--mm-hair)',
+            fontSize: 10,
+            letterSpacing: '0.12em',
+            color: 'var(--mm-ink-3)',
+          }}
+        >
+          <span />
+          <span>ASSET</span>
+          <span style={{ textAlign: 'right' }}>FREE</span>
+          <span style={{ textAlign: 'right' }}>LOCKED</span>
+          <span style={{ textAlign: 'right' }}>TOTAL</span>
+          <span style={{ textAlign: 'right' }}>MARKET VALUE</span>
+          <span style={{ textAlign: 'right' }}>ALLOC</span>
+        </div>
+
+        {isLoading ? (
+          <div
+            style={{ padding: '18px 8px', display: 'flex', flexDirection: 'column', gap: 10 }}
+          >
+            {Array.from({ length: 4 }).map((_, i) => (
+              <Skeleton key={i} className="h-[44px] w-full" />
+            ))}
+          </div>
+        ) : rows.length === 0 ? (
+          <div
+            style={{
+              padding: '40px 20px',
+              color: 'var(--mm-ink-2)',
+              fontSize: 13,
+              textAlign: 'center',
+            }}
+          >
+            <Wallet
+              size={24}
+              strokeWidth={1.5}
+              style={{ margin: '0 auto 8px', color: 'var(--mm-ink-3)' }}
+            />
+            No balances on the active account yet. Fund the account or add a broker in{' '}
+            <strong style={{ color: 'var(--mm-ink-0)' }}>Settings</strong>.
+          </div>
+        ) : (
+          <div style={{ flex: 1, overflow: 'auto' }}>
+            {rows.map((r, i) => (
+              <HoldingRow key={r.asset} row={r} last={i === rows.length - 1} />
+            ))}
+          </div>
+        )}
+      </section>
     </div>
   );
 }
 
-// ─── Hero ────────────────────────────────────────────────────────────────────
+// ─── Hero sub-components ────────────────────────────────────────────────────
 
-function HeroValue({
-  totalUsdt,
-  availableUsdt,
-  lockedUsdt,
-  isLoading,
-}: {
-  totalUsdt: number;
-  availableUsdt: number;
-  lockedUsdt: number;
-  isLoading: boolean;
-}) {
-  const availableShare = totalUsdt > 0 ? (availableUsdt / totalUsdt) * 100 : 0;
-  const lockedShare = totalUsdt > 0 ? (lockedUsdt / totalUsdt) * 100 : 0;
-
-  return (
-    <section className="overflow-hidden rounded-md border border-bd-subtle bg-bg-surface">
-      <div className="flex flex-wrap items-end justify-between gap-6 px-6 py-5">
-        <div className="min-w-0">
-          <p className="label-caps">Total Account Value</p>
-          <div className="mt-2">
-            {isLoading ? (
-              <Skeleton className="h-10 w-52" />
-            ) : (
-              <p className="font-display text-[36px] font-semibold leading-none tracking-tighter text-text-primary">
-                <span className="mr-2 text-[20px] text-text-muted">$</span>
-                {formatPrice(totalUsdt)}
-                <span className="ml-2 text-[14px] font-normal text-text-muted">USDT</span>
-              </p>
-            )}
-          </div>
-        </div>
-        <div className="grid grid-cols-2 gap-x-8 gap-y-1">
-          <BalanceStat label="Available" value={availableUsdt} share={availableShare} tone="info" />
-          <BalanceStat label="Locked" value={lockedUsdt} share={lockedShare} tone="warning" />
-        </div>
-      </div>
-      {/* Split bar visualising available vs locked */}
-      {totalUsdt > 0 && !isLoading && (
-        <div className="flex h-1.5 w-full overflow-hidden bg-bg-elevated">
-          <div
-            className="h-full"
-            style={{ width: `${availableShare}%`, background: 'var(--color-info)' }}
-            aria-label={`Available ${availableShare.toFixed(1)}%`}
-          />
-          <div
-            className="h-full"
-            style={{ width: `${lockedShare}%`, background: 'var(--color-warning)' }}
-            aria-label={`Locked ${lockedShare.toFixed(1)}%`}
-          />
-        </div>
-      )}
-    </section>
-  );
-}
-
-function BalanceStat({
+function HeroStat({
   label,
   value,
-  share,
+  sub,
   tone,
 }: {
   label: string;
-  value: number;
-  share: number;
-  tone: 'info' | 'warning';
+  value: string;
+  sub?: string;
+  tone?: 'up' | 'down';
 }) {
-  const color = tone === 'info' ? 'var(--color-info)' : 'var(--color-warning)';
+  const color =
+    tone === 'up' ? 'var(--mm-up)' : tone === 'down' ? 'var(--mm-dn)' : 'var(--mm-ink-0)';
   return (
     <div>
-      <p className="label-caps">{label}</p>
-      <p className="mt-1 font-mono text-[14px] font-semibold tabular-nums text-text-primary">
-        {formatPrice(value)}
-      </p>
-      <p className="font-mono text-[10px] tabular-nums" style={{ color }}>
-        {share.toFixed(1)}%
-      </p>
-    </div>
-  );
-}
-
-// ─── Balance table ───────────────────────────────────────────────────────────
-
-function BalanceTable({ rows }: { rows: EnrichedAsset[] }) {
-  // Header percentages are keyed off the leader so the bars render at a
-  // consistent visual scale (100% = largest holding, not 100% of the account).
-  const leaderUsdt = rows[0]?.usdtValue ?? 0;
-
-  return (
-    <div className="overflow-hidden rounded-md border border-bd-subtle bg-bg-surface">
-      <div className="overflow-x-auto">
-        <table className="w-full">
-          <thead>
-            <tr className="border-b border-bd-subtle bg-bg-surface">
-              {['Asset', 'Free', 'Locked', 'Total', 'USDT Value', '% of Portfolio'].map((col) => (
-                <th key={col} className="label-caps whitespace-nowrap px-4 py-2.5 text-left">
-                  {col}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((row) => (
-              <AssetRow key={row.asset} row={row} leaderUsdt={leaderUsdt} />
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
-}
-
-function AssetRow({ row, leaderUsdt }: { row: EnrichedAsset; leaderUsdt: number }) {
-  const isDust = row.usdtValue < 0.01;
-  // Scale bar width to the leader — keeps tiny rows from becoming invisible
-  // but still communicates relative weight.
-  const barWidth = leaderUsdt > 0 ? Math.max(2, (row.usdtValue / leaderUsdt) * 100) : 0;
-
-  return (
-    <tr className="border-b border-bd-subtle last:border-b-0 hover:bg-bg-elevated">
-      <td className="whitespace-nowrap px-4 py-2.5">
-        <span
-          className={cn(
-            'font-mono text-[13px] font-semibold',
-            isDust ? 'text-text-muted' : 'text-text-primary',
-          )}
-        >
-          {row.asset}
-        </span>
-        {isDust && <span className="label-caps ml-1.5 !text-[9px]">dust</span>}
-      </td>
-      <td className="num whitespace-nowrap px-4 py-2.5 text-[12px] text-text-primary">
-        {formatPrice(row.free, 6)}
-      </td>
-      <td className="num whitespace-nowrap px-4 py-2.5 text-[12px] text-text-secondary">
-        {formatPrice(row.locked, 6)}
-      </td>
-      <td className="num whitespace-nowrap px-4 py-2.5 text-[12px] text-text-primary">
-        {formatPrice(row.total, 6)}
-      </td>
-      <td className="num whitespace-nowrap px-4 py-2.5 text-[12px] text-text-primary">
-        ${formatPrice(row.usdtValue)}
-      </td>
-      <td className="whitespace-nowrap px-4 py-2.5">
-        <div className="flex items-center gap-2">
-          <div
-            className="h-1.5 w-24 overflow-hidden rounded-full bg-bg-elevated"
-            aria-hidden="true"
-          >
-            <div
-              className="h-full rounded-full"
-              style={{
-                width: `${barWidth}%`,
-                background:
-                  row.portfolioPct >= 50
-                    ? 'var(--color-profit)'
-                    : row.portfolioPct >= 10
-                      ? 'var(--color-info)'
-                      : 'var(--color-neutral)',
-              }}
-            />
-          </div>
-          <span className="num min-w-[44px] text-right font-mono text-[11px] tabular-nums text-text-secondary">
-            {row.portfolioPct.toFixed(2)}%
-          </span>
-        </div>
-      </td>
-    </tr>
-  );
-}
-
-// ─── Supporting UI ───────────────────────────────────────────────────────────
-
-function LiveIndicator({ active }: { active: boolean }) {
-  return (
-    <span className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-wider text-text-muted">
-      <span
-        aria-hidden="true"
-        className="inline-block size-1.5 rounded-full"
+      <div
         style={{
-          background: active ? 'var(--color-profit)' : 'var(--text-muted)',
-          animation: active ? 'pulse 2s ease-in-out infinite' : 'none',
+          fontSize: 11,
+          color: 'var(--mm-ink-3)',
+          textTransform: 'uppercase',
+          letterSpacing: '0.1em',
         }}
-      />
-      Live · 30s
+      >
+        {label}
+      </div>
+      <div
+        style={{
+          fontSize: 22,
+          marginTop: 6,
+          fontFamily: 'var(--font-num)',
+          fontVariantNumeric: 'tabular-nums',
+          letterSpacing: '-0.02em',
+          color,
+        }}
+      >
+        {value}
+      </div>
+      {sub && <div style={{ fontSize: 11, color: 'var(--mm-ink-3)', marginTop: 2 }}>{sub}</div>}
+    </div>
+  );
+}
+
+function DeltaChip({ value, period }: { value: number; period: string }) {
+  const formatCurrency = useCurrencyFormatter();
+  const up = value >= 0;
+  return (
+    <span
+      className="mm-chip"
+      style={{
+        background: up ? 'var(--mm-up-soft)' : 'var(--mm-dn-soft)',
+        color: up ? 'var(--mm-up)' : 'var(--mm-dn)',
+        padding: '5px 12px',
+        fontSize: 13,
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 6,
+        borderRadius: 999,
+      }}
+    >
+      <span aria-hidden="true">{up ? '▲' : '▼'}</span>
+      {formatCurrency(value, { withSign: true })} {period}
     </span>
   );
 }
 
-function TableSkeleton() {
+// ─── Middle row cards ──────────────────────────────────────────────────────
+
+interface Slice {
+  label: string;
+  pct: number;
+  color: string;
+}
+
+function AllocationCard({ slices, isLoading }: { slices: Slice[]; isLoading: boolean }) {
   return (
-    <div className="space-y-0 rounded-md border border-bd-subtle bg-bg-surface p-4">
-      {Array.from({ length: 6 }).map((_, i) => (
-        <div
-          key={i}
-          className="flex items-center gap-4 border-b border-bd-subtle py-3 last:border-b-0"
-        >
-          <Skeleton className="h-4 w-12" />
-          <Skeleton className="h-4 w-20" />
-          <Skeleton className="h-4 w-20" />
-          <Skeleton className="h-4 w-24" />
-          <Skeleton className="ml-auto h-4 w-24" />
-          <Skeleton className="h-1.5 w-24" />
+    <div className="mm-card" style={{ padding: '24px 26px' }}>
+      <div className="mm-kicker">ALLOCATION</div>
+      <h2 className="font-display" style={{ fontSize: 22, marginTop: 6, letterSpacing: '-0.02em' }}>
+        Mix by sleeve
+      </h2>
+      {isLoading ? (
+        <Skeleton className="mt-[18px] h-[108px] w-full" />
+      ) : slices.length === 0 ? (
+        <p style={{ marginTop: 18, fontSize: 13, color: 'var(--mm-ink-3)' }}>
+          Fund the account to see allocation.
+        </p>
+      ) : (
+        <div style={{ marginTop: 18, display: 'flex', alignItems: 'center', gap: 22 }}>
+          <Donut slices={slices} />
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {slices.map((s) => (
+              <div
+                key={s.label}
+                style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12 }}
+              >
+                <span
+                  style={{ width: 8, height: 8, borderRadius: 2, background: s.color }}
+                  aria-hidden="true"
+                />
+                <span style={{ flex: 1, color: 'var(--mm-ink-1)' }}>{s.label}</span>
+                <span
+                  style={{
+                    fontFamily: 'var(--font-num)',
+                    fontVariantNumeric: 'tabular-nums',
+                    fontSize: 12,
+                  }}
+                >
+                  {s.pct.toFixed(1)}%
+                </span>
+              </div>
+            ))}
+          </div>
         </div>
-      ))}
+      )}
     </div>
   );
 }
 
-function ErrorState({ onRetry }: { onRetry: () => void }) {
+function RiskCard({
+  totalUsdt,
+  rows,
+  lockedUsdt,
+}: {
+  totalUsdt: number;
+  rows: EnrichedAsset[];
+  lockedUsdt: number;
+}) {
+  const topPosition = rows[0];
+  const concentrationPct = topPosition && totalUsdt > 0 ? topPosition.portfolioPct : 0;
+  const lockedPct = totalUsdt > 0 ? (lockedUsdt / totalUsdt) * 100 : 0;
+  const cashPct =
+    totalUsdt > 0
+      ? Math.max(
+          0,
+          100 -
+            rows
+              .filter((r) => !['USDT', 'USDC', 'BUSD'].includes(r.asset))
+              .reduce((acc, r) => acc + r.portfolioPct, 0),
+        )
+      : 0;
+
+  const items: Array<{ label: string; value: string; bar: number; tone: 'warn' | 'mint' | null }> =
+    [
+      {
+        label: 'Largest position',
+        value: topPosition ? `${topPosition.asset} · ${concentrationPct.toFixed(1)}%` : '—',
+        bar: Math.min(100, concentrationPct),
+        tone: concentrationPct >= 60 ? 'warn' : null,
+      },
+      {
+        label: 'Cash buffer',
+        value: `${cashPct.toFixed(1)}%`,
+        bar: Math.min(100, cashPct),
+        tone: 'mint',
+      },
+      {
+        label: 'Locked',
+        value: `${lockedPct.toFixed(1)}%`,
+        bar: Math.min(100, lockedPct),
+        tone: null,
+      },
+    ];
+
   return (
-    <div className="flex flex-col items-center justify-center gap-3 rounded-md border border-bd-subtle bg-bg-surface px-6 py-10 text-center">
-      <AlertCircle size={20} className="text-text-muted" />
-      <p className="text-sm text-text-secondary">Could not load portfolio balances.</p>
-      <button
-        type="button"
-        onClick={onRetry}
-        className="inline-flex items-center gap-1.5 rounded-sm border border-bd-subtle bg-bg-elevated px-3 py-1.5 text-[11px] text-text-primary transition-colors hover:bg-bg-hover"
-      >
-        <RefreshCw size={12} /> Retry
-      </button>
+    <div className="mm-card" style={{ padding: '24px 26px' }}>
+      <div className="mm-kicker">RISK</div>
+      <h2 className="font-display" style={{ fontSize: 22, marginTop: 6, letterSpacing: '-0.02em' }}>
+        Exposure profile
+      </h2>
+      <div style={{ marginTop: 18, display: 'grid', gap: 14 }}>
+        {items.map((r) => (
+          <div key={r.label}>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                fontSize: 12,
+                marginBottom: 6,
+              }}
+            >
+              <span style={{ color: 'var(--mm-ink-2)' }}>{r.label}</span>
+              <span
+                style={{
+                  fontFamily: 'var(--font-num)',
+                  fontVariantNumeric: 'tabular-nums',
+                  color:
+                    r.tone === 'warn'
+                      ? 'var(--mm-warn)'
+                      : r.tone === 'mint'
+                        ? 'var(--mm-mint)'
+                        : 'var(--mm-ink-0)',
+                }}
+              >
+                {r.value}
+              </span>
+            </div>
+            <div style={{ height: 4, borderRadius: 999, background: 'var(--mm-hair)' }}>
+              <div
+                style={{
+                  width: `${r.bar}%`,
+                  height: '100%',
+                  borderRadius: 999,
+                  background:
+                    r.tone === 'warn'
+                      ? 'var(--mm-warn)'
+                      : r.tone === 'mint'
+                        ? 'var(--mm-mint)'
+                        : 'var(--mm-ink-1)',
+                  transition: 'width 160ms ease-out',
+                }}
+              />
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
+}
+
+function PerformanceCard() {
+  const { data: today } = usePnlSummary('today');
+  const { data: week } = usePnlSummary('week');
+  const { data: month } = usePnlSummary('month');
+  const formatCurrency = useCurrencyFormatter();
+
+  const items: Array<{ l: string; v: string; t?: 'mint' | 'dn' }> = [
+    {
+      l: 'Today',
+      v: formatCurrency(today?.realizedPnl ?? 0, { withSign: true }),
+      t: (today?.realizedPnl ?? 0) >= 0 ? 'mint' : 'dn',
+    },
+    {
+      l: 'Week',
+      v: formatCurrency(week?.realizedPnl ?? 0, { withSign: true }),
+      t: (week?.realizedPnl ?? 0) >= 0 ? 'mint' : 'dn',
+    },
+    {
+      l: 'Month',
+      v: formatCurrency(month?.realizedPnl ?? 0, { withSign: true }),
+      t: (month?.realizedPnl ?? 0) >= 0 ? 'mint' : 'dn',
+    },
+    {
+      l: 'Trades · month',
+      v: month?.tradeCount != null ? month.tradeCount.toLocaleString() : '—',
+    },
+    {
+      l: 'Win rate · month',
+      v: month?.winRate != null ? `${(month.winRate * 100).toFixed(0)}%` : '—',
+    },
+    {
+      l: 'Open · today',
+      v: today?.openCount != null ? today.openCount.toString() : '—',
+    },
+  ];
+
+  return (
+    <div className="mm-card" style={{ padding: '24px 26px' }}>
+      <div className="mm-kicker">PERFORMANCE</div>
+      <h2 className="font-display" style={{ fontSize: 22, marginTop: 6, letterSpacing: '-0.02em' }}>
+        Realized P&amp;L
+      </h2>
+      <div
+        style={{
+          marginTop: 18,
+          display: 'grid',
+          gridTemplateColumns: '1fr 1fr',
+          rowGap: 14,
+          columnGap: 10,
+        }}
+      >
+        {items.map((it) => (
+          <div key={it.l}>
+            <div style={{ fontSize: 11, color: 'var(--mm-ink-3)' }}>{it.l}</div>
+            <div
+              style={{
+                fontSize: 17,
+                marginTop: 2,
+                fontFamily: 'var(--font-num)',
+                fontVariantNumeric: 'tabular-nums',
+                letterSpacing: '-0.02em',
+                color:
+                  it.t === 'mint'
+                    ? 'var(--mm-mint)'
+                    : it.t === 'dn'
+                      ? 'var(--mm-dn)'
+                      : 'var(--mm-ink-0)',
+              }}
+            >
+              {it.v}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─── Holdings row ───────────────────────────────────────────────────────────
+
+function HoldingRow({ row, last }: { row: EnrichedAsset; last: boolean }) {
+  const initial = row.asset.charAt(0).toUpperCase() || '·';
+  const formatCurrency = useCurrencyFormatter();
+  return (
+    <div
+      style={{
+        display: 'grid',
+        gridTemplateColumns: '36px 1.4fr 1fr 1fr 1fr 1fr 110px',
+        gap: 14,
+        padding: '12px 8px',
+        alignItems: 'center',
+        borderBottom: last ? 'none' : '1px solid var(--mm-hair)',
+        fontSize: 13,
+      }}
+    >
+      <div
+        className="font-display"
+        aria-hidden="true"
+        style={{
+          width: 30,
+          height: 30,
+          borderRadius: 8,
+          background: 'var(--mm-surface-2)',
+          color: 'var(--mm-ink-1)',
+          display: 'grid',
+          placeItems: 'center',
+          fontSize: 15,
+          fontWeight: 600,
+        }}
+      >
+        {initial}
+      </div>
+      <div style={{ minWidth: 0 }}>
+        <div
+          style={{
+            fontWeight: 500,
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {row.asset}
+          {row.asset !== 'USDT' && (
+            <span
+              style={{
+                color: 'var(--mm-ink-3)',
+                marginLeft: 6,
+                fontWeight: 400,
+              }}
+            >
+              {describeAsset(row.asset)}
+            </span>
+          )}
+        </div>
+        <div style={{ fontSize: 11, color: 'var(--mm-ink-3)', marginTop: 2 }}>
+          {isStable(row.asset) ? 'Stablecoin' : 'Crypto · spot'}
+        </div>
+      </div>
+      <NumCell value={row.free} decimals={row.asset === 'USDT' ? 2 : 6} />
+      <NumCell
+        value={row.locked}
+        decimals={row.asset === 'USDT' ? 2 : 6}
+        muted={row.locked === 0}
+      />
+      <NumCell value={row.total} decimals={row.asset === 'USDT' ? 2 : 6} />
+      <div
+        style={{
+          fontFamily: 'var(--font-num)',
+          fontVariantNumeric: 'tabular-nums',
+          textAlign: 'right',
+          fontSize: 13,
+        }}
+      >
+        {formatCurrency(row.usdtValue)}
+      </div>
+      <div style={{ textAlign: 'right' }}>
+        <div
+          style={{
+            fontFamily: 'var(--font-num)',
+            fontVariantNumeric: 'tabular-nums',
+            fontSize: 12,
+          }}
+        >
+          {row.portfolioPct.toFixed(1)}%
+        </div>
+        <div
+          style={{
+            marginTop: 4,
+            height: 2,
+            borderRadius: 999,
+            background: 'var(--mm-hair)',
+          }}
+        >
+          <div
+            style={{
+              width: `${Math.min(row.portfolioPct, 100)}%`,
+              height: '100%',
+              borderRadius: 999,
+              background: 'var(--mm-ink-2)',
+            }}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function NumCell({
+  value,
+  decimals,
+  muted,
+}: {
+  value: number;
+  decimals: number;
+  muted?: boolean;
+}) {
+  return (
+    <div
+      style={{
+        fontFamily: 'var(--font-num)',
+        fontVariantNumeric: 'tabular-nums',
+        textAlign: 'right',
+        fontSize: 13,
+        color: muted ? 'var(--mm-ink-3)' : 'var(--mm-ink-0)',
+      }}
+    >
+      {value.toLocaleString('en-US', {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: decimals,
+      })}
+    </div>
+  );
+}
+
+// ─── Donut ──────────────────────────────────────────────────────────────────
+
+function Donut({ slices }: { slices: Slice[] }) {
+  const size = 108;
+  const r = 44;
+  const cx = size / 2;
+  const cy = size / 2;
+  const C = 2 * Math.PI * r;
+  let off = 0;
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox={`0 0 ${size} ${size}`}
+      style={{ transform: 'rotate(-90deg)', flexShrink: 0 }}
+      aria-hidden="true"
+    >
+      <circle cx={cx} cy={cy} r={r} stroke="var(--mm-hair)" strokeWidth="10" fill="none" />
+      {slices.map((it) => {
+        const len = (it.pct / 100) * C;
+        const seg = (
+          <circle
+            key={it.label}
+            cx={cx}
+            cy={cy}
+            r={r}
+            stroke={it.color}
+            strokeWidth="10"
+            fill="none"
+            strokeDasharray={`${len} ${C}`}
+            strokeDashoffset={-off}
+          />
+        );
+        off += len;
+        return seg;
+      })}
+    </svg>
+  );
+}
+
+// ─── Helpers ────────────────────────────────────────────────────────────────
+
+function isStable(asset: string): boolean {
+  return ['USDT', 'USDC', 'BUSD', 'DAI', 'TUSD', 'USDP'].includes(asset.toUpperCase());
+}
+
+function describeAsset(asset: string): string {
+  const named: Record<string, string> = {
+    BTC: 'Bitcoin',
+    ETH: 'Ethereum',
+    SOL: 'Solana',
+    BNB: 'BNB',
+    AVAX: 'Avalanche',
+    ADA: 'Cardano',
+    XRP: 'XRP',
+    DOGE: 'Dogecoin',
+    MATIC: 'Polygon',
+    LINK: 'Chainlink',
+  };
+  return named[asset.toUpperCase()] ?? asset;
 }

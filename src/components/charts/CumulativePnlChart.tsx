@@ -12,7 +12,7 @@ import {
   YAxis,
 } from 'recharts';
 import { AXIS_TICK, CHART_COLORS, TOOLTIP_CONTENT_STYLE } from '@/lib/charts/rechartsTheme';
-import { formatPnl } from '@/lib/formatters';
+import { useCurrencyFormatter } from '@/hooks/useCurrency';
 import type { DailyPnl } from '@/types/pnl';
 
 interface CumulativePnlChartProps {
@@ -30,36 +30,42 @@ interface TooltipItem {
   payload: CumulativePoint;
 }
 
-function CumulativeTooltip({ active, payload }: { active?: boolean; payload?: TooltipItem[] }) {
-  if (!active || !payload?.length) return null;
-  const d = payload[0]?.payload;
-  if (!d) return null;
-  const cumUp = d.cumulative >= 0;
-  const dayUp = d.daily >= 0;
-  return (
-    <div
-      className="rounded-md border border-[var(--border-default)] px-3 py-2 text-left"
-      style={{ background: 'var(--bg-elevated)', minWidth: 160 }}
-    >
-      <p className="mb-1 font-mono text-[10px] text-[var(--text-muted)]">{d.date}</p>
-      <p
-        className="font-display text-sm font-semibold tabular-nums"
-        style={{ color: cumUp ? CHART_COLORS.profit : CHART_COLORS.loss }}
-      >
-        {formatPnl(d.cumulative)}
-      </p>
-      <p
-        className="mt-0.5 font-mono text-[11px] tabular-nums"
-        style={{ color: dayUp ? CHART_COLORS.profit : CHART_COLORS.loss }}
-      >
-        {dayUp ? '+' : ''}
-        {formatPnl(d.daily)} today
-      </p>
-    </div>
-  );
-}
-
 export function CumulativePnlChart({ data, height = 240 }: CumulativePnlChartProps) {
+  const formatCurrency = useCurrencyFormatter();
+  const CumulativeTooltip = ({
+    active,
+    payload,
+  }: {
+    active?: boolean;
+    payload?: TooltipItem[];
+  }) => {
+    if (!active || !payload?.length) return null;
+    const d = payload[0]?.payload;
+    if (!d) return null;
+    const cumUp = d.cumulative >= 0;
+    const dayUp = d.daily >= 0;
+    return (
+      <div
+        className="rounded-md border border-[var(--border-default)] px-3 py-2 text-left"
+        style={{ background: 'var(--bg-elevated)', minWidth: 160 }}
+      >
+        <p className="mb-1 font-mono text-[10px] text-[var(--text-muted)]">{d.date}</p>
+        <p
+          className="font-display text-sm font-semibold tabular-nums"
+          style={{ color: cumUp ? CHART_COLORS.profit : CHART_COLORS.loss }}
+        >
+          {formatCurrency(d.cumulative, { withSign: true })}
+        </p>
+        <p
+          className="mt-0.5 font-mono text-[11px] tabular-nums"
+          style={{ color: dayUp ? CHART_COLORS.profit : CHART_COLORS.loss }}
+        >
+          {formatCurrency(d.daily, { withSign: true })} today
+        </p>
+      </div>
+    );
+  };
+
   const series = useMemo<CumulativePoint[]>(() => {
     let running = 0;
     return data.map((d) => {
