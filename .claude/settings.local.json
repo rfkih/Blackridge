@@ -81,7 +81,9 @@
       "Bash(grep -n \"formatPnl\\\\|formatPrice\\\\|\\\\\\\\$\\\\\\\\{\" \"C:/MyFiles/blackheart/front-end/src/app/\\(dashboard\\)/trades/page.tsx\")",
       "Bash(grep -n \"USDT\\\\|formatUsdt\\\\|\\\\\\\\$\" \"C:/MyFiles/blackheart/front-end/src/app/\\(dashboard\\)/trades/page.tsx\")",
       "Bash(grep -n \"realizedPnl\\\\|cumulative\\\\|sign.*\\\\\\\\+\" \"C:/MyFiles/blackheart/front-end/src/app/\\(dashboard\\)/trades/page.tsx\")",
-      "Bash(grep -n \"\\\\\\\\-\\\\\\\\-dur-base\\\\|--dur-\" \"C:/MyFiles/blackheart/front-end/src/app/globals.css\")"
+      "Bash(grep -n \"\\\\\\\\-\\\\\\\\-dur-base\\\\|--dur-\" \"C:/MyFiles/blackheart/front-end/src/app/globals.css\")",
+      "Bash(awk 'NR==880,NR==1130' \"C:/MyFiles/blackheart/front-end/src/app/\\(dashboard\\)/settings/page.tsx\")",
+      "Bash(awk 'NR>=1128 && NR<=1132' \"C:/MyFiles/blackheart/front-end/src/app/\\(dashboard\\)/settings/page.tsx\")"
     ]
   }
 }

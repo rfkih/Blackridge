@@ -9,6 +9,7 @@ import { useIsAdmin } from '@/hooks/useIsAdmin';
 import { useUpdateMyProfile } from '@/hooks/useProfile';
 import { useTheme } from '@/components/theme/ThemeProvider';
 import { RotateCredentialsDialog } from '@/components/account/RotateCredentialsDialog';
+import { ServerIpCard } from '@/components/account/ServerIpCard';
 import { normalizeError } from '@/lib/api/client';
 import { toast } from '@/hooks/useToast';
 import {
@@ -743,6 +744,10 @@ function BrokersSection() {
         >
           <Plus size={12} strokeWidth={2} /> Add broker
         </Link>
+      </div>
+
+      <div style={{ marginTop: 14 }}>
+        <ServerIpCard />
       </div>
 
       <div

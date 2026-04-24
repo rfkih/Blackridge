@@ -16,6 +16,7 @@ import { Button } from '@/components/ui/button';
 import { useRotateAccountCredentials } from '@/hooks/useAccounts';
 import { normalizeError } from '@/lib/api/client';
 import { toast } from '@/hooks/useToast';
+import { ServerIpCard } from './ServerIpCard';
 import type { AccountSummary } from '@/types/account';
 
 interface RotateCredentialsDialogProps {
@@ -124,6 +125,9 @@ export function RotateCredentialsDialog({
         </DialogHeader>
 
         <div className="grid grid-cols-2 gap-4">
+          <div className="col-span-2">
+            <ServerIpCard variant="compact" />
+          </div>
           <div className="col-span-2 flex flex-col gap-1.5">
             <Label className="text-[10px] uppercase tracking-[0.18em] text-text-secondary">
               New API key

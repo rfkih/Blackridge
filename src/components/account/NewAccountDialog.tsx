@@ -23,6 +23,7 @@ import { Button } from '@/components/ui/button';
 import { useCreateAccount } from '@/hooks/useAccounts';
 import { normalizeError } from '@/lib/api/client';
 import { toast } from '@/hooks/useToast';
+import { ServerIpCard } from './ServerIpCard';
 import { cn } from '@/lib/utils';
 
 interface NewAccountDialogProps {
@@ -147,6 +148,8 @@ export function NewAccountDialog({ open, onOpenChange }: NewAccountDialogProps) 
         </DialogHeader>
 
         <SafetyBanner />
+
+        <ServerIpCard variant="compact" />
 
         <div className="grid grid-cols-2 gap-4">
           {/* Label */}
