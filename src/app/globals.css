@@ -17,14 +17,20 @@
   --radius-lg: 8px;
   --radius: var(--radius-md); /* shadcn default */
 
-  /* Typography families — next/font provides --font-inter and --font-jetbrains-mono.
-     Display + numerics share JetBrains Mono: one mono face across the UI gives the
-     Bloomberg-cohesive texture the brief calls for. Body is Inter with tight tracking. */
-  --font-display: var(--font-jetbrains-mono), ui-monospace, SFMono-Regular, Menlo, Consolas,
-    monospace;
+  /* Typography families — next/font provides --font-inter, --font-jetbrains-mono,
+     and --font-fraunces.
+     Display = Fraunces serif: per the MONO-MINT design pack the hero serif is
+     the one thing pulling this out of generic-dark-dashboard territory.
+     Body = Inter. Numerics = Fraunces for big hero numerals (P&L, account
+     value), JetBrains Mono for dense tabular data.
+     Keep JetBrains Mono on --font-mono for the grid-like cells. */
+  --font-display: var(--font-fraunces), 'Instrument Serif', 'Fraunces', Georgia, serif;
   --font-body: var(--font-inter), system-ui, -apple-system, Segoe UI, sans-serif;
   --font-mono: var(--font-jetbrains-mono), ui-monospace, SFMono-Regular, Menlo, Consolas,
     monospace;
+  /* Numeric hero face — distinct token so bottom-chrome can keep monospaced
+     tabular data while the top-of-page hero numbers pick up the serif. */
+  --font-num: var(--font-fraunces), var(--font-inter), 'Inter', sans-serif;
 
   /* Motion */
   --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
@@ -59,37 +65,38 @@
   --text-muted: #898d8c;
   --text-inverse: #0f1111;
 
-  /* Semantic — deep emerald profit + warm-coral loss.
-     Mint was #34e8b5 (L ≈ 56%); shifted one step darker to #1fc896
-     (L ≈ 45%) for a more premium, less neon tone while staying vivid
-     enough for P&L legibility against the near-black surfaces. */
-  --color-profit: #1fc896;
+  /* Semantic — MONO-MINT design pack: deep forest profit + warm-coral loss.
+     Pack-final mint at L ≈ 26% — the design explicitly wants a near-black
+     green that reads institutional rather than the earlier neon teal.
+     Every rgba() that used to key off (52,232,181) / (31,200,150) now uses
+     (10,122,88) so glows and tints stay coherent with the new base. */
+  --color-profit: #0a7a58;
   --color-loss: #ff7a7a;
   --color-warning: #f3c95e;
   --color-info: #5a9eff;
   --color-neutral: #898d8c;
 
   /* Profit / loss soft tints for backgrounds (cell flash, pill bg) */
-  --tint-profit: rgba(31, 200, 150, 0.14);
+  --tint-profit: rgba(10, 122, 88, 0.18);
   --tint-loss: rgba(255, 122, 122, 0.12);
   --tint-warning: rgba(243, 201, 94, 0.14);
   --tint-info: rgba(90, 158, 255, 0.12);
 
   /* Flash for PnlCell tick animation */
-  --flash-profit: rgba(31, 200, 150, 0.20);
+  --flash-profit: rgba(10, 122, 88, 0.24);
   --flash-loss: rgba(255, 122, 122, 0.18);
 
-  /* Accent = deep mint. Everything live / focused / active pulls from profit-up. */
+  /* Accent = forest mint. Everything live / focused / active pulls from profit-up. */
   --accent-primary: var(--color-profit);
-  --accent-subtle: rgba(31, 200, 150, 0.24);
-  --accent-glow: rgba(31, 200, 150, 0.14);
+  --accent-subtle: rgba(10, 122, 88, 0.30);
+  --accent-glow: rgba(10, 122, 88, 0.18);
 
   --shadow-panel: 0 0 0 1px var(--border-subtle), 0 1px 2px rgba(0, 0, 0, 0.4);
   --shadow-float: 0 0 0 1px var(--border-default), 0 8px 32px rgba(0, 0, 0, 0.48);
-  --shadow-glow-profit: 0 0 16px rgba(31, 200, 150, 0.24);
+  --shadow-glow-profit: 0 0 16px rgba(10, 122, 88, 0.32);
   --shadow-glow-loss: 0 0 16px rgba(255, 122, 122, 0.22);
 
-  --ring: 162 73% 45%;
+  --ring: 162 85% 26%;
 
   /* ── shadcn/ui HSL vars ─────────── */
   --background: 180 8% 7%;
@@ -154,33 +161,34 @@
   --text-muted: #6b6f6e;
   --text-inverse: #ffffff;
 
-  /* Semantic — deeper emerald + coral for on-paper legibility.
-     Light-mode mint was #0da077; shifted to #0a7f5e for a richer, less
-     neon green on the pale surface (contrast ratio still AA for body text). */
-  --color-profit: #0a7f5e;
+  /* Semantic — MONO-MINT design pack light variant. Even deeper than the
+     dark theme's mint because on pale paper, `#0A7A58` reads too bright —
+     #044D39 gives the institutional-quiet feel the design asks for while
+     keeping AA contrast for body-size profit numbers. */
+  --color-profit: #044d39;
   --color-loss: #cb4c4c;
   --color-warning: #b78620;
   --color-info: #1b56bc;
   --color-neutral: #6b6f6e;
 
-  --tint-profit: rgba(10, 127, 94, 0.12);
+  --tint-profit: rgba(4, 77, 57, 0.14);
   --tint-loss: rgba(203, 76, 76, 0.10);
   --tint-warning: rgba(183, 134, 32, 0.12);
   --tint-info: rgba(27, 86, 188, 0.10);
 
-  --flash-profit: rgba(10, 127, 94, 0.18);
+  --flash-profit: rgba(4, 77, 57, 0.22);
   --flash-loss: rgba(203, 76, 76, 0.16);
 
   --accent-primary: var(--color-profit);
-  --accent-subtle: rgba(10, 127, 94, 0.22);
-  --accent-glow: rgba(10, 127, 94, 0.12);
+  --accent-subtle: rgba(4, 77, 57, 0.28);
+  --accent-glow: rgba(4, 77, 57, 0.14);
 
   --shadow-panel: 0 0 0 1px var(--border-subtle), 0 1px 2px rgba(15, 17, 17, 0.04);
   --shadow-float: 0 0 0 1px var(--border-default), 0 12px 32px rgba(15, 17, 17, 0.08);
-  --shadow-glow-profit: 0 0 12px rgba(10, 127, 94, 0.18);
+  --shadow-glow-profit: 0 0 12px rgba(4, 77, 57, 0.22);
   --shadow-glow-loss: 0 0 12px rgba(203, 76, 76, 0.14);
 
-  --ring: 163 85% 27%;
+  --ring: 162 90% 16%;
 
   --background: 120 6% 96%;
   --foreground: 180 8% 7%;
@@ -486,13 +494,13 @@ pre {
   --mm-ink-2: #898d8c;
   --mm-ink-3: #5a5e5d;
 
-  --mm-mint: #1fc896;
-  --mm-mint-2: #17a57a;
-  --mm-mint-soft: rgba(31, 200, 150, 0.14);
-  --mm-mint-edge: rgba(31, 200, 150, 0.34);
+  --mm-mint: #0a7a58;
+  --mm-mint-2: #065b40;
+  --mm-mint-soft: rgba(10, 122, 88, 0.18);
+  --mm-mint-edge: rgba(10, 122, 88, 0.42);
 
-  --mm-up: #1fc896;
-  --mm-up-soft: rgba(31, 200, 150, 0.14);
+  --mm-up: #0a7a58;
+  --mm-up-soft: rgba(10, 122, 88, 0.18);
   --mm-dn: #ff7a7a;
   --mm-dn-soft: rgba(255, 122, 122, 0.12);
   --mm-warn: #f3c95e;
@@ -514,13 +522,13 @@ pre {
   --mm-ink-2: #6b6f6e;
   --mm-ink-3: #9a9e9d;
 
-  --mm-mint: #0a7f5e;
-  --mm-mint-2: #066148;
-  --mm-mint-soft: rgba(10, 127, 94, 0.12);
-  --mm-mint-edge: rgba(10, 127, 94, 0.36);
+  --mm-mint: #044d39;
+  --mm-mint-2: #023424;
+  --mm-mint-soft: rgba(4, 77, 57, 0.14);
+  --mm-mint-edge: rgba(4, 77, 57, 0.42);
 
-  --mm-up: #0a7f5e;
-  --mm-up-soft: rgba(10, 127, 94, 0.12);
+  --mm-up: #044d39;
+  --mm-up-soft: rgba(4, 77, 57, 0.14);
   --mm-dn: #cb4c4c;
   --mm-dn-soft: rgba(203, 76, 76, 0.1);
   --mm-warn: #b78620;
@@ -742,6 +750,71 @@ pre {
 .mm-btn-mint:hover {
   background: var(--mm-mint-2);
   color: var(--mm-bg);
+}
+.mm-btn-ghost {
+  background: transparent;
+  color: var(--mm-ink-1);
+  border-color: transparent;
+}
+.mm-btn-ghost:hover {
+  background: var(--mm-surface-2);
+  color: var(--mm-ink-0);
+}
+
+/* ── form controls ────────────────────────────────────────
+   Ported from the MONO-MINT design pack. Without these the
+   auth pages render labels as unstyled browser text and
+   inputs as transparent boxes — the app's generic input
+   styles don't apply because the auth pages opt into the
+   .mm token scope and reference .mm-input explicitly. */
+
+.mm-label {
+  display: block;
+  font-size: 12px;
+  color: var(--mm-ink-2);
+  margin-bottom: 6px;
+  font-family: var(--mm-sans);
+}
+
+.mm-input {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--mm-hair-2);
+  background: var(--mm-surface-2);
+  color: var(--mm-ink-0);
+  font-family: var(--mm-sans);
+  font-size: 14px;
+  outline: none;
+  transition: border-color 120ms, background 120ms;
+}
+.mm-input::placeholder {
+  color: var(--mm-ink-3);
+}
+.mm-input:focus-visible {
+  border-color: var(--mm-mint-edge);
+  background: var(--mm-surface);
+  box-shadow: 0 0 0 3px var(--mm-mint-soft);
+}
+.mm-input:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.mm-input[aria-invalid='true'] {
+  border-color: var(--color-loss, #ff7a7a);
+}
+
+/* ── kicker / eyebrow ────────────────────────────────────
+   Small uppercase mono label above headlines — used across
+   the auth pages + sidebar wordmark. */
+
+.mm-kicker {
+  display: inline-block;
+  font-family: var(--mm-mono);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--mm-ink-2);
 }
 
 .mm-hr {

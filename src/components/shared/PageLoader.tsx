@@ -102,7 +102,7 @@ export function PageLoader({ label = 'Loading', fullscreen = true, className }: 
             }}
           >
             <span className="animate-[mm-pulse_2s_ease-in-out_infinite] text-[var(--color-profit)]">
-              <LogoMark size={28} />
+              <LogoMark size={28} tone="plain" />
             </span>
           </div>
         </div>
