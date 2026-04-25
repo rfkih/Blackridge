@@ -1,4 +1,11 @@
-// SLICE 1: Axios instance with bearer-token interceptor and error normalization.
+// SLICE 1: Axios instance + error normalization.
+//
+// Authentication rides entirely on the HttpOnly `blackheart-token` cookie set
+// by the backend on /login and /register. No in-memory Authorization header
+// is attached — the browser sends the cookie automatically via
+// `withCredentials: true`. Removing the Bearer fallback is deliberate: a JS-
+// readable token in Zustand would be liftable by any XSS payload, and the
+// cookie path covers every reachable browser environment.
 import axios, { type AxiosError, type AxiosInstance } from 'axios';
 import { useAuthStore } from '@/store/authStore';
 import { env } from '@/lib/env';
@@ -19,24 +26,14 @@ export const apiClient: AxiosInstance = axios.create({
 
 apiClient.interceptors.request.use((config) => {
   // Safety belt — if a request URL resolves outside our API origin, refuse to
-  // attach the cookie/bearer by dropping withCredentials for that call. The
-  // Axios default `withCredentials: true` already scopes cookies to the target
-  // origin (browser SOP), but this guards against a misconfigured caller that
-  // passes a full https://attacker.example URL through `apiClient`.
+  // send credentials. `withCredentials: true` scopes the cookie to the target
+  // origin via browser SOP already, but this guards against a misconfigured
+  // caller that passes a full https://attacker.example URL through apiClient.
   const rawUrl = config.url ?? '';
   const isAbsolute = /^https?:/i.test(rawUrl);
   if (isAbsolute && !rawUrl.startsWith(env.apiUrl)) {
     config.withCredentials = false;
     if (config.headers) delete config.headers.Authorization;
-    return config;
-  }
-
-  // Bearer fallback kept for dual-mode support during the cookie migration
-  // and for environments where cookies aren't available (e.g. a native mobile
-  // client that may use this module in the future).
-  const { token } = useAuthStore.getState();
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
 });

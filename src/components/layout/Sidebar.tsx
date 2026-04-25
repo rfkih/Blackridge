@@ -16,6 +16,8 @@ import {
   Book,
   Database,
   Settings,
+  Microscope,
+  Grid3x3,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
@@ -45,6 +47,8 @@ const NAV_ITEMS: NavItem[] = [
 const ADMIN_NAV_ITEMS: NavItem[] = [
   { label: 'Catalogue', href: '/admin/strategies', icon: ShieldCheck },
   { label: 'Historical Data', href: '/admin/historical', icon: Database },
+  { label: 'Sweeps', href: '/research/sweeps', icon: Grid3x3 },
+  { label: 'Research Log', href: '/research/log', icon: Microscope },
 ];
 
 interface SidebarProps {

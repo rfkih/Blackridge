@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Loader2, Play, AlertTriangle } from 'lucide-react';
 import { format } from 'date-fns';
@@ -63,8 +63,16 @@ export function BacktestParamTuner() {
   const loadPreset = useBacktestParamStore((s) => s.loadPreset);
   const resetWizard = useBacktestParamStore((s) => s.resetAll);
 
+  // `submittedRef` flips true the moment we've kicked off the success
+  // navigation to the run's detail page. The guard below must respect it or
+  // `resetWizard()` (which nulls `config` before we leave this route) races
+  // the redirect and bounces the user to /backtest/new instead of the
+  // freshly-created run.
+  const submittedRef = useRef(false);
+
   // Guard: without config there's nothing to tune.
   useEffect(() => {
+    if (submittedRef.current) return;
     if (!config) router.replace('/backtest/new');
   }, [config, router]);
 
@@ -151,12 +159,23 @@ export function BacktestParamTuner() {
     try {
       const payload = buildBacktestPayload(config, paramOverrides, defaultsByCode);
       const run = await createMutation.mutateAsync(payload);
+      if (!run.id) {
+        // Belt-and-braces: the mapper already falls back to backtestRunId, but
+        // if the backend ever emits an empty shape we'd rather surface an
+        // error than silently redirect to /backtest/.
+        throw new Error('Backtest submitted but server returned no run id');
+      }
       toast.success({
         title: 'Backtest submitted',
         description: `Run ${run.id.slice(0, 8)} · ${run.symbol} ${run.interval}`,
       });
-      resetWizard();
+      // Navigate FIRST, then reset. Nulling `config` inside resetWizard()
+      // triggers the guard effect which would otherwise race us with a
+      // replace() to /backtest/new. `submittedRef` also short-circuits the
+      // guard for the remainder of this component's life.
+      submittedRef.current = true;
       router.push(`/backtest/${run.id}`);
+      resetWizard();
     } catch (err) {
       toast.error({
         title: 'Could not submit backtest',

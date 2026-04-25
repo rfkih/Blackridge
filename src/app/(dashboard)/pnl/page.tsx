@@ -18,6 +18,7 @@ import { PnlCell } from '@/components/shared/PnlCell';
 import { ErrorBoundary } from '@/components/shared/ErrorBoundary';
 import { StrategyBadge } from '@/components/trading/StrategyBadge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { DatePicker } from '@/components/ui/date-picker';
 import { useDailyPnl, usePnlByStrategy } from '@/hooks/useTrades';
 import { useStrategies } from '@/hooks/useStrategies';
 import { cn } from '@/lib/utils';
@@ -294,17 +295,13 @@ function DateInput({
       <span className="label-caps inline-flex items-center gap-1">
         <CalendarRange size={10} strokeWidth={1.75} /> {label}
       </span>
-      <input
-        type="date"
-        aria-label={label}
+      <DatePicker
         value={value}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={onChange}
         min={min}
         max={max}
-        className={cn(
-          'h-8 rounded-sm border border-bd-subtle bg-bg-base px-2 text-[12px] text-text-primary',
-          'focus:border-bd focus:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-        )}
+        placeholder={label}
+        className={cn('h-8 px-2 text-[12px]')}
       />
     </label>
   );

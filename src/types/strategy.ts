@@ -87,29 +87,54 @@ export interface LsrParams {
   minSignalScoreShort: number;
 }
 
+/**
+ * VCB strategy parameters — field names mirror {@code dto/vcb/VcbParams.java}
+ * exactly. All values are numeric (the backend serializes every field as
+ * {@code BigDecimal}); an earlier version of this interface invented a
+ * completely different schema (compressionLookback, useKcFilter, …) that did
+ * not exist on the wire, so every value rendered as {@code undefined}.
+ *
+ * Whenever the Java DTO gains or renames a field, update this interface,
+ * VCB_PARAM_META, and VCB_SECTIONS together.
+ */
 export interface VcbParams {
-  // Compression Detection
-  compressionLookback: number;
-  compressionBbWidth: number;
-  compressionKcWidth: number;
-  useKcFilter: boolean;
+  // ── Compression thresholds ──
+  squeezeKcTolerance: number;
+  atrRatioCompressMax: number;
+  erCompressMax: number;
 
-  // Breakout Filters
-  minBreakoutAtr: number;
-  maxBreakoutAtr: number;
-  volumeMultiplier: number;
-  useVolumeFilter: boolean;
+  // ── Breakout thresholds ──
+  relVolBreakoutMin: number;
+  relVolBreakoutMax: number;
+  bodyRatioBreakoutMin: number;
 
-  // Exit & Risk
-  stopLossAtr: number;
-  atrPeriod: number;
-  tp1RMultiple: number;
-  tp2RMultiple: number;
-  useRunner: boolean;
+  // ── 4H bias threshold ──
+  biasErMin: number;
 
-  // Position Sizing
-  riskPercentage: number;
-  maxPositionSizeUsdt: number;
+  // ── Entry filters ──
+  adxEntryMax: number;
+  longRsiMin: number;
+  shortRsiMax: number;
+  longDiSpreadMin: number;
+  shortDiSpreadMin: number;
+
+  // ── Risk / exits ──
+  stopAtrBuffer: number;
+  tp1R: number;
+  maxEntryRiskPct: number;
+
+  // ── Runner trail phases ──
+  runnerHalfR: number;
+  runnerBreakEvenR: number;
+  runnerPhase2R: number;
+  runnerPhase3R: number;
+  runnerAtrPhase2: number;
+  runnerAtrPhase3: number;
+  runnerLockPhase2R: number;
+  runnerLockPhase3R: number;
+
+  // ── Signal score threshold ──
+  minSignalScore: number;
 }
 
 export type StrategyParams = LsrParams | VcbParams;

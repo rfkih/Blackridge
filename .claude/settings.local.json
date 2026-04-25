@@ -83,7 +83,12 @@
       "Bash(grep -n \"realizedPnl\\\\|cumulative\\\\|sign.*\\\\\\\\+\" \"C:/MyFiles/blackheart/front-end/src/app/\\(dashboard\\)/trades/page.tsx\")",
       "Bash(grep -n \"\\\\\\\\-\\\\\\\\-dur-base\\\\|--dur-\" \"C:/MyFiles/blackheart/front-end/src/app/globals.css\")",
       "Bash(awk 'NR==880,NR==1130' \"C:/MyFiles/blackheart/front-end/src/app/\\(dashboard\\)/settings/page.tsx\")",
-      "Bash(awk 'NR>=1128 && NR<=1132' \"C:/MyFiles/blackheart/front-end/src/app/\\(dashboard\\)/settings/page.tsx\")"
+      "Bash(awk 'NR>=1128 && NR<=1132' \"C:/MyFiles/blackheart/front-end/src/app/\\(dashboard\\)/settings/page.tsx\")",
+      "Bash(python3 *)",
+      "Bash(\"C:/MyFiles/blackheart/blackheart/gradlew.bat\" -p C:/MyFiles/blackheart/blackheart compileJava -q)",
+      "Bash(\"C:/MyFiles/blackheart/blackheart/gradlew.bat\" -p C:/MyFiles/blackheart/blackheart compileJava)",
+      "Bash(\"C:/MyFiles/blackheart/blackheart/gradlew.bat\" -p C:/MyFiles/blackheart/blackheart compileJava --rerun-tasks)",
+      "Read(//c/MyFiles/blackheart/**)"
     ]
   }
 }

@@ -6,6 +6,7 @@ import { ArrowRight, AlertTriangle, Check, ChevronDown, Loader2 } from 'lucide-r
 import { z } from 'zod';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { DatePicker } from '@/components/ui/date-picker';
 import {
   Select,
   SelectContent,
@@ -14,9 +15,10 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { WizardBreadcrumb } from './WizardBreadcrumb';
-import { INTERVALS, STRATEGY_CODES } from '@/lib/constants';
+import { INTERVALS } from '@/lib/constants';
 import { useAccountStrategies } from '@/hooks/useStrategies';
 import { useActiveAccount } from '@/hooks/useAccounts';
+import { useStrategyDefinitions } from '@/hooks/useStrategyDefinitions';
 import { useBacktestParamStore } from '@/store/backtestParamStore';
 import { cn } from '@/lib/utils';
 import type { BacktestWizardConfig } from '@/types/backtest';
@@ -74,7 +76,22 @@ export function BacktestConfigForm() {
   const savedConfig = useBacktestParamStore((s) => s.config);
   const setConfig = useBacktestParamStore((s) => s.setConfig);
   const { data: strategies = [], isLoading: strategiesLoading } = useAccountStrategies();
+  const { data: definitions = [], isLoading: definitionsLoading } =
+    useStrategyDefinitions();
   const { scopedAccountId } = useActiveAccount();
+
+  // Source of truth for which strategies the user can pick is the
+  // strategy_definition catalogue, filtered to ACTIVE rows. DEPRECATED /
+  // INACTIVE definitions are hidden from the picker but remain valid in
+  // historical backtest_run rows.
+  const activeDefinitions = useMemo(
+    () =>
+      definitions
+        .filter((d) => d.status === 'ACTIVE')
+        .slice()
+        .sort((a, b) => a.strategyCode.localeCompare(b.strategyCode)),
+    [definitions],
+  );
 
   const [symbol, setSymbol] = useState<string>(savedConfig?.symbol ?? 'BTCUSDT');
   const [interval, setInterval] = useState<string>(savedConfig?.interval ?? '1h');
@@ -93,13 +110,13 @@ export function BacktestConfigForm() {
 
   const strategyOptionsByCode = useMemo(() => {
     const map = new Map<string, AccountStrategy[]>();
-    for (const code of STRATEGY_CODES) map.set(code, []);
+    for (const def of activeDefinitions) map.set(def.strategyCode, []);
     for (const s of strategies) {
       if (!map.has(s.strategyCode)) map.set(s.strategyCode, []);
       map.get(s.strategyCode)!.push(s);
     }
     return map;
-  }, [strategies]);
+  }, [activeDefinitions, strategies]);
 
   // When the user ticks a strategy, auto-pick the best-matching AccountStrategy
   // (scoped account first, then any). When unticked, drop its id.
@@ -218,21 +235,20 @@ export function BacktestConfigForm() {
           </Field>
 
           <Field label="From Date" error={errors.fromDate}>
-            <Input
-              type="date"
+            <DatePicker
               value={fromDate}
-              onChange={(e) => setFromDate(e.target.value)}
-              className="h-9 font-mono"
+              onChange={setFromDate}
+              max={toDate}
+              className="h-9"
             />
           </Field>
 
           <Field label="To Date" error={errors.toDate}>
-            <Input
-              type="date"
+            <DatePicker
               value={toDate}
-              onChange={(e) => setToDate(e.target.value)}
-              className="h-9 font-mono"
+              onChange={setToDate}
               min={fromDate}
+              className="h-9"
             />
           </Field>
 
@@ -260,22 +276,37 @@ export function BacktestConfigForm() {
           }
         />
 
-        <div className="grid grid-cols-2 gap-2 p-5 sm:grid-cols-3 lg:grid-cols-6">
-          {STRATEGY_CODES.map((code) => {
-            const selected = selectedStrategies.includes(code);
-            const candidates = strategyOptionsByCode.get(code) ?? [];
-            const noneAvailable = !strategiesLoading && candidates.length === 0;
-            return (
-              <StrategyChip
-                key={code}
-                code={code}
-                selected={selected}
-                disabled={noneAvailable}
-                onToggle={() => toggleStrategy(code)}
-              />
-            );
-          })}
-        </div>
+        {definitionsLoading ? (
+          <div className="flex items-center gap-2 px-5 py-6 text-[12px] text-text-muted">
+            <Loader2 size={12} strokeWidth={1.75} className="animate-spin" />
+            Loading strategies…
+          </div>
+        ) : activeDefinitions.length === 0 ? (
+          <div className="flex items-start gap-2 px-5 py-6 text-[12px] text-text-secondary">
+            <AlertTriangle size={12} strokeWidth={1.75} className="mt-0.5 shrink-0 text-warning" />
+            No active strategies in the catalogue. Register one in the strategy
+            definitions admin page first.
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 gap-2 p-5 sm:grid-cols-3 lg:grid-cols-6">
+            {activeDefinitions.map((def) => {
+              const code = def.strategyCode;
+              const selected = selectedStrategies.includes(code);
+              const candidates = strategyOptionsByCode.get(code) ?? [];
+              const noneAvailable = !strategiesLoading && candidates.length === 0;
+              return (
+                <StrategyChip
+                  key={code}
+                  code={code}
+                  name={def.strategyName}
+                  selected={selected}
+                  disabled={noneAvailable}
+                  onToggle={() => toggleStrategy(code)}
+                />
+              );
+            })}
+          </div>
+        )}
 
         {errors.strategyCodes && (
           <p className="border-t border-bd-subtle bg-tint-loss px-5 py-2 text-[11px] text-loss">
@@ -365,11 +396,13 @@ function Field({
 
 function StrategyChip({
   code,
+  name,
   selected,
   disabled,
   onToggle,
 }: {
   code: string;
+  name?: string;
   selected: boolean;
   disabled: boolean;
   onToggle: () => void;
@@ -380,7 +413,13 @@ function StrategyChip({
       onClick={onToggle}
       disabled={disabled}
       aria-pressed={selected}
-      title={disabled ? `No account-strategy configured for ${code}` : code}
+      title={
+        disabled
+          ? `No account-strategy configured for ${code}`
+          : name
+          ? `${code} — ${name}`
+          : code
+      }
       className={cn(
         'group relative flex items-center justify-between gap-2 rounded-sm border px-3 py-2 text-left transition-colors duration-fast',
         'focus:outline-none focus-visible:ring-2 focus-visible:ring-ring',

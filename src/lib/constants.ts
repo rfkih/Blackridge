@@ -472,128 +472,230 @@ export const LSR_PARAM_META: Record<keyof LsrParams, ParamMeta> = {
 };
 
 export const VCB_PARAM_META: Record<keyof VcbParams, ParamMeta> = {
-  // Compression Detection
-  compressionLookback: {
-    label: 'Compression Lookback',
-    description: 'Number of bars used to detect a volatility compression (squeeze).',
-    kind: 'integer',
-    min: 5,
-    max: 500,
-    step: 1,
-  },
-  compressionBbWidth: {
-    label: 'BB Width Threshold',
-    description: 'Bollinger Band width must drop below this ratio to mark compression.',
+  // ── Compression ──────────────────────────────────────────────────────────
+  squeezeKcTolerance: {
+    label: 'Squeeze KC Tolerance',
+    description:
+      'Bollinger Band must sit inside this fraction of the Keltner Channel to qualify as a squeeze.',
     kind: 'decimal',
-    min: 0,
-    max: 1,
+    unit: '×',
+    min: 0.5,
+    max: 1.5,
     step: 0.01,
   },
-  compressionKcWidth: {
-    label: 'KC Width Threshold',
-    description: 'Keltner Channel width must drop below this ratio to mark compression.',
-    kind: 'decimal',
-    min: 0,
-    max: 1,
-    step: 0.01,
-  },
-  useKcFilter: {
-    label: 'Use Keltner Channel Filter',
-    description: 'Require a BB-inside-KC squeeze, not just a BB compression.',
-    kind: 'toggle',
-  },
-  // Breakout Filters
-  minBreakoutAtr: {
-    label: 'Min Breakout (ATR)',
-    description: 'Minimum breakout distance from the range edge in ATR units.',
-    kind: 'decimal',
-    unit: '× ATR',
-    min: 0,
-    max: 5,
-    step: 0.1,
-  },
-  maxBreakoutAtr: {
-    label: 'Max Breakout (ATR)',
-    description: 'Reject breakouts extending beyond this ATR distance (chase guard).',
-    kind: 'decimal',
-    unit: '× ATR',
-    min: 0,
-    max: 10,
-    step: 0.1,
-  },
-  volumeMultiplier: {
-    label: 'Volume Multiplier',
-    description: 'Breakout bar volume must exceed this multiple of the rolling average.',
+  atrRatioCompressMax: {
+    label: 'ATR Ratio Compress Max',
+    description:
+      'Max current-ATR / average-ATR ratio allowed for the bar to count as compression.',
     kind: 'decimal',
     unit: '×',
     min: 0,
+    max: 5,
+    step: 0.05,
+  },
+  erCompressMax: {
+    label: 'Efficiency Ratio Compress Max',
+    description: 'Upper bound on Kaufman efficiency ratio (ER) during compression — lower is tighter.',
+    kind: 'decimal',
+    min: 0,
+    max: 1,
+    step: 0.01,
+  },
+
+  // ── Breakout ─────────────────────────────────────────────────────────────
+  relVolBreakoutMin: {
+    label: 'Relative Volume — Min',
+    description:
+      'Breakout bar volume must be at least this multiple of the rolling average to trigger an entry.',
+    kind: 'decimal',
+    unit: '×',
+    min: 0.5,
     max: 10,
+    step: 0.05,
+  },
+  relVolBreakoutMax: {
+    label: 'Relative Volume — Max',
+    description:
+      'Reject breakouts above this volume multiple — excludes climactic / late-fomo bars.',
+    kind: 'decimal',
+    unit: '×',
+    min: 1,
+    max: 10,
+    step: 0.05,
+  },
+  bodyRatioBreakoutMin: {
+    label: 'Body Ratio Breakout Min',
+    description:
+      'Breakout candle body / range must exceed this fraction (filters doji-style breakouts).',
+    kind: 'decimal',
+    min: 0,
+    max: 1,
+    step: 0.01,
+  },
+
+  // ── 4H bias ──────────────────────────────────────────────────────────────
+  biasErMin: {
+    label: '4H Bias — ER Min',
+    description: 'Minimum 4H efficiency ratio required to confirm directional bias.',
+    kind: 'decimal',
+    min: 0,
+    max: 1,
+    step: 0.01,
+  },
+
+  // ── Entry filters ────────────────────────────────────────────────────────
+  adxEntryMax: {
+    label: 'ADX Entry Max',
+    description: 'Reject entries when ADX is above this — filters over-extended trends.',
+    kind: 'decimal',
+    min: 0,
+    max: 100,
+    step: 0.5,
+  },
+  longRsiMin: {
+    label: 'Long RSI Min',
+    description: 'Minimum RSI on the entry bar for a long signal.',
+    kind: 'decimal',
+    min: 0,
+    max: 100,
+    step: 0.5,
+  },
+  shortRsiMax: {
+    label: 'Short RSI Max',
+    description: 'Maximum RSI on the entry bar for a short signal.',
+    kind: 'decimal',
+    min: 0,
+    max: 100,
+    step: 0.5,
+  },
+  longDiSpreadMin: {
+    label: 'Long DI Spread Min',
+    description: '+DI minus –DI must exceed this value to confirm a long entry.',
+    kind: 'decimal',
+    min: 0,
+    max: 50,
     step: 0.1,
   },
-  useVolumeFilter: {
-    label: 'Use Volume Filter',
-    description: 'Enable the breakout volume confirmation filter.',
-    kind: 'toggle',
+  shortDiSpreadMin: {
+    label: 'Short DI Spread Min',
+    description: '–DI minus +DI must exceed this value to confirm a short entry.',
+    kind: 'decimal',
+    min: 0,
+    max: 50,
+    step: 0.1,
   },
-  // Exit & Risk
-  stopLossAtr: {
-    label: 'Stop Loss (ATR)',
-    description: 'Initial stop distance in ATR units.',
+
+  // ── Risk / exits ─────────────────────────────────────────────────────────
+  stopAtrBuffer: {
+    label: 'Stop ATR Buffer',
+    description: 'Additional ATR distance placed beyond the structural stop.',
     kind: 'decimal',
     unit: '× ATR',
-    min: 0.5,
+    min: 0,
     max: 5,
-    step: 0.25,
+    step: 0.05,
   },
-  atrPeriod: {
-    label: 'ATR Period',
-    description: 'Lookback length for ATR used in stops and sizing.',
-    kind: 'integer',
-    min: 2,
-    max: 200,
-    step: 1,
-  },
-  tp1RMultiple: {
+  tp1R: {
     label: 'TP1 R-Multiple',
     description: 'First take-profit target as a multiple of initial risk (R).',
     kind: 'rmultiple',
     unit: '×',
     min: 0.5,
-    max: 5,
-    step: 0.25,
+    max: 10,
+    step: 0.1,
   },
-  tp2RMultiple: {
-    label: 'TP2 R-Multiple',
-    description: 'Second take-profit target as a multiple of initial risk (R).',
-    kind: 'rmultiple',
-    unit: '×',
-    min: 0.5,
-    max: 5,
-    step: 0.25,
-  },
-  useRunner: {
-    label: 'Use Runner',
-    description: 'Enable a trailing runner leg after TP1/TP2 are hit.',
-    kind: 'toggle',
-  },
-  // Position Sizing
-  riskPercentage: {
-    label: 'Risk per Trade',
-    description: 'Fraction of capital risked per trade between entry and stop.',
+  maxEntryRiskPct: {
+    label: 'Max Entry Risk',
+    description: 'Upper bound on entry risk as a fraction of capital.',
     kind: 'percent',
     unit: '%',
     min: 0,
-    max: 10,
-    step: 0.5,
+    max: 0.5,
+    step: 0.005,
   },
-  maxPositionSizeUsdt: {
-    label: 'Max Position Size',
-    description: 'Hard cap on notional position size in USDT.',
-    kind: 'integer',
-    unit: 'USDT',
+
+  // ── Runner trail phases ──────────────────────────────────────────────────
+  runnerHalfR: {
+    label: 'Runner Half-R',
+    description: 'R-multiple at which the runner starts honoring a tightened partial stop.',
+    kind: 'rmultiple',
+    unit: '×',
     min: 0,
-    max: 10_000_000,
-    step: 100,
+    max: 5,
+    step: 0.05,
+  },
+  runnerBreakEvenR: {
+    label: 'Runner Break-Even R',
+    description: 'R-multiple at which the runner stop is moved to break-even.',
+    kind: 'rmultiple',
+    unit: '×',
+    min: 0,
+    max: 10,
+    step: 0.05,
+  },
+  runnerPhase2R: {
+    label: 'Runner Phase-2 R',
+    description: 'R-multiple at which the runner enters trail phase 2 (tighter ATR).',
+    kind: 'rmultiple',
+    unit: '×',
+    min: 0,
+    max: 20,
+    step: 0.1,
+  },
+  runnerPhase3R: {
+    label: 'Runner Phase-3 R',
+    description: 'R-multiple at which the runner enters trail phase 3 (tightest ATR).',
+    kind: 'rmultiple',
+    unit: '×',
+    min: 0,
+    max: 30,
+    step: 0.1,
+  },
+  runnerAtrPhase2: {
+    label: 'Runner ATR — Phase 2',
+    description: 'Trailing distance in ATR units while the runner is in phase 2.',
+    kind: 'decimal',
+    unit: '× ATR',
+    min: 0.1,
+    max: 10,
+    step: 0.05,
+  },
+  runnerAtrPhase3: {
+    label: 'Runner ATR — Phase 3',
+    description: 'Trailing distance in ATR units while the runner is in phase 3.',
+    kind: 'decimal',
+    unit: '× ATR',
+    min: 0.1,
+    max: 10,
+    step: 0.05,
+  },
+  runnerLockPhase2R: {
+    label: 'Runner Lock — Phase 2',
+    description: 'Minimum R that is locked in when the runner enters phase 2.',
+    kind: 'rmultiple',
+    unit: '×',
+    min: 0,
+    max: 10,
+    step: 0.05,
+  },
+  runnerLockPhase3R: {
+    label: 'Runner Lock — Phase 3',
+    description: 'Minimum R that is locked in when the runner enters phase 3.',
+    kind: 'rmultiple',
+    unit: '×',
+    min: 0,
+    max: 20,
+    step: 0.05,
+  },
+
+  // ── Signal ───────────────────────────────────────────────────────────────
+  minSignalScore: {
+    label: 'Min Signal Score',
+    description: 'Minimum composite signal score required to open a trade.',
+    kind: 'decimal',
+    min: 0,
+    max: 1,
+    step: 0.01,
   },
 };
 
@@ -680,19 +782,46 @@ export const LSR_SECTIONS: Array<{ title: string; keys: Array<keyof LsrParams> }
 
 export const VCB_SECTIONS: Array<{ title: string; keys: Array<keyof VcbParams> }> = [
   {
-    title: 'Compression Detection',
-    keys: ['compressionLookback', 'compressionBbWidth', 'compressionKcWidth', 'useKcFilter'],
+    title: 'Compression',
+    keys: ['squeezeKcTolerance', 'atrRatioCompressMax', 'erCompressMax'],
   },
   {
-    title: 'Breakout Filters',
-    keys: ['minBreakoutAtr', 'maxBreakoutAtr', 'volumeMultiplier', 'useVolumeFilter'],
+    title: 'Breakout',
+    keys: ['relVolBreakoutMin', 'relVolBreakoutMax', 'bodyRatioBreakoutMin'],
   },
   {
-    title: 'Exit & Risk',
-    keys: ['stopLossAtr', 'atrPeriod', 'tp1RMultiple', 'tp2RMultiple', 'useRunner'],
+    title: '4H Bias',
+    keys: ['biasErMin'],
   },
   {
-    title: 'Position Sizing',
-    keys: ['riskPercentage', 'maxPositionSizeUsdt'],
+    title: 'Entry Filters',
+    keys: [
+      'adxEntryMax',
+      'longRsiMin',
+      'shortRsiMax',
+      'longDiSpreadMin',
+      'shortDiSpreadMin',
+    ],
+  },
+  {
+    title: 'Risk & Exits',
+    keys: ['stopAtrBuffer', 'tp1R', 'maxEntryRiskPct'],
+  },
+  {
+    title: 'Runner Trail',
+    keys: [
+      'runnerHalfR',
+      'runnerBreakEvenR',
+      'runnerPhase2R',
+      'runnerPhase3R',
+      'runnerAtrPhase2',
+      'runnerAtrPhase3',
+      'runnerLockPhase2R',
+      'runnerLockPhase3R',
+    ],
+  },
+  {
+    title: 'Signal',
+    keys: ['minSignalScore'],
   },
 ];

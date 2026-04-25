@@ -10,6 +10,7 @@ import { StrategyBadge } from '@/components/trading/StrategyBadge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { BacktestMetricsGrid } from '@/components/backtest/BacktestMetricsGrid';
 import { BacktestTradeTable } from '@/components/backtest/BacktestTradeTable';
+import { AnalysisCard } from '@/components/research/AnalysisCard';
 import { ErrorBoundary } from '@/components/shared/ErrorBoundary';
 import {
   useBacktestCandles,
@@ -155,6 +156,12 @@ export default function BacktestResultPage({ params }: { params: { id: string } 
       {runQ.data && <BacktestProgressBar run={runQ.data} />}
 
       <BacktestMetricsGrid metrics={runQ.data?.metrics ?? null} isLoading={runQ.isLoading} />
+
+      {idIsValid && runQ.data?.status?.toUpperCase() === 'COMPLETED' && (
+        <ErrorBoundary label="Research analysis">
+          <AnalysisCard runId={id} />
+        </ErrorBoundary>
+      )}
 
       <ErrorBoundary label="Equity curve">
         <BacktestEquityPanel

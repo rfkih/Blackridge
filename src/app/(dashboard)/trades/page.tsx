@@ -26,6 +26,7 @@ import { PriceCell } from '@/components/shared/PriceCell';
 import { PnlCell } from '@/components/shared/PnlCell';
 import { StrategyBadge } from '@/components/trading/StrategyBadge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { DatePicker } from '@/components/ui/date-picker';
 import { useTradesList } from '@/hooks/useTrades';
 import { useStrategies } from '@/hooks/useStrategies';
 import { useActiveAccount } from '@/hooks/useAccounts';
@@ -426,22 +427,22 @@ function TradesPageContent() {
         {/* Dates */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <span style={{ fontSize: 11, color: 'var(--mm-ink-3)' }}>From</span>
-          <input
-            aria-label="From date"
-            type="date"
+          <DatePicker
+            id="trades-from"
             value={filters.from}
-            onChange={(e) => patchFilters({ from: e.target.value })}
-            className="mm-btn"
-            style={{ padding: '5px 10px', fontSize: 12, cursor: 'pointer' }}
+            onChange={(v) => patchFilters({ from: v })}
+            placeholder="From"
+            clearable
+            className="h-7 px-2 py-0 text-[12px]"
           />
           <span style={{ fontSize: 11, color: 'var(--mm-ink-3)' }}>To</span>
-          <input
-            aria-label="To date"
-            type="date"
+          <DatePicker
+            id="trades-to"
             value={filters.to}
-            onChange={(e) => patchFilters({ to: e.target.value })}
-            className="mm-btn"
-            style={{ padding: '5px 10px', fontSize: 12, cursor: 'pointer' }}
+            onChange={(v) => patchFilters({ to: v })}
+            placeholder="To"
+            clearable
+            className="h-7 px-2 py-0 text-[12px]"
           />
         </div>
 

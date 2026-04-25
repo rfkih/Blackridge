@@ -20,6 +20,7 @@ import { DataTable } from '@/components/shared/DataTable';
 import { StrategyBadge } from '@/components/trading/StrategyBadge';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { Skeleton } from '@/components/ui/skeleton';
+import { DatePicker } from '@/components/ui/date-picker';
 import { useBacktestRuns } from '@/hooks/useBacktest';
 import type { BacktestSortKey } from '@/lib/api/backtest';
 import type { BacktestRun, BacktestStatus } from '@/types/backtest';
@@ -342,6 +343,17 @@ function BacktestListContent() {
             {total} run{total === 1 ? '' : 's'} · page {filters.page + 1} of {totalPages}
           </span>
           <Link
+            href="/backtest/research"
+            className={cn(
+              'inline-flex items-center gap-1.5 rounded-sm border border-bd-subtle bg-bg-surface px-3 py-2 text-[12px] font-semibold text-text-primary',
+              'transition-colors duration-fast hover:bg-bg-hover',
+              'focus:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+            )}
+            title="Iterative multi-round parameter search"
+          >
+            Research mode →
+          </Link>
+          <Link
             href="/backtest/new"
             className={cn(
               'inline-flex items-center gap-1.5 rounded-sm bg-profit px-3 py-2 text-[12px] font-semibold text-text-inverse',
@@ -423,22 +435,24 @@ function BacktestListContent() {
 
         <div className="flex items-center gap-2 text-[11px] text-text-muted">
           <span>From</span>
-          <input
-            aria-label="Created from"
-            type="date"
+          <DatePicker
+            id="backtest-list-from"
             value={filters.from}
-            onChange={(e) => patchFilters({ from: e.target.value })}
-            className="h-8 rounded-md border border-bd-subtle bg-bg-base px-2 text-[12px] text-text-primary focus:outline-none"
+            onChange={(v) => patchFilters({ from: v })}
+            placeholder="Created from"
+            clearable
+            className="h-8 px-2 text-[12px]"
           />
         </div>
         <div className="flex items-center gap-2 text-[11px] text-text-muted">
           <span>To</span>
-          <input
-            aria-label="Created to"
-            type="date"
+          <DatePicker
+            id="backtest-list-to"
             value={filters.to}
-            onChange={(e) => patchFilters({ to: e.target.value })}
-            className="h-8 rounded-md border border-bd-subtle bg-bg-base px-2 text-[12px] text-text-primary focus:outline-none"
+            onChange={(v) => patchFilters({ to: v })}
+            placeholder="Created to"
+            clearable
+            className="h-8 px-2 text-[12px]"
           />
         </div>
 

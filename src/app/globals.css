@@ -41,7 +41,7 @@
   /* Theme crossfade only — intentionally longer than --dur-slow so the
      dark↔light swap reads as a deliberate transition, not a pop. Used by the
      html/body fallback transition and the view-transitions keyframes. */
-  --dur-theme: 700ms;
+  --dur-theme: 1500ms;
 }
 
 /* ── DARK THEME (default) ────────────────────────────────────────────
