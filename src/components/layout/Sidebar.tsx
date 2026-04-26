@@ -39,7 +39,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'Strategies', href: '/strategies', icon: Zap },
   { label: 'Backtest', href: '/backtest', icon: FlaskConical },
   { label: 'Sweeps', href: '/research/sweeps', icon: Grid3x3 },
-  { label: 'Monte Carlo', href: '/montecarlo', icon: Dices },
+  { label: 'Forward Projections', href: '/montecarlo', icon: Dices },
   { label: 'P&L', href: '/pnl', icon: BarChart3 },
   { label: 'Journal', href: '/trades', icon: Book },
   { label: 'Settings', href: '/settings', icon: Settings },

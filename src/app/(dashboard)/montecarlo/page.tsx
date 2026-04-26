@@ -154,7 +154,7 @@ export default function MonteCarloPage() {
       >
         <div>
           <div className="mm-kicker">
-            MONTE CARLO · {simsForKicker} SIMULATIONS
+            FORWARD PROJECTIONS · {simsForKicker} SIMULATIONS
           </div>
           <div
             style={{
@@ -401,7 +401,7 @@ function Results({ result }: { result: MonteCarloResult }) {
             <span>· {result.numberOfSimulations.toLocaleString()} PATHS</span>
           </div>
         </div>
-        <ErrorBoundary label="Monte Carlo chart">
+        <ErrorBoundary label="Forward projections chart">
           <MonteCarloChart result={result} />
         </ErrorBoundary>
       </section>

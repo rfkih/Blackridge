@@ -123,6 +123,14 @@ export interface BacktestTradePosition {
 export interface BacktestTrade {
   id: UUID;
   backtestRunId: UUID;
+  /** Strategy code that fired this trade (e.g. "LSR_V2", "VCB"). Null on
+   *  legacy runs persisted before the field was populated. */
+  strategyCode: string | null;
+  /** Display name — falls back to strategyCode when not set. */
+  strategyName: string | null;
+  /** Interval the strategy actually fired on. May differ across trades
+   *  in multi-interval runs (e.g. LSR on 15m, VCB on 1h). */
+  interval: string | null;
   direction: TradeDirection;
   entryTime: EpochMs;
   entryPrice: number;
@@ -207,6 +215,19 @@ export interface BacktestRunPayload {
   allowShort?: boolean;
   /** Per-strategy diff-vs-defaults from the wizard Step 2. */
   strategyParamOverrides: Record<string, Record<string, unknown>>;
+  /** Phase A — cap concurrent open trades across all strategies. Null = no cap.
+   *  With the current single-trade backtest engine the effective cap is 1
+   *  regardless; values > 1 are forward-compatible for Phase B. */
+  maxConcurrentStrategies?: number;
+  /** Phase A — per-strategy capital allocation override for this run only.
+   *  Key = strategy code, value = allocation % (0–100). Strategies missing
+   *  from the map fall back to account_strategy.capital_allocation_pct. */
+  strategyAllocations?: Record<string, number>;
+  /** Phase B2 — per-strategy interval override for multi-timeframe runs.
+   *  Key = strategy code, value = interval string (e.g. "15m"). When set,
+   *  each strategy fires on its own timeframe's bar closes. When omitted,
+   *  all strategies share the run's primary interval. */
+  strategyIntervals?: Record<string, string>;
 }
 
 /** Wizard state — the user-facing fields the form collects before we shape a payload. */
@@ -218,6 +239,18 @@ export interface BacktestWizardConfig {
   initialCapital: number;
   strategyCodes: Array<StrategyCode | string>;
   strategyAccountStrategyIds: Record<string, UUID>;
+  /** Phase A — max concurrent open trades across the strategies in this run.
+   *  Null/undefined means "use the engine's current limit" (today: 1). */
+  maxConcurrentStrategies?: number;
+  /** Phase A — per-strategy capital allocation override (% on 0-100 scale). */
+  strategyAllocations?: Record<string, number>;
+  /** Phase B2 — per-strategy interval override (e.g. {"LSR": "15m", "VCB": "1h"}). */
+  strategyIntervals?: Record<string, string>;
+  /** Phase B2 wizard-only mode. 'multi' auto-fills strategyIntervals
+   *  from each strategy's registered interval and suppresses the
+   *  "interval mismatch" warning. Not sent to the backend — payload
+   *  shape is fully determined by strategyIntervals. */
+  evaluationMode?: 'single' | 'multi';
 }
 
 export interface BacktestParamPreset {

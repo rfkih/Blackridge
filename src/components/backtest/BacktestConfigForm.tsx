@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowRight, AlertTriangle, Check, ChevronDown, Loader2 } from 'lucide-react';
 import { z } from 'zod';
@@ -20,11 +20,18 @@ import { useAccountStrategies } from '@/hooks/useStrategies';
 import { useActiveAccount } from '@/hooks/useAccounts';
 import { useStrategyDefinitions } from '@/hooks/useStrategyDefinitions';
 import { useBacktestParamStore } from '@/store/backtestParamStore';
+import { BACKTEST_MIN_NOTIONAL_USDT } from '@/lib/backtest/buildBacktestPayload';
 import { cn } from '@/lib/utils';
 import type { BacktestWizardConfig } from '@/types/backtest';
 import type { AccountStrategy } from '@/types/strategy';
 
 const COMMON_SYMBOLS = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'BNBUSDT', 'XRPUSDT', 'AVAXUSDT'];
+
+/** Sentinel for the per-strategy interval Select's "use primary" option.
+ *  Radix's Select.Item rejects value="" because that string is reserved
+ *  for "show placeholder / clear selection" — we use a non-empty token
+ *  internally and translate it back to '' before storing in state. */
+const INHERIT_PRIMARY = '__inherit_primary__';
 
 const configSchema = z
   .object({
@@ -37,6 +44,25 @@ const configSchema = z
       .min(100, 'Minimum $100 USDT'),
     strategyCodes: z.array(z.string()).min(1, 'Select at least one strategy'),
     strategyAccountStrategyIds: z.record(z.string(), z.string()),
+    maxConcurrentStrategies: z
+      .number()
+      .int()
+      .min(1, 'Must allow at least 1 concurrent strategy')
+      .max(20, 'Cap is 20 concurrent strategies')
+      .optional(),
+    strategyAllocations: z.record(z.string(), z.number().positive().max(100)).optional(),
+    strategyIntervals: z
+      .record(
+        z.string(),
+        z
+          .string()
+          .regex(
+            /^(1m|3m|5m|15m|30m|1h|2h|4h|6h|8h|12h|1d|3d|1w|1M)$/,
+            'invalid interval',
+          ),
+      )
+      .optional(),
+    evaluationMode: z.enum(['single', 'multi']).optional(),
   })
   .refine((d) => d.toDate > d.fromDate, {
     message: 'To date must be after From date',
@@ -106,6 +132,30 @@ export function BacktestConfigForm() {
   const [strategyAccountStrategyIds, setStrategyAccountStrategyIds] = useState<
     Record<string, string>
   >(savedConfig?.strategyAccountStrategyIds ?? {});
+  // Phase A — multi-strategy controls.
+  const [maxConcurrentStrategies, setMaxConcurrentStrategies] = useState<string>(
+    savedConfig?.maxConcurrentStrategies != null
+      ? String(savedConfig.maxConcurrentStrategies)
+      : '1',
+  );
+  const [strategyAllocations, setStrategyAllocations] = useState<Record<string, string>>(
+    Object.fromEntries(
+      Object.entries(savedConfig?.strategyAllocations ?? {}).map(
+        ([code, pct]) => [code, String(pct)],
+      ),
+    ),
+  );
+  // Phase B2 — per-strategy interval. Blank string = "use primary interval".
+  const [strategyIntervals, setStrategyIntervals] = useState<Record<string, string>>(
+    savedConfig?.strategyIntervals ?? {},
+  );
+  // Phase B2 — backtest mode. 'single' is the legacy "all strategies share
+  // the primary interval" flow. 'multi' auto-fills each strategy's interval
+  // from its registered AccountStrategy so mismatch is impossible by
+  // construction.
+  const [evaluationMode, setEvaluationMode] = useState<'single' | 'multi'>(
+    savedConfig?.evaluationMode ?? 'single',
+  );
   const [errors, setErrors] = useState<FormErrors>({});
 
   const strategyOptionsByCode = useMemo(() => {
@@ -155,28 +205,145 @@ export function BacktestConfigForm() {
     return m;
   }, [strategies]);
 
+  // Phase B2 — track manual overrides so we can restore them when the
+  // user toggles multi → single. Multi mode auto-fills strategyIntervals
+  // from the registered AccountStrategy, but those auto-fills shouldn't
+  // persist as silent "manual overrides" once the user switches back.
+  const intervalsBeforeMultiRef = useRef<Record<string, string>>({});
+  const prevModeRef = useRef<'single' | 'multi'>(evaluationMode);
+
+  useEffect(() => {
+    const prev = prevModeRef.current;
+    if (prev !== 'multi' && evaluationMode === 'multi') {
+      // single → multi: snapshot user's manual overrides BEFORE the
+      // auto-fill effect mutates them.
+      intervalsBeforeMultiRef.current = { ...strategyIntervals };
+    } else if (prev === 'multi' && evaluationMode === 'single') {
+      // multi → single: drop the auto-filled overrides; restore the
+      // manual overrides that were active before entering multi.
+      setStrategyIntervals(intervalsBeforeMultiRef.current);
+    }
+    prevModeRef.current = evaluationMode;
+    // strategyIntervals intentionally excluded from deps — we only want
+    // to react to mode transitions, not to value updates within a mode.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [evaluationMode]);
+
+  // Phase B2 — when the user picks 'multi' mode, auto-populate
+  // strategyIntervals from each strategy's registered AccountStrategy
+  // interval. This keeps effective interval == registered for every
+  // strategy by construction, so the mismatch warning never has anything
+  // to flag. Re-runs whenever selection or AccountStrategy picks change.
+  useEffect(() => {
+    if (evaluationMode !== 'multi') return;
+    setStrategyIntervals((prev) => {
+      const next = { ...prev };
+      let changed = false;
+      for (const code of selectedStrategies) {
+        const id = strategyAccountStrategyIds[code];
+        const accStrat = id ? strategyById.get(id) : null;
+        if (accStrat && accStrat.interval && next[code] !== accStrat.interval) {
+          next[code] = accStrat.interval;
+          changed = true;
+        }
+      }
+      return changed ? next : prev;
+    });
+  }, [evaluationMode, selectedStrategies, strategyAccountStrategyIds, strategyById]);
+
+  // Phase B2 — a strategy's "effective interval" is its per-strategy
+  // override when set, otherwise the wizard's primary interval. Mismatch
+  // exists when the assigned account-strategy is registered on a
+  // different timeframe than its effective interval. In 'multi' mode
+  // mismatches are impossible by construction (effect above), so we
+  // short-circuit to an empty list.
   const intervalMismatches = useMemo(() => {
-    const out: Array<{ code: string; interval: string }> = [];
+    if (evaluationMode === 'multi') return [];
+    const out: Array<{ code: string; registered: string; effective: string }> = [];
     for (const code of selectedStrategies) {
       const id = strategyAccountStrategyIds[code];
       if (!id) continue;
       const accStrat = strategyById.get(id);
-      if (accStrat && accStrat.interval && accStrat.interval !== interval) {
-        out.push({ code, interval: accStrat.interval });
+      if (!accStrat || !accStrat.interval) continue;
+      const effective = strategyIntervals[code] || interval;
+      if (accStrat.interval !== effective) {
+        out.push({ code, registered: accStrat.interval, effective });
       }
     }
     return out;
-  }, [selectedStrategies, strategyAccountStrategyIds, strategyById, interval]);
+  }, [evaluationMode, selectedStrategies, strategyAccountStrategyIds, strategyById, interval, strategyIntervals]);
 
-  // Only offer a one-click fix when every assigned strategy agrees on the
-  // same (non-matching) interval — otherwise there's no single right answer.
-  const sharedMismatchInterval = useMemo(() => {
+  // Phase A — sum of allocations across selected strategies. > 100 is
+  // legal at the API level (backend canonicaliseAllocations doesn't
+  // enforce a sum cap), but every strategy after the first to hit the
+  // balance ceiling silently fails its order. Surface the over-allocation
+  // up-front so the user understands what'll happen at runtime.
+  const allocationSumPct = useMemo(() => {
+    let total = 0;
+    for (const code of selectedStrategies) {
+      const raw = strategyAllocations[code];
+      const n = Number(raw);
+      if (Number.isFinite(n) && n > 0) total += n;
+    }
+    return total;
+  }, [selectedStrategies, strategyAllocations]);
+
+  // Phase A — flag strategies whose allocated capital is below the
+  // backtest's default min notional ($7). Without this guard the executor
+  // floors the order to min-notional, which inflates the strategy's real
+  // exposure above the user's intended slice — multi-strategy runs on
+  // small balances over-allocate the book. We use the same DEFAULT_SIZING
+  // floor the payload uses so the warning matches what'll happen.
+  const tinyAllocationCodes = useMemo(() => {
+    const capital = Number(initialCapital);
+    if (!Number.isFinite(capital) || capital <= 0) return [];
+    const out: Array<{ code: string; pct: number; sliceUsdt: number }> = [];
+    for (const code of selectedStrategies) {
+      const raw = strategyAllocations[code];
+      const n = Number(raw);
+      if (!Number.isFinite(n) || n <= 0) continue; // blank = falls back to AccountStrategy default — skip
+      const slice = (capital * n) / 100;
+      if (slice < BACKTEST_MIN_NOTIONAL_USDT) {
+        out.push({ code, pct: n, sliceUsdt: slice });
+      }
+    }
+    return out;
+  }, [selectedStrategies, strategyAllocations, initialCapital]);
+
+  // The shared-fix button (sets the wizard's primary interval) only
+  // makes sense when every mismatched strategy is registered on the same
+  // timeframe AND none of them already have a per-strategy override.
+  const sharedRegisteredInterval = useMemo(() => {
     if (intervalMismatches.length === 0) return null;
-    const first = intervalMismatches[0].interval;
-    return intervalMismatches.every((m) => m.interval === first) ? first : null;
-  }, [intervalMismatches]);
+    const first = intervalMismatches[0].registered;
+    const allSame = intervalMismatches.every((m) => m.registered === first);
+    const noOverrides = intervalMismatches.every(
+      (m) => !strategyIntervals[m.code],
+    );
+    return allSame && noOverrides ? first : null;
+  }, [intervalMismatches, strategyIntervals]);
 
   const handleSubmit = useCallback(() => {
+    // Trim allocations to only the strategies actually selected — drops
+    // stale entries left from earlier ticks of the form.
+    const allocs: Record<string, number> = {};
+    for (const code of selectedStrategies) {
+      const raw = strategyAllocations[code];
+      if (raw == null || raw === '') continue;
+      const n = Number(raw);
+      if (Number.isFinite(n) && n > 0 && n <= 100) {
+        allocs[code] = n;
+      }
+    }
+
+    // Same trim for per-strategy intervals: only carry entries for
+    // currently-selected strategies, drop blanks (= "use primary").
+    const intervals: Record<string, string> = {};
+    for (const code of selectedStrategies) {
+      const v = strategyIntervals[code];
+      if (typeof v === 'string' && v.trim() !== '') intervals[code] = v.trim();
+    }
+
     const parsed = configSchema.safeParse({
       symbol: symbol.trim().toUpperCase(),
       interval,
@@ -185,6 +352,10 @@ export function BacktestConfigForm() {
       initialCapital: Number(initialCapital),
       strategyCodes: selectedStrategies,
       strategyAccountStrategyIds,
+      maxConcurrentStrategies: Number(maxConcurrentStrategies) || undefined,
+      strategyAllocations: Object.keys(allocs).length ? allocs : undefined,
+      strategyIntervals: Object.keys(intervals).length ? intervals : undefined,
+      evaluationMode,
     });
 
     if (!parsed.success) {
@@ -209,6 +380,10 @@ export function BacktestConfigForm() {
     initialCapital,
     selectedStrategies,
     strategyAccountStrategyIds,
+    maxConcurrentStrategies,
+    strategyAllocations,
+    strategyIntervals,
+    evaluationMode,
     setConfig,
     router,
   ]);
@@ -350,6 +525,67 @@ export function BacktestConfigForm() {
 
         {selectedStrategies.length > 0 && (
           <div className="border-t border-bd-subtle px-5 py-4">
+            {/* Phase B2 — backtest mode toggle. 'multi' auto-resolves each
+                 strategy's interval from its registered AccountStrategy and
+                 suppresses the mismatch warning by construction. */}
+            <div className="pb-4">
+              <p className="label-caps pb-2">Backtest mode</p>
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <label
+                  className={cn(
+                    'flex flex-1 cursor-pointer items-start gap-2 rounded-sm border px-3 py-2 transition-colors',
+                    evaluationMode === 'single'
+                      ? 'border-profit bg-tint-profit'
+                      : 'border-bd-subtle bg-bg-base hover:border-bd hover:bg-bg-elevated',
+                  )}
+                >
+                  <input
+                    type="radio"
+                    name="evaluationMode"
+                    value="single"
+                    checked={evaluationMode === 'single'}
+                    onChange={() => setEvaluationMode('single')}
+                    className="mt-0.5"
+                  />
+                  <div className="min-w-0">
+                    <p className="text-[12px] font-semibold text-text-primary">
+                      Single timeframe
+                    </p>
+                    <p className="text-[11px] text-text-muted">
+                      Every strategy runs on the primary interval below. Warns
+                      when a strategy&apos;s registered interval differs.
+                    </p>
+                  </div>
+                </label>
+                <label
+                  className={cn(
+                    'flex flex-1 cursor-pointer items-start gap-2 rounded-sm border px-3 py-2 transition-colors',
+                    evaluationMode === 'multi'
+                      ? 'border-profit bg-tint-profit'
+                      : 'border-bd-subtle bg-bg-base hover:border-bd hover:bg-bg-elevated',
+                  )}
+                >
+                  <input
+                    type="radio"
+                    name="evaluationMode"
+                    value="multi"
+                    checked={evaluationMode === 'multi'}
+                    onChange={() => setEvaluationMode('multi')}
+                    className="mt-0.5"
+                  />
+                  <div className="min-w-0">
+                    <p className="text-[12px] font-semibold text-text-primary">
+                      Multi-interval
+                    </p>
+                    <p className="text-[11px] text-text-muted">
+                      Each strategy runs on its registered timeframe
+                      automatically. e.g. LSR @ 15m + VCB @ 1h in one run.
+                    </p>
+                  </div>
+                </label>
+              </div>
+            </div>
+
             <p className="label-caps pb-3">Account-strategy assignment</p>
             <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
               {selectedStrategies.map((code) => {
@@ -373,6 +609,160 @@ export function BacktestConfigForm() {
               <p className="mt-3 text-[11px] text-loss">{errors.strategyAccountStrategyIds}</p>
             )}
 
+            {/* Phase A — concurrent cap + per-strategy allocation overrides. */}
+            <div className="mt-5 grid grid-cols-1 gap-4 border-t border-bd-subtle pt-4 lg:grid-cols-3">
+              <Field label="Max concurrent strategies">
+                <Input
+                  type="number"
+                  inputMode="numeric"
+                  min={1}
+                  max={20}
+                  step={1}
+                  value={maxConcurrentStrategies}
+                  onChange={(e) => setMaxConcurrentStrategies(e.target.value)}
+                  className="num h-9"
+                />
+                <p className="mt-1 text-[10px] text-text-muted">
+                  Cap on simultaneous open trades across all strategies.
+                </p>
+              </Field>
+              <div className="lg:col-span-2">
+                <p className="label-caps pb-2">Per-strategy allocation + interval</p>
+                <div className="grid grid-cols-1 gap-2">
+                  {selectedStrategies.map((code) => (
+                    <div
+                      key={code}
+                      className="grid grid-cols-[5rem_1fr_auto_5rem] items-center gap-2"
+                    >
+                      <span className="font-mono text-[11px] font-semibold text-text-primary truncate">
+                        {code}
+                      </span>
+                      <div className="flex items-center gap-1">
+                        <Input
+                          type="number"
+                          inputMode="decimal"
+                          min={0}
+                          max={100}
+                          step={5}
+                          placeholder="from account"
+                          value={strategyAllocations[code] ?? ''}
+                          onChange={(e) =>
+                            setStrategyAllocations((prev) => ({
+                              ...prev,
+                              [code]: e.target.value,
+                            }))
+                          }
+                          className="num h-8 flex-1"
+                        />
+                        <span className="text-[10px] text-text-muted">%</span>
+                      </div>
+                      <span className="text-[9px] uppercase tracking-wider text-text-muted">
+                        on
+                      </span>
+                      <Select
+                        // Radix forbids value="" — use a sentinel for "use
+                        // primary" and translate on both edges. Stored
+                        // state still holds "" or a real interval, so the
+                        // submit-time trim logic stays unchanged.
+                        // In 'multi' mode the picker is locked to the
+                        // strategy's registered interval (auto-filled by
+                        // the effect above) — disabled to avoid drift.
+                        value={strategyIntervals[code] ? strategyIntervals[code] : INHERIT_PRIMARY}
+                        onValueChange={(value) =>
+                          setStrategyIntervals((prev) => ({
+                            ...prev,
+                            [code]: value === INHERIT_PRIMARY ? '' : value,
+                          }))
+                        }
+                        disabled={evaluationMode === 'multi'}
+                      >
+                        <SelectTrigger className="h-8 font-mono text-[11px]">
+                          <SelectValue placeholder={interval} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value={INHERIT_PRIMARY}>
+                            Use primary ({interval})
+                          </SelectItem>
+                          {INTERVALS.map((i) => (
+                            <SelectItem key={i} value={i}>
+                              {i}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  ))}
+                </div>
+                <p className="mt-1 text-[10px] text-text-muted">
+                  Allocation blank → falls back to{' '}
+                  <span className="font-mono">account_strategy.capital_allocation_pct</span>.
+                  Interval blank → uses the primary{' '}
+                  <span className="font-mono">{interval}</span>. Sizing per
+                  strategy is{' '}
+                  <span className="font-mono">balance × allocation</span>.
+                </p>
+              </div>
+            </div>
+
+            {allocationSumPct > 100 && (
+              <div className="mt-3 flex items-start gap-2 rounded-sm border border-bd-subtle bg-tint-warning px-3 py-2.5">
+                <AlertTriangle
+                  size={12}
+                  strokeWidth={1.75}
+                  className="mt-0.5 shrink-0 text-warning"
+                />
+                <p className="text-[11px] text-text-primary">
+                  <span className="font-semibold">
+                    Allocations sum to {allocationSumPct.toFixed(1)}%.
+                  </span>{' '}
+                  Strategies are evaluated in order; once the balance is
+                  exhausted, later trades silently fail their balance check.
+                  Reduce overlap so the total is ≤&nbsp;100%.
+                </p>
+              </div>
+            )}
+
+            {tinyAllocationCodes.length > 0 && (
+              <div className="mt-3 flex items-start gap-2 rounded-sm border border-bd-subtle bg-tint-warning px-3 py-2.5">
+                <AlertTriangle
+                  size={12}
+                  strokeWidth={1.75}
+                  className="mt-0.5 shrink-0 text-warning"
+                />
+                <div className="flex min-w-0 flex-1 flex-col gap-1">
+                  <p className="text-[11px] text-text-primary">
+                    <span className="font-semibold">
+                      Allocation below min-notional.
+                    </span>{' '}
+                    The executor floors orders to{' '}
+                    <span className="font-mono">{BACKTEST_MIN_NOTIONAL_USDT} USDT</span>,
+                    which over-allocates these strategies vs your intended slice:
+                  </p>
+                  <ul className="flex flex-col gap-0.5 text-[11px] text-text-primary">
+                    {tinyAllocationCodes.map((t) => (
+                      <li key={t.code} className="flex flex-wrap items-center gap-2">
+                        <span className="font-mono font-semibold">{t.code}</span>
+                        <span className="text-text-muted">
+                          {t.pct.toFixed(1)}% ={' '}
+                          <span className="font-mono text-text-primary">
+                            {t.sliceUsdt.toFixed(2)} USDT
+                          </span>{' '}
+                          → floored to{' '}
+                          <span className="font-mono text-text-primary">
+                            {BACKTEST_MIN_NOTIONAL_USDT.toFixed(2)} USDT
+                          </span>
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                  <p className="text-[10px] text-text-muted">
+                    Increase the allocation, or raise initial capital so each
+                    slice clears the min-notional floor.
+                  </p>
+                </div>
+              </div>
+            )}
+
             {intervalMismatches.length > 0 && (
               <div className="mt-3 flex items-start gap-2 rounded-sm border border-bd-subtle bg-tint-warning px-3 py-2.5">
                 <AlertTriangle
@@ -380,28 +770,51 @@ export function BacktestConfigForm() {
                   strokeWidth={1.75}
                   className="mt-0.5 shrink-0 text-warning"
                 />
-                <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+                <div className="flex min-w-0 flex-1 flex-col gap-2">
                   <p className="text-[11px] text-text-primary">
-                    Interval mismatch — backtest results will not be valid. The
-                    backtest is set to{' '}
-                    <span className="font-mono font-semibold">{interval}</span>{' '}
-                    but{' '}
-                    {intervalMismatches.map((m, i) => (
-                      <span key={m.code}>
-                        <span className="font-mono font-semibold">{m.code}</span>
-                        {' is registered on '}
-                        <span className="font-mono font-semibold">{m.interval}</span>
-                        {i < intervalMismatches.length - 1 ? ', ' : '.'}
-                      </span>
-                    ))}
+                    <span className="font-semibold">Interval mismatch.</span>{' '}
+                    Strategy params are calibrated for a specific timeframe;
+                    running on a different bar produces invalid results.
                   </p>
-                  {sharedMismatchInterval && (
+                  <ul className="flex flex-col gap-1.5 text-[11px] text-text-primary">
+                    {intervalMismatches.map((m) => (
+                      <li
+                        key={m.code}
+                        className="flex flex-wrap items-center gap-2"
+                      >
+                        <span className="font-mono font-semibold">{m.code}</span>
+                        <span className="text-text-muted">
+                          registered on{' '}
+                          <span className="font-mono font-semibold text-text-primary">
+                            {m.registered}
+                          </span>
+                          , would run on{' '}
+                          <span className="font-mono font-semibold text-text-primary">
+                            {m.effective}
+                          </span>
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setStrategyIntervals((prev) => ({
+                              ...prev,
+                              [m.code]: m.registered,
+                            }))
+                          }
+                          className="rounded-sm border border-bd-subtle bg-bg-elevated px-2 py-0.5 font-mono text-[10px] text-text-primary transition-colors duration-fast hover:bg-bg-hover"
+                        >
+                          Run {m.code} on {m.registered}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                  {sharedRegisteredInterval && (
                     <button
                       type="button"
-                      onClick={() => setInterval(sharedMismatchInterval)}
+                      onClick={() => setInterval(sharedRegisteredInterval)}
                       className="self-start rounded-sm border border-bd-subtle bg-bg-elevated px-2 py-1 font-mono text-[10px] text-text-primary transition-colors duration-fast hover:bg-bg-hover"
                     >
-                      Use {sharedMismatchInterval}
+                      Or set the primary interval to {sharedRegisteredInterval}
                     </button>
                   )}
                 </div>

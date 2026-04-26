@@ -295,6 +295,9 @@ interface BackendBacktestTradePosition {
 interface BackendBacktestTrade {
   id: string;
   backtestRunId: string;
+  strategyCode?: string | null;
+  strategyName?: string | null;
+  interval?: string | null;
   direction: string;
   entryTime: number | string;
   entryPrice: number;
@@ -342,6 +345,9 @@ function mapBacktestTrade(t: BackendBacktestTrade): BacktestTrade {
   return {
     id: t.id,
     backtestRunId: t.backtestRunId,
+    strategyCode: t.strategyCode ?? null,
+    strategyName: t.strategyName ?? t.strategyCode ?? null,
+    interval: t.interval ?? null,
     direction: t.direction === 'SHORT' ? 'SHORT' : 'LONG',
     entryTime: toEpochMs(t.entryTime) ?? 0,
     entryPrice: Number(t.entryPrice),

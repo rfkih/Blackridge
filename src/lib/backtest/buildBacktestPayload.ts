@@ -59,6 +59,14 @@ function pickDefaultAccountStrategyId(
 }
 
 /**
+ * Backtest min-notional floor (USDT). Binance spot min-notional is ≈ $5;
+ * 7 USDT gives a safety cushion. Exported so the wizard can warn when a
+ * user's allocation × balance falls below this floor (the executor would
+ * silently round up to it, over-allocating the strategy's slice).
+ */
+export const BACKTEST_MIN_NOTIONAL_USDT = 7;
+
+/**
  * Trade-sizing defaults the wizard doesn't collect from the user yet.
  *
  * <p>Without these, the backend persists {@code null} for {@code riskPerTradePct},
@@ -80,8 +88,7 @@ const DEFAULT_SIZING = {
   feeRate: 0.00075,
   /** No slippage by default — deterministic replays. */
   slippageRate: 0,
-  /** Binance min-notional ≈ $5; 7 USDT gives a safety cushion. */
-  minNotional: 7,
+  minNotional: BACKTEST_MIN_NOTIONAL_USDT,
   minQty: 0.000001,
   qtyStep: 0.000001,
   maxOpenPositions: 1,
@@ -137,6 +144,14 @@ export function buildBacktestPayload(
         computeDiff(defaultParams[code] ?? {}, paramOverrides[code] ?? {}),
       ]),
     ),
+    // Phase A — multi-strategy controls. Both omitted from the payload when
+    // unset so the backend's null-handling kicks in (no cap; allocation
+    // falls back to account_strategy.capital_allocation_pct).
+    maxConcurrentStrategies: config.maxConcurrentStrategies,
+    strategyAllocations: trimAllocations(config.strategyAllocations),
+    // Phase B2 — per-strategy interval override. Omitted when empty so
+    // the backend falls back to the primary interval for every strategy.
+    strategyIntervals: trimIntervals(config.strategyIntervals),
   };
   // When the user opts into calibrated slippage we OMIT the field —
   // BacktestService falls back to its symbol-specific calibrated rate
@@ -145,4 +160,40 @@ export function buildBacktestPayload(
     payload.slippageRate = DEFAULT_SIZING.slippageRate;
   }
   return payload;
+}
+
+/**
+ * Strip any zero / blank / negative allocation entries from the wizard
+ * map. Backend canonicaliseAllocations enforces (0, 100] but it's also
+ * cleaner not to send empty entries that just clutter the JSONB blob.
+ */
+function trimAllocations(
+  raw: Record<string, number> | undefined,
+): Record<string, number> | undefined {
+  if (!raw) return undefined;
+  const out: Record<string, number> = {};
+  for (const [code, pct] of Object.entries(raw)) {
+    if (typeof pct === 'number' && Number.isFinite(pct) && pct > 0 && pct <= 100) {
+      out[code] = pct;
+    }
+  }
+  return Object.keys(out).length ? out : undefined;
+}
+
+/**
+ * Strip empty / blank / unknown-format interval entries. Phase B2 only.
+ * The backend's @Pattern annotation re-validates each value, but it's
+ * cleaner not to round-trip blank strings.
+ */
+function trimIntervals(
+  raw: Record<string, string> | undefined,
+): Record<string, string> | undefined {
+  if (!raw) return undefined;
+  const out: Record<string, string> = {};
+  for (const [code, interval] of Object.entries(raw)) {
+    if (typeof interval === 'string' && interval.trim() !== '') {
+      out[code] = interval.trim();
+    }
+  }
+  return Object.keys(out).length ? out : undefined;
 }

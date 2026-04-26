@@ -33,6 +33,8 @@ interface BacktestTradeTableProps {
  */
 type SortKey =
   | 'index'
+  | 'strategy'
+  | 'interval'
   | 'direction'
   | 'entryTime'
   | 'entryPrice'
@@ -50,6 +52,8 @@ type SortDir = 'asc' | 'desc';
 
 const COLUMNS: Array<{ key: SortKey | 'legs'; label: string; sortable: boolean }> = [
   { key: 'index', label: '#', sortable: true },
+  { key: 'strategy', label: 'Strategy', sortable: true },
+  { key: 'interval', label: 'TF', sortable: true },
   { key: 'direction', label: 'Side', sortable: true },
   { key: 'entryTime', label: 'Entry Time', sortable: true },
   { key: 'entryPrice', label: 'Entry', sortable: true },
@@ -73,6 +77,8 @@ const COLUMNS: Array<{ key: SortKey | 'legs'; label: string; sortable: boolean }
  */
 const SORT_EXTRACTORS: Record<SortKey, (t: BacktestTrade) => number | string | null> = {
   index: (t) => t.entryTime, // # mirrors chronological order
+  strategy: (t) => t.strategyCode ?? t.strategyName ?? '',
+  interval: (t) => t.interval ?? '',
   direction: (t) => t.direction,
   entryTime: (t) => t.entryTime,
   entryPrice: (t) => t.entryPrice,
@@ -89,8 +95,10 @@ const SORT_EXTRACTORS: Record<SortKey, (t: BacktestTrade) => number | string | n
 
 // CSS grid template — keeps header + virtualized rows perfectly aligned.
 // Total minimum width drives the horizontal scroll for narrower viewports.
+// Strategy column gets 92px (fits LSR_V2 / VCB / TPR / TSMOM_V1); interval
+// 56px (fits 15m / 1h / 1d). Combined adds 148px to the minimum table width.
 const GRID_TEMPLATE =
-  '40px 60px 150px 84px 150px 84px 80px 80px 80px 110px 92px 100px 64px 100px';
+  '40px 92px 56px 60px 150px 84px 150px 84px 80px 80px 80px 110px 92px 100px 64px 100px';
 const ROW_HEIGHT = 36; // matches .py-2 + content baseline; virtualizer needs a stable estimate
 const VIEWPORT_MAX_HEIGHT = 480;
 
@@ -201,7 +209,7 @@ export function BacktestTradeTable({
     >
       {/* Horizontal scroll wrapper so narrow viewports don't squash columns. */}
       <div className="overflow-x-auto">
-        <div style={{ minWidth: 1200 }}>
+        <div style={{ minWidth: 1348 }}>
           <div
             role="row"
             className="border-b border-bd-subtle bg-bg-surface"
@@ -341,6 +349,19 @@ function VirtualRow({ trade, index, isSelected, top, onClick }: VirtualRowProps)
       }}
     >
       <Cell muted>{`#${index}`}</Cell>
+      <Cell>
+        {trade.strategyCode || trade.strategyName ? (
+          <span
+            className="rounded-sm border border-bd-subtle bg-bg-elevated px-1.5 py-0.5 font-mono text-[10px] font-semibold tracking-wider text-text-primary"
+            title={trade.strategyName ?? trade.strategyCode ?? ''}
+          >
+            {trade.strategyCode ?? trade.strategyName}
+          </span>
+        ) : (
+          <span className="text-text-muted">—</span>
+        )}
+      </Cell>
+      <Cell muted>{trade.interval ?? '—'}</Cell>
       <Cell>
         <span
           className="rounded-sm px-1.5 py-0.5 font-mono text-[10px] font-semibold tracking-wider"
