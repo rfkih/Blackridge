@@ -13,6 +13,12 @@ function isAccountActive(raw: string | null | undefined): boolean {
   return v === '1' || v === 'y' || v === 'true';
 }
 
+function toNumber(v: number | string | null | undefined, fallback: number): number {
+  if (v == null) return fallback;
+  const n = typeof v === 'number' ? v : Number(v);
+  return Number.isFinite(n) ? n : fallback;
+}
+
 function mapAccount(a: BackendAccountSummary): AccountSummary {
   return {
     id: a.accountId,
@@ -21,6 +27,10 @@ function mapAccount(a: BackendAccountSummary): AccountSummary {
     exchange: a.exchange,
     active: isAccountActive(a.isActive),
     createdAt: a.createdTime,
+    maxConcurrentLongs: toNumber(a.maxConcurrentLongs, 2),
+    maxConcurrentShorts: toNumber(a.maxConcurrentShorts, 2),
+    volTargetingEnabled: Boolean(a.volTargetingEnabled),
+    bookVolTargetPct: toNumber(a.bookVolTargetPct, 15),
   };
 }
 
@@ -69,6 +79,28 @@ export async function rotateAccountCredentials(
 ): Promise<AccountSummary> {
   const { data } = await apiClient.patch<BackendAccountSummary>(
     `/api/v1/accounts/${accountId}/credentials`,
+    payload,
+  );
+  return mapAccount(data);
+}
+
+/**
+ * Partial update for the per-account risk policy: concurrency caps + the
+ * vol-targeting toggle/target. Null fields are left unchanged on the backend.
+ */
+export interface RiskConfigPayload {
+  maxConcurrentLongs?: number;
+  maxConcurrentShorts?: number;
+  volTargetingEnabled?: boolean;
+  bookVolTargetPct?: number;
+}
+
+export async function updateAccountRiskConfig(
+  accountId: string,
+  payload: RiskConfigPayload,
+): Promise<AccountSummary> {
+  const { data } = await apiClient.patch<BackendAccountSummary>(
+    `/api/v1/accounts/${accountId}/risk-config`,
     payload,
   );
   return mapAccount(data);

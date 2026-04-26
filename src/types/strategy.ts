@@ -21,6 +21,12 @@ export interface AccountStrategy {
   priorityOrder: number;
   createdAt: ISO8601;
   updatedAt: ISO8601;
+  /** Drawdown kill-switch — see Phase 2a. When tripped, RiskGuardService
+   *  blocks new entries until manually re-armed via POST /:id/rearm. */
+  ddKillThresholdPct: number;
+  isKillSwitchTripped: boolean;
+  killSwitchTrippedAt: ISO8601 | null;
+  killSwitchReason: string | null;
 }
 
 export interface LsrParams {

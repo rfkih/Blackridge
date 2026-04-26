@@ -6,7 +6,9 @@ import {
   createAccount,
   getMyAccounts,
   rotateAccountCredentials,
+  updateAccountRiskConfig,
   type CreateAccountPayload,
+  type RiskConfigPayload,
   type RotateAccountCredentialsPayload,
 } from '@/lib/api/accounts';
 import { QUERY_STALE_TIMES } from '@/lib/constants';
@@ -126,6 +128,26 @@ export function useRotateAccountCredentials() {
       accountId: string;
       payload: RotateAccountCredentialsPayload;
     }) => rotateAccountCredentials(accountId, payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['accounts'] });
+    },
+  });
+}
+
+/**
+ * Update the per-account risk policy — concurrency caps and the
+ * vol-targeting toggle/target. Phase 2a/2b.
+ */
+export function useUpdateAccountRiskConfig() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      accountId,
+      payload,
+    }: {
+      accountId: string;
+      payload: RiskConfigPayload;
+    }) => updateAccountRiskConfig(accountId, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['accounts'] });
     },

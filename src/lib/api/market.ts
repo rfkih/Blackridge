@@ -106,3 +106,47 @@ export async function fetchIndicators(
     .filter((d) => Number.isFinite(d.time))
     .sort((a, b) => a.time - b.time);
 }
+
+/**
+ * Phase 3.8 — calibrated slippage stats for a symbol, fit from the user's
+ * own intended-vs-actual fills. Returns null when the symbol has no closed
+ * trades with intent recorded (legacy or unused).
+ */
+export interface SymbolSlippageStats {
+  symbol: string;
+  sampleSize: number;
+  meanBps: number;
+  stddevBps: number;
+  p95AbsBps: number;
+  trustworthy: boolean;
+}
+
+interface BackendSymbolSlippageStats {
+  symbol?: string | null;
+  sampleSize?: number | null;
+  meanBps?: number | string | null;
+  stddevBps?: number | string | null;
+  p95AbsBps?: number | string | null;
+  trustworthy?: boolean | null;
+}
+
+function num(v: number | string | null | undefined): number {
+  if (v == null) return 0;
+  const n = typeof v === 'number' ? v : Number(v);
+  return Number.isFinite(n) ? n : 0;
+}
+
+export async function getSymbolSlippage(symbol: string): Promise<SymbolSlippageStats | null> {
+  const { data } = await apiClient.get<BackendSymbolSlippageStats | null>(
+    `/api/v1/market/slippage/${encodeURIComponent(symbol)}`,
+  );
+  if (!data) return null;
+  return {
+    symbol: data.symbol ?? symbol,
+    sampleSize: data.sampleSize ?? 0,
+    meanBps: num(data.meanBps),
+    stddevBps: num(data.stddevBps),
+    p95AbsBps: num(data.p95AbsBps),
+    trustworthy: Boolean(data.trustworthy),
+  };
+}

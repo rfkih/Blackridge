@@ -136,6 +136,19 @@ export interface SweepSpec {
    *  dimension on. Must not overlap with paramRanges/paramGrid; backend
    *  rejects collisions at submit time. */
   fixedParams?: Record<string, number>;
+  /** Evaluation mode. NONE = legacy single-window. TRAIN_OOS = one held-out
+   *  tail. WALK_FORWARD_K = K rolling folds; mean OOS Sharpe across folds is
+   *  the ranking metric, stddev surfaces regime sensitivity. */
+  splitMode?: 'NONE' | 'TRAIN_OOS' | 'WALK_FORWARD_K';
+  /** Number of walk-forward folds when splitMode = WALK_FORWARD_K. Default 4. */
+  walkForwardWindows?: number;
+  /** % of the window reserved for OOS when splitMode = TRAIN_OOS. Default 30. */
+  oosFractionPct?: number;
+  /** % of the full window reserved as locked holdout — never touched during
+   *  sweep optimization. After sweep completes, evaluate winner on holdout
+   *  via POST /sweeps/:id/evaluate-holdout for the unbiased estimate.
+   *  Default null = disabled (legacy). Requires splitMode === 'TRAIN_OOS'. */
+  holdoutFractionPct?: number;
 }
 
 export interface SweepResult {
@@ -158,6 +171,53 @@ export interface SweepResult {
   netPnl?: number | null;
   maxDrawdown?: number | null;
   maxConsecutiveLosses?: number | null;
+  /** Annualized Sharpe (× √252). Same units as the backtest result page.
+   *  In TRAIN_OOS mode this mirrors {@link oosSharpeRatio} so the leaderboard
+   *  ranks by OOS automatically without changing existing sort plumbing. */
+  sharpeRatio?: number | null;
+  /** Probabilistic Sharpe Ratio in [0, 1] — null when sample is too small.
+   *  Mirrors {@link oosPsr} in TRAIN_OOS mode. */
+  psr?: number | null;
+
+  /** Train-leg metrics — only populated when SweepSpec.splitMode === 'TRAIN_OOS'. */
+  trainBacktestRunId?: string | null;
+  trainTradeCount?: number | null;
+  trainSharpeRatio?: number | null;
+  trainPsr?: number | null;
+  trainNetPnl?: number | null;
+
+  /** OOS-leg metrics — only populated in TRAIN_OOS mode. The Sharpe here is
+   *  what should drive any "is this strategy good" judgment. */
+  oosBacktestRunId?: string | null;
+  oosTradeCount?: number | null;
+  oosSharpeRatio?: number | null;
+  oosPsr?: number | null;
+  oosNetPnl?: number | null;
+
+  /** K-fold walk-forward — per-fold breakdown. Each entry covers one rolling
+   *  train+OOS pair. Empty/undefined when splitMode != WALK_FORWARD_K. */
+  windowResults?: Array<{
+    foldIndex: number;
+    trainFromDate: string;
+    trainToDate: string;
+    oosFromDate: string;
+    oosToDate: string;
+    trainBacktestRunId?: string | null;
+    oosBacktestRunId?: string | null;
+    trainSharpeRatio?: number | null;
+    oosSharpeRatio?: number | null;
+    oosPsr?: number | null;
+    oosNetPnl?: number | null;
+    oosTradeCount?: number | null;
+    status: 'COMPLETED' | 'FAILED';
+  }>;
+  /** Mean OOS Sharpe across folds — the headline ranking metric in K-fold
+   *  mode. Mirrored to {@link sharpeRatio} so existing sort plumbing works. */
+  meanOosSharpe?: number | null;
+  /** Stddev of per-fold OOS Sharpes. Low relative to mean = robust;
+   *  high = regime-sensitive. */
+  stddevOosSharpe?: number | null;
+
   errorMessage?: string | null;
 }
 
@@ -173,6 +233,20 @@ export interface SweepState {
   currentRound?: number | null;
   totalRounds?: number | null;
   results: SweepResult[];
+  /** Cohort-level expected-max-Sharpe under N null trials. Combos exceeding
+   *  this threshold are evidence beyond multiple-comparison luck. Null when
+   *  fewer than two combos have completed. Annualized for display. */
+  dsrThresholdSharpe?: number | null;
+  /** Stddev of the cohort's annualized Sharpes — diagnostic for the
+   *  threshold calculation. */
+  dsrCohortStddev?: number | null;
+  /** When holdout was reserved at submit time, the dates of the locked
+   *  slice. Surface them so users can see what they're about to evaluate. */
+  holdoutFromDate?: string | null;
+  holdoutToDate?: string | null;
+  /** ID of the one-shot holdout evaluation backtest, set after the user
+   *  triggers POST /sweeps/:id/evaluate-holdout. Null until then. */
+  holdoutBacktestRunId?: string | null;
 }
 
 /** Flattened row emitted by `/api/v1/research/log`. */

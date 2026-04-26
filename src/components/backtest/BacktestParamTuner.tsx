@@ -2,7 +2,13 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Loader2, Play, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, Loader2, Play, AlertTriangle, HelpCircle } from 'lucide-react';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { format } from 'date-fns';
 import { WizardBreadcrumb } from './WizardBreadcrumb';
 import { BacktestParamDiffBadge } from './BacktestParamDiffBadge';
@@ -22,7 +28,9 @@ import { useCreateBacktestRun } from '@/hooks/useBacktest';
 import { useBacktestParamStore } from '@/store/backtestParamStore';
 import { buildBacktestPayload } from '@/lib/backtest/buildBacktestPayload';
 import { normalizeError } from '@/lib/api/client';
+import { getSymbolSlippage } from '@/lib/api/market';
 import { toast } from '@/hooks/useToast';
+import { useQuery } from '@tanstack/react-query';
 import { formatPrice } from '@/lib/formatters';
 import { cn } from '@/lib/utils';
 import type { LsrParams, VboParams, VcbParams } from '@/types/strategy';
@@ -87,6 +95,17 @@ export function BacktestParamTuner() {
   // Memoised so downstream hooks don't see a fresh array identity each render.
   const strategyCodes = useMemo<Array<string>>(() => config?.strategyCodes ?? [], [config]);
   const [activeTab, setActiveTab] = useState<string>(strategyCodes[0] ?? '');
+  // Phase 3.8 — opt in to calibrated slippage (BacktestService falls back
+  // to the symbol's measured fill-cost when slippageRate is omitted).
+  // Default off so existing wizard runs stay deterministic-replay.
+  const [useCalibratedSlippage, setUseCalibratedSlippage] = useState<boolean>(false);
+  const slippageStatsQ = useQuery({
+    queryKey: ['market', 'slippage', config?.symbol ?? null],
+    queryFn: () => getSymbolSlippage(config!.symbol),
+    enabled: Boolean(config?.symbol),
+    staleTime: 5 * 60_000,
+  });
+  const slippageStats = slippageStatsQ.data;
 
   useEffect(() => {
     if (strategyCodes.length > 0 && !strategyCodes.includes(activeTab)) {
@@ -174,7 +193,9 @@ export function BacktestParamTuner() {
     if (needsVbo && !vboDefaults) return;
 
     try {
-      const payload = buildBacktestPayload(config, paramOverrides, defaultsByCode);
+      const payload = buildBacktestPayload(config, paramOverrides, defaultsByCode, {
+        useCalibratedSlippage,
+      });
       const run = await createMutation.mutateAsync(payload);
       if (!run.id) {
         // Belt-and-braces: the mapper already falls back to backtestRunId, but
@@ -333,6 +354,40 @@ export function BacktestParamTuner() {
               }}
             />
           )}
+        </div>
+      </div>
+
+      {/* Slippage cost model — calibrated from this user's actual fills,
+          when a meaningful sample exists. Off by default so existing
+          deterministic-replay flows are unchanged. The help-icon is a
+          dedicated tooltip trigger (separate from the label so clicking
+          the label still toggles the checkbox via htmlFor); 2-second
+          hover delay keeps casual readers from being pelted with docs. */}
+      <div className="rounded-md border border-bd-subtle bg-bg-surface px-4 py-3">
+        <div className="flex items-start gap-3">
+          <input
+            id="useCalibratedSlippage"
+            type="checkbox"
+            checked={useCalibratedSlippage}
+            onChange={(e) => setUseCalibratedSlippage(e.target.checked)}
+            className="mt-0.5"
+          />
+          <label
+            htmlFor="useCalibratedSlippage"
+            className="flex flex-col gap-0.5 text-[12px] text-text-primary cursor-pointer"
+          >
+            <span className="inline-flex items-center gap-1.5 font-semibold">
+              Use calibrated slippage
+              <SlippageHelpHint />
+            </span>
+            <span className="text-[11px] text-text-muted">
+              {slippageStats == null
+                ? `No fill history for ${config?.symbol ?? ''} — falls back to platform default.`
+                : slippageStats.trustworthy
+                  ? `Mean ${slippageStats.meanBps.toFixed(2)} bps · σ ${slippageStats.stddevBps.toFixed(2)} · n=${slippageStats.sampleSize} fills.`
+                  : `Sample too thin (n=${slippageStats.sampleSize}) — falls back to platform default until ≥ 20 fills accumulate.`}
+            </span>
+          </label>
         </div>
       </div>
 
@@ -545,5 +600,85 @@ function UntunableStrategy({ code }: { code: string }) {
         defaults for this run.
       </p>
     </div>
+  );
+}
+
+/**
+ * Help-icon tooltip for the calibrated-slippage checkbox. Manual open
+ * control with a 2-second timer because the codebase's working tooltip
+ * pattern (see ParamField.tsx) treats Radix's delayDuration as
+ * unreliable across trigger types.
+ */
+function SlippageHelpHint() {
+  const [open, setOpen] = useState(false);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const cancel = () => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+  };
+  const start = () => {
+    cancel();
+    timerRef.current = setTimeout(() => setOpen(true), 2000);
+  };
+
+  useEffect(() => () => cancel(), []);
+
+  return (
+    <TooltipProvider>
+      <Tooltip open={open} onOpenChange={setOpen}>
+        <TooltipTrigger asChild>
+          <button
+            type="button"
+            aria-label="Use calibrated slippage — explanation"
+            onMouseEnter={start}
+            onMouseLeave={() => {
+              cancel();
+              setOpen(false);
+            }}
+            onFocus={start}
+            onBlur={() => {
+              cancel();
+              setOpen(false);
+            }}
+            onClick={(e) => {
+              // Prevent the surrounding <label htmlFor> from also toggling
+              // the checkbox when the user clicks the help icon.
+              e.preventDefault();
+              e.stopPropagation();
+              cancel();
+              setOpen((prev) => !prev);
+            }}
+            className="inline-flex cursor-help items-center bg-transparent p-0 text-text-muted transition-colors hover:text-text-secondary"
+          >
+            <HelpCircle size={12} strokeWidth={1.75} aria-hidden="true" />
+          </button>
+        </TooltipTrigger>
+        <TooltipContent
+          side="top"
+          align="start"
+          collisionPadding={8}
+          className="max-w-sm bg-bg-elevated text-[11px] leading-relaxed text-text-primary"
+        >
+          <p>
+            Replaces the platform&apos;s default 0.05% slippage assumption
+            with a value <strong>measured from your own past fills</strong>.
+            Every closed trade records its intended-vs-actual entry price;
+            the calibration service averages those into a per-symbol estimate.
+          </p>
+          <p className="mt-1.5">
+            Need ≥ 20 fills for a trustworthy number — below that the backend
+            falls back to the default. Useful when your real costs diverge
+            from textbook assumptions (high-vol symbols, thin-orderbook hours).
+          </p>
+          <p className="mt-1.5 text-text-muted">
+            Off by default so existing &quot;deterministic replay&quot;
+            backtests stay reproducible. Toggle on for cost-realistic runs.
+          </p>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
 }

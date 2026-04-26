@@ -9,7 +9,7 @@ import { StrategyBadge } from '@/components/trading/StrategyBadge';
 import { TradePositionRow } from '@/components/trading/TradePositionRow';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useTrade } from '@/hooks/useTrades';
+import { useTrade, useTradeAttribution } from '@/hooks/useTrades';
 import { usePositionStore } from '@/store/positionStore';
 import { useLivePnl } from '@/hooks/useLivePnl';
 import { useCurrencyFormatter } from '@/hooks/useCurrency';
@@ -195,7 +195,120 @@ export default function TradeDetailPage({ params }: { params: { id: string } }) 
           </div>
         )}
       </section>
+
+      <TradeAttributionPanel tradeId={params.id} />
     </div>
+  );
+}
+
+/**
+ * Phase 2c — splits realized P&L into the three legs:
+ *   signal alpha = price moved as expected
+ *   exec drift   = entry slippage cost
+ *   sizing resid = gap between intended and actual size
+ *
+ * Sum equals realized. Hidden when the trade is still open or pre-dates
+ * intent capture (legacy rows) — better to show nothing than fake numbers.
+ */
+function TradeAttributionPanel({ tradeId }: { tradeId: string }) {
+  const { data, isLoading } = useTradeAttribution(tradeId);
+  const formatCurrency = useCurrencyFormatter();
+
+  if (isLoading) {
+    return (
+      <section className="rounded-md border border-bd-subtle bg-bg-surface p-5">
+        <Skeleton className="h-4 w-40" />
+        <Skeleton className="mt-3 h-16 w-full" />
+      </section>
+    );
+  }
+  if (!data) return null;
+
+  const legs: Array<{ label: string; value: number; help: string }> = [
+    {
+      label: 'Signal alpha',
+      value: data.signalAlpha,
+      help: 'P&L from price moving as the strategy predicted, at intended entry + size.',
+    },
+    {
+      label: 'Execution drift',
+      value: data.executionDrift,
+      help: 'Cost of entry slippage — realized fill vs intended price.',
+    },
+    {
+      label: 'Sizing residual',
+      value: data.sizingResidual,
+      help: 'Gap between intended and actual size (vol-targeting, partial fills).',
+    },
+  ];
+
+  return (
+    <section className="rounded-md border border-bd-subtle bg-bg-surface p-5">
+      <header className="flex items-baseline justify-between">
+        <div>
+          <p className="font-mono text-[10px] uppercase tracking-wider text-text-muted">
+            P&L attribution
+          </p>
+          <h3 className="mt-0.5 font-display text-[15px] font-semibold text-text-primary">
+            How realized P&L was earned
+          </h3>
+        </div>
+        <span className="font-mono text-[11px] text-text-muted">
+          Σ legs = {formatCurrency(data.realizedPnl, { withSign: true })}
+        </span>
+      </header>
+
+      <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
+        {legs.map((leg) => (
+          <div
+            key={leg.label}
+            className="flex flex-col gap-1 rounded-sm border border-bd-subtle bg-bg-elevated px-3 py-2.5"
+          >
+            <span className="font-mono text-[9px] uppercase tracking-wider text-text-muted">
+              {leg.label}
+            </span>
+            <span
+              className="font-mono text-[14px] tabular-nums"
+              style={{
+                color:
+                  leg.value > 0
+                    ? 'var(--color-profit)'
+                    : leg.value < 0
+                      ? 'var(--color-loss)'
+                      : 'var(--text-secondary)',
+              }}
+            >
+              {formatCurrency(leg.value, { withSign: true })}
+            </span>
+            <span className="text-[10px] leading-snug text-text-muted">
+              {leg.help}
+            </span>
+          </div>
+        ))}
+      </div>
+
+      {(data.entrySlippagePct != null || data.sizeRatio != null) && (
+        <div className="mt-3 flex flex-wrap gap-x-5 gap-y-1 border-t border-bd-subtle pt-3 font-mono text-[11px] text-text-muted">
+          {data.entrySlippagePct != null && (
+            <span>
+              Entry slip:{' '}
+              <span className="text-text-secondary">
+                {data.entrySlippagePct >= 0 ? '+' : ''}
+                {data.entrySlippagePct.toFixed(3)}%
+              </span>
+            </span>
+          )}
+          {data.sizeRatio != null && (
+            <span>
+              Size vs intent:{' '}
+              <span className="text-text-secondary">
+                {(data.sizeRatio * 100).toFixed(1)}%
+              </span>
+            </span>
+          )}
+        </div>
+      )}
+    </section>
   );
 }
 

@@ -8,6 +8,12 @@ export interface BackendAccountSummary {
   exchange: string;
   isActive: string; // "Y" | "N"
   createdTime: ISO8601;
+  /** Phase 2a — concurrency caps. */
+  maxConcurrentLongs?: number | null;
+  maxConcurrentShorts?: number | null;
+  /** Phase 2b — vol targeting. */
+  volTargetingEnabled?: boolean | null;
+  bookVolTargetPct?: number | string | null;
 }
 
 /** Frontend-normalized account summary. */
@@ -18,6 +24,11 @@ export interface AccountSummary {
   exchange: string;
   active: boolean;
   createdAt: ISO8601;
+  /** Risk-policy levers — see Phase 2a/2b. */
+  maxConcurrentLongs: number;
+  maxConcurrentShorts: number;
+  volTargetingEnabled: boolean;
+  bookVolTargetPct: number;
 }
 
 /**

@@ -3,6 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   createSweep,
+  evaluateHoldout,
   getBacktestAnalysis,
   getResearchLog,
   getSweep,
@@ -49,6 +50,25 @@ export function useCreateSweep() {
     mutationFn: (spec: SweepSpec) => createSweep(spec),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: SWEEP_LIST_KEY });
+    },
+  });
+}
+
+/**
+ * One-shot holdout evaluation. On success, invalidate the sweep detail
+ * query so the page picks up holdoutBacktestRunId immediately.
+ */
+export function useEvaluateHoldout(sweepId: string | undefined) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (paramSet: Record<string, number | string | boolean>) => {
+      if (!sweepId) throw new Error('sweepId required');
+      return evaluateHoldout(sweepId, paramSet);
+    },
+    onSuccess: () => {
+      if (sweepId) {
+        queryClient.invalidateQueries({ queryKey: ['research', 'sweep', sweepId] });
+      }
     },
   });
 }

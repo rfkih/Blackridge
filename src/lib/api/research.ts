@@ -62,3 +62,19 @@ export async function listSweeps(): Promise<SweepState[]> {
   const { data } = await apiClient.get<SweepState[]>(`${BASE}/sweeps`);
   return data;
 }
+
+/**
+ * One-shot unbiased evaluation. The server enforces single-shot via a
+ * unique partial DB index; a second call after the sweep already has a
+ * holdout run returns 4xx with a clear error.
+ */
+export async function evaluateHoldout(
+  sweepId: string,
+  paramSet: Record<string, number | string | boolean>,
+): Promise<{ backtestRunId: string; sweepId: string }> {
+  const { data } = await apiClient.post<{ backtestRunId: string; sweepId: string }>(
+    `${BASE}/sweeps/${sweepId}/evaluate-holdout`,
+    { paramSet },
+  );
+  return data;
+}

@@ -12,9 +12,13 @@ import {
   useAccountStrategy,
   useLsrDefaults,
   useLsrParams,
+  useRearmKillSwitch,
   useVcbDefaults,
   useVcbParams,
 } from '@/hooks/useStrategies';
+import { toast } from '@/hooks/useToast';
+import { normalizeError } from '@/lib/api/client';
+import { ShieldAlert, ShieldCheck } from 'lucide-react';
 import { useAccounts } from '@/hooks/useAccounts';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
@@ -129,6 +133,8 @@ function StrategyDetail({ strategy }: { strategy: AccountStrategy }) {
         </div>
       </header>
 
+      <RiskGuardPanel strategy={strategy} />
+
       <Tabs defaultValue="parameters" className="space-y-4">
         <TabsList className="bg-[var(--bg-surface)]">
           <TabsTrigger value="overview">Overview</TabsTrigger>
@@ -144,6 +150,81 @@ function StrategyDetail({ strategy }: { strategy: AccountStrategy }) {
         </TabsContent>
       </Tabs>
     </>
+  );
+}
+
+/**
+ * Drawdown kill-switch state. Two visual states:
+ *  - Tripped: prominent loss-tinted banner with reason + re-arm button.
+ *  - Armed: muted strip showing the threshold so the user knows the line.
+ *
+ * Re-arm is a single click — the trip state itself is the safety; clearing
+ * it is a deliberate "I've looked at the reason and accept it" action.
+ */
+function RiskGuardPanel({ strategy }: { strategy: AccountStrategy }) {
+  const rearmMut = useRearmKillSwitch();
+
+  const onRearm = async () => {
+    try {
+      await rearmMut.mutateAsync(strategy.id);
+      toast.success({ title: 'Kill-switch re-armed' });
+    } catch (err) {
+      toast.error({ title: 'Could not re-arm', description: normalizeError(err) });
+    }
+  };
+
+  if (strategy.isKillSwitchTripped) {
+    return (
+      <div className="flex flex-wrap items-start gap-3 rounded-lg border border-[var(--color-loss)]/40 bg-[var(--bg-surface)] p-4 shadow-panel">
+        <ShieldAlert
+          size={18}
+          className="mt-0.5 shrink-0 text-[var(--color-loss)]"
+          aria-hidden="true"
+        />
+        <div className="flex min-w-0 flex-1 flex-col gap-1">
+          <p className="text-[12px] text-[var(--text-primary)]">
+            <span className="font-semibold text-[var(--color-loss)]">
+              Kill-switch tripped.
+            </span>{' '}
+            New entries are blocked for this strategy until re-armed.
+          </p>
+          <p className="text-[11px] text-[var(--text-muted)]">
+            {strategy.killSwitchReason ?? 'Drawdown threshold breached.'}
+            {strategy.killSwitchTrippedAt && (
+              <>
+                {' · tripped '}
+                {formatIso(strategy.killSwitchTrippedAt)}
+              </>
+            )}
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={onRearm}
+          disabled={rearmMut.isPending}
+          className="inline-flex shrink-0 items-center gap-1.5 rounded-sm border border-bd-subtle bg-bg-elevated px-3 py-1.5 font-mono text-[10px] uppercase tracking-wider text-text-primary transition-colors duration-fast hover:bg-bg-hover disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          <ShieldCheck size={11} strokeWidth={1.75} />
+          {rearmMut.isPending ? 'Re-arming…' : 'Re-arm kill-switch'}
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex items-center gap-3 rounded-lg border border-bd-subtle bg-bg-surface px-4 py-2.5">
+      <ShieldCheck
+        size={14}
+        className="shrink-0 text-[var(--text-muted)]"
+        aria-hidden="true"
+      />
+      <span className="font-mono text-[10px] uppercase tracking-wider text-text-muted">
+        Risk guard armed
+      </span>
+      <span className="font-mono text-[11px] text-text-secondary">
+        DD threshold {strategy.ddKillThresholdPct.toFixed(0)}% · 30d window
+      </span>
+    </div>
   );
 }
 

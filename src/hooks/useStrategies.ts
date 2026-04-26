@@ -13,6 +13,7 @@ import {
   deleteAccountStrategy,
   activateAccountStrategy,
   deactivateAccountStrategy,
+  rearmKillSwitch,
   updateAccountStrategy,
   type CreateAccountStrategyPayload,
 } from '@/lib/api/strategies';
@@ -183,6 +184,21 @@ export function useDeactivateStrategy() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (accountStrategyId: string) => deactivateAccountStrategy(accountStrategyId),
+    onSuccess: (strategy) => {
+      queryClient.invalidateQueries({ queryKey: ['strategies'] });
+      queryClient.setQueryData(['strategy', strategy.id], strategy);
+    },
+  });
+}
+
+/**
+ * Re-arm the drawdown kill-switch on a strategy. Backend resets the trip
+ * state; the strategy resumes accepting entries on the next signal.
+ */
+export function useRearmKillSwitch() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (accountStrategyId: string) => rearmKillSwitch(accountStrategyId),
     onSuccess: (strategy) => {
       queryClient.invalidateQueries({ queryKey: ['strategies'] });
       queryClient.setQueryData(['strategy', strategy.id], strategy);

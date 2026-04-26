@@ -83,6 +83,7 @@ function synthesiseLegacyMetrics(b: BackendBacktestRun): BacktestMetrics | null 
     maxDrawdownPct: numOr(b.maxDrawdownPct, 0),
     sharpe: null,
     sortino: null,
+    psr: null,
     totalTrades: totalTrades ?? 0,
     winningTrades: b.totalWins ?? 0,
     losingTrades: b.totalLosses ?? 0,
@@ -108,6 +109,7 @@ function mapMetrics(m: BackendBacktestRun['metrics']): BacktestMetrics | null {
     maxDrawdownPct: numOr(m.maxDrawdownPct, 0),
     sharpe: num(m.sharpe),
     sortino: num(m.sortino),
+    psr: num(m.psr),
     totalTrades: numOr(m.totalTrades, 0),
     winningTrades: numOr(m.winningTrades, 0),
     losingTrades: numOr(m.losingTrades, 0),
@@ -173,6 +175,8 @@ export function mapBacktestRun(b: BackendBacktestRun): BacktestRun {
     completedAt,
     errorMessage: b.errorMessage ?? null,
     paramSnapshot: mapParamSnapshot(b.paramSnapshot),
+    gitCommitSha: b.gitCommitSha ?? null,
+    appVersion: b.appVersion ?? null,
   };
 }
 

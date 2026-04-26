@@ -67,6 +67,12 @@ export interface BackendAccountStrategy {
   priorityOrder: number;
   createdTime: ISO8601; // frontend: createdAt
   updatedTime: ISO8601; // frontend: updatedAt
+  /** Phase 2a — drawdown kill-switch fields. Optional in the type so old
+   *  cached responses without them don't fail validation. */
+  ddKillThresholdPct?: number | string | null;
+  isKillSwitchTripped?: boolean | null;
+  killSwitchTrippedAt?: ISO8601 | null;
+  killSwitchReason?: string | null;
 }
 
 /** Backend strategy-param response — params are nested under effectiveParams. */

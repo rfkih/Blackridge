@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { KeyRound, Loader2, LogOut, Plus, ShieldCheck } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
-import { useAccounts } from '@/hooks/useAccounts';
+import { useAccounts, useUpdateAccountRiskConfig } from '@/hooks/useAccounts';
 import { useIsAdmin } from '@/hooks/useIsAdmin';
 import { useUpdateMyProfile } from '@/hooks/useProfile';
 import { useTheme } from '@/components/theme/ThemeProvider';
@@ -50,7 +50,7 @@ const NAV: NavGroup[] = [
   {
     group: 'TRADING',
     items: [
-      { k: 'risk', label: 'Risk guardrails', wired: false },
+      { k: 'risk', label: 'Risk guardrails', wired: true },
       { k: 'brokers', label: 'Brokers & wallets', wired: true },
       { k: 'fees', label: 'Fees & commissions', wired: false },
       { k: 'tax', label: 'Tax preferences', wired: false },
@@ -192,9 +192,10 @@ export default function SettingsPage() {
         {active === 'profile' && <ProfileSection />}
         {active === 'security' && <SecuritySection />}
         {active === 'brokers' && <BrokersSection />}
+        {active === 'risk' && <RiskGuardrailsSection />}
         {/* Profile view is the landing one — when there's no match we fall
             back to it rather than showing an empty canvas. */}
-        {!['profile', 'security', 'brokers'].includes(active) && <ProfileSection />}
+        {!['profile', 'security', 'brokers', 'risk'].includes(active) && <ProfileSection />}
       </div>
     </div>
   );
@@ -710,6 +711,189 @@ function ToggleSwitch({ on, ...aria }: { on: boolean; 'aria-label'?: string }) {
         }}
         aria-hidden="true"
       />
+    </div>
+  );
+}
+
+// ─── Risk guardrails — Phase 2a + 2b ────────────────────────────────────────
+
+function RiskGuardrailsSection() {
+  const { data: accounts = [] } = useAccounts();
+
+  return (
+    <section className="mm-card" style={{ padding: '22px 26px' }}>
+      <div className="mm-kicker">RISK POLICY</div>
+      <h2
+        className="font-display"
+        style={{ fontSize: 20, marginTop: 4, letterSpacing: '-0.02em' }}
+      >
+        Risk guardrails
+      </h2>
+      <p
+        style={{
+          marginTop: 8,
+          fontSize: 12,
+          color: 'var(--mm-ink-2, var(--text-secondary))',
+        }}
+      >
+        Per-account safeties applied before every entry: concurrency caps
+        block correlated double-ups; vol-targeting scales position size so
+        realized strategy volatility hits the target.
+      </p>
+      {accounts.length === 0 ? (
+        <p
+          style={{
+            marginTop: 16,
+            fontSize: 12,
+            color: 'var(--text-muted)',
+          }}
+        >
+          Connect a broker first — risk policy is configured per account.
+        </p>
+      ) : (
+        <div style={{ marginTop: 18, display: 'flex', flexDirection: 'column', gap: 14 }}>
+          {accounts.map((a) => (
+            <RiskPolicyCard key={a.id} account={a} />
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
+
+function RiskPolicyCard({ account }: { account: AccountSummary }) {
+  const mut = useUpdateAccountRiskConfig();
+  const [longCap, setLongCap] = useState(String(account.maxConcurrentLongs));
+  const [shortCap, setShortCap] = useState(String(account.maxConcurrentShorts));
+  const [volEnabled, setVolEnabled] = useState(account.volTargetingEnabled);
+  const [volTarget, setVolTarget] = useState(String(account.bookVolTargetPct));
+
+  const save = async () => {
+    try {
+      await mut.mutateAsync({
+        accountId: account.id,
+        payload: {
+          maxConcurrentLongs: Number(longCap),
+          maxConcurrentShorts: Number(shortCap),
+          volTargetingEnabled: volEnabled,
+          bookVolTargetPct: Number(volTarget) || 15,
+        },
+      });
+      toast.success({ title: 'Risk policy saved', description: account.label });
+    } catch (err) {
+      toast.error({ title: 'Could not save', description: normalizeError(err) });
+    }
+  };
+
+  return (
+    <div
+      style={{
+        padding: '14px 16px',
+        borderRadius: 10,
+        border: '1px solid var(--mm-hair, var(--border-subtle))',
+        background: 'var(--mm-surface-2, var(--bg-elevated))',
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
+        <div>
+          <div className="font-mono" style={{ fontSize: 13, color: 'var(--text-primary)' }}>
+            {account.label}
+          </div>
+          <div className="font-mono" style={{ fontSize: 10, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.16em' }}>
+            {account.exchange}
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={save}
+          disabled={mut.isPending}
+          className="mm-btn mm-btn-ghost"
+          style={{ fontSize: 11, padding: '6px 12px' }}
+        >
+          {mut.isPending ? 'Saving…' : 'Save policy'}
+        </button>
+      </div>
+
+      <div
+        style={{
+          marginTop: 14,
+          display: 'grid',
+          gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+          gap: 12,
+        }}
+      >
+        <RiskField label="Max concurrent longs">
+          <input
+            type="number"
+            min={0}
+            max={20}
+            step={1}
+            className="mm-input"
+            value={longCap}
+            onChange={(e) => setLongCap(e.target.value)}
+          />
+        </RiskField>
+        <RiskField label="Max concurrent shorts">
+          <input
+            type="number"
+            min={0}
+            max={20}
+            step={1}
+            className="mm-input"
+            value={shortCap}
+            onChange={(e) => setShortCap(e.target.value)}
+          />
+        </RiskField>
+        <RiskField label="Vol-targeting">
+          <label
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 8,
+              fontSize: 12,
+              color: 'var(--text-primary)',
+            }}
+          >
+            <input
+              type="checkbox"
+              checked={volEnabled}
+              onChange={(e) => setVolEnabled(e.target.checked)}
+            />
+            {volEnabled ? 'On — sizes scaled to target' : 'Off — legacy sizing'}
+          </label>
+        </RiskField>
+        <RiskField label="Annualized vol target (%)">
+          <input
+            type="number"
+            min={1}
+            max={50}
+            step={1}
+            className="mm-input"
+            value={volTarget}
+            disabled={!volEnabled}
+            onChange={(e) => setVolTarget(e.target.value)}
+          />
+        </RiskField>
+      </div>
+    </div>
+  );
+}
+
+function RiskField({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+      <span
+        className="font-mono"
+        style={{
+          fontSize: 9,
+          letterSpacing: '0.16em',
+          textTransform: 'uppercase',
+          color: 'var(--text-muted)',
+        }}
+      >
+        {label}
+      </span>
+      {children}
     </div>
   );
 }

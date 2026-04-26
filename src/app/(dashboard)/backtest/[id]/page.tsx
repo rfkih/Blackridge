@@ -235,6 +235,8 @@ export default function BacktestResultPage({ params }: { params: { id: string } 
           </ErrorBoundary>
         )}
       </section>
+
+      {runQ.data && <ReproducibilityPanel run={runQ.data} />}
     </div>
   );
 }
@@ -400,6 +402,84 @@ function ErrorState({ message, onRetry }: { message: string; onRetry: () => void
       >
         <RefreshCw size={12} /> Retry
       </button>
+    </div>
+  );
+}
+
+// ─── Reproducibility Manifest ─────────────────────────────────────────────────
+
+/**
+ * Footer panel showing the manifest captured at submission: git SHA + app
+ * version, asset/interval/window, and the param overrides applied. With
+ * these values + the strategy code, this run can be replayed identically
+ * months later.
+ */
+function ReproducibilityPanel({ run }: { run: BacktestRun }) {
+  const sha = run.gitCommitSha ?? '—';
+  const shortSha = sha !== '—' && sha !== 'unknown' ? sha.slice(0, 12) : sha;
+  const version = run.appVersion ?? '—';
+  const overrideCount = run.paramSnapshot
+    ? Object.values(run.paramSnapshot).reduce(
+        (acc, kv) => acc + Object.keys(kv).length,
+        0,
+      )
+    : 0;
+
+  return (
+    <section className="rounded-md border border-bd-subtle bg-bg-surface">
+      <div className="border-b border-bd-subtle px-4 py-3">
+        <h3 className="font-display text-[13px] font-semibold text-text-primary">
+          Reproducibility
+        </h3>
+        <p className="mt-0.5 text-[11px] text-text-muted">
+          Manifest captured at submission. With these values + the strategy
+          code, this run can be replayed identically.
+        </p>
+      </div>
+      <dl className="grid grid-cols-2 gap-x-6 gap-y-3 px-4 py-3 text-[12px] sm:grid-cols-4">
+        <ManifestField label="Git SHA" mono title={sha}>
+          {shortSha}
+        </ManifestField>
+        <ManifestField label="App version" mono>
+          {version}
+        </ManifestField>
+        <ManifestField label="Strategy code" mono>
+          {run.strategyCode || '—'}
+        </ManifestField>
+        <ManifestField label="Param overrides">
+          {overrideCount === 0 ? (
+            <span className="text-text-muted">defaults</span>
+          ) : (
+            `${overrideCount} key${overrideCount === 1 ? '' : 's'}`
+          )}
+        </ManifestField>
+      </dl>
+    </section>
+  );
+}
+
+function ManifestField({
+  label,
+  children,
+  mono,
+  title,
+}: {
+  label: string;
+  children: React.ReactNode;
+  mono?: boolean;
+  title?: string;
+}) {
+  return (
+    <div className="flex flex-col gap-1">
+      <dt className="font-mono text-[9px] uppercase tracking-wider text-text-muted">
+        {label}
+      </dt>
+      <dd
+        className={cn('text-text-primary', mono && 'font-mono')}
+        title={title}
+      >
+        {children}
+      </dd>
     </div>
   );
 }

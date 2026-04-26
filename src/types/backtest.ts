@@ -24,6 +24,7 @@ export interface BackendBacktestRunMetrics {
   maxDrawdownPct: number | null;
   sharpe: number | null;
   sortino: number | null;
+  psr: number | null;
   totalTrades: number | null;
   winningTrades: number | null;
   losingTrades: number | null;
@@ -55,6 +56,9 @@ export interface BackendBacktestRun {
   createdAt?: ISO8601 | null;
   completedAt?: ISO8601 | null;
   paramSnapshot?: unknown;
+  /** Reproducibility manifest — git SHA + app version stamped at submit. */
+  gitCommitSha?: string | null;
+  appVersion?: string | null;
   metrics?: BackendBacktestRunMetrics | null;
 
   // Legacy aliases (BacktestRunResponse) — same run, different field names.
@@ -91,6 +95,9 @@ export interface BacktestMetrics {
   maxDrawdownPct: number;
   sharpe: number | null;
   sortino: number | null;
+  /** Probabilistic Sharpe Ratio in [0, 1] — null when sample is too small.
+   *  Probability the true Sharpe exceeds zero given the observed sample. */
+  psr: number | null;
   totalTrades: number;
   winningTrades: number;
   losingTrades: number;
@@ -162,6 +169,10 @@ export interface BacktestRun {
   errorMessage: string | null;
   /** JSONB param snapshot captured at submission — drives "Re-run with params". */
   paramSnapshot: Record<string, Record<string, unknown>> | null;
+  /** Reproducibility manifest — together with paramSnapshot, asset, interval,
+   *  fromDate, and toDate, these uniquely identify the run for replay. */
+  gitCommitSha: string | null;
+  appVersion: string | null;
 }
 
 /**

@@ -36,6 +36,10 @@ function mapAccountStrategy(s: BackendAccountStrategy): AccountStrategy {
     priorityOrder: s.priorityOrder,
     createdAt: s.createdTime,
     updatedAt: s.updatedTime,
+    ddKillThresholdPct: toNumber(s.ddKillThresholdPct),
+    isKillSwitchTripped: Boolean(s.isKillSwitchTripped),
+    killSwitchTrippedAt: s.killSwitchTrippedAt ?? null,
+    killSwitchReason: s.killSwitchReason ?? null,
   };
 }
 
@@ -116,6 +120,18 @@ export async function updateAccountStrategy(
   const { data } = await apiClient.patch<BackendAccountStrategy>(
     `/api/v1/account-strategies/${id}`,
     patch,
+  );
+  return mapAccountStrategy(data);
+}
+
+/**
+ * Clear the drawdown kill-switch on this strategy. Caller is expected to
+ * have already looked at the trip reason — this is the explicit
+ * acknowledgement that resumes new entries.
+ */
+export async function rearmKillSwitch(id: string): Promise<AccountStrategy> {
+  const { data } = await apiClient.post<BackendAccountStrategy>(
+    `/api/v1/account-strategies/${id}/rearm`,
   );
   return mapAccountStrategy(data);
 }

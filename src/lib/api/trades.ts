@@ -251,6 +251,50 @@ export async function getTradeById(id: string): Promise<Trades> {
   return mapTrade(data);
 }
 
+/**
+ * Phase 2c — realized P&L decomposed into the three orthogonal legs.
+ * Returns null when the trade is still open or predates Phase 2c (no
+ * intent captured at decision time). Sum of legs equals realizedPnl.
+ */
+export interface TradeAttribution {
+  realizedPnl: number;
+  signalAlpha: number;
+  executionDrift: number;
+  sizingResidual: number;
+  entrySlippagePct: number | null;
+  sizeRatio: number | null;
+}
+
+interface BackendTradeAttribution {
+  realizedPnl: number | string | null;
+  signalAlpha: number | string | null;
+  executionDrift: number | string | null;
+  sizingResidual: number | string | null;
+  entrySlippagePct: number | string | null;
+  sizeRatio: number | string | null;
+}
+
+function num(v: number | string | null | undefined): number | null {
+  if (v == null) return null;
+  const n = typeof v === 'number' ? v : Number(v);
+  return Number.isFinite(n) ? n : null;
+}
+
+export async function getTradeAttribution(id: string): Promise<TradeAttribution | null> {
+  const { data } = await apiClient.get<BackendTradeAttribution | null>(
+    `/api/v1/trades/${id}/attribution`,
+  );
+  if (!data) return null;
+  return {
+    realizedPnl: num(data.realizedPnl) ?? 0,
+    signalAlpha: num(data.signalAlpha) ?? 0,
+    executionDrift: num(data.executionDrift) ?? 0,
+    sizingResidual: num(data.sizingResidual) ?? 0,
+    entrySlippagePct: num(data.entrySlippagePct),
+    sizeRatio: num(data.sizeRatio),
+  };
+}
+
 export async function getTradePositions(id: string): Promise<TradePosition[]> {
   // Backend returns `{content: []}` page OR raw array. The nested `positions`
   // on the trade detail usually covers this — this endpoint is kept for flows

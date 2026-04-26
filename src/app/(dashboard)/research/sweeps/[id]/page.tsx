@@ -3,10 +3,12 @@
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import { ArrowDown, ArrowLeft, ArrowUp, ChevronLeft, ChevronRight } from 'lucide-react';
-import { useSweep } from '@/hooks/useResearch';
+import { useEvaluateHoldout, useSweep } from '@/hooks/useResearch';
+import { toast } from '@/hooks/useToast';
+import { normalizeError } from '@/lib/api/client';
 import { Skeleton } from '@/components/ui/skeleton';
 import { formatDate } from '@/lib/formatters';
-import type { SweepResult, SweepSpec } from '@/types/research';
+import type { SweepResult, SweepSpec, SweepState } from '@/types/research';
 
 interface PageProps {
   params: { id: string };
@@ -181,6 +183,16 @@ export default function SweepDetailPage({ params }: PageProps) {
           label="Window"
           value={`${(s.spec.fromDate ?? '').slice(0, 10)} → ${(s.spec.toDate ?? '').slice(0, 10)}`}
         />
+        <Stat
+          label="Eval mode"
+          value={
+            s.spec.splitMode === 'WALK_FORWARD_K'
+              ? `K-fold · K=${s.spec.walkForwardWindows ?? 4}`
+              : s.spec.splitMode === 'TRAIN_OOS'
+                ? `Train/OOS · ${s.spec.oosFractionPct ?? 30}%`
+                : 'Single window'
+          }
+        />
       </div>
 
       {s.status === 'COMPLETED' && winner && (
@@ -195,6 +207,9 @@ export default function SweepDetailPage({ params }: PageProps) {
           </div>
         </div>
       )}
+
+      <DsrThresholdPanel state={s} />
+      <HoldoutPanel state={s} winner={winner} />
 
       <section className="overflow-hidden rounded-md border border-bd-subtle bg-bg-surface">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-bd-subtle px-4 py-3">
@@ -316,6 +331,42 @@ export default function SweepDetailPage({ params }: PageProps) {
                 </SortableTh>
                 <SortableTh
                   align="right"
+                  sortKey="trainSharpeRatio"
+                  current={sortKey}
+                  dir={sortDir}
+                  onClick={onSortClick}
+                >
+                  Train SR
+                </SortableTh>
+                <SortableTh
+                  align="right"
+                  sortKey="sharpeRatio"
+                  current={sortKey}
+                  dir={sortDir}
+                  onClick={onSortClick}
+                >
+                  Sharpe
+                </SortableTh>
+                <SortableTh
+                  align="right"
+                  sortKey="stddevOosSharpe"
+                  current={sortKey}
+                  dir={sortDir}
+                  onClick={onSortClick}
+                >
+                  σ(OOS)
+                </SortableTh>
+                <SortableTh
+                  align="right"
+                  sortKey="psr"
+                  current={sortKey}
+                  dir={sortDir}
+                  onClick={onSortClick}
+                >
+                  PSR
+                </SortableTh>
+                <SortableTh
+                  align="right"
                   sortKey="status"
                   current={sortKey}
                   dir={sortDir}
@@ -330,7 +381,7 @@ export default function SweepDetailPage({ params }: PageProps) {
               {pageResults.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={paramKeys.length + (isResearchMode ? 9 : 8)}
+                    colSpan={paramKeys.length + (isResearchMode ? 13 : 12)}
                     className="px-4 py-10 text-center text-[12px] text-text-muted"
                   >
                     No combos match the current filter.
@@ -346,6 +397,7 @@ export default function SweepDetailPage({ params }: PageProps) {
                     rankMetric={rankMetric}
                     showRound={isResearchMode}
                     progress={getProgress(r)}
+                    dsrThreshold={s.dsrThresholdSharpe ?? null}
                   />
                 ))
               )}
@@ -509,6 +561,7 @@ function ResultRow({
   rankMetric,
   showRound,
   progress,
+  dsrThreshold,
 }: {
   rank: number;
   paramKeys: string[];
@@ -516,9 +569,30 @@ function ResultRow({
   rankMetric: keyof SweepResult;
   showRound: boolean;
   progress: number;
+  dsrThreshold: number | null;
 }) {
   const wrColor =
     (result.winRate ?? 0) >= 0.5 ? 'var(--color-profit)' : 'var(--color-loss)';
+  const beatsThreshold =
+    dsrThreshold != null &&
+    result.sharpeRatio != null &&
+    result.sharpeRatio > dsrThreshold;
+  const sharpeColor =
+    result.sharpeRatio == null
+      ? 'var(--text-muted)'
+      : beatsThreshold
+        ? 'var(--color-profit)'
+        : result.sharpeRatio > 0
+          ? 'var(--text-primary)'
+          : 'var(--color-loss)';
+  const psrColor =
+    result.psr == null
+      ? 'var(--text-muted)'
+      : result.psr >= 0.95
+        ? 'var(--color-profit)'
+        : result.psr >= 0.7
+          ? 'var(--text-primary)'
+          : 'var(--color-loss)';
   const rColor =
     (result.avgR ?? 0) > 0
       ? 'var(--color-profit)'
@@ -567,6 +641,20 @@ function ResultRow({
       </Td>
       <Td align="right" className="num text-[var(--color-loss)]">
         {result.maxDrawdown != null ? result.maxDrawdown.toFixed(2) : '—'}
+      </Td>
+      <Td align="right" className="num text-text-secondary">
+        {result.trainSharpeRatio != null ? result.trainSharpeRatio.toFixed(2) : '—'}
+      </Td>
+      <Td align="right" className="num" style={{ color: sharpeColor }}>
+        {result.sharpeRatio != null ? result.sharpeRatio.toFixed(2) : '—'}
+      </Td>
+      <Td align="right" className="num" style={stddevStyle(result)}>
+        {result.stddevOosSharpe != null
+          ? `±${result.stddevOosSharpe.toFixed(2)}`
+          : '—'}
+      </Td>
+      <Td align="right" className="num" style={{ color: psrColor }}>
+        {result.psr != null ? `${(result.psr * 100).toFixed(1)}%` : '—'}
       </Td>
       <Td align="right">
         <ProgressCell status={result.status} progress={progress} />
@@ -629,6 +717,136 @@ function ProgressCell({
   );
 }
 
+/**
+ * Locked-holdout discipline panel. Three states:
+ *  - sweep submitted without holdout → render nothing.
+ *  - holdout reserved, no evaluation yet → show the slice + an "Evaluate
+ *    on holdout" button (enabled only on COMPLETED sweeps).
+ *  - already evaluated → show a link to the holdout backtest run; no
+ *    re-evaluate option, that's the entire point of a holdout.
+ */
+function HoldoutPanel({
+  state,
+  winner,
+}: {
+  state: SweepState;
+  winner: SweepResult | null;
+}) {
+  const evalMutation = useEvaluateHoldout(state.sweepId);
+  if (!state.holdoutFromDate || !state.holdoutToDate) return null;
+
+  const sweepCompleted = state.status === 'COMPLETED';
+  const alreadyEvaluated = Boolean(state.holdoutBacktestRunId);
+
+  const onEvaluate = async () => {
+    if (!winner) {
+      toast.error({ title: 'No winner combo to evaluate' });
+      return;
+    }
+    try {
+      const res = await evalMutation.mutateAsync(winner.paramSet);
+      toast.success({
+        title: 'Holdout evaluation submitted',
+        description: `run ${res.backtestRunId.slice(0, 8)} — this is the unbiased estimate`,
+      });
+    } catch (err) {
+      toast.error({
+        title: 'Could not evaluate holdout',
+        description: normalizeError(err),
+      });
+    }
+  };
+
+  return (
+    <div
+      className="rounded-md border px-4 py-3"
+      style={{
+        borderColor: alreadyEvaluated
+          ? 'rgba(78,158,255,0.3)'
+          : 'var(--border-subtle)',
+        background: alreadyEvaluated ? 'rgba(78,158,255,0.06)' : undefined,
+      }}
+    >
+      <div
+        className="label-caps"
+        style={{
+          color: alreadyEvaluated
+            ? 'var(--color-info)'
+            : 'var(--text-secondary)',
+        }}
+      >
+        Locked holdout
+      </div>
+      <div className="mt-2 grid grid-cols-1 gap-4 text-[12px] sm:grid-cols-3">
+        <div className="flex flex-col gap-0.5">
+          <span className="font-mono text-[9px] uppercase tracking-wider text-text-muted">
+            Reserved window
+          </span>
+          <span className="num text-text-primary">
+            {(state.holdoutFromDate ?? '').slice(0, 10)}
+            <span className="mx-1 text-text-muted">→</span>
+            {(state.holdoutToDate ?? '').slice(0, 10)}
+          </span>
+        </div>
+        <div className="flex flex-col gap-0.5">
+          <span className="font-mono text-[9px] uppercase tracking-wider text-text-muted">
+            Status
+          </span>
+          <span
+            className="text-[11px]"
+            style={{
+              color: alreadyEvaluated
+                ? 'var(--color-info)'
+                : sweepCompleted
+                  ? 'var(--text-primary)'
+                  : 'var(--text-muted)',
+            }}
+          >
+            {alreadyEvaluated
+              ? 'Evaluated — see unbiased result'
+              : sweepCompleted
+                ? 'Ready — sweep complete, evaluate winner'
+                : 'Reserved, waiting for sweep to finish'}
+          </span>
+        </div>
+        <div className="flex flex-col gap-0.5">
+          <span className="font-mono text-[9px] uppercase tracking-wider text-text-muted">
+            {alreadyEvaluated ? 'Holdout result' : 'Action'}
+          </span>
+          {alreadyEvaluated ? (
+            <Link
+              href={`/backtest/${state.holdoutBacktestRunId}`}
+              className="font-mono text-[11px] text-[var(--color-info)] hover:underline"
+            >
+              run {state.holdoutBacktestRunId?.slice(0, 8) ?? '—'} →
+            </Link>
+          ) : (
+            <button
+              type="button"
+              onClick={onEvaluate}
+              disabled={
+                !sweepCompleted || !winner || evalMutation.isPending
+              }
+              className="self-start rounded-sm border border-bd-subtle bg-bg-elevated px-3 py-1.5 font-mono text-[10px] uppercase tracking-wider text-text-primary transition-colors duration-fast hover:bg-bg-hover disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {evalMutation.isPending
+                ? 'Submitting…'
+                : 'Evaluate winner on holdout'}
+            </button>
+          )}
+        </div>
+      </div>
+      {!alreadyEvaluated && (
+        <p className="mt-2 text-[11px] text-text-muted">
+          One-shot by design. Once you click, the holdout is spent — no
+          second chance, no re-tune. That&apos;s how the result stays
+          unbiased.
+        </p>
+      )}
+    </div>
+  );
+}
+
 function formatParamValue(v: unknown): string {
   if (v == null) return '—';
   if (typeof v === 'number') {
@@ -637,6 +855,102 @@ function formatParamValue(v: unknown): string {
     return s;
   }
   return String(v);
+}
+
+/**
+ * Stddev coloring relative to mean OOS Sharpe — the regime-sensitivity
+ * signal. Coefficient of variation < 0.3 → robust (profit color); 0.3-0.6
+ * neutral; > 0.6 means OOS Sharpe swings hard fold-to-fold (warning).
+ * Falls back to muted when there's nothing to compare to.
+ */
+function stddevStyle(result: SweepResult): React.CSSProperties {
+  const sd = result.stddevOosSharpe;
+  const mean = result.meanOosSharpe ?? result.sharpeRatio;
+  if (sd == null || mean == null || mean === 0) {
+    return { color: 'var(--text-muted)' };
+  }
+  const cv = Math.abs(sd / mean);
+  if (cv < 0.3) return { color: 'var(--color-profit)' };
+  if (cv > 0.6) return { color: 'var(--color-warning)' };
+  return { color: 'var(--text-secondary)' };
+}
+
+/**
+ * Multiple-comparison context for the leaderboard. Surfaces the cohort's
+ * expected-max-Sharpe under N null trials so users can read the top combo's
+ * Sharpe with the right amount of skepticism: a Sharpe of 2.0 over 500
+ * combos means much less than a Sharpe of 2.0 from a single pre-registered
+ * run. Hidden when fewer than 2 combos have completed (no DSR possible).
+ */
+function DsrThresholdPanel({ state }: { state: SweepState }) {
+  const threshold = state.dsrThresholdSharpe;
+  const sigma = state.dsrCohortStddev;
+  if (threshold == null) return null;
+
+  const completed = state.results.filter((r) => r.status === 'COMPLETED');
+  const topSharpe = completed.reduce<number | null>((max, r) => {
+    if (r.sharpeRatio == null) return max;
+    return max == null || r.sharpeRatio > max ? r.sharpeRatio : max;
+  }, null);
+  const passes = topSharpe != null && topSharpe > threshold;
+
+  return (
+    <div className="rounded-md border border-bd-subtle bg-bg-surface px-4 py-3">
+      <div className="label-caps text-text-secondary">
+        Multiple-comparison context
+      </div>
+      <div className="mt-2 grid grid-cols-2 gap-4 text-[12px] sm:grid-cols-4">
+        <div className="flex flex-col gap-0.5">
+          <span className="font-mono text-[9px] uppercase tracking-wider text-text-muted">
+            DSR threshold (E[max])
+          </span>
+          <span className="num text-text-primary">{threshold.toFixed(3)}</span>
+        </div>
+        <div className="flex flex-col gap-0.5">
+          <span className="font-mono text-[9px] uppercase tracking-wider text-text-muted">
+            Top Sharpe
+          </span>
+          <span
+            className="num"
+            style={{
+              color: passes
+                ? 'var(--color-profit)'
+                : topSharpe == null
+                ? 'var(--text-muted)'
+                : 'var(--color-warning)',
+            }}
+          >
+            {topSharpe != null ? topSharpe.toFixed(3) : '—'}
+          </span>
+        </div>
+        <div className="flex flex-col gap-0.5">
+          <span className="font-mono text-[9px] uppercase tracking-wider text-text-muted">
+            Cohort σ(SR)
+          </span>
+          <span className="num text-text-secondary">
+            {sigma != null ? sigma.toFixed(3) : '—'}
+          </span>
+        </div>
+        <div className="flex flex-col gap-0.5">
+          <span className="font-mono text-[9px] uppercase tracking-wider text-text-muted">
+            Verdict
+          </span>
+          <span
+            className="text-[11px]"
+            style={{
+              color: passes
+                ? 'var(--color-profit)'
+                : 'var(--color-warning)',
+            }}
+          >
+            {passes
+              ? 'Top combo exceeds expected max — evidence beyond luck.'
+              : 'Top combo within selection-bias range; treat as candidate, not winner.'}
+          </span>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 function Stat({ label, value }: { label: string; value: string | number }) {

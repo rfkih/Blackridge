@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import {
   getOpenTrades,
   getRecentTrades,
+  getTradeAttribution,
   getTradeById,
   getTradePositions,
   getTradesPage,
@@ -89,6 +90,19 @@ export function useTradePositions(id: string | undefined, options?: { enabled?: 
     queryKey: ['trades', 'positions', id ?? null],
     queryFn: () => getTradePositions(id as string),
     enabled: Boolean(id) && (options?.enabled ?? true),
+    staleTime: QUERY_STALE_TIMES.closedTrades,
+  });
+}
+
+/**
+ * Phase 2c — P&L decomposition for a single trade. Returns null when
+ * the backend reports no intent (open trade, or legacy row).
+ */
+export function useTradeAttribution(id: string | undefined) {
+  return useQuery({
+    queryKey: ['trades', 'attribution', id ?? null],
+    queryFn: () => getTradeAttribution(id as string),
+    enabled: Boolean(id),
     staleTime: QUERY_STALE_TIMES.closedTrades,
   });
 }

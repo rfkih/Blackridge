@@ -89,10 +89,18 @@ const DEFAULT_SIZING = {
   allowShort: false,
 } as const;
 
+export interface BuildPayloadOptions {
+  /** When true, omit slippageRate from the payload so the backend's
+   *  calibrated-from-fills value applies. Default: false (deterministic
+   *  zero-slippage replays, the legacy behavior). */
+  useCalibratedSlippage?: boolean;
+}
+
 export function buildBacktestPayload(
   config: BacktestWizardConfig,
   paramOverrides: Record<string, Record<string, unknown>>,
   defaultParams: Record<string, Record<string, unknown>>,
+  options: BuildPayloadOptions = {},
 ): BacktestRunPayload {
   const accountStrategyId = pickDefaultAccountStrategyId(
     config.strategyCodes,
@@ -104,7 +112,7 @@ export function buildBacktestPayload(
     );
   }
 
-  return {
+  const payload: BacktestRunPayload = {
     accountStrategyId,
     strategyAccountStrategyIds: config.strategyAccountStrategyIds,
     strategyCodes: config.strategyCodes,
@@ -117,7 +125,6 @@ export function buildBacktestPayload(
     // sizes to zero. See DEFAULT_SIZING for the rationale behind each value.
     riskPerTradePct: DEFAULT_SIZING.riskPerTradePct,
     feeRate: DEFAULT_SIZING.feeRate,
-    slippageRate: DEFAULT_SIZING.slippageRate,
     minNotional: DEFAULT_SIZING.minNotional,
     minQty: DEFAULT_SIZING.minQty,
     qtyStep: DEFAULT_SIZING.qtyStep,
@@ -131,4 +138,11 @@ export function buildBacktestPayload(
       ]),
     ),
   };
+  // When the user opts into calibrated slippage we OMIT the field —
+  // BacktestService falls back to its symbol-specific calibrated rate
+  // (or DEFAULT_SLIPPAGE_RATE if the symbol's sample is too thin).
+  if (!options.useCalibratedSlippage) {
+    payload.slippageRate = DEFAULT_SIZING.slippageRate;
+  }
+  return payload;
 }

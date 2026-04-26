@@ -214,6 +214,15 @@ function NewSweepForm({ onSubmitted }: { onSubmitted: (sweepId: string) => void 
   const [accountStrategyId, setAccountStrategyId] = useState<string>('');
   const [rankMetric, setRankMetric] =
     useState<NonNullable<SweepSpec['rankMetric']>>('avgR');
+  // Default to TRAIN_OOS so new sweeps are honest by default. Users running
+  // smoke tests or working with very short windows can flip back to NONE.
+  const [splitMode, setSplitMode] =
+    useState<NonNullable<SweepSpec['splitMode']>>('TRAIN_OOS');
+  const [oosFractionPct, setOosFractionPct] = useState('30');
+  // Default to 20% locked holdout — fund-grade default. Empty string =
+  // "no holdout" so the user can opt out without a separate toggle.
+  const [holdoutFractionPct, setHoldoutFractionPct] = useState('20');
+  const [walkForwardWindows, setWalkForwardWindows] = useState('4');
   const [grid, setGrid] = useState<GridEntry[]>([]);
 
   const selectedStrategy = eligibleStrategies.find((s) => s.id === accountStrategyId);
@@ -289,6 +298,23 @@ function NewSweepForm({ onSubmitted }: { onSubmitted: (sweepId: string) => void 
       label: label || undefined,
       paramGrid,
       rankMetric,
+      splitMode,
+      // Both TRAIN_OOS and WALK_FORWARD_K use oosFractionPct as the total
+      // OOS coverage relative to the available (non-holdout) window. In
+      // K-fold mode the coverage is divided evenly across the K folds.
+      oosFractionPct:
+        splitMode === 'TRAIN_OOS' || splitMode === 'WALK_FORWARD_K'
+          ? Number(oosFractionPct) || 30
+          : undefined,
+      holdoutFractionPct:
+        (splitMode === 'TRAIN_OOS' || splitMode === 'WALK_FORWARD_K')
+          && holdoutFractionPct.trim() !== ''
+          ? Number(holdoutFractionPct)
+          : undefined,
+      walkForwardWindows:
+        splitMode === 'WALK_FORWARD_K'
+          ? Number(walkForwardWindows) || 4
+          : undefined,
     };
 
     try {
@@ -377,6 +403,79 @@ function NewSweepForm({ onSubmitted }: { onSubmitted: (sweepId: string) => void 
             placeholder="e.g. adx-sweep-1"
           />
         </Field>
+        <Field label="Evaluation mode">
+          <select
+            className="mm-input"
+            value={splitMode}
+            onChange={(e) =>
+              setSplitMode(e.target.value as NonNullable<SweepSpec['splitMode']>)
+            }
+          >
+            <option value="WALK_FORWARD_K">K-fold walk-forward (fund-grade)</option>
+            <option value="TRAIN_OOS">Train / OOS split</option>
+            <option value="NONE">Single window (in-sample only)</option>
+          </select>
+          <span className="mt-1 text-[11px] text-text-muted">
+            Walk-forward runs K rolling folds per combo — averages OOS
+            Sharpe across regimes, exposes regime sensitivity. Train/OOS is
+            cheaper but blind to regime. Single is for smoke tests only.
+          </span>
+        </Field>
+        {(splitMode === 'TRAIN_OOS' || splitMode === 'WALK_FORWARD_K') && (
+          <Field label="OOS fraction (%)">
+            <input
+              className="mm-input"
+              type="number"
+              min={10}
+              max={70}
+              step={5}
+              value={oosFractionPct}
+              onChange={(e) => setOosFractionPct(e.target.value)}
+            />
+            <span className="mt-1 text-[11px] text-text-muted">
+              {splitMode === 'TRAIN_OOS'
+                ? '30% means train on 70%, score on the most recent 30%.'
+                : 'Total OOS coverage divided evenly across the K folds. Train head is whatever remains.'}
+            </span>
+          </Field>
+        )}
+        {splitMode === 'WALK_FORWARD_K' && (
+          <Field label="Walk-forward folds (K)">
+            <input
+              className="mm-input"
+              type="number"
+              min={2}
+              max={8}
+              step={1}
+              value={walkForwardWindows}
+              onChange={(e) => setWalkForwardWindows(e.target.value)}
+            />
+            <span className="mt-1 text-[11px] text-text-muted">
+              Number of rolling train→OOS folds per combo. Higher K = better
+              regime coverage but K× wall time. Default 4. Run cap: 2000
+              total backtests across all folds + combos.
+            </span>
+          </Field>
+        )}
+        {(splitMode === 'TRAIN_OOS' || splitMode === 'WALK_FORWARD_K') && (
+          <Field label="Locked holdout (%)">
+            <input
+              className="mm-input"
+              type="number"
+              min={0}
+              max={40}
+              step={5}
+              value={holdoutFractionPct}
+              onChange={(e) => setHoldoutFractionPct(e.target.value)}
+              placeholder="leave blank to disable"
+            />
+            <span className="mt-1 text-[11px] text-text-muted">
+              Tail of the window the sweep will <b>never</b> touch. After
+              results land, evaluate your winner on this slice for the one
+              unbiased estimate. Default 20%.
+            </span>
+          </Field>
+        )}
       </div>
 
       <div>
