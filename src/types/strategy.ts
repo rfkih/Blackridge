@@ -137,4 +137,57 @@ export interface VcbParams {
   minSignalScore: number;
 }
 
-export type StrategyParams = LsrParams | VcbParams;
+/**
+ * VBO (Volatility Breakout) strategy parameters — field names mirror
+ * {@code dto/vbo/VboParams.java} exactly. Most values are numeric (BigDecimal
+ * on the wire); three gate flags arrive as booleans.
+ *
+ * Whenever the Java DTO gains or renames a field, update this interface,
+ * VBO_PARAM_META, and VBO_SECTIONS together.
+ */
+export interface VboParams {
+  // ── Compression detection (previous bar) ──
+  compressionBbWidthPctMax: number;
+  compressionAdxMax: number;
+  requireKcSqueeze: boolean;
+
+  // ── Entry-bar ADX band ──
+  adxEntryMin: number;
+  adxEntryMax: number;
+
+  // ── Breakout confirmation ──
+  requireDonchianBreak: boolean;
+  requireTrendAlignment: boolean;
+  ema50SlopeMin: number;
+  atrExpansionMin: number;
+  rvolMin: number;
+
+  // ── Breakout candle quality ──
+  bodyRatioMin: number;
+  clvMin: number;
+  clvMax: number;
+
+  // ── RSI sanity ──
+  longRsiMax: number;
+  shortRsiMin: number;
+
+  // ── Risk / exits ──
+  stopAtrBuffer: number;
+  maxEntryRiskPct: number;
+  tp1R: number;
+
+  // ── Position management ──
+  breakEvenR: number;
+  runnerBreakEvenR: number;
+  runnerPhase2R: number;
+  runnerPhase3R: number;
+  runnerAtrPhase2: number;
+  runnerAtrPhase3: number;
+  runnerLockPhase2R: number;
+  runnerLockPhase3R: number;
+
+  // ── Signal score ──
+  minSignalScore: number;
+}
+
+export type StrategyParams = LsrParams | VcbParams | VboParams;

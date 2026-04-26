@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { TopNav } from '@/components/layout/TopNav';
 import { CommandPalette } from '@/components/layout/CommandPalette';
+import { IpWhitelistBanner } from '@/components/layout/IpWhitelistBanner';
 import { useWebSocket } from '@/hooks/useWebSocket';
 
 function DashboardShell({ children }: { children: React.ReactNode }) {
@@ -37,6 +38,7 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
           onMenuClick={() => setSidebarOpen(true)}
           onCommandOpen={() => setPaletteOpen(true)}
         />
+        <IpWhitelistBanner />
         <main
           key={pathname}
           className="page-enter flex-1 overflow-y-auto"

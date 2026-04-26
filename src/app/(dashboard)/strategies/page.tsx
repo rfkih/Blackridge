@@ -19,11 +19,17 @@ import { NewStrategyDialog } from '@/components/strategy/NewStrategyDialog';
 import { DeleteStrategyDialog } from '@/components/strategy/DeleteStrategyDialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/shared/EmptyState';
-import { useAccountStrategies, useActivateStrategy } from '@/hooks/useStrategies';
+import {
+  useAccountStrategies,
+  useActivateStrategy,
+  useDeactivateStrategy,
+  useUpdateStrategyInterval,
+} from '@/hooks/useStrategies';
 import { useActiveAccount } from '@/hooks/useAccounts';
 import { normalizeError } from '@/lib/api/client';
 import { toast } from '@/hooks/useToast';
 import { cn } from '@/lib/utils';
+import { INTERVALS } from '@/lib/constants';
 import type { AccountStrategy } from '@/types/strategy';
 import type { AccountSummary } from '@/types/account';
 
@@ -37,15 +43,24 @@ function StrategyCard({
   groupHasOtherPreset,
   onDelete,
   onActivate,
+  onDeactivate,
+  onIntervalChange,
   isActivating,
+  isDeactivating,
+  isUpdatingInterval,
 }: {
   strategy: AccountStrategy;
   groupHasOtherPreset: boolean;
   onDelete: (s: AccountStrategy) => void;
   onActivate: (s: AccountStrategy) => void;
+  onDeactivate: (s: AccountStrategy) => void;
+  onIntervalChange: (s: AccountStrategy, intervalName: string) => void;
   isActivating: boolean;
+  isDeactivating: boolean;
+  isUpdatingInterval: boolean;
 }) {
   const isLive = strategy.status === 'LIVE';
+  const isToggling = isActivating || isDeactivating;
   return (
     <div
       className={cn(
@@ -87,12 +102,18 @@ function StrategyCard({
             </div>
             <p className="font-mono text-sm font-medium text-[var(--text-primary)]">
               {strategy.symbol}
-              <span className="ml-2 rounded bg-[var(--bg-elevated)] px-1.5 py-0.5 text-[10px] font-normal text-[var(--text-muted)]">
-                {strategy.interval}
-              </span>
+              <IntervalSelect
+                value={strategy.interval}
+                disabled={isUpdatingInterval}
+                onChange={(v) => onIntervalChange(strategy, v)}
+              />
             </p>
           </div>
-          <StrategyStatusBadge status={strategy.status} />
+          <StatusToggle
+            status={strategy.status}
+            disabled={isToggling}
+            onToggle={() => (isLive ? onDeactivate(strategy) : onActivate(strategy))}
+          />
         </div>
 
         <div className="flex items-baseline justify-between gap-2">
@@ -159,6 +180,73 @@ function StrategyCard({
   );
 }
 
+function IntervalSelect({
+  value,
+  disabled,
+  onChange,
+}: {
+  value: string;
+  disabled: boolean;
+  onChange: (next: string) => void;
+}) {
+  // Native <select> overlaid on the existing pill styling. The input lives
+  // inside the parent <Link> — stopPropagation keeps row clicks away from
+  // the link navigation when the user is interacting with the picker.
+  // Always include the current value as an option so a non-canonical
+  // interval (e.g. an interval added after the constants list) doesn't
+  // disappear from the dropdown.
+  const options = INTERVALS.includes(value as (typeof INTERVALS)[number])
+    ? INTERVALS
+    : [value, ...INTERVALS];
+  return (
+    <select
+      value={value}
+      disabled={disabled}
+      onClick={(e) => e.stopPropagation()}
+      onChange={(e) => {
+        e.stopPropagation();
+        if (e.target.value !== value) onChange(e.target.value);
+      }}
+      className="ml-2 cursor-pointer rounded bg-[var(--bg-elevated)] px-1.5 py-0.5 font-mono text-[10px] font-normal text-[var(--text-muted)] outline-none transition-colors hover:text-[var(--text-primary)] focus:ring-1 focus:ring-[var(--accent-primary)] disabled:cursor-not-allowed disabled:opacity-50"
+      aria-label="Strategy interval"
+    >
+      {options.map((opt) => (
+        <option key={opt} value={opt}>
+          {opt}
+        </option>
+      ))}
+    </select>
+  );
+}
+
+function StatusToggle({
+  status,
+  disabled,
+  onToggle,
+}: {
+  status: AccountStrategy['status'];
+  disabled: boolean;
+  onToggle: () => void;
+}) {
+  const isLive = status === 'LIVE';
+  return (
+    <button
+      type="button"
+      disabled={disabled}
+      onClick={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        onToggle();
+      }}
+      className="rounded transition-opacity hover:opacity-80 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-primary)] disabled:cursor-not-allowed disabled:opacity-50"
+      aria-label={isLive ? 'Stop strategy' : 'Start strategy'}
+      title={isLive ? 'Click to stop' : 'Click to start'}
+    >
+      <StrategyStatusBadge status={status} />
+    </button>
+  );
+}
+
 function DirectionPill({ direction, enabled }: { direction: 'long' | 'short'; enabled: boolean }) {
   const Icon = direction === 'long' ? ArrowUpRight : ArrowDownRight;
   const activeColor = direction === 'long' ? 'var(--color-profit)' : 'var(--color-loss)';
@@ -199,6 +287,8 @@ export default function StrategiesPage() {
   const [isCreateOpen, setCreateOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<AccountStrategy | null>(null);
   const activateMutation = useActivateStrategy();
+  const deactivateMutation = useDeactivateStrategy();
+  const intervalMutation = useUpdateStrategyInterval();
 
   const visibleStrategies = scopedAccountId
     ? strategies.filter((s) => s.accountId === scopedAccountId)
@@ -227,6 +317,43 @@ export default function StrategiesPage() {
         });
       },
     });
+  };
+
+  const handleDeactivate = (strategy: AccountStrategy) => {
+    deactivateMutation.mutate(strategy.id, {
+      onSuccess: (s) => {
+        toast.success({
+          title: `Stopped "${s.presetName}"`,
+          description: 'Open positions will continue to be managed until they close.',
+        });
+      },
+      onError: (err) => {
+        toast.error({
+          title: 'Could not stop preset',
+          description: normalizeError(err),
+        });
+      },
+    });
+  };
+
+  const handleIntervalChange = (strategy: AccountStrategy, intervalName: string) => {
+    intervalMutation.mutate(
+      { id: strategy.id, intervalName },
+      {
+        onSuccess: (s) => {
+          toast.success({
+            title: `Interval changed`,
+            description: `${s.presetName} now runs on ${s.interval}.`,
+          });
+        },
+        onError: (err) => {
+          toast.error({
+            title: 'Could not change interval',
+            description: normalizeError(err),
+          });
+        },
+      },
+    );
   };
 
   const headerSubtitle = isAll
@@ -299,7 +426,13 @@ export default function StrategiesPage() {
           presetsByTuple={presetsByTuple}
           onDelete={setDeleteTarget}
           onActivate={handleActivate}
+          onDeactivate={handleDeactivate}
+          onIntervalChange={handleIntervalChange}
           activatingId={activateMutation.isPending ? activateMutation.variables : undefined}
+          deactivatingId={deactivateMutation.isPending ? deactivateMutation.variables : undefined}
+          updatingIntervalId={
+            intervalMutation.isPending ? intervalMutation.variables?.id : undefined
+          }
         />
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
@@ -310,7 +443,13 @@ export default function StrategiesPage() {
               groupHasOtherPreset={(presetsByTuple.get(tupleKey(s)) ?? 0) > 1}
               onDelete={setDeleteTarget}
               onActivate={handleActivate}
+              onDeactivate={handleDeactivate}
+              onIntervalChange={handleIntervalChange}
               isActivating={activateMutation.isPending && activateMutation.variables === s.id}
+              isDeactivating={deactivateMutation.isPending && deactivateMutation.variables === s.id}
+              isUpdatingInterval={
+                intervalMutation.isPending && intervalMutation.variables?.id === s.id
+              }
             />
           ))}
         </div>
@@ -366,14 +505,22 @@ function GroupedStrategies({
   presetsByTuple,
   onDelete,
   onActivate,
+  onDeactivate,
+  onIntervalChange,
   activatingId,
+  deactivatingId,
+  updatingIntervalId,
 }: {
   accounts: AccountSummary[];
   strategies: AccountStrategy[];
   presetsByTuple: Map<string, number>;
   onDelete: (s: AccountStrategy) => void;
   onActivate: (s: AccountStrategy) => void;
+  onDeactivate: (s: AccountStrategy) => void;
+  onIntervalChange: (s: AccountStrategy, intervalName: string) => void;
   activatingId: string | undefined;
+  deactivatingId: string | undefined;
+  updatingIntervalId: string | undefined;
 }) {
   const byAccount = new Map<string, AccountStrategy[]>();
   for (const s of strategies) {
@@ -419,7 +566,11 @@ function GroupedStrategies({
                   groupHasOtherPreset={(presetsByTuple.get(tupleKey(s)) ?? 0) > 1}
                   onDelete={onDelete}
                   onActivate={onActivate}
+                  onDeactivate={onDeactivate}
+                  onIntervalChange={onIntervalChange}
                   isActivating={activatingId === s.id}
+                  isDeactivating={deactivatingId === s.id}
+                  isUpdatingInterval={updatingIntervalId === s.id}
                 />
               ))}
             </div>

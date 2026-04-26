@@ -79,7 +79,7 @@ export default function MonteCarloPage() {
   const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
 
-  const runsQ = useBacktestRuns({ status: 'COMPLETED', size: 100 });
+  const runsQ = useBacktestRuns({ status: 'COMPLETED', size: 5 });
   const completedRuns = runsQ.data?.content ?? [];
   const totalCompleted = runsQ.data?.total ?? completedRuns.length;
   const isDropdownTruncated = totalCompleted > completedRuns.length;
@@ -237,7 +237,7 @@ export default function MonteCarloPage() {
           error={errors.backtestRunId}
           hint={
             isDropdownTruncated
-              ? `Showing 100 of ${totalCompleted} completed runs — older hidden.`
+              ? `Showing latest 5 of ${totalCompleted} completed runs — older hidden.`
               : undefined
           }
         >

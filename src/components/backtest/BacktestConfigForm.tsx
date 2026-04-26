@@ -146,6 +146,36 @@ export function BacktestConfigForm() {
     setStrategyAccountStrategyIds((ids) => ({ ...ids, [code]: id }));
   }, []);
 
+  // Map every assigned account-strategy back to its interval so we can flag
+  // mismatches. Result type is `Array<{ code, interval }>` for the strategies
+  // that don't agree with the form's interval.
+  const strategyById = useMemo(() => {
+    const m = new Map<string, AccountStrategy>();
+    for (const s of strategies) m.set(s.id, s);
+    return m;
+  }, [strategies]);
+
+  const intervalMismatches = useMemo(() => {
+    const out: Array<{ code: string; interval: string }> = [];
+    for (const code of selectedStrategies) {
+      const id = strategyAccountStrategyIds[code];
+      if (!id) continue;
+      const accStrat = strategyById.get(id);
+      if (accStrat && accStrat.interval && accStrat.interval !== interval) {
+        out.push({ code, interval: accStrat.interval });
+      }
+    }
+    return out;
+  }, [selectedStrategies, strategyAccountStrategyIds, strategyById, interval]);
+
+  // Only offer a one-click fix when every assigned strategy agrees on the
+  // same (non-matching) interval — otherwise there's no single right answer.
+  const sharedMismatchInterval = useMemo(() => {
+    if (intervalMismatches.length === 0) return null;
+    const first = intervalMismatches[0].interval;
+    return intervalMismatches.every((m) => m.interval === first) ? first : null;
+  }, [intervalMismatches]);
+
   const handleSubmit = useCallback(() => {
     const parsed = configSchema.safeParse({
       symbol: symbol.trim().toUpperCase(),
@@ -219,7 +249,11 @@ export function BacktestConfigForm() {
             </datalist>
           </Field>
 
-          <Field label="Interval" error={errors.interval}>
+          <Field
+            label="Interval"
+            error={errors.interval}
+            hint="Must match the interval of every selected account-strategy."
+          >
             <Select value={interval} onValueChange={setInterval}>
               <SelectTrigger className="h-9 font-mono">
                 <SelectValue />
@@ -338,6 +372,41 @@ export function BacktestConfigForm() {
             {errors.strategyAccountStrategyIds && (
               <p className="mt-3 text-[11px] text-loss">{errors.strategyAccountStrategyIds}</p>
             )}
+
+            {intervalMismatches.length > 0 && (
+              <div className="mt-3 flex items-start gap-2 rounded-sm border border-bd-subtle bg-tint-warning px-3 py-2.5">
+                <AlertTriangle
+                  size={12}
+                  strokeWidth={1.75}
+                  className="mt-0.5 shrink-0 text-warning"
+                />
+                <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+                  <p className="text-[11px] text-text-primary">
+                    Interval mismatch — backtest results will not be valid. The
+                    backtest is set to{' '}
+                    <span className="font-mono font-semibold">{interval}</span>{' '}
+                    but{' '}
+                    {intervalMismatches.map((m, i) => (
+                      <span key={m.code}>
+                        <span className="font-mono font-semibold">{m.code}</span>
+                        {' is registered on '}
+                        <span className="font-mono font-semibold">{m.interval}</span>
+                        {i < intervalMismatches.length - 1 ? ', ' : '.'}
+                      </span>
+                    ))}
+                  </p>
+                  {sharedMismatchInterval && (
+                    <button
+                      type="button"
+                      onClick={() => setInterval(sharedMismatchInterval)}
+                      className="self-start rounded-sm border border-bd-subtle bg-bg-elevated px-2 py-1 font-mono text-[10px] text-text-primary transition-colors duration-fast hover:bg-bg-hover"
+                    >
+                      Use {sharedMismatchInterval}
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         )}
       </section>
@@ -379,17 +448,23 @@ function SectionHeader({ title, hint }: { title: string; hint?: string }) {
 function Field({
   label,
   error,
+  hint,
   children,
 }: {
   label: string;
   error?: string;
+  hint?: string;
   children: React.ReactNode;
 }) {
   return (
     <div className="flex flex-col gap-1.5">
       <Label className="label-caps !text-[9px]">{label}</Label>
       {children}
-      {error && <p className="text-[11px] text-loss">{error}</p>}
+      {error ? (
+        <p className="text-[11px] text-loss">{error}</p>
+      ) : hint ? (
+        <p className="text-[11px] text-text-muted">{hint}</p>
+      ) : null}
     </div>
   );
 }

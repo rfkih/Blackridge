@@ -11,3 +11,31 @@ export async function getServerIp(): Promise<string> {
   }
   return data.trim();
 }
+
+export interface ServerIpStatus {
+  currentIp: string | null;
+  previousIp: string | null;
+  /** "INIT" on first observation, "CHANGED" when the IP differs from prior. */
+  event: 'INIT' | 'CHANGED' | string | null;
+  /** ISO timestamp from the IP_MONITOR scheduler. */
+  recordedAt: string | null;
+}
+
+interface BackendServerIpStatus {
+  currentIp?: string | null;
+  previousIp?: string | null;
+  event?: string | null;
+  recordedAt?: string | null;
+}
+
+/** Latest IP-monitor snapshot. Empty object means no log row yet — fresh
+ *  install or DB wipe; treat as "no warning to show". */
+export async function getServerIpStatus(): Promise<ServerIpStatus> {
+  const { data } = await apiClient.get<BackendServerIpStatus>('/api/v1/server/ip/status');
+  return {
+    currentIp: data?.currentIp ?? null,
+    previousIp: data?.previousIp ?? null,
+    event: data?.event ?? null,
+    recordedAt: data?.recordedAt ?? null,
+  };
+}

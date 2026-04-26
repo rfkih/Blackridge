@@ -42,7 +42,9 @@ function mapBalance(b: BackendPortfolioBalance): PortfolioBalance {
   };
 }
 
-export async function getPortfolioBalance(): Promise<PortfolioBalance> {
-  const { data } = await apiClient.get<BackendPortfolioBalance>('/api/v1/portfolio');
+export async function getPortfolioBalance(accountId?: string): Promise<PortfolioBalance> {
+  const { data } = await apiClient.get<BackendPortfolioBalance>('/api/v1/portfolio', {
+    params: accountId ? { accountId } : undefined,
+  });
   return mapBalance(data);
 }

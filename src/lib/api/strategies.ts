@@ -93,3 +93,29 @@ export async function activateAccountStrategy(id: string): Promise<AccountStrate
   );
   return mapAccountStrategy(data);
 }
+
+/**
+ * Stop this preset from taking new entries. Open positions are left intact —
+ * the live listener continues managing them until they close naturally.
+ */
+export async function deactivateAccountStrategy(id: string): Promise<AccountStrategy> {
+  const { data } = await apiClient.post<BackendAccountStrategy>(
+    `/api/v1/account-strategies/${id}/deactivate`,
+  );
+  return mapAccountStrategy(data);
+}
+
+/**
+ * Update editable fields on an account strategy. Currently only the candle
+ * interval. Rejects (409) if open trades reference the strategy.
+ */
+export async function updateAccountStrategy(
+  id: string,
+  patch: { intervalName: string },
+): Promise<AccountStrategy> {
+  const { data } = await apiClient.patch<BackendAccountStrategy>(
+    `/api/v1/account-strategies/${id}`,
+    patch,
+  );
+  return mapAccountStrategy(data);
+}

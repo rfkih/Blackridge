@@ -1,6 +1,6 @@
 // Circular type-only import — erased at runtime (strategy.ts re-imports Interval/StrategyCode).
 // eslint-disable-next-line import/no-cycle
-import type { LsrParams, VcbParams } from '@/types/strategy';
+import type { LsrParams, VboParams, VcbParams } from '@/types/strategy';
 import { env } from './env';
 
 /** @deprecated prefer `import { env } from '@/lib/env'`. Re-exported so existing call sites keep working. */
@@ -811,6 +811,296 @@ export const VCB_SECTIONS: Array<{ title: string; keys: Array<keyof VcbParams> }
     title: 'Runner Trail',
     keys: [
       'runnerHalfR',
+      'runnerBreakEvenR',
+      'runnerPhase2R',
+      'runnerPhase3R',
+      'runnerAtrPhase2',
+      'runnerAtrPhase3',
+      'runnerLockPhase2R',
+      'runnerLockPhase3R',
+    ],
+  },
+  {
+    title: 'Signal',
+    keys: ['minSignalScore'],
+  },
+];
+
+export const VBO_PARAM_META: Record<keyof VboParams, ParamMeta> = {
+  // ── Compression detection (previous bar) ────────────────────────────────
+  compressionBbWidthPctMax: {
+    label: 'Compression — BB Width % Max',
+    description:
+      'Max prev-bar Bollinger Band width as a fraction of price; below this counts as compressed.',
+    kind: 'decimal',
+    min: 0.001,
+    max: 0.5,
+    step: 0.001,
+  },
+  compressionAdxMax: {
+    label: 'Compression — ADX Max',
+    description: 'Max prev-bar ADX. Above this the trend was already active — not a real compression.',
+    kind: 'decimal',
+    min: 5,
+    max: 60,
+    step: 0.5,
+  },
+  requireKcSqueeze: {
+    label: 'Require KC Squeeze',
+    description: 'Require Bollinger inside Keltner on the prev bar (squeeze confirmation).',
+    kind: 'toggle',
+  },
+
+  // ── Entry-bar ADX band ──────────────────────────────────────────────────
+  adxEntryMin: {
+    label: 'Entry ADX — Min',
+    description: 'Lower bound on entry-bar ADX. Below this the breakout candle has no directional thrust.',
+    kind: 'decimal',
+    min: 0,
+    max: 80,
+    step: 0.5,
+  },
+  adxEntryMax: {
+    label: 'Entry ADX — Max',
+    description: 'Upper bound on entry-bar ADX. Above this the trend was already established.',
+    kind: 'decimal',
+    min: 0,
+    max: 80,
+    step: 0.5,
+  },
+
+  // ── Breakout confirmation ───────────────────────────────────────────────
+  requireDonchianBreak: {
+    label: 'Require Donchian Break',
+    description: 'Require close beyond the Donchian-20 channel in addition to the Bollinger break.',
+    kind: 'toggle',
+  },
+  requireTrendAlignment: {
+    label: 'Require Trend Alignment',
+    description: 'Require basic same-TF EMA50 alignment (close above for long, below for short).',
+    kind: 'toggle',
+  },
+  ema50SlopeMin: {
+    label: 'EMA50 Slope Min',
+    description: 'Magnitude floor on EMA50 slope used for the trend-alignment veto.',
+    kind: 'decimal',
+    min: 0,
+    max: 5,
+    step: 0.01,
+  },
+  atrExpansionMin: {
+    label: 'ATR Expansion Min',
+    description:
+      'Current bar range / prior ATR floor — i.e. how many ATRs of expansion the breakout candle covers.',
+    kind: 'decimal',
+    unit: '×',
+    min: 1,
+    max: 5,
+    step: 0.05,
+  },
+  rvolMin: {
+    label: 'Relative Volume Min',
+    description: 'Relative-volume floor vs. the 20-bar average.',
+    kind: 'decimal',
+    unit: '×',
+    min: 0.5,
+    max: 5,
+    step: 0.05,
+  },
+
+  // ── Breakout candle quality ─────────────────────────────────────────────
+  bodyRatioMin: {
+    label: 'Body Ratio Min',
+    description: 'Body / total-range floor on the breakout candle (filters doji-style breakouts).',
+    kind: 'decimal',
+    min: 0.1,
+    max: 1,
+    step: 0.01,
+  },
+  clvMin: {
+    label: 'CLV Min',
+    description: 'Close-location-value floor (long) / mirrored ceiling (short).',
+    kind: 'decimal',
+    min: 0,
+    max: 1,
+    step: 0.01,
+  },
+  clvMax: {
+    label: 'CLV Max',
+    description: 'CLV ceiling — rejects candles closing pinned to the high (exhaustion).',
+    kind: 'decimal',
+    min: 0,
+    max: 1,
+    step: 0.01,
+  },
+
+  // ── RSI sanity ──────────────────────────────────────────────────────────
+  longRsiMax: {
+    label: 'Long RSI Max',
+    description: 'Skip long entries above this RSI — avoids chasing already-extended runs.',
+    kind: 'decimal',
+    min: 1,
+    max: 100,
+    step: 0.5,
+  },
+  shortRsiMin: {
+    label: 'Short RSI Min',
+    description: 'Skip short entries below this RSI.',
+    kind: 'decimal',
+    min: 1,
+    max: 100,
+    step: 0.5,
+  },
+
+  // ── Risk / exits ────────────────────────────────────────────────────────
+  stopAtrBuffer: {
+    label: 'Stop ATR Buffer',
+    description: 'ATRs of padding beyond the breakout candle low (long) / high (short).',
+    kind: 'decimal',
+    unit: '× ATR',
+    min: 0,
+    max: 3,
+    step: 0.05,
+  },
+  maxEntryRiskPct: {
+    label: 'Max Entry Risk',
+    description: 'Hard cap on per-trade risk as fraction of entry price.',
+    kind: 'percent',
+    unit: '%',
+    min: 0.001,
+    max: 0.2,
+    step: 0.001,
+  },
+  tp1R: {
+    label: 'TP1 R-Multiple',
+    description: 'First take-profit target as a multiple of initial risk.',
+    kind: 'rmultiple',
+    unit: '×',
+    min: 0.5,
+    max: 10,
+    step: 0.05,
+  },
+
+  // ── Position management ─────────────────────────────────────────────────
+  breakEvenR: {
+    label: 'Break-Even R',
+    description: 'R-multiple at which the TP1 leg moves to break-even.',
+    kind: 'rmultiple',
+    unit: '×',
+    min: 0,
+    max: 5,
+    step: 0.05,
+  },
+  runnerBreakEvenR: {
+    label: 'Runner Break-Even R',
+    description: 'R-multiple at which the runner stop is moved to break-even.',
+    kind: 'rmultiple',
+    unit: '×',
+    min: 0,
+    max: 5,
+    step: 0.05,
+  },
+  runnerPhase2R: {
+    label: 'Runner Phase-2 R',
+    description: 'R-multiple at which the runner enters trail phase 2.',
+    kind: 'rmultiple',
+    unit: '×',
+    min: 0.5,
+    max: 10,
+    step: 0.05,
+  },
+  runnerPhase3R: {
+    label: 'Runner Phase-3 R',
+    description: 'R-multiple at which the runner enters trail phase 3.',
+    kind: 'rmultiple',
+    unit: '×',
+    min: 0.5,
+    max: 10,
+    step: 0.05,
+  },
+  runnerAtrPhase2: {
+    label: 'Runner ATR — Phase 2',
+    description: 'Trailing distance in ATR units while the runner is in phase 2.',
+    kind: 'decimal',
+    unit: '× ATR',
+    min: 0.1,
+    max: 5,
+    step: 0.05,
+  },
+  runnerAtrPhase3: {
+    label: 'Runner ATR — Phase 3',
+    description: 'Trailing distance in ATR units while the runner is in phase 3.',
+    kind: 'decimal',
+    unit: '× ATR',
+    min: 0.1,
+    max: 5,
+    step: 0.05,
+  },
+  runnerLockPhase2R: {
+    label: 'Runner Lock — Phase 2',
+    description: 'Minimum R locked in when the runner enters phase 2.',
+    kind: 'rmultiple',
+    unit: '×',
+    min: 0,
+    max: 10,
+    step: 0.05,
+  },
+  runnerLockPhase3R: {
+    label: 'Runner Lock — Phase 3',
+    description: 'Minimum R locked in when the runner enters phase 3.',
+    kind: 'rmultiple',
+    unit: '×',
+    min: 0,
+    max: 10,
+    step: 0.05,
+  },
+
+  // ── Signal ──────────────────────────────────────────────────────────────
+  minSignalScore: {
+    label: 'Min Signal Score',
+    description: 'Minimum composite signal score required to open a trade.',
+    kind: 'decimal',
+    min: 0,
+    max: 1,
+    step: 0.01,
+  },
+};
+
+export const VBO_SECTIONS: Array<{ title: string; keys: Array<keyof VboParams> }> = [
+  {
+    title: 'Compression',
+    keys: ['compressionBbWidthPctMax', 'compressionAdxMax', 'requireKcSqueeze'],
+  },
+  {
+    title: 'Entry ADX Band',
+    keys: ['adxEntryMin', 'adxEntryMax'],
+  },
+  {
+    title: 'Breakout Confirmation',
+    keys: [
+      'requireDonchianBreak',
+      'requireTrendAlignment',
+      'ema50SlopeMin',
+      'atrExpansionMin',
+      'rvolMin',
+    ],
+  },
+  {
+    title: 'Candle Quality',
+    keys: ['bodyRatioMin', 'clvMin', 'clvMax'],
+  },
+  {
+    title: 'RSI Sanity',
+    keys: ['longRsiMax', 'shortRsiMin'],
+  },
+  {
+    title: 'Risk & Exits',
+    keys: ['stopAtrBuffer', 'maxEntryRiskPct', 'tp1R'],
+  },
+  {
+    title: 'Position Management',
+    keys: [
+      'breakEvenR',
       'runnerBreakEvenR',
       'runnerPhase2R',
       'runnerPhase3R',

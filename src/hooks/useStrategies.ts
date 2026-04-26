@@ -12,6 +12,8 @@ import {
   createAccountStrategy,
   deleteAccountStrategy,
   activateAccountStrategy,
+  deactivateAccountStrategy,
+  updateAccountStrategy,
   type CreateAccountStrategyPayload,
 } from '@/lib/api/strategies';
 import {
@@ -28,9 +30,16 @@ import {
   putVcbParams,
   deleteVcbParams,
 } from '@/lib/api/vcb-params';
+import {
+  getVboParams,
+  getVboDefaults,
+  patchVboParams,
+  putVboParams,
+  deleteVboParams,
+} from '@/lib/api/vbo-params';
 import { QUERY_STALE_TIMES } from '@/lib/constants';
 import { useAuthStore } from '@/store/authStore';
-import type { LsrParams, VcbParams } from '@/types/strategy';
+import type { LsrParams, VboParams, VcbParams } from '@/types/strategy';
 
 export function useStrategies() {
   const userId = useAuthStore((s) => s.user?.id);
@@ -170,6 +179,29 @@ export function useActivateStrategy() {
   });
 }
 
+export function useDeactivateStrategy() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (accountStrategyId: string) => deactivateAccountStrategy(accountStrategyId),
+    onSuccess: (strategy) => {
+      queryClient.invalidateQueries({ queryKey: ['strategies'] });
+      queryClient.setQueryData(['strategy', strategy.id], strategy);
+    },
+  });
+}
+
+export function useUpdateStrategyInterval() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, intervalName }: { id: string; intervalName: string }) =>
+      updateAccountStrategy(id, { intervalName }),
+    onSuccess: (strategy) => {
+      queryClient.invalidateQueries({ queryKey: ['strategies'] });
+      queryClient.setQueryData(['strategy', strategy.id], strategy);
+    },
+  });
+}
+
 /**
  * Wipes all LSR overrides on an account-strategy row. Backend responds
  * with the row cleared — on success we invalidate the per-strategy query
@@ -213,6 +245,68 @@ export function useReplaceVcbParams(accountStrategyId: string | undefined) {
     onSuccess: (params) => {
       queryClient.setQueryData(['vcb-params', accountStrategyId], params);
       queryClient.invalidateQueries({ queryKey: ['vcb-params', accountStrategyId] });
+    },
+  });
+}
+
+// ── VBO ──────────────────────────────────────────────────────────────────
+
+export function useVboDefaults() {
+  return useQuery({
+    queryKey: ['vbo-params', 'defaults'],
+    queryFn: getVboDefaults,
+    staleTime: QUERY_STALE_TIMES.strategyParams,
+  });
+}
+
+export function useVboParams(accountStrategyId: string | undefined) {
+  return useQuery({
+    queryKey: ['vbo-params', accountStrategyId],
+    queryFn: () => getVboParams(accountStrategyId as string),
+    staleTime: QUERY_STALE_TIMES.strategyParams,
+    enabled: Boolean(accountStrategyId),
+  });
+}
+
+export function useSaveVboParams(
+  accountStrategyId: string | undefined,
+): UseMutationResult<VboParams, Error, Partial<VboParams>> {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (patch: Partial<VboParams>) => {
+      if (!accountStrategyId) throw new Error('accountStrategyId is required');
+      return patchVboParams(accountStrategyId, patch);
+    },
+    onSuccess: (params) => {
+      queryClient.setQueryData(['vbo-params', accountStrategyId], params);
+      queryClient.invalidateQueries({ queryKey: ['vbo-params', accountStrategyId] });
+    },
+  });
+}
+
+export function useResetVboParams(accountStrategyId: string | undefined) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => {
+      if (!accountStrategyId) throw new Error('accountStrategyId is required');
+      return deleteVboParams(accountStrategyId);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['vbo-params', accountStrategyId] });
+    },
+  });
+}
+
+export function useReplaceVboParams(accountStrategyId: string | undefined) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (full: VboParams) => {
+      if (!accountStrategyId) throw new Error('accountStrategyId is required');
+      return putVboParams(accountStrategyId, full);
+    },
+    onSuccess: (params) => {
+      queryClient.setQueryData(['vbo-params', accountStrategyId], params);
+      queryClient.invalidateQueries({ queryKey: ['vbo-params', accountStrategyId] });
     },
   });
 }

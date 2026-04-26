@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   createBacktestRun,
@@ -18,9 +18,12 @@ import type { BacktestRun, BacktestRunPayload } from '@/types/backtest';
 
 const ACTIVE_STATUSES = new Set<BacktestRun['status']>(['PENDING', 'RUNNING']);
 const POLL_MS = 5_000;
-/** Faster poll on the single-run detail page — users watch a progress bar
- *  there, so an extra request every second is a fair trade. */
-const DETAIL_POLL_MS = 1_000;
+/** Detail-page poll cadence. Adaptive: when STOMP is connected we get live
+ *  progress frames pushed to the cache by `useBacktestProgressStream`, so the
+ *  REST poll is just a safety net and can run slowly. When the socket is down
+ *  the poll becomes the *only* progress source, so we tighten it back up. */
+const DETAIL_POLL_FAST_MS = 1_000;
+const DETAIL_POLL_SLOW_MS = 10_000;
 
 /**
  * Paginated / filtered / sorted run history. Polls every 5s while any row in
@@ -68,7 +71,9 @@ function isValidId(id: string | undefined): id is string {
 }
 
 export function useBacktestRun(id: string | undefined) {
-  return useQuery({
+  const queryClient = useQueryClient();
+  const wsConnected = useWsStore((s) => s.connected);
+  const query = useQuery({
     queryKey: ['backtest-run', id],
     queryFn: () => getBacktestRun(id as string),
     enabled: isValidId(id),
@@ -76,13 +81,36 @@ export function useBacktestRun(id: string | undefined) {
     // still progressing — TanStack treats the key as fresh otherwise and
     // wouldn't refetch on the interval below.
     staleTime: QUERY_STALE_TIMES.backtestResults,
-    refetchInterval: (query) => {
-      const run = query.state.data;
+    refetchInterval: (q) => {
+      const run = q.state.data;
       if (!run) return false;
-      return ACTIVE_STATUSES.has(run.status) ? DETAIL_POLL_MS : false;
+      if (!ACTIVE_STATUSES.has(run.status)) return false;
+      // STOMP up → progress arrives via WS, REST poll is just a fallback.
+      // STOMP down → REST poll is the only source, so tighten it.
+      return wsConnected ? DETAIL_POLL_SLOW_MS : DETAIL_POLL_FAST_MS;
     },
     refetchIntervalInBackground: false,
   });
+
+  // When the run transitions out of an active status (RUNNING → COMPLETED /
+  // FAILED), invalidate the derived datasets. Result-page hooks load once
+  // and cache forever for performance — without this they'd hold the empty
+  // payload they fetched while the run was still computing, and the user
+  // would see "no trades" until a manual refresh.
+  const prevStatusRef = useRef<BacktestRun['status'] | null>(null);
+  const currentStatus = query.data?.status;
+  useEffect(() => {
+    if (!isValidId(id) || !currentStatus) return;
+    const prev = prevStatusRef.current;
+    prevStatusRef.current = currentStatus;
+    if (prev && ACTIVE_STATUSES.has(prev) && !ACTIVE_STATUSES.has(currentStatus)) {
+      queryClient.invalidateQueries({ queryKey: ['backtest-run', id, 'trades'] });
+      queryClient.invalidateQueries({ queryKey: ['backtest-run', id, 'equity-points'] });
+      queryClient.invalidateQueries({ queryKey: ['backtest-run', id, 'candles'] });
+    }
+  }, [id, currentStatus, queryClient]);
+
+  return query;
 }
 
 export function useCreateBacktestRun() {

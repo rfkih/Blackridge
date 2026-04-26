@@ -115,7 +115,7 @@ src/
 │
 ├── components/
 │   ├── ui/                       # shadcn base
-│   ├── layout/                   # Sidebar, TopNav, CommandPalette (⌘K), NotificationPanel
+│   ├── layout/                   # Sidebar, TopNav, CommandPalette (⌘K), NotificationPanel, IpWhitelistBanner
 │   ├── charts/                   # CandlestickChart, EquityCurve, PnlBarChart, DrawdownChart, MonteCarloChart
 │   ├── trading/                  # OpenPositionsPanel, TradeCard, TradePositionRow, LivePnlTicker, StrategyBadge
 │   ├── backtest/                 # BacktestConfigForm, BacktestParamTuner, BacktestParamDiffBadge,
@@ -159,7 +159,7 @@ client.interceptors.request.use((config) => {
 | Profile | `/api/v1/users/me` | GET | — |
 | Trades | `/api/v1/trades` `/:id` | GET | List + detail |
 | P&L | `/api/v1/pnl` | GET | — |
-| Portfolio | `/api/v1/portfolio` | GET | Balances |
+| Portfolio | `/api/v1/portfolio` | GET | Balances. Optional `?accountId=` scopes to one account; omit for the "All accounts" aggregate (sum free/locked per asset, USDT recomputed once on the merged total). `usePortfolio()` reads `useActiveAccount().scopedAccountId` and forwards it. |
 | Strategies | `/api/v1/account-strategies` | GET | Excludes soft-deleted |
 | Strategies | `/api/v1/account-strategies/:id` | GET/DELETE | Detail / soft-delete (blocked w/ open trades) |
 | Strategies | `/api/v1/account-strategies` | POST | Create |
@@ -168,6 +168,10 @@ client.interceptors.request.use((config) => {
 | Market | `/api/v1/market` | GET | Candles |
 | Monte Carlo | `/api/v1/montecarlo` | POST | — |
 | Scheduler | `/api/v1/scheduler` | GET/POST | — |
+| Research / Sweeps | `/api/v1/research/sweeps` `/:id` `/:id/cancel` | POST/GET/DELETE | User-accessible (not admin-only) — every sweep is owned by the caller's `userId`, list/get/cancel/delete check ownership server-side. The Sweeps nav lives in the regular sidebar `NAV_ITEMS`, not under Admin. |
+| Research / TPR params | `/api/v1/research/tpr/params` | GET | User-accessible read-only; sweep wizard reads it as the TPR baseline. PUT/POST mutations stay admin-only. |
+| Research / Log + Analysis | `/api/v1/research/log` `/backtest/:id/analysis` | GET | Admin-only — global view + IDOR-unsafe per-run analysis. |
+| Server diagnostics | `/api/v1/server/ip` `/ip/status` | GET | `/ip` calls ipify (live); `/ip/status` returns the latest persisted `ServerIpLog` row written by the IP_MONITOR scheduler. The `IpWhitelistBanner` polls `/ip/status` every 60 s and warns when `event === "CHANGED"` so users update their Binance whitelist. |
 
 ### WebSocket / STOMP
 

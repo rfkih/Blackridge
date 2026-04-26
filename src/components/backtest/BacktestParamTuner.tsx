@@ -9,11 +9,14 @@ import { BacktestParamDiffBadge } from './BacktestParamDiffBadge';
 import { BacktestParamPresetBar } from './BacktestParamPresetBar';
 import { LsrParamsForm } from '@/components/strategy/LsrParamsForm';
 import { VcbParamsForm } from '@/components/strategy/VcbParamsForm';
+import { VboParamsForm } from '@/components/strategy/VboParamsForm';
 import {
   useLsrDefaults,
   useVcbDefaults,
+  useVboDefaults,
   useReplaceLsrParams,
   useReplaceVcbParams,
+  useReplaceVboParams,
 } from '@/hooks/useStrategies';
 import { useCreateBacktestRun } from '@/hooks/useBacktest';
 import { useBacktestParamStore } from '@/store/backtestParamStore';
@@ -22,10 +25,11 @@ import { normalizeError } from '@/lib/api/client';
 import { toast } from '@/hooks/useToast';
 import { formatPrice } from '@/lib/formatters';
 import { cn } from '@/lib/utils';
-import type { LsrParams, VcbParams } from '@/types/strategy';
+import type { LsrParams, VboParams, VcbParams } from '@/types/strategy';
 
 const LSR_CODES = new Set(['LSR', 'LSR_V2']);
 const VCB_CODES = new Set(['VCB']);
+const VBO_CODES = new Set(['VBO']);
 
 function isLsr(code: string): boolean {
   return LSR_CODES.has(code);
@@ -33,6 +37,10 @@ function isLsr(code: string): boolean {
 
 function isVcb(code: string): boolean {
   return VCB_CODES.has(code);
+}
+
+function isVbo(code: string): boolean {
+  return VBO_CODES.has(code);
 }
 
 function countDiff(
@@ -88,11 +96,14 @@ export function BacktestParamTuner() {
 
   const needsLsr = strategyCodes.some(isLsr);
   const needsVcb = strategyCodes.some(isVcb);
+  const needsVbo = strategyCodes.some(isVbo);
 
   const lsrDefaultsQ = useLsrDefaults();
   const vcbDefaultsQ = useVcbDefaults();
+  const vboDefaultsQ = useVboDefaults();
   const lsrDefaults = needsLsr ? lsrDefaultsQ.data : undefined;
   const vcbDefaults = needsVcb ? vcbDefaultsQ.data : undefined;
+  const vboDefaults = needsVbo ? vboDefaultsQ.data : undefined;
 
   const defaultsByCode = useMemo<Record<string, Record<string, unknown>>>(() => {
     const map: Record<string, Record<string, unknown>> = {};
@@ -100,10 +111,12 @@ export function BacktestParamTuner() {
       if (isLsr(code) && lsrDefaults) map[code] = lsrDefaults as unknown as Record<string, unknown>;
       else if (isVcb(code) && vcbDefaults)
         map[code] = vcbDefaults as unknown as Record<string, unknown>;
+      else if (isVbo(code) && vboDefaults)
+        map[code] = vboDefaults as unknown as Record<string, unknown>;
       else map[code] = {};
     }
     return map;
-  }, [strategyCodes, lsrDefaults, vcbDefaults]);
+  }, [strategyCodes, lsrDefaults, vcbDefaults, vboDefaults]);
 
   const overrideCounts = useMemo(() => {
     const out: Record<string, number> = {};
@@ -140,6 +153,9 @@ export function BacktestParamTuner() {
   const vcbSaveMutation = useReplaceVcbParams(
     isVcb(activeTab) ? config?.strategyAccountStrategyIds[activeTab] : undefined,
   );
+  const vboSaveMutation = useReplaceVboParams(
+    isVbo(activeTab) ? config?.strategyAccountStrategyIds[activeTab] : undefined,
+  );
 
   const handleBackToConfig = useCallback(() => {
     if (totalOverrides > 0) {
@@ -155,6 +171,7 @@ export function BacktestParamTuner() {
     if (!config) return;
     if (needsLsr && !lsrDefaults) return;
     if (needsVcb && !vcbDefaults) return;
+    if (needsVbo && !vboDefaults) return;
 
     try {
       const payload = buildBacktestPayload(config, paramOverrides, defaultsByCode);
@@ -188,6 +205,8 @@ export function BacktestParamTuner() {
     lsrDefaults,
     needsVcb,
     vcbDefaults,
+    needsVbo,
+    vboDefaults,
     paramOverrides,
     defaultsByCode,
     createMutation,
@@ -212,7 +231,9 @@ export function BacktestParamTuner() {
   }
 
   const defaultsLoading =
-    (needsLsr && lsrDefaultsQ.isLoading) || (needsVcb && vcbDefaultsQ.isLoading);
+    (needsLsr && lsrDefaultsQ.isLoading) ||
+    (needsVcb && vcbDefaultsQ.isLoading) ||
+    (needsVbo && vboDefaultsQ.isLoading);
 
   return (
     <div className="space-y-5">
@@ -298,6 +319,7 @@ export function BacktestParamTuner() {
               accountStrategyId={config.strategyAccountStrategyIds[activeTab]}
               lsrDefaults={lsrDefaults}
               vcbDefaults={vcbDefaults}
+              vboDefaults={vboDefaults}
               overrides={paramOverrides[activeTab] ?? {}}
               onOverrideChange={(key, value) => setParamOverride(activeTab, key, value)}
               onSaveLsr={async (params: LsrParams) => {
@@ -305,6 +327,9 @@ export function BacktestParamTuner() {
               }}
               onSaveVcb={async (params: VcbParams) => {
                 await vcbSaveMutation.mutateAsync(params);
+              }}
+              onSaveVbo={async (params: VboParams) => {
+                await vboSaveMutation.mutateAsync(params);
               }}
             />
           )}
@@ -429,19 +454,23 @@ function ActiveParamForm({
   accountStrategyId,
   lsrDefaults,
   vcbDefaults,
+  vboDefaults,
   overrides,
   onOverrideChange,
   onSaveLsr,
   onSaveVcb,
+  onSaveVbo,
 }: {
   strategyCode: string;
   accountStrategyId: string | undefined;
   lsrDefaults: LsrParams | undefined;
   vcbDefaults: VcbParams | undefined;
+  vboDefaults: VboParams | undefined;
   overrides: Record<string, unknown>;
   onOverrideChange: (key: string, value: unknown) => void;
   onSaveLsr: (params: LsrParams) => Promise<void>;
   onSaveVcb: (params: VcbParams) => Promise<void>;
+  onSaveVbo: (params: VboParams) => Promise<void>;
 }) {
   if (!accountStrategyId) {
     return <NoAccountStrategy code={strategyCode} />;
@@ -471,6 +500,20 @@ function ActiveParamForm({
         initialValues={overrides as Partial<VcbParams>}
         onChange={(k, v) => onOverrideChange(k as string, v)}
         onSaveAsLive={onSaveVcb}
+      />
+    );
+  }
+
+  if (isVbo(strategyCode) && vboDefaults) {
+    return (
+      <VboParamsForm
+        mode="backtest"
+        strategyCode={strategyCode}
+        accountStrategyId={accountStrategyId}
+        defaultValues={vboDefaults}
+        initialValues={overrides as Partial<VboParams>}
+        onChange={(k, v) => onOverrideChange(k as string, v)}
+        onSaveAsLive={onSaveVbo}
       />
     );
   }

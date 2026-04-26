@@ -38,6 +38,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'Markets', href: '/market', icon: CandlestickChart },
   { label: 'Strategies', href: '/strategies', icon: Zap },
   { label: 'Backtest', href: '/backtest', icon: FlaskConical },
+  { label: 'Sweeps', href: '/research/sweeps', icon: Grid3x3 },
   { label: 'Monte Carlo', href: '/montecarlo', icon: Dices },
   { label: 'P&L', href: '/pnl', icon: BarChart3 },
   { label: 'Journal', href: '/trades', icon: Book },
@@ -47,7 +48,6 @@ const NAV_ITEMS: NavItem[] = [
 const ADMIN_NAV_ITEMS: NavItem[] = [
   { label: 'Catalogue', href: '/admin/strategies', icon: ShieldCheck },
   { label: 'Historical Data', href: '/admin/historical', icon: Database },
-  { label: 'Sweeps', href: '/research/sweeps', icon: Grid3x3 },
   { label: 'Research Log', href: '/research/log', icon: Microscope },
 ];
 
