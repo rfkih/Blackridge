@@ -860,3 +860,49 @@ input[type='number'].no-native-spinners {
   -moz-appearance: textfield;
   appearance: textfield;
 }
+
+/* ──────────────────────────────────────────────────────────────────────
+   Mobile responsiveness overrides
+   ──────────────────────────────────────────────────────────────────────
+   Several pages were authored with inline `gridTemplateColumns` rules
+   for desktop; below 720px those rigid grids cram content into 50%
+   of a phone screen. The classes here flatten those grids to a single
+   column at narrow widths. Added as overrides rather than refactoring
+   each inline style so we can ship the mobile pass without churning
+   every page. */
+
+@media (max-width: 720px) {
+  /* Settings page: 260px nav + content → stack the nav on top. */
+  .settings-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Dashboard "positions + insights" two-column → single column.
+     Same class applied to multiple grids so they all collapse together. */
+  .dashboard-two-col {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Dashboard <main> padding. Default is `24px 28px 24px 0` (asymmetric,
+     no left padding because the sidebar handles that). On a phone the
+     sidebar is a drawer not a column, so the content needs symmetric
+     padding to look balanced. */
+  .dashboard-main {
+    padding: 16px !important;
+  }
+
+  /* Hero card pads itself heavily for desktop; on phones that wastes
+     screen real estate. Tighten to keep numbers readable. */
+  .dashboard-two-col.mm-card,
+  .dashboard-two-col .mm-card {
+    padding: 20px 18px !important;
+  }
+}
+
+/* Tablet — keep desktop layout but tighten padding so the dashboard
+   doesn't run off-screen on a 1024px iPad-mini-class viewport. */
+@media (max-width: 1024px) and (min-width: 721px) {
+  .dashboard-main {
+    padding: 20px 16px !important;
+  }
+}

@@ -68,6 +68,9 @@ export default function BacktestResultPage({ params }: { params: { id: string } 
   // chart scroll, and vice versa.
   const [tableScrollTrigger, setTableScrollTrigger] = useState(0);
   const [chartScrollTrigger, setChartScrollTrigger] = useState(0);
+  // Mirrored from the table's filter UI so the chart renders the same
+  // marker set — otherwise arrows would have no matching row.
+  const [filteredTrades, setFilteredTrades] = useState<BacktestTrade[] | null>(null);
 
   const handleChartSelect = useCallback((tradeId: string | null) => {
     setSelectedTradeId(tradeId);
@@ -199,7 +202,7 @@ export default function BacktestResultPage({ params }: { params: { id: string } 
           <ErrorBoundary label="Annotated chart">
             <BacktestAnnotatedChart
               candles={candlesQ.data ?? EMPTY_CANDLES}
-              trades={tradesQ.data ?? EMPTY_TRADES}
+              trades={filteredTrades ?? tradesQ.data ?? EMPTY_TRADES}
               selectedTradeId={selectedTradeId}
               onTradeSelect={handleChartSelect}
               scrollTrigger={chartScrollTrigger}
@@ -231,6 +234,7 @@ export default function BacktestResultPage({ params }: { params: { id: string } 
               selectedTradeId={selectedTradeId}
               onTradeSelect={handleTableSelect}
               scrollTrigger={tableScrollTrigger}
+              onFilteredTradesChange={setFilteredTrades}
             />
           </ErrorBoundary>
         )}

@@ -12,6 +12,8 @@ import { useEquityCurve } from '@/hooks/useEquityCurve';
 import { useLivePnl, useSyncOpenPositions } from '@/hooks/useLivePnl';
 import { usePositionStore } from '@/store/positionStore';
 import { useCurrencyFormatter } from '@/hooks/useCurrency';
+import { OnboardingPanel } from '@/components/dashboard/OnboardingPanel';
+import { EmailVerificationBanner } from '@/components/dashboard/EmailVerificationBanner';
 import type { LivePosition } from '@/types/trading';
 import type { AccountStrategy } from '@/types/strategy';
 import type { EquityPoint } from '@/types/market';
@@ -45,6 +47,12 @@ export default function DashboardPage() {
 
   return (
     <div className="flex flex-col gap-5">
+      {/* Email-verification reminder — auto-hides once verified. */}
+      <EmailVerificationBanner />
+
+      {/* Onboarding ladder — auto-hides when the user is fully set up. */}
+      <OnboardingPanel />
+
       {/* Hero */}
       <HeroCard
         firstName={firstName}
@@ -59,7 +67,7 @@ export default function DashboardPage() {
 
       {/* Positions + Insights column */}
       <section
-        className="grid gap-5"
+        className="dashboard-two-col grid gap-5"
         style={{ gridTemplateColumns: 'minmax(0, 1.55fr) minmax(0, 1fr)' }}
       >
         <PositionsPanel trades={openTrades} profitableCount={profitableCount} />
@@ -124,7 +132,7 @@ function HeroCard({
 
   return (
     <section
-      className="mm-card mm-card-lift"
+      className="mm-card mm-card-lift dashboard-two-col"
       style={{
         padding: '36px 40px 32px',
         position: 'relative',
@@ -162,17 +170,37 @@ function HeroCard({
           )}
         </div>
 
-        <div
-          className="mm-display"
-          style={{
-            fontSize: 'clamp(64px, 7vw, 104px)',
-            lineHeight: 0.92,
-            letterSpacing: '-0.04em',
-            color: 'var(--mm-ink-0)',
-          }}
-        >
-          {formatCurrency(balance)}
-        </div>
+        {(() => {
+          const balanceText = formatCurrency(balance);
+          // Step the clamp range down with string length — 8-decimal BTC
+          // values overflow the hero column at the original 104px ceiling.
+          // Both ends of the clamp shrink so the responsive viewport-scaling
+          // still works at the smaller size.
+          const len = balanceText.length;
+          const [minPx, maxPx] =
+            len <= 8 ? [64, 104]
+            : len <= 11 ? [52, 80]
+            : len <= 14 ? [44, 64]
+            : len <= 17 ? [36, 52]
+            : [30, 44];
+          return (
+            <div
+              className="mm-display"
+              title={balanceText}
+              style={{
+                fontSize: `clamp(${minPx}px, 7vw, ${maxPx}px)`,
+                lineHeight: 0.92,
+                letterSpacing: '-0.04em',
+                color: 'var(--mm-ink-0)',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+              }}
+            >
+              {balanceText}
+            </div>
+          );
+        })()}
 
         <div
           style={{

@@ -9,7 +9,17 @@
 import { NextResponse, type NextRequest } from 'next/server';
 
 const SIGNAL_COOKIE = 'blackheart-session';
-const PUBLIC_PATHS = ['/login', '/register', '/healthcheck'];
+const PUBLIC_PATHS = [
+  '/login',
+  '/register',
+  '/forgot-password',
+  '/reset-password',
+  '/verify-email',
+  '/healthcheck',
+  '/privacy',
+  '/terms',
+  '/cookies',
+];
 
 function isPublicPath(pathname: string): boolean {
   return PUBLIC_PATHS.some(

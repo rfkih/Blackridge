@@ -69,12 +69,17 @@ export function useWebSocket() {
   // On every false→true transition (initial connect AND reconnects), refetch
   // server state that the WS is responsible for keeping live. Per CLAUDE.md
   // we may have missed PnL frames or lifecycle events while disconnected, so
-  // we reconcile via REST instead of trusting our cached snapshot.
+  // we reconcile via REST instead of trusting our cached snapshot. We
+  // additionally refetch the things a missed event would silently rot:
+  // portfolio balance, the trade list (closes happen via WS), and active
+  // account-strategies (kill-switch trips are pushed via WS).
   const wasConnected = useRef(false);
   useEffect(() => {
     if (connected && !wasConnected.current) {
-      void queryClient.invalidateQueries({ queryKey: ['trades', 'open'] });
+      void queryClient.invalidateQueries({ queryKey: ['trades'] });
       void queryClient.invalidateQueries({ queryKey: ['pnl'] });
+      void queryClient.invalidateQueries({ queryKey: ['portfolio'] });
+      void queryClient.invalidateQueries({ queryKey: ['account-strategies'] });
     }
     wasConnected.current = connected;
   }, [connected, queryClient]);

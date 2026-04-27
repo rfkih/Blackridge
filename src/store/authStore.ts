@@ -84,15 +84,31 @@ export const useAuthStore = create<AuthStore>()(
  * must wait for this to flip, otherwise they read the pre-hydration initial
  * state (`token: null, user: null`) and redirect authenticated users to
  * `/login` on every hard refresh.
+ *
+ * <p>Implementation note: the initial state is always {@code false} (no
+ * synchronous call to {@code persist.hasHydrated()} during render). Calling
+ * the persist API during SSR or React Suspense rehydration produces
+ * "Cannot read properties of undefined (reading 'hasHydrated')" because
+ * {@code useAuthStore.persist} can be momentarily {@code undefined} while
+ * React is tearing down/rebuilding a dehydrated suspense boundary. Driving
+ * the flip from {@code useEffect} guarantees we only read the persist API
+ * client-side, after the store is fully initialised.
  */
 export function useAuthHydrated(): boolean {
-  const [hydrated, setHydrated] = useState(() => useAuthStore.persist.hasHydrated());
+  const [hydrated, setHydrated] = useState(false);
   useEffect(() => {
-    if (useAuthStore.persist.hasHydrated()) {
+    const api = useAuthStore.persist;
+    // Defensive: if the persist middleware didn't attach for any reason,
+    // treat the store as already hydrated rather than blocking the UI.
+    if (!api) {
       setHydrated(true);
       return;
     }
-    const unsub = useAuthStore.persist.onFinishHydration(() => setHydrated(true));
+    if (api.hasHydrated()) {
+      setHydrated(true);
+      return;
+    }
+    const unsub = api.onFinishHydration(() => setHydrated(true));
     return unsub;
   }, []);
   return hydrated;

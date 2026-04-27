@@ -1,7 +1,8 @@
 'use client';
 
-import { Menu, Search, Bell, Sun, Moon } from 'lucide-react';
+import { Menu, Search, Sun, Moon } from 'lucide-react';
 import { AccountSwitcher } from '@/components/layout/AccountSwitcher';
+import { NotificationPanel } from '@/components/layout/NotificationPanel';
 import { useWsStore } from '@/store/wsStore';
 import { useTheme } from '@/components/theme/ThemeProvider';
 import { cn } from '@/lib/utils';
@@ -145,28 +146,8 @@ export function TopNav({ onMenuClick, onCommandOpen }: TopNavProps) {
         <span suppressHydrationWarning>{isLight ? 'Dark' : 'Light'}</span>
       </button>
 
-      {/* Alerts */}
-      <button
-        type="button"
-        className="mm-pill"
-        style={{ padding: '9px 14px', fontSize: 13, position: 'relative' }}
-        aria-label="Alerts"
-      >
-        <Bell size={14} strokeWidth={1.7} />
-        <span>Alerts</span>
-        <span
-          aria-hidden="true"
-          style={{
-            position: 'absolute',
-            top: 7,
-            right: 10,
-            width: 7,
-            height: 7,
-            borderRadius: 999,
-            background: 'var(--mm-dn)',
-          }}
-        />
-      </button>
+      {/* Alerts — opens a popover with kill-switch trips, IP changes, and recent backtests. */}
+      <NotificationPanel />
     </header>
   );
 }

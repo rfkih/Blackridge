@@ -4,11 +4,12 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Check, Eye, EyeOff, Loader2, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { Suspense, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { AuthHero } from '@/components/auth/AuthHero';
 import { useAuth } from '@/hooks/useAuth';
+import { consumeSessionExpiredFlag } from '@/lib/api/client';
 import { safeRedirectPath } from '@/lib/utils';
 
 const loginSchema = z.object({
@@ -24,8 +25,16 @@ function LoginPageContent() {
   const prefillEmail = search.get('email') ?? '';
   const { login } = useAuth();
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [sessionExpired, setSessionExpired] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [keepSignedIn, setKeepSignedIn] = useState(true);
+
+  // If the axios interceptor redirected us here on a 401, surface a clear
+  // "your session expired" banner so the user understands why they're back
+  // on /login. The flag is one-shot — consumed here on first read.
+  useEffect(() => {
+    if (consumeSessionExpiredFlag()) setSessionExpired(true);
+  }, []);
 
   const {
     register,
@@ -233,6 +242,25 @@ function LoginPageContent() {
             </span>
             Keep me signed in on this device
           </label>
+
+          {/* Session-expired banner — shown when the axios 401 interceptor
+              kicked us back here. Distinct from a credential error so the
+              user knows it isn't their fault. */}
+          {sessionExpired && !submitError && (
+            <p
+              role="status"
+              style={{
+                padding: '10px 12px',
+                fontSize: 12,
+                borderRadius: 10,
+                border: '1px solid rgba(245,166,35,0.45)',
+                background: 'rgba(245,166,35,0.10)',
+                color: 'var(--color-warning)',
+              }}
+            >
+              Your session expired. Please sign in again to continue where you left off.
+            </p>
+          )}
 
           {/* Submit error */}
           {submitError && (

@@ -33,6 +33,7 @@ function mapUser(u: BackendUser | undefined | null): User {
     role: u.role,
     createdAt: u.createdTime,
     phoneNumber: u.phoneNumber,
+    emailVerified: u.emailVerified ?? false,
   };
 }
 

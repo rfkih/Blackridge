@@ -10,6 +10,7 @@ import {
   Wallet,
   CandlestickChart,
   Dices,
+  HelpCircle,
   LogOut,
   ShieldCheck,
   X,
@@ -18,6 +19,7 @@ import {
   Settings,
   Microscope,
   Grid3x3,
+  Inbox,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
@@ -43,11 +45,13 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'P&L', href: '/pnl', icon: BarChart3 },
   { label: 'Journal', href: '/trades', icon: Book },
   { label: 'Settings', href: '/settings', icon: Settings },
+  { label: 'Help', href: '/help', icon: HelpCircle },
 ];
 
 const ADMIN_NAV_ITEMS: NavItem[] = [
   { label: 'Catalogue', href: '/admin/strategies', icon: ShieldCheck },
   { label: 'Historical Data', href: '/admin/historical', icon: Database },
+  { label: 'Inbox', href: '/admin/inbox', icon: Inbox },
   { label: 'Research Log', href: '/research/log', icon: Microscope },
 ];
 
@@ -155,17 +159,31 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         {/* Balance card */}
         <div className="mm-card-2" style={{ padding: '14px 16px', margin: '0 0 16px' }}>
           <div style={{ fontSize: 11, color: 'var(--mm-ink-2)' }}>Balance</div>
-          <div
-            className="mm-display"
-            style={{
-              fontSize: 22,
-              marginTop: 4,
-              letterSpacing: '-0.03em',
-              color: 'var(--mm-ink-0)',
-            }}
-          >
-            {equity > 0 ? formatCurrency(equity) : '—'}
-          </div>
+          {(() => {
+            const balanceText = equity > 0 ? formatCurrency(equity) : '—';
+            // Step the font down with length so 8-decimal BTC values
+            // (e.g. "₿0.12345678") don't overflow the 240px sidebar card.
+            const len = balanceText.length;
+            const balanceFontSize =
+              len <= 8 ? 22 : len <= 11 ? 19 : len <= 14 ? 16 : len <= 17 ? 14 : 12;
+            return (
+              <div
+                className="mm-display"
+                title={balanceText}
+                style={{
+                  fontSize: balanceFontSize,
+                  marginTop: 4,
+                  letterSpacing: '-0.03em',
+                  color: 'var(--mm-ink-0)',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                }}
+              >
+                {balanceText}
+              </div>
+            );
+          })()}
           <div
             style={{
               display: 'flex',
@@ -173,17 +191,23 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
               gap: 6,
               marginTop: 6,
               fontSize: 11,
+              minWidth: 0,
             }}
           >
             <span
               style={{
                 color: realizedToday >= 0 ? 'var(--mm-up)' : 'var(--mm-dn)',
                 fontFamily: 'var(--mm-num)',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+                minWidth: 0,
               }}
+              title={formatCurrency(realizedToday, { withSign: true })}
             >
               {formatCurrency(realizedToday, { withSign: true })}
             </span>
-            <span style={{ color: 'var(--mm-ink-3)' }}>today</span>
+            <span style={{ color: 'var(--mm-ink-3)', flexShrink: 0 }}>today</span>
           </div>
         </div>
 

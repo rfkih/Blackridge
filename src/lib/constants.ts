@@ -11,6 +11,19 @@ export const WS_URL = env.wsUrl;
 export const INTERVALS = ['1m', '5m', '15m', '1h', '4h', '1d'] as const;
 export type Interval = (typeof INTERVALS)[number];
 
+/**
+ * Intervals selectable in the BACKTEST wizard. Restricted to 5m/15m/1h/4h —
+ * the engine ticks on a 5m monitor candle so anything finer would silently
+ * miss bar closes, and timeframes coarser than 4h aren't part of the
+ * supported strategy set. Live trading still supports 1m via WebSocket;
+ * that's why the global INTERVALS list keeps the broader range.
+ */
+export const BACKTEST_INTERVALS = ['5m', '15m', '1h', '4h'] as const;
+export type BacktestInterval = (typeof BACKTEST_INTERVALS)[number];
+
+/** Regex source for backtest interval Zod validation. */
+export const BACKTEST_INTERVAL_REGEX_SOURCE = '^(5m|15m|1h|4h)$';
+
 export const STRATEGY_CODES = [
   'LSR',
   'LSR_V2',
@@ -485,8 +498,7 @@ export const VCB_PARAM_META: Record<keyof VcbParams, ParamMeta> = {
   },
   atrRatioCompressMax: {
     label: 'ATR Ratio Compress Max',
-    description:
-      'Max current-ATR / average-ATR ratio allowed for the bar to count as compression.',
+    description: 'Max current-ATR / average-ATR ratio allowed for the bar to count as compression.',
     kind: 'decimal',
     unit: '×',
     min: 0,
@@ -495,7 +507,8 @@ export const VCB_PARAM_META: Record<keyof VcbParams, ParamMeta> = {
   },
   erCompressMax: {
     label: 'Efficiency Ratio Compress Max',
-    description: 'Upper bound on Kaufman efficiency ratio (ER) during compression — lower is tighter.',
+    description:
+      'Upper bound on Kaufman efficiency ratio (ER) during compression — lower is tighter.',
     kind: 'decimal',
     min: 0,
     max: 1,
@@ -795,13 +808,7 @@ export const VCB_SECTIONS: Array<{ title: string; keys: Array<keyof VcbParams> }
   },
   {
     title: 'Entry Filters',
-    keys: [
-      'adxEntryMax',
-      'longRsiMin',
-      'shortRsiMax',
-      'longDiSpreadMin',
-      'shortDiSpreadMin',
-    ],
+    keys: ['adxEntryMax', 'longRsiMin', 'shortRsiMax', 'longDiSpreadMin', 'shortDiSpreadMin'],
   },
   {
     title: 'Risk & Exits',
@@ -839,7 +846,8 @@ export const VBO_PARAM_META: Record<keyof VboParams, ParamMeta> = {
   },
   compressionAdxMax: {
     label: 'Compression — ADX Max',
-    description: 'Max prev-bar ADX. Above this the trend was already active — not a real compression.',
+    description:
+      'Max prev-bar ADX. Above this the trend was already active — not a real compression.',
     kind: 'decimal',
     min: 5,
     max: 60,
@@ -854,7 +862,8 @@ export const VBO_PARAM_META: Record<keyof VboParams, ParamMeta> = {
   // ── Entry-bar ADX band ──────────────────────────────────────────────────
   adxEntryMin: {
     label: 'Entry ADX — Min',
-    description: 'Lower bound on entry-bar ADX. Below this the breakout candle has no directional thrust.',
+    description:
+      'Lower bound on entry-bar ADX. Below this the breakout candle has no directional thrust.',
     kind: 'decimal',
     min: 0,
     max: 80,

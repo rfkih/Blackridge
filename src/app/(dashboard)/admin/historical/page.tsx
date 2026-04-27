@@ -25,7 +25,7 @@ import {
 } from '@/components/ui/select';
 import { useIsAdmin } from '@/hooks/useIsAdmin';
 import { useAuthHydrated } from '@/store/authStore';
-import { useBackfillVcbIndicators, useWarmupHistorical } from '@/hooks/useHistoricalBackfill';
+import { useBackfillIndicators, useWarmupHistorical } from '@/hooks/useHistoricalBackfill';
 import { normalizeError } from '@/lib/api/client';
 import { toast } from '@/hooks/useToast';
 import { INTERVALS } from '@/lib/constants';
@@ -79,7 +79,7 @@ export default function AdminHistoricalPage() {
 
       <div className="grid gap-5 lg:grid-cols-2">
         <WarmupCard />
-        <VcbBackfillCard />
+        <IndicatorBackfillCard />
       </div>
     </div>
   );
@@ -159,15 +159,24 @@ function WarmupCard() {
   );
 }
 
-// ─── VCB indicator backfill (date-bounded) ────────────────────────────────────
+// ─── Indicator backfill (date-bounded) ────────────────────────────────────
+// Hits the legacy /backfill-vcb endpoint, which despite the name recomputes
+// a general set of compression/volatility features used across strategies:
+// Bollinger Bands, Keltner Channels, ATR ratio, signed efficiency ratio.
+// The endpoint name is kept for back-compat; the UI presents it as a
+// general indicator backfill.
 
-function VcbBackfillCard() {
+function IndicatorBackfillCard() {
   const defaults = useMemo(defaultDateRange, []);
   const [symbol, setSymbol] = useState('BTCUSDT');
   const [interval, setInterval] = useState<string>('1h');
   const [from, setFrom] = useState(defaults.from);
   const [to, setTo] = useState(defaults.to);
-  const mutation = useBackfillVcbIndicators();
+  // Default missing-only — the safe, idempotent mode. Operators flip this
+  // on when indicator code/params changed and existing rows need to be
+  // overwritten (delete-then-insert in the range).
+  const [recompute, setRecompute] = useState(false);
+  const mutation = useBackfillIndicators();
 
   const rangeError = useMemo(() => {
     if (!from || !to) return 'Pick both start and end.';
@@ -190,12 +199,15 @@ function VcbBackfillCard() {
         interval,
         from: toIso(from),
         to: toIso(to),
+        recompute,
       },
       {
         onSuccess: (data) => {
           toast.success({
-            title: 'VCB indicators backfilled',
-            description: `${data.recordsUpdated} records updated · ${data.symbol} ${data.interval}`,
+            title: 'Indicators backfilled',
+            description: `${data.recordsUpdated} records updated · ${data.symbol} ${data.interval}${
+              data.recompute ? ' · recomputed existing' : ''
+            }`,
           });
         },
         onError: (err) => {
@@ -220,10 +232,11 @@ function VcbBackfillCard() {
         </span>
         <div>
           <h2 className="font-display text-[14px] font-semibold text-text-primary">
-            Backfill VCB indicators
+            Backfill indicators
           </h2>
           <p className="text-[11px] text-text-secondary">
-            Recomputes VCB compression/breakout columns across a date range.
+            Recomputes Bollinger Bands, Keltner Channels, ATR ratio, and
+            signed efficiency-ratio columns across a date range.
           </p>
         </div>
       </header>
@@ -234,11 +247,11 @@ function VcbBackfillCard() {
 
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-1.5">
-            <Label htmlFor="vcb-from" className="label-caps">
+            <Label htmlFor="indicator-backfill-from" className="label-caps">
               From
             </Label>
             <Input
-              id="vcb-from"
+              id="indicator-backfill-from"
               type="datetime-local"
               value={from}
               onChange={(e) => setFrom(e.target.value)}
@@ -246,11 +259,11 @@ function VcbBackfillCard() {
             />
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="vcb-to" className="label-caps">
+            <Label htmlFor="indicator-backfill-to" className="label-caps">
               To
             </Label>
             <Input
-              id="vcb-to"
+              id="indicator-backfill-to"
               type="datetime-local"
               value={to}
               onChange={(e) => setTo(e.target.value)}
@@ -264,6 +277,25 @@ function VcbBackfillCard() {
             <AlertTriangle size={11} /> {rangeError}
           </p>
         )}
+
+        {/* Recompute toggle — defaults to off (safe, idempotent fill-missing).
+            On = delete existing FeatureStore rows in the range and recompute. */}
+        <label className="flex cursor-pointer items-start gap-2 text-[11px] text-text-secondary">
+          <input
+            type="checkbox"
+            checked={recompute}
+            onChange={(e) => setRecompute(e.target.checked)}
+            className="mt-0.5 h-3.5 w-3.5 cursor-pointer accent-[var(--color-warning)]"
+          />
+          <span>
+            <span className="font-semibold text-text-primary">Recompute existing rows</span>
+            <span className="ml-1 text-text-muted">
+              — deletes FeatureStore rows in the range and recomputes from
+              scratch. Use when indicator code or parameters changed; off by
+              default (only fills missing rows).
+            </span>
+          </span>
+        </label>
 
         <div className="flex items-center justify-between pt-2">
           <ResultStatus

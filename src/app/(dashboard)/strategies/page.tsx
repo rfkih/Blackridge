@@ -1,12 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import {
   ArrowUpRight,
   ArrowDownRight,
   ChevronRight,
   Check,
+  GripVertical,
   Loader2,
   Plus,
   Radio,
@@ -24,8 +25,9 @@ import {
   useActivateStrategy,
   useDeactivateStrategy,
   useUpdateStrategyInterval,
+  useUpdateStrategyPriority,
 } from '@/hooks/useStrategies';
-import { useActiveAccount } from '@/hooks/useAccounts';
+import { useActiveAccount, useUpdateAccountRiskConfig } from '@/hooks/useAccounts';
 import { normalizeError } from '@/lib/api/client';
 import { toast } from '@/hooks/useToast';
 import { cn } from '@/lib/utils';
@@ -40,6 +42,7 @@ function tupleKey(s: AccountStrategy): string {
 
 function StrategyCard({
   strategy,
+  position,
   groupHasOtherPreset,
   onDelete,
   onActivate,
@@ -48,8 +51,17 @@ function StrategyCard({
   isActivating,
   isDeactivating,
   isUpdatingInterval,
+  isDragging,
+  isDragOver,
+  onDragStart,
+  onDragEnd,
+  onDragOver,
+  onDragLeave,
+  onDrop,
 }: {
   strategy: AccountStrategy;
+  /** 1-based position within the strategy's interval group. */
+  position: number;
   groupHasOtherPreset: boolean;
   onDelete: (s: AccountStrategy) => void;
   onActivate: (s: AccountStrategy) => void;
@@ -58,17 +70,37 @@ function StrategyCard({
   isActivating: boolean;
   isDeactivating: boolean;
   isUpdatingInterval: boolean;
+  isDragging: boolean;
+  isDragOver: boolean;
+  onDragStart: () => void;
+  onDragEnd: () => void;
+  onDragOver: (e: React.DragEvent) => void;
+  onDragLeave: () => void;
+  onDrop: (e: React.DragEvent) => void;
 }) {
   const isLive = strategy.status === 'LIVE';
   const isToggling = isActivating || isDeactivating;
   return (
     <div
+      draggable
+      onDragStart={(e) => {
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', strategy.id);
+        onDragStart();
+      }}
+      onDragEnd={onDragEnd}
+      onDragOver={onDragOver}
+      onDragLeave={onDragLeave}
+      onDrop={onDrop}
       className={cn(
         'group relative flex flex-col justify-between gap-4 rounded-lg border bg-[var(--bg-surface)] p-4 shadow-panel transition-colors',
         isLive
           ? 'border-[var(--accent-primary)]/60 shadow-[0_0_0_1px_var(--accent-primary),0_4px_18px_rgba(31,200,150,0.12)]'
           : 'border-[var(--border-subtle)] hover:border-[var(--border-default)] hover:bg-[var(--bg-elevated)]',
+        isDragging && 'cursor-grabbing opacity-40',
+        isDragOver && 'ring-[var(--accent-primary)]/60 border-[var(--accent-primary)] ring-2',
       )}
+      style={{ cursor: isDragging ? 'grabbing' : undefined }}
     >
       <button
         type="button"
@@ -134,7 +166,10 @@ function StrategyCard({
 
         <div className="flex items-center justify-between border-t border-[var(--border-subtle)] pt-3">
           <span className="font-mono text-[10px] uppercase tracking-wider text-[var(--text-muted)]">
-            Priority #{strategy.priorityOrder}
+            Priority #{position}
+            <span className="ml-1.5 text-[9px] normal-case text-[var(--text-muted)]">
+              · drag to reorder
+            </span>
           </span>
           <span className="flex items-center gap-0.5 text-xs text-[var(--text-secondary)] transition-colors group-hover:text-[var(--accent-primary)]">
             Edit Params
@@ -142,6 +177,16 @@ function StrategyCard({
           </span>
         </div>
       </Link>
+
+      {/* Drag handle — sits at the top-left corner. The whole card is the
+          drag source; the handle is just the visual affordance. */}
+      <span
+        aria-hidden="true"
+        className="pointer-events-none absolute left-2 top-2 z-10 flex h-6 w-6 items-center justify-center rounded-md text-[var(--text-muted)] opacity-0 transition-opacity group-hover:opacity-80"
+        title="Drag to reorder"
+      >
+        <GripVertical size={14} />
+      </span>
 
       {groupHasOtherPreset && (
         <div className="-mt-2 flex items-center justify-between border-t border-[var(--border-subtle)] pt-3">
@@ -166,11 +211,7 @@ function StrategyCard({
               disabled={isActivating}
               className="inline-flex items-center gap-1 rounded-md border border-[var(--border-default)] bg-[var(--bg-elevated)] px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--text-primary)] transition-colors hover:border-[var(--accent-primary)] hover:text-[var(--accent-primary)] disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {isActivating ? (
-                <Loader2 size={10} className="animate-spin" />
-              ) : (
-                <Check size={10} />
-              )}
+              {isActivating ? <Loader2 size={10} className="animate-spin" /> : <Check size={10} />}
               {isActivating ? 'Activating…' : 'Activate'}
             </button>
           )}
@@ -267,6 +308,192 @@ function DirectionPill({ direction, enabled }: { direction: 'long' | 'short'; en
   );
 }
 
+/**
+ * Inline editor for the per-account "max concurrent trades" cap. Local
+ * draft state keeps the input responsive; commit on blur or Enter, snap
+ * back to the row's value if the entered number is invalid.
+ */
+function MaxTradesPanel({
+  account,
+  disabled,
+  onChange,
+}: {
+  account: AccountSummary;
+  disabled: boolean;
+  onChange: (value: number | null) => void;
+}) {
+  const initial = account.maxConcurrentTrades == null ? '' : String(account.maxConcurrentTrades);
+  const [draft, setDraft] = useState<string>(initial);
+
+  useEffect(() => {
+    setDraft(initial);
+  }, [initial]);
+
+  const commit = () => {
+    if (draft.trim() === '') {
+      // Empty input = clear the cap (null on the entity, sentinel 0 on wire).
+      if (account.maxConcurrentTrades != null) onChange(null);
+      return;
+    }
+    const n = Number(draft);
+    if (!Number.isFinite(n) || n < 1 || n > 20) {
+      setDraft(initial); // bounce back
+      return;
+    }
+    if (Math.trunc(n) === account.maxConcurrentTrades) return;
+    onChange(Math.trunc(n));
+  };
+
+  return (
+    <div className="flex items-center justify-between gap-3 rounded-md border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-4 py-2.5">
+      <div className="flex min-w-0 items-center gap-2">
+        <span className="font-mono text-[10px] uppercase tracking-widest text-[var(--text-muted)]">
+          Max concurrent trades
+        </span>
+        <span className="truncate font-mono text-[11px] text-[var(--text-secondary)]">
+          {account.label}
+        </span>
+      </div>
+      <div className="flex items-center gap-2">
+        <input
+          type="number"
+          min={1}
+          max={20}
+          step={1}
+          value={draft}
+          disabled={disabled}
+          placeholder="—"
+          onChange={(e) => setDraft(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
+          }}
+          onBlur={commit}
+          className="w-16 rounded bg-[var(--bg-elevated)] px-2 py-1 text-center font-mono text-xs tabular-nums text-[var(--text-primary)] outline-none transition-colors focus:ring-1 focus:ring-[var(--accent-primary)] disabled:cursor-not-allowed disabled:opacity-50"
+          aria-label={`Max concurrent trades for ${account.label}`}
+        />
+        <span className="font-mono text-[10px] text-[var(--text-muted)]">
+          {account.maxConcurrentTrades == null ? 'no cap' : `1-20`}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Stable display order for backtest-supported intervals. Anything not in
+ * this list (e.g., legacy 30m/1d) sorts to the end alphabetically so the
+ * UI doesn't drop unfamiliar values.
+ */
+const INTERVAL_ORDER = ['5m', '15m', '1h', '4h'] as const;
+function compareIntervals(a: string, b: string): number {
+  const ia = INTERVAL_ORDER.indexOf(a as (typeof INTERVAL_ORDER)[number]);
+  const ib = INTERVAL_ORDER.indexOf(b as (typeof INTERVAL_ORDER)[number]);
+  if (ia !== -1 && ib !== -1) return ia - ib;
+  if (ia !== -1) return -1;
+  if (ib !== -1) return 1;
+  return a.localeCompare(b);
+}
+
+/**
+ * Renders one interval-group of cards and owns its drag-drop state. Drag
+ * state is per-section so reordering in the 15m group doesn't ghost the
+ * 1h group. Priority is per-interval — a "#1" in the 15m group has nothing
+ * to do with "#1" in the 1h group, mirroring the orchestrator's
+ * per-interval-group cap.
+ */
+function IntervalGroupSortable({
+  interval,
+  strategies,
+  presetsByTuple,
+  onDelete,
+  onActivate,
+  onDeactivate,
+  onIntervalChange,
+  onReorder,
+  activatingId,
+  deactivatingId,
+  updatingIntervalId,
+}: {
+  interval: string;
+  strategies: AccountStrategy[];
+  presetsByTuple: Map<string, number>;
+  onDelete: (s: AccountStrategy) => void;
+  onActivate: (s: AccountStrategy) => void;
+  onDeactivate: (s: AccountStrategy) => void;
+  onIntervalChange: (s: AccountStrategy, intervalName: string) => void;
+  onReorder: (sourceId: string, targetId: string, ordered: AccountStrategy[]) => void;
+  activatingId: string | undefined;
+  deactivatingId: string | undefined;
+  updatingIntervalId: string | undefined;
+}) {
+  const [draggedId, setDraggedId] = useState<string | null>(null);
+  const [dragOverId, setDragOverId] = useState<string | null>(null);
+
+  const sorted = [...strategies].sort((a, b) => a.priorityOrder - b.priorityOrder);
+
+  const handleDrop = (targetId: string) => {
+    if (!draggedId || draggedId === targetId) return;
+    const sourceIdx = sorted.findIndex((s) => s.id === draggedId);
+    const targetIdx = sorted.findIndex((s) => s.id === targetId);
+    if (sourceIdx < 0 || targetIdx < 0) return;
+    const reordered = [...sorted];
+    const [moved] = reordered.splice(sourceIdx, 1);
+    reordered.splice(targetIdx, 0, moved);
+    onReorder(draggedId, targetId, reordered);
+  };
+
+  return (
+    <section className="space-y-2">
+      <div className="flex items-baseline gap-2 px-1">
+        <span className="font-mono text-[10px] uppercase tracking-widest text-[var(--text-muted)]">
+          Interval
+        </span>
+        <span className="rounded bg-[var(--bg-elevated)] px-2 py-0.5 font-mono text-[11px] font-semibold text-[var(--text-primary)]">
+          {interval}
+        </span>
+        <span className="font-mono text-[10px] text-[var(--text-muted)]">
+          · {sorted.length} preset{sorted.length === 1 ? '' : 's'}
+        </span>
+      </div>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        {sorted.map((s, idx) => (
+          <StrategyCard
+            key={s.id}
+            strategy={s}
+            position={idx + 1}
+            groupHasOtherPreset={(presetsByTuple.get(tupleKey(s)) ?? 0) > 1}
+            onDelete={onDelete}
+            onActivate={onActivate}
+            onDeactivate={onDeactivate}
+            onIntervalChange={onIntervalChange}
+            isActivating={activatingId === s.id}
+            isDeactivating={deactivatingId === s.id}
+            isUpdatingInterval={updatingIntervalId === s.id}
+            isDragging={draggedId === s.id}
+            isDragOver={dragOverId === s.id}
+            onDragStart={() => setDraggedId(s.id)}
+            onDragEnd={() => {
+              setDraggedId(null);
+              setDragOverId(null);
+            }}
+            onDragOver={(e) => {
+              e.preventDefault();
+              e.dataTransfer.dropEffect = 'move';
+              if (draggedId && draggedId !== s.id) setDragOverId(s.id);
+            }}
+            onDragLeave={() => setDragOverId((prev) => (prev === s.id ? null : prev))}
+            onDrop={(e) => {
+              e.preventDefault();
+              handleDrop(s.id);
+              setDragOverId(null);
+            }}
+          />
+        ))}
+      </div>
+    </section>
+  );
+}
+
 function StrategyCardSkeleton() {
   return (
     <div className="rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-4">
@@ -289,6 +516,8 @@ export default function StrategiesPage() {
   const activateMutation = useActivateStrategy();
   const deactivateMutation = useDeactivateStrategy();
   const intervalMutation = useUpdateStrategyInterval();
+  const priorityMutation = useUpdateStrategyPriority();
+  const riskConfigMutation = useUpdateAccountRiskConfig();
 
   const visibleStrategies = scopedAccountId
     ? strategies.filter((s) => s.accountId === scopedAccountId)
@@ -356,6 +585,59 @@ export default function StrategiesPage() {
     );
   };
 
+  /**
+   * Drop handler: takes the freshly-reordered list within an interval
+   * group and PATCHes priorityOrder on every row whose position changed.
+   * Priorities are 1-based within the group — different groups can share
+   * numbers because the orchestrator scopes the cap per (account, interval).
+   */
+  const handleReorder = (_sourceId: string, _targetId: string, ordered: AccountStrategy[]) => {
+    const updates = ordered
+      .map((s, i) => ({ id: s.id, newPriority: i + 1, oldPriority: s.priorityOrder }))
+      .filter((u) => u.newPriority !== u.oldPriority);
+    if (updates.length === 0) return;
+    for (const u of updates) {
+      priorityMutation.mutate(
+        { id: u.id, priorityOrder: u.newPriority },
+        {
+          onError: (err) => {
+            toast.error({
+              title: 'Could not update priority',
+              description: normalizeError(err),
+            });
+          },
+        },
+      );
+    }
+  };
+
+  const handleMaxTradesChange = (accountId: string, value: number | null) => {
+    // Wire 0 (or any value < 1) to the backend as "clear the cap" — the
+    // service treats anything below 1 as null on the entity. null on the
+    // wire means "leave unchanged", which isn't what we want here.
+    const wireValue = value == null || value < 1 ? 0 : Math.trunc(value);
+    riskConfigMutation.mutate(
+      { accountId, payload: { maxConcurrentTrades: wireValue } },
+      {
+        onSuccess: (a) => {
+          toast.success({
+            title: `Max trades updated`,
+            description:
+              a.maxConcurrentTrades == null
+                ? `${a.label}: cap cleared (no total limit).`
+                : `${a.label}: max ${a.maxConcurrentTrades} concurrent trade(s).`,
+          });
+        },
+        onError: (err) => {
+          toast.error({
+            title: 'Could not update max trades',
+            description: normalizeError(err),
+          });
+        },
+      },
+    );
+  };
+
   const headerSubtitle = isAll
     ? `Live strategies across ${accounts.length} account${accounts.length === 1 ? '' : 's'}. Each tuple can hold multiple presets — one active at a time.`
     : activeAccount
@@ -384,6 +666,25 @@ export default function StrategiesPage() {
           New Preset
         </button>
       </header>
+
+      {/* Per-account total-concurrency cap. Renders one row per account
+          when scoped to "All accounts", or just the active account otherwise. */}
+      {accounts.length > 0 && (
+        <section className="space-y-2">
+          {(scopedAccountId ? accounts.filter((a) => a.id === scopedAccountId) : accounts).map(
+            (acc) => (
+              <MaxTradesPanel
+                key={acc.id}
+                account={acc}
+                disabled={
+                  riskConfigMutation.isPending && riskConfigMutation.variables?.accountId === acc.id
+                }
+                onChange={(value) => handleMaxTradesChange(acc.id, value)}
+              />
+            ),
+          )}
+        </section>
+      )}
 
       {isError ? (
         <EmptyState
@@ -419,40 +720,23 @@ export default function StrategiesPage() {
               : 'Switch to another account from the top bar, or configure a strategy here.'
           }
         />
-      ) : isAll && accounts.length > 1 ? (
-        <GroupedStrategies
+      ) : (
+        <AccountsAndIntervalsView
           accounts={accounts}
           strategies={visibleStrategies}
           presetsByTuple={presetsByTuple}
+          showAccountHeaders={isAll && accounts.length > 1}
           onDelete={setDeleteTarget}
           onActivate={handleActivate}
           onDeactivate={handleDeactivate}
           onIntervalChange={handleIntervalChange}
+          onReorder={handleReorder}
           activatingId={activateMutation.isPending ? activateMutation.variables : undefined}
           deactivatingId={deactivateMutation.isPending ? deactivateMutation.variables : undefined}
           updatingIntervalId={
             intervalMutation.isPending ? intervalMutation.variables?.id : undefined
           }
         />
-      ) : (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {sortPresetsByTuple(visibleStrategies).map((s) => (
-            <StrategyCard
-              key={s.id}
-              strategy={s}
-              groupHasOtherPreset={(presetsByTuple.get(tupleKey(s)) ?? 0) > 1}
-              onDelete={setDeleteTarget}
-              onActivate={handleActivate}
-              onDeactivate={handleDeactivate}
-              onIntervalChange={handleIntervalChange}
-              isActivating={activateMutation.isPending && activateMutation.variables === s.id}
-              isDeactivating={deactivateMutation.isPending && deactivateMutation.variables === s.id}
-              isUpdatingInterval={
-                intervalMutation.isPending && intervalMutation.variables?.id === s.id
-              }
-            />
-          ))}
-        </div>
       )}
 
       <NewStrategyDialog
@@ -477,36 +761,23 @@ export default function StrategiesPage() {
  * active preset first inside each cluster. Keeps the grid reading like
  * "here's the strategy, these are its variants" instead of scrambled.
  */
-function sortPresetsByTuple(items: AccountStrategy[]): AccountStrategy[] {
-  const grouped = new Map<string, AccountStrategy[]>();
-  for (const s of items) {
-    const k = tupleKey(s);
-    const list = grouped.get(k) ?? [];
-    list.push(s);
-    grouped.set(k, list);
-  }
-  const lists = Array.from(grouped.values());
-  const ordered: AccountStrategy[] = [];
-  lists.forEach((list: AccountStrategy[]) => {
-    list.sort((a: AccountStrategy, b: AccountStrategy) => {
-      if (a.status === 'LIVE' && b.status !== 'LIVE') return -1;
-      if (b.status === 'LIVE' && a.status !== 'LIVE') return 1;
-      return a.presetName.localeCompare(b.presetName);
-    });
-    ordered.push(...list);
-  });
-  return ordered;
-}
-
-/** Groups strategy cards under a per-account header when "All accounts" is active. */
-function GroupedStrategies({
+/**
+ * Renders strategies grouped first by account, then by interval. Each
+ * (account, interval) leaf is a sortable grid where dragging a card
+ * rewrites priorityOrder within that group only — different intervals
+ * have independent priority numbers because the orchestrator's cap is
+ * per-interval-group.
+ */
+function AccountsAndIntervalsView({
   accounts,
   strategies,
   presetsByTuple,
+  showAccountHeaders,
   onDelete,
   onActivate,
   onDeactivate,
   onIntervalChange,
+  onReorder,
   activatingId,
   deactivatingId,
   updatingIntervalId,
@@ -514,14 +785,17 @@ function GroupedStrategies({
   accounts: AccountSummary[];
   strategies: AccountStrategy[];
   presetsByTuple: Map<string, number>;
+  showAccountHeaders: boolean;
   onDelete: (s: AccountStrategy) => void;
   onActivate: (s: AccountStrategy) => void;
   onDeactivate: (s: AccountStrategy) => void;
   onIntervalChange: (s: AccountStrategy, intervalName: string) => void;
+  onReorder: (sourceId: string, targetId: string, ordered: AccountStrategy[]) => void;
   activatingId: string | undefined;
   deactivatingId: string | undefined;
   updatingIntervalId: string | undefined;
 }) {
+  // Bucket by accountId. Preserve account list order; tack on stragglers.
   const byAccount = new Map<string, AccountStrategy[]>();
   for (const s of strategies) {
     const list = byAccount.get(s.accountId) ?? [];
@@ -536,41 +810,56 @@ function GroupedStrategies({
   return (
     <div className="space-y-8">
       {orderedAccountIds.map((accountId) => {
-        const group = sortPresetsByTuple(byAccount.get(accountId) ?? []);
+        const accountStrategies = byAccount.get(accountId) ?? [];
         const account = accounts.find((a) => a.id === accountId);
+
+        // Bucket this account's strategies by interval.
+        const byInterval = new Map<string, AccountStrategy[]>();
+        for (const s of accountStrategies) {
+          const list = byInterval.get(s.interval) ?? [];
+          list.push(s);
+          byInterval.set(s.interval, list);
+        }
+        const orderedIntervals = Array.from(byInterval.keys()).sort(compareIntervals);
+
         return (
-          <section key={accountId} className="space-y-3">
-            <div className="flex items-baseline justify-between border-b border-[var(--border-subtle)] pb-2">
-              <div className="flex items-baseline gap-2">
-                <h2 className="font-mono text-sm font-semibold tracking-wide text-[var(--text-primary)]">
-                  {account?.label ?? accountId.slice(0, 8)}
-                </h2>
-                <span className="font-mono text-[10px] uppercase tracking-wider text-[var(--text-muted)]">
-                  {account?.exchange ?? 'UNKNOWN'}
-                </span>
-                {account && !account.active && (
-                  <span className="rounded bg-[rgba(255,77,106,0.12)] px-1.5 py-0.5 font-mono text-[10px] text-[var(--color-loss)]">
-                    INACTIVE
+          <section key={accountId} className="space-y-4">
+            {showAccountHeaders && (
+              <div className="flex items-baseline justify-between border-b border-[var(--border-subtle)] pb-2">
+                <div className="flex items-baseline gap-2">
+                  <h2 className="font-mono text-sm font-semibold tracking-wide text-[var(--text-primary)]">
+                    {account?.label ?? accountId.slice(0, 8)}
+                  </h2>
+                  <span className="font-mono text-[10px] uppercase tracking-wider text-[var(--text-muted)]">
+                    {account?.exchange ?? 'UNKNOWN'}
                   </span>
-                )}
+                  {account && !account.active && (
+                    <span className="rounded bg-[rgba(255,77,106,0.12)] px-1.5 py-0.5 font-mono text-[10px] text-[var(--color-loss)]">
+                      INACTIVE
+                    </span>
+                  )}
+                </div>
+                <span className="font-mono text-[10px] text-[var(--text-muted)]">
+                  {accountStrategies.length} preset
+                  {accountStrategies.length === 1 ? '' : 's'}
+                </span>
               </div>
-              <span className="font-mono text-[10px] text-[var(--text-muted)]">
-                {group.length} preset{group.length === 1 ? '' : 's'}
-              </span>
-            </div>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-              {group.map((s) => (
-                <StrategyCard
-                  key={s.id}
-                  strategy={s}
-                  groupHasOtherPreset={(presetsByTuple.get(tupleKey(s)) ?? 0) > 1}
+            )}
+            <div className="space-y-5">
+              {orderedIntervals.map((interval) => (
+                <IntervalGroupSortable
+                  key={`${accountId}::${interval}`}
+                  interval={interval}
+                  strategies={byInterval.get(interval) ?? []}
+                  presetsByTuple={presetsByTuple}
                   onDelete={onDelete}
                   onActivate={onActivate}
                   onDeactivate={onDeactivate}
                   onIntervalChange={onIntervalChange}
-                  isActivating={activatingId === s.id}
-                  isDeactivating={deactivatingId === s.id}
-                  isUpdatingInterval={updatingIntervalId === s.id}
+                  onReorder={onReorder}
+                  activatingId={activatingId}
+                  deactivatingId={deactivatingId}
+                  updatingIntervalId={updatingIntervalId}
                 />
               ))}
             </div>

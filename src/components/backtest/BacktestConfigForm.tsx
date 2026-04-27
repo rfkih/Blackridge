@@ -15,7 +15,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { WizardBreadcrumb } from './WizardBreadcrumb';
-import { INTERVALS } from '@/lib/constants';
+import { BACKTEST_INTERVALS as INTERVALS, BACKTEST_INTERVAL_REGEX_SOURCE } from '@/lib/constants';
 import { useAccountStrategies } from '@/hooks/useStrategies';
 import { useActiveAccount } from '@/hooks/useAccounts';
 import { useStrategyDefinitions } from '@/hooks/useStrategyDefinitions';
@@ -57,8 +57,8 @@ const configSchema = z
         z
           .string()
           .regex(
-            /^(1m|3m|5m|15m|30m|1h|2h|4h|6h|8h|12h|1d|3d|1w|1M)$/,
-            'invalid interval',
+            new RegExp(BACKTEST_INTERVAL_REGEX_SOURCE),
+            'interval must be 5m or coarser (backtest monitor tick is 5m)',
           ),
       )
       .optional(),
@@ -102,8 +102,7 @@ export function BacktestConfigForm() {
   const savedConfig = useBacktestParamStore((s) => s.config);
   const setConfig = useBacktestParamStore((s) => s.setConfig);
   const { data: strategies = [], isLoading: strategiesLoading } = useAccountStrategies();
-  const { data: definitions = [], isLoading: definitionsLoading } =
-    useStrategyDefinitions();
+  const { data: definitions = [], isLoading: definitionsLoading } = useStrategyDefinitions();
   const { scopedAccountId } = useActiveAccount();
 
   // Source of truth for which strategies the user can pick is the
@@ -140,9 +139,10 @@ export function BacktestConfigForm() {
   );
   const [strategyAllocations, setStrategyAllocations] = useState<Record<string, string>>(
     Object.fromEntries(
-      Object.entries(savedConfig?.strategyAllocations ?? {}).map(
-        ([code, pct]) => [code, String(pct)],
-      ),
+      Object.entries(savedConfig?.strategyAllocations ?? {}).map(([code, pct]) => [
+        code,
+        String(pct),
+      ]),
     ),
   );
   // Phase B2 — per-strategy interval. Blank string = "use primary interval".
@@ -271,7 +271,14 @@ export function BacktestConfigForm() {
       }
     }
     return out;
-  }, [evaluationMode, selectedStrategies, strategyAccountStrategyIds, strategyById, interval, strategyIntervals]);
+  }, [
+    evaluationMode,
+    selectedStrategies,
+    strategyAccountStrategyIds,
+    strategyById,
+    interval,
+    strategyIntervals,
+  ]);
 
   // Phase A — sum of allocations across selected strategies. > 100 is
   // legal at the API level (backend canonicaliseAllocations doesn't
@@ -317,9 +324,7 @@ export function BacktestConfigForm() {
     if (intervalMismatches.length === 0) return null;
     const first = intervalMismatches[0].registered;
     const allSame = intervalMismatches.every((m) => m.registered === first);
-    const noOverrides = intervalMismatches.every(
-      (m) => !strategyIntervals[m.code],
-    );
+    const noOverrides = intervalMismatches.every((m) => !strategyIntervals[m.code]);
     return allSame && noOverrides ? first : null;
   }, [intervalMismatches, strategyIntervals]);
 
@@ -444,21 +449,11 @@ export function BacktestConfigForm() {
           </Field>
 
           <Field label="From Date" error={errors.fromDate}>
-            <DatePicker
-              value={fromDate}
-              onChange={setFromDate}
-              max={toDate}
-              className="h-9"
-            />
+            <DatePicker value={fromDate} onChange={setFromDate} max={toDate} className="h-9" />
           </Field>
 
           <Field label="To Date" error={errors.toDate}>
-            <DatePicker
-              value={toDate}
-              onChange={setToDate}
-              min={fromDate}
-              className="h-9"
-            />
+            <DatePicker value={toDate} onChange={setToDate} min={fromDate} className="h-9" />
           </Field>
 
           <Field label="Initial Capital (USDT)" error={errors.initialCapital}>
@@ -493,8 +488,8 @@ export function BacktestConfigForm() {
         ) : activeDefinitions.length === 0 ? (
           <div className="flex items-start gap-2 px-5 py-6 text-[12px] text-text-secondary">
             <AlertTriangle size={12} strokeWidth={1.75} className="mt-0.5 shrink-0 text-warning" />
-            No active strategies in the catalogue. Register one in the strategy
-            definitions admin page first.
+            No active strategies in the catalogue. Register one in the strategy definitions admin
+            page first.
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-2 p-5 sm:grid-cols-3 lg:grid-cols-6">
@@ -548,12 +543,10 @@ export function BacktestConfigForm() {
                     className="mt-0.5"
                   />
                   <div className="min-w-0">
-                    <p className="text-[12px] font-semibold text-text-primary">
-                      Single timeframe
-                    </p>
+                    <p className="text-[12px] font-semibold text-text-primary">Single timeframe</p>
                     <p className="text-[11px] text-text-muted">
-                      Every strategy runs on the primary interval below. Warns
-                      when a strategy&apos;s registered interval differs.
+                      Every strategy runs on the primary interval below. Warns when a
+                      strategy&apos;s registered interval differs.
                     </p>
                   </div>
                 </label>
@@ -574,12 +567,10 @@ export function BacktestConfigForm() {
                     className="mt-0.5"
                   />
                   <div className="min-w-0">
-                    <p className="text-[12px] font-semibold text-text-primary">
-                      Multi-interval
-                    </p>
+                    <p className="text-[12px] font-semibold text-text-primary">Multi-interval</p>
                     <p className="text-[11px] text-text-muted">
-                      Each strategy runs on its registered timeframe
-                      automatically. e.g. LSR @ 15m + VCB @ 1h in one run.
+                      Each strategy runs on its registered timeframe automatically. e.g. LSR @ 15m +
+                      VCB @ 1h in one run.
                     </p>
                   </div>
                 </label>
@@ -634,7 +625,7 @@ export function BacktestConfigForm() {
                       key={code}
                       className="grid grid-cols-[5rem_1fr_auto_5rem] items-center gap-2"
                     >
-                      <span className="font-mono text-[11px] font-semibold text-text-primary truncate">
+                      <span className="truncate font-mono text-[11px] font-semibold text-text-primary">
                         {code}
                       </span>
                       <div className="flex items-center gap-1">
@@ -680,9 +671,7 @@ export function BacktestConfigForm() {
                           <SelectValue placeholder={interval} />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value={INHERIT_PRIMARY}>
-                            Use primary ({interval})
-                          </SelectItem>
+                          <SelectItem value={INHERIT_PRIMARY}>Use primary ({interval})</SelectItem>
                           {INTERVALS.map((i) => (
                             <SelectItem key={i} value={i}>
                               {i}
@@ -696,10 +685,8 @@ export function BacktestConfigForm() {
                 <p className="mt-1 text-[10px] text-text-muted">
                   Allocation blank → falls back to{' '}
                   <span className="font-mono">account_strategy.capital_allocation_pct</span>.
-                  Interval blank → uses the primary{' '}
-                  <span className="font-mono">{interval}</span>. Sizing per
-                  strategy is{' '}
-                  <span className="font-mono">balance × allocation</span>.
+                  Interval blank → uses the primary <span className="font-mono">{interval}</span>.
+                  Sizing per strategy is <span className="font-mono">balance × allocation</span>.
                 </p>
               </div>
             </div>
@@ -715,9 +702,8 @@ export function BacktestConfigForm() {
                   <span className="font-semibold">
                     Allocations sum to {allocationSumPct.toFixed(1)}%.
                   </span>{' '}
-                  Strategies are evaluated in order; once the balance is
-                  exhausted, later trades silently fail their balance check.
-                  Reduce overlap so the total is ≤&nbsp;100%.
+                  Strategies are evaluated in order; once the balance is exhausted, later trades
+                  silently fail their balance check. Reduce overlap so the total is ≤&nbsp;100%.
                 </p>
               </div>
             )}
@@ -731,12 +717,10 @@ export function BacktestConfigForm() {
                 />
                 <div className="flex min-w-0 flex-1 flex-col gap-1">
                   <p className="text-[11px] text-text-primary">
-                    <span className="font-semibold">
-                      Allocation below min-notional.
-                    </span>{' '}
-                    The executor floors orders to{' '}
-                    <span className="font-mono">{BACKTEST_MIN_NOTIONAL_USDT} USDT</span>,
-                    which over-allocates these strategies vs your intended slice:
+                    <span className="font-semibold">Allocation below min-notional.</span> The
+                    executor floors orders to{' '}
+                    <span className="font-mono">{BACKTEST_MIN_NOTIONAL_USDT} USDT</span>, which
+                    over-allocates these strategies vs your intended slice:
                   </p>
                   <ul className="flex flex-col gap-0.5 text-[11px] text-text-primary">
                     {tinyAllocationCodes.map((t) => (
@@ -756,8 +740,8 @@ export function BacktestConfigForm() {
                     ))}
                   </ul>
                   <p className="text-[10px] text-text-muted">
-                    Increase the allocation, or raise initial capital so each
-                    slice clears the min-notional floor.
+                    Increase the allocation, or raise initial capital so each slice clears the
+                    min-notional floor.
                   </p>
                 </div>
               </div>
@@ -772,16 +756,13 @@ export function BacktestConfigForm() {
                 />
                 <div className="flex min-w-0 flex-1 flex-col gap-2">
                   <p className="text-[11px] text-text-primary">
-                    <span className="font-semibold">Interval mismatch.</span>{' '}
-                    Strategy params are calibrated for a specific timeframe;
-                    running on a different bar produces invalid results.
+                    <span className="font-semibold">Interval mismatch.</span> Strategy params are
+                    calibrated for a specific timeframe; running on a different bar produces invalid
+                    results.
                   </p>
                   <ul className="flex flex-col gap-1.5 text-[11px] text-text-primary">
                     {intervalMismatches.map((m) => (
-                      <li
-                        key={m.code}
-                        className="flex flex-wrap items-center gap-2"
-                      >
+                      <li key={m.code} className="flex flex-wrap items-center gap-2">
                         <span className="font-mono font-semibold">{m.code}</span>
                         <span className="text-text-muted">
                           registered on{' '}
@@ -902,11 +883,7 @@ function StrategyChip({
       disabled={disabled}
       aria-pressed={selected}
       title={
-        disabled
-          ? `No account-strategy configured for ${code}`
-          : name
-          ? `${code} — ${name}`
-          : code
+        disabled ? `No account-strategy configured for ${code}` : name ? `${code} — ${name}` : code
       }
       className={cn(
         'group relative flex items-center justify-between gap-2 rounded-sm border px-3 py-2 text-left transition-colors duration-fast',

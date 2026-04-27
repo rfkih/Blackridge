@@ -29,6 +29,8 @@ function mapAccount(a: BackendAccountSummary): AccountSummary {
     createdAt: a.createdTime,
     maxConcurrentLongs: toNumber(a.maxConcurrentLongs, 2),
     maxConcurrentShorts: toNumber(a.maxConcurrentShorts, 2),
+    // Total cap is null when not set on the backend — distinguish from "0".
+    maxConcurrentTrades: a.maxConcurrentTrades == null ? null : Number(a.maxConcurrentTrades),
     volTargetingEnabled: Boolean(a.volTargetingEnabled),
     bookVolTargetPct: toNumber(a.bookVolTargetPct, 15),
   };
@@ -91,6 +93,11 @@ export async function rotateAccountCredentials(
 export interface RiskConfigPayload {
   maxConcurrentLongs?: number;
   maxConcurrentShorts?: number;
+  /**
+   * Total concurrent-trade cap (1-20). Pass {@code 0} (or any value below
+   * 1) to clear the cap on the backend. Omit to leave unchanged.
+   */
+  maxConcurrentTrades?: number;
   volTargetingEnabled?: boolean;
   bookVolTargetPct?: number;
 }

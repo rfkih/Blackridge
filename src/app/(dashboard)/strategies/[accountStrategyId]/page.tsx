@@ -16,6 +16,7 @@ import {
   useVcbDefaults,
   useVcbParams,
 } from '@/hooks/useStrategies';
+import { useTradesList } from '@/hooks/useTrades';
 import { toast } from '@/hooks/useToast';
 import { normalizeError } from '@/lib/api/client';
 import { ShieldAlert, ShieldCheck } from 'lucide-react';
@@ -23,6 +24,7 @@ import { useAccounts } from '@/hooks/useAccounts';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import type { AccountStrategy } from '@/types/strategy';
+import type { Trades } from '@/types/trading';
 
 interface PageProps {
   params: { accountStrategyId: string };
@@ -135,11 +137,16 @@ function StrategyDetail({ strategy }: { strategy: AccountStrategy }) {
 
       <RiskGuardPanel strategy={strategy} />
 
-      <Tabs defaultValue="parameters" className="space-y-4">
+      <Tabs defaultValue="live" className="space-y-4">
         <TabsList className="bg-[var(--bg-surface)]">
+          <TabsTrigger value="live">Live</TabsTrigger>
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="parameters">Parameters</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="live">
+          <LiveTab strategy={strategy} />
+        </TabsContent>
 
         <TabsContent value="overview">
           <OverviewTab strategy={strategy} />
@@ -239,6 +246,216 @@ function MetaStat({ label, value }: { label: string; value: React.ReactNode }) {
       </span>
     </div>
   );
+}
+
+// Backend trade filter doesn't accept `accountStrategyId` yet; we pull
+// (accountId, strategyCode, symbol) — the closest filter combo — and
+// post-filter for safety under multi-interval-per-symbol. Page size is
+// the hard cap until the API supports per-strategy filtering.
+const LIVE_TAB_TRADE_WINDOW = 200;
+
+function LiveTab({ strategy }: { strategy: AccountStrategy }) {
+  const { data, isLoading, isError } = useTradesList({
+    accountId: strategy.accountId,
+    strategyCode: strategy.strategyCode,
+    symbol: strategy.symbol,
+    size: LIVE_TAB_TRADE_WINDOW,
+  });
+
+  const trades: Trades[] = (data?.content ?? []).filter(
+    (t) => t.accountStrategyId === strategy.id,
+  );
+  const open = trades.filter((t) => t.status === 'OPEN' || t.status === 'PARTIALLY_CLOSED');
+  const closed = trades.filter((t) => t.status === 'CLOSED');
+  const realized = closed.reduce((sum, t) => sum + (t.realizedPnl ?? 0), 0);
+  const unrealized = open.reduce((sum, t) => sum + (t.unrealizedPnl ?? 0), 0);
+  const winners = closed.filter((t) => (t.realizedPnl ?? 0) > 0).length;
+  const winRate = closed.length === 0 ? null : winners / closed.length;
+  const lastClosed = closed[0];
+  // The backend may have more rows than we fetched. Without a per-strategy
+  // total, we treat "fetched == window size" as a likely-truncated signal
+  // and label the realized stats accordingly so users don't read them as
+  // lifetime totals.
+  const truncated = (data?.content?.length ?? 0) >= LIVE_TAB_TRADE_WINDOW;
+
+  return (
+    <div className="grid gap-4 md:grid-cols-2">
+      {/* Stat strip */}
+      <div className="md:col-span-2 grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <StatCard
+          label="Open trades"
+          value={open.length.toString()}
+          tone={open.length > 0 ? 'profit' : 'neutral'}
+        />
+        <StatCard
+          label="Unrealized"
+          value={formatPnl(unrealized)}
+          tone={unrealized >= 0 ? 'profit' : 'loss'}
+        />
+        <StatCard
+          label={truncated ? `Realized · last ${LIVE_TAB_TRADE_WINDOW}` : 'Realized'}
+          value={formatPnl(realized)}
+          tone={realized >= 0 ? 'profit' : 'loss'}
+        />
+        <StatCard
+          label={truncated ? `Win rate · last ${LIVE_TAB_TRADE_WINDOW}` : 'Win rate'}
+          value={winRate === null ? '—' : `${(winRate * 100).toFixed(0)}%`}
+          tone="neutral"
+        />
+      </div>
+
+      {/* Open positions */}
+      <section className="rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-4 shadow-panel">
+        <header className="mb-3 flex items-baseline justify-between">
+          <h3 className="font-mono text-[10px] uppercase tracking-wider text-[var(--text-muted)]">
+            Open positions
+          </h3>
+          <span className="font-mono text-[11px] text-[var(--text-secondary)]">
+            {open.length} active
+          </span>
+        </header>
+        {isLoading ? (
+          <ActivitySkeleton rows={2} />
+        ) : isError ? (
+          <p className="text-xs text-[var(--color-loss)]">Could not load.</p>
+        ) : open.length === 0 ? (
+          <EmptyTradesRow text="No open positions for this strategy right now." />
+        ) : (
+          <ul className="flex flex-col divide-y divide-[var(--border-subtle)]">
+            {open.slice(0, 5).map((t) => (
+              <TradeRow key={t.id} trade={t} variant="open" />
+            ))}
+          </ul>
+        )}
+      </section>
+
+      {/* Recent closed */}
+      <section className="rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-4 shadow-panel">
+        <header className="mb-3 flex items-baseline justify-between">
+          <h3 className="font-mono text-[10px] uppercase tracking-wider text-[var(--text-muted)]">
+            Recent closes
+          </h3>
+          <span className="font-mono text-[11px] text-[var(--text-secondary)]">
+            {lastClosed ? `last ${formatRelative(lastClosed.exitTime ?? lastClosed.entryTime)}` : '—'}
+          </span>
+        </header>
+        {isLoading ? (
+          <ActivitySkeleton rows={3} />
+        ) : isError ? (
+          <p className="text-xs text-[var(--color-loss)]">Could not load.</p>
+        ) : closed.length === 0 ? (
+          <EmptyTradesRow text="No closed trades yet for this strategy." />
+        ) : (
+          <ul className="flex flex-col divide-y divide-[var(--border-subtle)]">
+            {closed.slice(0, 5).map((t) => (
+              <TradeRow key={t.id} trade={t} variant="closed" />
+            ))}
+          </ul>
+        )}
+      </section>
+    </div>
+  );
+}
+
+function StatCard({
+  label,
+  value,
+  tone,
+}: {
+  label: string;
+  value: string;
+  tone: 'profit' | 'loss' | 'neutral';
+}) {
+  const colour =
+    tone === 'profit'
+      ? 'var(--color-profit)'
+      : tone === 'loss'
+        ? 'var(--color-loss)'
+        : 'var(--text-primary)';
+  return (
+    <div className="rounded-md border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-3">
+      <div className="font-mono text-[10px] uppercase tracking-wider text-[var(--text-muted)]">
+        {label}
+      </div>
+      <div
+        className="mt-1 font-display text-lg tabular-nums"
+        style={{ color: colour }}
+      >
+        {value}
+      </div>
+    </div>
+  );
+}
+
+function TradeRow({ trade, variant }: { trade: Trades; variant: 'open' | 'closed' }) {
+  const pnl = variant === 'open' ? trade.unrealizedPnl ?? 0 : trade.realizedPnl ?? 0;
+  const tone = pnl >= 0 ? 'var(--color-profit)' : 'var(--color-loss)';
+  const dirColour = trade.direction === 'LONG' ? 'var(--color-profit)' : 'var(--color-loss)';
+  const ts = variant === 'open' ? trade.entryTime : trade.exitTime ?? trade.entryTime;
+  return (
+    <li className="flex items-center justify-between gap-3 py-2 text-xs">
+      <Link
+        href={`/trades/${trade.id}`}
+        className="flex min-w-0 items-center gap-3 hover:text-[var(--text-primary)]"
+      >
+        <span
+          className="font-mono uppercase"
+          style={{ color: dirColour, fontSize: 10, width: 28, flexShrink: 0 }}
+        >
+          {trade.direction === 'LONG' ? 'LONG' : 'SHORT'}
+        </span>
+        <span className="font-mono text-[var(--text-primary)]">{trade.symbol}</span>
+        <span className="font-mono text-[10px] text-[var(--text-muted)]">
+          {trade.entryPrice ? `@${trade.entryPrice.toFixed(2)}` : ''}
+        </span>
+      </Link>
+      <div className="flex items-center gap-3 text-right">
+        <span className="font-mono tabular-nums" style={{ color: tone, fontSize: 12 }}>
+          {formatPnl(pnl)}
+        </span>
+        <span className="font-mono text-[10px] text-[var(--text-muted)]" style={{ minWidth: 70 }}>
+          {ts ? formatRelative(ts) : '—'}
+        </span>
+      </div>
+    </li>
+  );
+}
+
+function ActivitySkeleton({ rows }: { rows: number }) {
+  return (
+    <div className="space-y-2">
+      {Array.from({ length: rows }).map((_, i) => (
+        <Skeleton key={i} className="h-7 w-full" />
+      ))}
+    </div>
+  );
+}
+
+function EmptyTradesRow({ text }: { text: string }) {
+  return (
+    <p className="rounded border border-dashed border-[var(--border-subtle)] px-3 py-4 text-center text-[11px] text-[var(--text-muted)]">
+      {text}
+    </p>
+  );
+}
+
+function formatPnl(value: number): string {
+  if (value === 0) return '0.00';
+  const sign = value > 0 ? '+' : '';
+  return `${sign}${value.toFixed(2)}`;
+}
+
+function formatRelative(epochMs: number | null | undefined): string {
+  if (!epochMs) return '—';
+  const diffMs = Date.now() - epochMs;
+  const sec = Math.round(diffMs / 1000);
+  if (sec < 60) return `${sec}s`;
+  const min = Math.round(sec / 60);
+  if (min < 60) return `${min}m`;
+  const hr = Math.round(min / 60);
+  if (hr < 24) return `${hr}h`;
+  const day = Math.round(hr / 24);
+  return `${day}d`;
 }
 
 function OverviewTab({ strategy }: { strategy: AccountStrategy }) {

@@ -6,12 +6,17 @@ import { Sidebar } from '@/components/layout/Sidebar';
 import { TopNav } from '@/components/layout/TopNav';
 import { CommandPalette } from '@/components/layout/CommandPalette';
 import { IpWhitelistBanner } from '@/components/layout/IpWhitelistBanner';
+import { WsReconnectingBanner } from '@/components/layout/WsReconnectingBanner';
+import { CookieConsentBanner } from '@/components/legal/CookieConsentBanner';
 import { useWebSocket } from '@/hooks/useWebSocket';
+import { useDocumentTitle } from '@/hooks/useDocumentTitle';
+import { resolvePageTitle } from '@/lib/pageTitles';
 
 function DashboardShell({ children }: { children: React.ReactNode }) {
   useWebSocket();
 
   const pathname = usePathname();
+  useDocumentTitle(resolvePageTitle(pathname));
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
 
@@ -39,10 +44,15 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
           onCommandOpen={() => setPaletteOpen(true)}
         />
         <IpWhitelistBanner />
+        <WsReconnectingBanner />
         <main
           key={pathname}
-          className="page-enter flex-1 overflow-y-auto"
+          className="page-enter dashboard-main flex-1 overflow-y-auto"
           style={{
+            // Phone screens get symmetric padding via the .dashboard-main
+            // class in globals.css; desktop keeps the original asymmetric
+            // padding (no left padding because the sidebar already provides
+            // visual margin).
             padding: '24px 28px 24px 0',
             color: 'var(--mm-ink-0)',
             // Hint the compositor — cheaper opacity/transform transitions on
@@ -55,6 +65,7 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
       </div>
 
       <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} />
+      <CookieConsentBanner />
     </div>
   );
 }

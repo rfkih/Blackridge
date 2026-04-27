@@ -81,12 +81,42 @@ function isEnvelope(value: unknown): value is ApiEnvelope {
 
 function isAuthPath(pathname: string): boolean {
   // Exact match or trailing slash — `/login-foo` should NOT count as the auth path.
-  return (
-    pathname === '/login' ||
-    pathname === '/register' ||
-    pathname.startsWith('/login/') ||
-    pathname.startsWith('/register/')
-  );
+  // Keep this list in sync with PUBLIC_PATHS in middleware.ts and the
+  // permitAll() rules in SecurityConfig.java.
+  const PATHS = ['/login', '/register', '/forgot-password', '/reset-password', '/verify-email'];
+  for (const p of PATHS) {
+    if (pathname === p || pathname.startsWith(`${p}/`)) return true;
+  }
+  return false;
+}
+
+/**
+ * Session-storage flag that survives the hard redirect to /login. The login
+ * page reads it on mount, shows a toast, and clears it. We use sessionStorage
+ * (not a query param or cookie) so the URL stays clean and the signal is
+ * scoped to the current tab.
+ */
+const SESSION_EXPIRED_FLAG = 'blackheart:session-expired';
+
+function markSessionExpired() {
+  if (typeof window === 'undefined') return;
+  try {
+    window.sessionStorage.setItem(SESSION_EXPIRED_FLAG, '1');
+  } catch {
+    // sessionStorage can be unavailable in private-browsing edge cases —
+    // failing silently is fine, the user just won't see the toast.
+  }
+}
+
+export function consumeSessionExpiredFlag(): boolean {
+  if (typeof window === 'undefined') return false;
+  try {
+    const present = window.sessionStorage.getItem(SESSION_EXPIRED_FLAG) === '1';
+    if (present) window.sessionStorage.removeItem(SESSION_EXPIRED_FLAG);
+    return present;
+  } catch {
+    return false;
+  }
 }
 
 // Module-level latch — the dashboard fires many queries in parallel on mount,
@@ -125,6 +155,10 @@ apiClient.interceptors.response.use(
         !isAuthPath(window.location.pathname)
       ) {
         redirectingToLogin = true;
+        // Stash a one-shot flag so the login page can show "Your session
+        // expired — please sign in again" instead of looking like the user
+        // arrived for no reason.
+        markSessionExpired();
         const next = encodeURIComponent(window.location.pathname + window.location.search);
         window.location.assign(`/login?next=${next}`);
       }

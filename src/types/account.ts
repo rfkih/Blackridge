@@ -11,6 +11,8 @@ export interface BackendAccountSummary {
   /** Phase 2a — concurrency caps. */
   maxConcurrentLongs?: number | null;
   maxConcurrentShorts?: number | null;
+  /** Total concurrent-trade cap across all strategies (null = no cap). */
+  maxConcurrentTrades?: number | null;
   /** Phase 2b — vol targeting. */
   volTargetingEnabled?: boolean | null;
   bookVolTargetPct?: number | string | null;
@@ -27,6 +29,8 @@ export interface AccountSummary {
   /** Risk-policy levers — see Phase 2a/2b. */
   maxConcurrentLongs: number;
   maxConcurrentShorts: number;
+  /** Total concurrent-trade cap (null = no cap). */
+  maxConcurrentTrades: number | null;
   volTargetingEnabled: boolean;
   bookVolTargetPct: number;
 }

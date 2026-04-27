@@ -3,8 +3,9 @@
 import { useMutation } from '@tanstack/react-query';
 import {
   backfillHistoricalData,
-  backfillVcbIndicators,
-  type VcbBackfillResult,
+  backfillIndicators,
+  type IndicatorBackfillRequest,
+  type IndicatorBackfillResult,
   type WarmupResult,
 } from '@/lib/api/historical';
 
@@ -14,13 +15,17 @@ export function useWarmupHistorical() {
   });
 }
 
-export function useBackfillVcbIndicators() {
-  return useMutation<
-    VcbBackfillResult,
-    Error,
-    { symbol: string; interval: string; from: string; to: string }
-  >({
-    mutationFn: ({ symbol, interval, from, to }) =>
-      backfillVcbIndicators(symbol, interval, from, to),
+/**
+ * General indicator-backfill mutation. Recomputes ALL feature-store columns
+ * across a date range — works for every strategy. The optional
+ * {@code recompute} flag toggles delete-then-insert vs the default
+ * fill-missing-only mode.
+ */
+export function useBackfillIndicators() {
+  return useMutation<IndicatorBackfillResult, Error, IndicatorBackfillRequest>({
+    mutationFn: backfillIndicators,
   });
 }
+
+/** @deprecated Backwards-compat alias — prefer {@link useBackfillIndicators}. */
+export const useBackfillVcbIndicators = useBackfillIndicators;

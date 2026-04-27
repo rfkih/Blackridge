@@ -152,6 +152,8 @@ export default function TradeDetailPage({ params }: { params: { id: string } }) 
         </MetaTile>
       </section>
 
+      <EntryPlanPanel trade={trade} />
+
       {/* Position legs */}
       <section className="flex flex-col gap-3">
         <div className="flex items-baseline justify-between">
@@ -198,6 +200,100 @@ export default function TradeDetailPage({ params }: { params: { id: string } }) 
 
       <TradeAttributionPanel tradeId={params.id} />
     </div>
+  );
+}
+
+// Inferred from the strategy contract, not from a decision-event log —
+// once the backend records per-entry gate state, replace this with the
+// real reasons.
+function EntryPlanPanel({ trade }: { trade: Trades }) {
+  const isLong = trade.direction === 'LONG';
+  const stop = trade.stopLossPrice;
+  const tp1 = trade.tp1Price;
+  const tp2 = trade.tp2Price;
+
+  // R distance = entry-to-stop. Without it, R-multiples are undefined.
+  const rDistance =
+    stop != null && trade.entryPrice
+      ? Math.abs(trade.entryPrice - stop)
+      : null;
+  const rMultiple = (target: number | null | undefined): number | null => {
+    if (target == null || rDistance == null || rDistance === 0) return null;
+    const move = isLong ? target - trade.entryPrice : trade.entryPrice - target;
+    return move / rDistance;
+  };
+  const tp1R = rMultiple(tp1);
+  const tp2R = rMultiple(tp2);
+
+  const rationale = isLong
+    ? `${trade.strategyCode} LONG entries gate on a bullish regime — this trade implies that gate passed at entry.`
+    : `${trade.strategyCode} SHORT entries gate on a bearish regime — this trade implies that gate passed at entry.`;
+
+  return (
+    <section className="rounded-md border border-bd-subtle bg-bg-surface p-5">
+      <header className="flex items-baseline justify-between">
+        <div>
+          <p className="font-mono text-[10px] uppercase tracking-wider text-text-muted">
+            Entry plan
+          </p>
+          <h3 className="mt-0.5 font-display text-[15px] font-semibold text-text-primary">
+            Why the strategy took this trade
+          </h3>
+        </div>
+        <Link
+          href={`/strategies/${trade.accountStrategyId}`}
+          className="font-mono text-[11px] text-text-muted hover:text-text-primary"
+        >
+          View strategy →
+        </Link>
+      </header>
+
+      <p className="mt-3 text-[12px] leading-relaxed text-text-secondary">
+        {rationale}
+      </p>
+
+      <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <div className="flex flex-col gap-1 rounded-sm border border-bd-subtle bg-bg-elevated px-3 py-2.5">
+          <span className="font-mono text-[9px] uppercase tracking-wider text-text-muted">
+            Risk distance (1 R)
+          </span>
+          <span className="font-mono text-[14px] tabular-nums text-text-primary">
+            {rDistance == null ? '—' : rDistance.toFixed(4)}
+          </span>
+          <span className="text-[10px] leading-snug text-text-muted">
+            Entry to stop. All R-multiples below scale to this.
+          </span>
+        </div>
+        <div className="flex flex-col gap-1 rounded-sm border border-bd-subtle bg-bg-elevated px-3 py-2.5">
+          <span className="font-mono text-[9px] uppercase tracking-wider text-text-muted">
+            TP1 reward
+          </span>
+          <span
+            className="font-mono text-[14px] tabular-nums"
+            style={{ color: 'var(--color-profit)' }}
+          >
+            {tp1R == null ? '—' : `${tp1R >= 0 ? '+' : ''}${tp1R.toFixed(2)} R`}
+          </span>
+          <span className="text-[10px] leading-snug text-text-muted">
+            Move from entry to TP1, in units of risk.
+          </span>
+        </div>
+        <div className="flex flex-col gap-1 rounded-sm border border-bd-subtle bg-bg-elevated px-3 py-2.5">
+          <span className="font-mono text-[9px] uppercase tracking-wider text-text-muted">
+            TP2 reward
+          </span>
+          <span
+            className="font-mono text-[14px] tabular-nums"
+            style={{ color: 'var(--color-profit)' }}
+          >
+            {tp2R == null ? '—' : `${tp2R >= 0 ? '+' : ''}${tp2R.toFixed(2)} R`}
+          </span>
+          <span className="text-[10px] leading-snug text-text-muted">
+            Move from entry to TP2, in units of risk.
+          </span>
+        </div>
+      </div>
+    </section>
   );
 }
 

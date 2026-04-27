@@ -135,7 +135,8 @@ export default function MonteCarloPage() {
   // falling back to the currently-configured value in the form so the header
   // reads meaningfully even before a run fires.
   const simsForKicker = (
-    result?.numberOfSimulations ?? (Number(form.numberOfSimulations) || 1000)
+    result?.numberOfSimulations ??
+    (Number(form.numberOfSimulations) || 1000)
   ).toLocaleString();
   const horizonForChip = result?.tradesUsed ?? (Number(form.horizonTrades) || 100);
 
@@ -153,9 +154,7 @@ export default function MonteCarloPage() {
         }}
       >
         <div>
-          <div className="mm-kicker">
-            FORWARD PROJECTIONS · {simsForKicker} SIMULATIONS
-          </div>
+          <div className="mm-kicker">FORWARD PROJECTIONS · {simsForKicker} SIMULATIONS</div>
           <div
             style={{
               display: 'flex',
@@ -374,9 +373,7 @@ function Results({ result }: { result: MonteCarloResult }) {
           }}
         >
           <div>
-            <div className="mm-kicker">
-              PATHS · {formatCurrency(result.initialCapital)} INITIAL
-            </div>
+            <div className="mm-kicker">PATHS · {formatCurrency(result.initialCapital)} INITIAL</div>
             <h2
               className="font-display"
               style={{ fontSize: 22, marginTop: 4, letterSpacing: '-0.02em' }}
@@ -466,10 +463,7 @@ function PercentileLedger({ result }: { result: MonteCarloResult }) {
   return (
     <div className="mm-card" style={{ padding: '22px 26px' }}>
       <div className="mm-kicker">PERCENTILES</div>
-      <h2
-        className="font-display"
-        style={{ fontSize: 20, marginTop: 4, letterSpacing: '-0.02em' }}
-      >
+      <h2 className="font-display" style={{ fontSize: 20, marginTop: 4, letterSpacing: '-0.02em' }}>
         At +{result.tradesUsed} trades
       </h2>
       <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -521,9 +515,7 @@ function PercentileLedger({ result }: { result: MonteCarloResult }) {
                       : 'var(--mm-dn)'),
               }}
             >
-              {r.pct == null
-                ? '—'
-                : `${r.pct >= 0 ? '+' : ''}${r.pct.toFixed(0)}%`}
+              {r.pct == null ? '—' : `${r.pct >= 0 ? '+' : ''}${r.pct.toFixed(0)}%`}
             </span>
           </div>
         ))}
@@ -551,12 +543,12 @@ function TerminalDistribution({ result }: { result: MonteCarloResult }) {
   }, [result.meanTotalReturnPct]);
 
   return (
-    <div className="mm-card" style={{ padding: '22px 26px', display: 'flex', flexDirection: 'column' }}>
+    <div
+      className="mm-card"
+      style={{ padding: '22px 26px', display: 'flex', flexDirection: 'column' }}
+    >
       <div className="mm-kicker">TERMINAL DISTRIBUTION</div>
-      <h2
-        className="font-display"
-        style={{ fontSize: 20, marginTop: 4, letterSpacing: '-0.02em' }}
-      >
+      <h2 className="font-display" style={{ fontSize: 20, marginTop: 4, letterSpacing: '-0.02em' }}>
         Histogram of final equity
       </h2>
 

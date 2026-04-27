@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
-import { ChevronDown, ChevronsUpDown, ChevronUp } from 'lucide-react';
+import { ChevronDown, ChevronsUpDown, ChevronUp, X } from 'lucide-react';
 import { formatDate, formatDuration, formatPrice, formatRMultiple } from '@/lib/formatters';
 import { cn } from '@/lib/utils';
 import {
@@ -18,11 +18,10 @@ interface BacktestTradeTableProps {
   trades: BacktestTrade[];
   selectedTradeId: string | null;
   onTradeSelect: (tradeId: string | null) => void;
-  /**
-   * When changed, the currently selected row is scrolled into view. Used so the
-   * chart can nudge the table after a marker click.
-   */
+  /** Tick to scroll the selected row into view (chart → table sync). */
   scrollTrigger?: number;
+  /** Emit filtered trades so the chart can mirror the same set of markers. */
+  onFilteredTradesChange?: (filtered: BacktestTrade[]) => void;
 }
 
 /**
@@ -102,11 +101,64 @@ const GRID_TEMPLATE =
 const ROW_HEIGHT = 36; // matches .py-2 + content baseline; virtualizer needs a stable estimate
 const VIEWPORT_MAX_HEIGHT = 480;
 
+type PnlSign = 'all' | 'profit' | 'loss' | 'breakeven';
+
+interface FilterState {
+  strategies: Set<string>;
+  directions: Set<'LONG' | 'SHORT'>;
+  outcomes: Set<string>;
+  intervals: Set<string>;
+  pnlSign: PnlSign;
+}
+
+const EMPTY_FILTERS: FilterState = {
+  strategies: new Set(),
+  directions: new Set(),
+  outcomes: new Set(),
+  intervals: new Set(),
+  pnlSign: 'all',
+};
+
+function isFilterActive(f: FilterState): boolean {
+  return (
+    f.strategies.size > 0 ||
+    f.directions.size > 0 ||
+    f.outcomes.size > 0 ||
+    f.intervals.size > 0 ||
+    f.pnlSign !== 'all'
+  );
+}
+
+function tradeStrategyKey(t: BacktestTrade): string {
+  return t.strategyCode ?? t.strategyName ?? 'UNKNOWN';
+}
+
+function applyFilters(trades: BacktestTrade[], f: FilterState): BacktestTrade[] {
+  if (!isFilterActive(f)) return trades;
+  return trades.filter((t) => {
+    if (f.strategies.size > 0 && !f.strategies.has(tradeStrategyKey(t))) return false;
+    if (f.directions.size > 0 && !f.directions.has(t.direction)) return false;
+    if (f.intervals.size > 0 && !f.intervals.has(t.interval ?? '—')) return false;
+    if (f.outcomes.size > 0) {
+      const label = deriveTradeOutcome(t.positions).label;
+      if (!f.outcomes.has(label)) return false;
+    }
+    if (f.pnlSign !== 'all') {
+      const pnl = t.realizedPnl;
+      if (f.pnlSign === 'profit' && pnl <= 0) return false;
+      if (f.pnlSign === 'loss' && pnl >= 0) return false;
+      if (f.pnlSign === 'breakeven' && Math.abs(pnl) > 0.0001) return false;
+    }
+    return true;
+  });
+}
+
 export function BacktestTradeTable({
   trades,
   selectedTradeId,
   onTradeSelect,
   scrollTrigger,
+  onFilteredTradesChange,
 }: BacktestTradeTableProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -114,10 +166,44 @@ export function BacktestTradeTable({
   // back to the default; see handleSort below.
   const [sortKey, setSortKey] = useState<SortKey>('index');
   const [sortDir, setSortDir] = useState<SortDir>('asc');
+  const [filters, setFilters] = useState<FilterState>(EMPTY_FILTERS);
+
+  // Available filter options derived once per trades change. Empty Sets if
+  // a dimension is uniform (e.g. single-strategy run) — the filter bar
+  // hides those dimensions to keep the chrome compact.
+  const filterOptions = useMemo(() => {
+    const strategies = new Set<string>();
+    const intervals = new Set<string>();
+    const outcomes = new Set<string>();
+    let hasLong = false;
+    let hasShort = false;
+    for (const t of trades) {
+      strategies.add(tradeStrategyKey(t));
+      intervals.add(t.interval ?? '—');
+      outcomes.add(deriveTradeOutcome(t.positions).label);
+      if (t.direction === 'LONG') hasLong = true;
+      if (t.direction === 'SHORT') hasShort = true;
+    }
+    return {
+      strategies: Array.from(strategies).sort(),
+      intervals: Array.from(intervals).sort(),
+      outcomes: Array.from(outcomes).sort(),
+      directions: [hasLong && 'LONG', hasShort && 'SHORT'].filter(Boolean) as Array<
+        'LONG' | 'SHORT'
+      >,
+    };
+  }, [trades]);
+
+  const filtered = useMemo(() => applyFilters(trades, filters), [trades, filters]);
+
+  // Effect (not render-time) so the parent setState doesn't loop with us.
+  useEffect(() => {
+    onFilteredTradesChange?.(filtered);
+  }, [filtered, onFilteredTradesChange]);
 
   const ordered = useMemo(() => {
     const extractor = SORT_EXTRACTORS[sortKey];
-    const copy = [...trades];
+    const copy = [...filtered];
     copy.sort((a, b) => {
       const va = extractor(a);
       const vb = extractor(b);
@@ -141,24 +227,21 @@ export function BacktestTradeTable({
       return sortDir === 'asc' ? cmp : -cmp;
     });
     return copy;
-  }, [trades, sortKey, sortDir]);
+  }, [filtered, sortKey, sortDir]);
 
-  const handleSort = useCallback(
-    (key: SortKey) => {
-      setSortKey((prevKey) => {
-        if (prevKey !== key) {
-          // New column — start at asc for natural order; but default sort
-          // (pnl, r, duration, exit*) feels more useful descending.
-          const preferDesc: SortKey[] = ['pnl', 'r', 'duration', 'exitTime', 'entryTime'];
-          setSortDir(preferDesc.includes(key) ? 'desc' : 'asc');
-          return key;
-        }
-        setSortDir((prevDir) => (prevDir === 'asc' ? 'desc' : 'asc'));
-        return prevKey;
-      });
-    },
-    [],
-  );
+  const handleSort = useCallback((key: SortKey) => {
+    setSortKey((prevKey) => {
+      if (prevKey !== key) {
+        // New column — start at asc for natural order; but default sort
+        // (pnl, r, duration, exit*) feels more useful descending.
+        const preferDesc: SortKey[] = ['pnl', 'r', 'duration', 'exitTime', 'entryTime'];
+        setSortDir(preferDesc.includes(key) ? 'desc' : 'asc');
+        return key;
+      }
+      setSortDir((prevDir) => (prevDir === 'asc' ? 'desc' : 'asc'));
+      return prevKey;
+    });
+  }, []);
 
   const indexById = useMemo(() => {
     const m = new Map<string, number>();
@@ -190,7 +273,7 @@ export function BacktestTradeTable({
     [onTradeSelect, selectedTradeId],
   );
 
-  if (!ordered.length) {
+  if (!trades.length) {
     return (
       <div className="rounded-md border border-bd-subtle bg-bg-surface px-6 py-12 text-center text-sm text-text-muted">
         No trades were produced by this backtest.
@@ -200,8 +283,24 @@ export function BacktestTradeTable({
 
   const items = virtualizer.getVirtualItems();
   const totalSize = virtualizer.getTotalSize();
+  const filtersActive = isFilterActive(filters);
 
   return (
+    <div className="space-y-2">
+      <BacktestTradeFilters
+        options={filterOptions}
+        filters={filters}
+        onChange={setFilters}
+        totalCount={trades.length}
+        visibleCount={ordered.length}
+      />
+      {ordered.length === 0 ? (
+        <div className="rounded-md border border-bd-subtle bg-bg-surface px-6 py-12 text-center text-sm text-text-muted">
+          {filtersActive
+            ? 'No trades match the active filters.'
+            : 'No trades were produced by this backtest.'}
+        </div>
+      ) : (
     <div
       role="table"
       aria-rowcount={ordered.length + 1}
@@ -217,11 +316,7 @@ export function BacktestTradeTable({
           >
             {COLUMNS.map((col) => {
               const isActive = col.sortable && col.key === sortKey;
-              const ariaSort = isActive
-                ? sortDir === 'asc'
-                  ? 'ascending'
-                  : 'descending'
-                : 'none';
+              const ariaSort = isActive ? (sortDir === 'asc' ? 'ascending' : 'descending') : 'none';
               return (
                 <div
                   key={col.key}
@@ -278,6 +373,225 @@ export function BacktestTradeTable({
         </div>
       </div>
     </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Filter bar ──────────────────────────────────────────────────────────────
+
+interface FilterOptions {
+  strategies: string[];
+  intervals: string[];
+  outcomes: string[];
+  directions: Array<'LONG' | 'SHORT'>;
+}
+
+interface BacktestTradeFiltersProps {
+  options: FilterOptions;
+  filters: FilterState;
+  onChange: (next: FilterState) => void;
+  totalCount: number;
+  visibleCount: number;
+}
+
+// Dimensions with a single uniform value across the run are hidden so the
+// bar stays compact. Filters apply instantly; no Apply button.
+function BacktestTradeFilters({
+  options,
+  filters,
+  onChange,
+  totalCount,
+  visibleCount,
+}: BacktestTradeFiltersProps) {
+  const toggleSet = <T extends string>(set: Set<T>, value: T): Set<T> => {
+    const next = new Set(set);
+    if (next.has(value)) next.delete(value);
+    else next.add(value);
+    return next;
+  };
+
+  const handleStrategy = (s: string) =>
+    onChange({ ...filters, strategies: toggleSet(filters.strategies, s) });
+  const handleInterval = (i: string) =>
+    onChange({ ...filters, intervals: toggleSet(filters.intervals, i) });
+  const handleDirection = (d: 'LONG' | 'SHORT') =>
+    onChange({ ...filters, directions: toggleSet(filters.directions, d) });
+  const handleOutcome = (o: string) =>
+    onChange({ ...filters, outcomes: toggleSet(filters.outcomes, o) });
+  const handlePnlSign = (s: PnlSign) =>
+    onChange({ ...filters, pnlSign: filters.pnlSign === s ? 'all' : s });
+  const reset = () => onChange(EMPTY_FILTERS);
+
+  const active = isFilterActive(filters);
+  const hasMultiStrategy = options.strategies.length > 1;
+  const hasMultiInterval = options.intervals.length > 1;
+  const hasBothDirections = options.directions.length > 1;
+  const hasMultiOutcome = options.outcomes.length > 1;
+
+  return (
+    <div className="rounded-md border border-bd-subtle bg-bg-surface p-3">
+      <div className="flex flex-wrap items-start gap-x-4 gap-y-2">
+        {hasMultiStrategy && (
+          <FilterDimension label="Strategy">
+            {options.strategies.map((s) => (
+              <FilterPill
+                key={s}
+                active={filters.strategies.has(s)}
+                onClick={() => handleStrategy(s)}
+              >
+                {s}
+              </FilterPill>
+            ))}
+          </FilterDimension>
+        )}
+
+        {hasBothDirections && (
+          <FilterDimension label="Side">
+            {options.directions.map((d) => (
+              <FilterPill
+                key={d}
+                active={filters.directions.has(d)}
+                onClick={() => handleDirection(d)}
+                tone={d === 'LONG' ? 'profit' : 'loss'}
+              >
+                {d}
+              </FilterPill>
+            ))}
+          </FilterDimension>
+        )}
+
+        <FilterDimension label="P&amp;L">
+          <FilterPill
+            active={filters.pnlSign === 'profit'}
+            onClick={() => handlePnlSign('profit')}
+            tone="profit"
+          >
+            Winners
+          </FilterPill>
+          <FilterPill
+            active={filters.pnlSign === 'loss'}
+            onClick={() => handlePnlSign('loss')}
+            tone="loss"
+          >
+            Losers
+          </FilterPill>
+          <FilterPill
+            active={filters.pnlSign === 'breakeven'}
+            onClick={() => handlePnlSign('breakeven')}
+          >
+            Breakeven
+          </FilterPill>
+        </FilterDimension>
+
+        {hasMultiOutcome && (
+          <FilterDimension label="Outcome">
+            {options.outcomes.map((o) => (
+              <FilterPill
+                key={o}
+                active={filters.outcomes.has(o)}
+                onClick={() => handleOutcome(o)}
+              >
+                {o}
+              </FilterPill>
+            ))}
+          </FilterDimension>
+        )}
+
+        {hasMultiInterval && (
+          <FilterDimension label="TF">
+            {options.intervals.map((i) => (
+              <FilterPill
+                key={i}
+                active={filters.intervals.has(i)}
+                onClick={() => handleInterval(i)}
+              >
+                {i}
+              </FilterPill>
+            ))}
+          </FilterDimension>
+        )}
+
+        <div className="ml-auto flex items-center gap-3">
+          <span className="font-mono text-[11px] tabular-nums text-text-muted">
+            {visibleCount === totalCount
+              ? `${totalCount.toLocaleString()} trades`
+              : `${visibleCount.toLocaleString()} of ${totalCount.toLocaleString()}`}
+          </span>
+          {active && (
+            <button
+              type="button"
+              onClick={reset}
+              className="inline-flex items-center gap-1 rounded-sm border border-bd-subtle bg-bg-elevated px-2 py-1 font-mono text-[10px] uppercase tracking-wider text-text-secondary transition-colors hover:bg-bg-hover hover:text-text-primary"
+            >
+              <X size={10} strokeWidth={2} /> Reset
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function FilterDimension({
+  label,
+  children,
+}: {
+  label: React.ReactNode;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex items-center gap-1.5">
+      <span className="font-mono text-[9px] uppercase tracking-wider text-text-muted">
+        {label}
+      </span>
+      <div className="flex flex-wrap items-center gap-1">{children}</div>
+    </div>
+  );
+}
+
+function FilterPill({
+  active,
+  onClick,
+  tone,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  tone?: 'profit' | 'loss';
+  children: React.ReactNode;
+}) {
+  const activeBg =
+    tone === 'profit'
+      ? 'rgba(0,200,150,0.15)'
+      : tone === 'loss'
+        ? 'rgba(255,77,106,0.15)'
+        : 'var(--accent-glow)';
+  const activeFg =
+    tone === 'profit'
+      ? 'var(--color-profit)'
+      : tone === 'loss'
+        ? 'var(--color-loss)'
+        : 'var(--accent-primary)';
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={active}
+      className={cn(
+        'rounded-full border px-2.5 py-0.5 font-mono text-[10px] font-semibold tracking-wider transition-colors duration-fast',
+        active
+          ? 'border-transparent'
+          : 'border-bd-subtle text-text-muted hover:border-bd-default hover:text-text-primary',
+      )}
+      style={
+        active
+          ? { background: activeBg, color: activeFg, borderColor: activeFg }
+          : undefined
+      }
+    >
+      {children}
+    </button>
   );
 }
 

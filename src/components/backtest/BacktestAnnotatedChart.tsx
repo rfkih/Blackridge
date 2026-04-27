@@ -22,9 +22,11 @@ import {
   type MarkerMeta,
   type OutcomeTone,
 } from '@/lib/backtest/buildTradeMarkers';
-import { formatPnl, formatPrice } from '@/lib/formatters';
+import { formatDate, formatDuration, formatPnl, formatPrice, formatRMultiple } from '@/lib/formatters';
 import type { BacktestTrade } from '@/types/backtest';
+import type { PositionExitReason } from '@/types/trading';
 import type { CandleData } from '@/types/market';
+import { X } from 'lucide-react';
 
 interface BacktestAnnotatedChartProps {
   candles: CandleData[];
@@ -35,6 +37,11 @@ interface BacktestAnnotatedChartProps {
   scrollTrigger?: number;
   height?: number;
 }
+
+// Generous radius — TV markers are ~10px glyphs, hard to hit precisely
+// when bars are pixel-thin. Crosshair uses the same radius so the cursor
+// change and click target stay in sync.
+const MARKER_HIT_RADIUS_PX = 32;
 
 interface HoverState {
   tradeId: string;
@@ -59,19 +66,29 @@ export function BacktestAnnotatedChart({
   const [ready, setReady] = useState(false);
   const [hover, setHover] = useState<HoverState | null>(null);
 
-  // Compute markers + lookup maps. Memoised on trades only, never on
-  // selectedTradeId — setMarkers is an O(n) redraw, so we keep it off the
-  // selection path (see selection effect below).
+  // Snap marker times to the candle that contains them — backend exit
+  // times can be mid-bar and TV reports `param.time` as the candle's
+  // start, so unaligned markers would never match on click. Memoised on
+  // trades + candles only; selection state is handled by the effect below.
   const { markers, metaByTime } = useMemo(() => {
     const built = buildTradeMarkers(trades);
+    const candleTimes = candles.map((c) => c.time);
+    const snap = makeCandleTimeSnapper(candleTimes);
+
+    const snappedMarkers = built.markers.map((m) => {
+      const t = m.time as number;
+      return { ...m, time: snap(t) as Time };
+    });
     const map = new Map<number, MarkerMeta[]>();
     for (const m of built.meta) {
-      const bucket = map.get(m.time);
-      if (bucket) bucket.push(m);
-      else map.set(m.time, [m]);
+      const snapped = snap(m.time);
+      const entry: MarkerMeta = m.time === snapped ? m : { ...m, time: snapped };
+      const bucket = map.get(snapped);
+      if (bucket) bucket.push(entry);
+      else map.set(snapped, [entry]);
     }
-    return { markers: built.markers, metaByTime: map };
-  }, [trades]);
+    return { markers: snappedMarkers, metaByTime: map };
+  }, [trades, candles]);
 
   const tradeById = useMemo(() => {
     const m = new Map<string, BacktestTrade>();
@@ -139,37 +156,24 @@ export function BacktestAnnotatedChart({
       // TV v5: markers are a plugin bolted onto a series, not a method on it.
       markersPluginRef.current = tv.createSeriesMarkers(series, []);
 
-      // ── Click: resolve to a marker and toggle selection. When multiple
-      // markers share a candle (multi-leg trades), pick the one whose price is
-      // closest to the clicked y-coordinate so the user lands on the leg they
-      // actually clicked.
+      // Pixel-distance hit testing — exact-bar match is too narrow on
+      // zoomed-out charts. Click outside the radius deselects.
       const clickHandler = (param: MouseEventParams<Time>) => {
         const ctx = clickCtxRef.current;
-        if (!param.time) {
+        if (!param.point) {
           ctx.onTradeSelect(null);
           return;
         }
-        const bucket = ctx.metaByTime.get(param.time as number);
-        if (!bucket?.length) {
-          ctx.onTradeSelect(null);
-          return;
-        }
-        let chosen = bucket[0];
         const series = ctx.series.current;
-        if (bucket.length > 1 && series && param.point) {
-          const clickedPrice = series.coordinateToPrice(param.point.y);
-          if (clickedPrice != null && Number.isFinite(clickedPrice)) {
-            let bestDist = Infinity;
-            for (const m of bucket) {
-              const d = Math.abs(m.price - clickedPrice);
-              if (d < bestDist) {
-                bestDist = d;
-                chosen = m;
-              }
-            }
-          }
-        }
-        ctx.onTradeSelect(chosen.tradeId);
+        if (!series) return;
+        const chosen = findClosestMarkerByPixel(
+          ctx.metaByTime,
+          series,
+          chart,
+          param.point,
+          MARKER_HIT_RADIUS_PX,
+        );
+        ctx.onTradeSelect(chosen ? chosen.tradeId : null);
       };
       chart.subscribeClick(clickHandler);
       clickUnsubRef.current = () => {
@@ -334,19 +338,38 @@ export function BacktestAnnotatedChart({
     const chart = chartRef.current;
     if (!chart) return;
 
-    // TV fires crosshair events at mouse-move rate. Coalesce with rAF and
-    // short-circuit on identical tradeId so we don't re-render the tooltip
-    // subtree dozens of times per second when the cursor is parked on one
-    // marker. Without this, a 200-trade chart burns a few ms of React work
-    // on every pixel moved.
+    // Marker iteration deferred to the rAF tick — TV fires crosshair events
+    // at mouse-move rate; running the O(markers) hit test inline would
+    // jank dense charts. Same hit radius the click handler uses, so the
+    // cursor-pointer affordance matches where a click would land.
     let rafId: number | null = null;
-    let pending: HoverState | null = null;
+    let pendingPoint: { x: number; y: number } | null = null;
+    let pendingValid = false;
     let lastPayload: HoverState | null = null;
 
     const commit = () => {
       rafId = null;
-      const next = pending;
-      pending = null;
+      const point = pendingValid ? pendingPoint : null;
+      pendingPoint = null;
+      pendingValid = false;
+
+      let next: HoverState | null = null;
+      if (point) {
+        const series = seriesRef.current;
+        if (series && chart) {
+          const chosen = findClosestMarkerByPixel(
+            metaByTime,
+            series,
+            chart,
+            point,
+            MARKER_HIT_RADIUS_PX,
+          );
+          if (chosen) {
+            next = { tradeId: chosen.tradeId, x: point.x, y: point.y };
+          }
+        }
+      }
+
       if (next === null && lastPayload === null) return;
       if (
         next &&
@@ -361,31 +384,9 @@ export function BacktestAnnotatedChart({
     };
 
     const handler = (param: MouseEventParams<Time>) => {
-      let nextHover: HoverState | null = null;
-      if (param.point && param.time) {
-        const bucket = metaByTime.get(param.time as number);
-        if (bucket?.length) {
-          // Same disambiguation as the click handler — pick the leg whose
-          // price is closest to the cursor's price.
-          let chosen = bucket[0];
-          const series = seriesRef.current;
-          if (bucket.length > 1 && series) {
-            const cursorPrice = series.coordinateToPrice(param.point.y);
-            if (cursorPrice != null && Number.isFinite(cursorPrice)) {
-              let bestDist = Infinity;
-              for (const m of bucket) {
-                const d = Math.abs(m.price - cursorPrice);
-                if (d < bestDist) {
-                  bestDist = d;
-                  chosen = m;
-                }
-              }
-            }
-          }
-          nextHover = { tradeId: chosen.tradeId, x: param.point.x, y: param.point.y };
-        }
-      }
-      pending = nextHover;
+      // Snapshot the point — TV may reuse the param object on the next event.
+      pendingPoint = param.point ? { x: param.point.x, y: param.point.y } : null;
+      pendingValid = true;
       if (rafId == null) rafId = requestAnimationFrame(commit);
     };
 
@@ -412,6 +413,11 @@ export function BacktestAnnotatedChart({
   );
 
   const hoveredTrade = hover ? tradeById.get(hover.tradeId) : null;
+  const selectedTrade = selectedTradeId ? tradeById.get(selectedTradeId) ?? null : null;
+
+  // Switch to pointer wherever the tooltip would show — same hit-radius
+  // as the click handler.
+  const cursorOverMarker = hoveredTrade != null;
 
   return (
     // The div hosts TradingView's canvas — TV captures pointer events; we
@@ -424,14 +430,64 @@ export function BacktestAnnotatedChart({
       ref={containerRef}
       role="application"
       className="relative w-full"
-      style={{ height }}
+      style={{ height, cursor: cursorOverMarker ? 'pointer' : 'crosshair' }}
       tabIndex={0}
       onKeyDown={handleKey}
       aria-label="Backtest annotated candlestick chart"
     >
       {hoveredTrade && hover && <TradeMarkerTooltip trade={hoveredTrade} x={hover.x} y={hover.y} />}
+      {selectedTrade && (
+        <TradeDetailCard trade={selectedTrade} onClose={() => onTradeSelect(null)} />
+      )}
+      {!selectedTrade && trades.length > 0 && <ClickAnyMarkerHint />}
     </div>
     /* eslint-enable jsx-a11y/no-noninteractive-element-interactions, jsx-a11y/no-noninteractive-tabindex */
+  );
+}
+
+const HINT_DISMISS_KEY = 'blackheart:backtest-chart-hint-dismissed';
+
+// One-time discoverability nudge — dismissal persists across sessions.
+function ClickAnyMarkerHint() {
+  const [dismissed, setDismissed] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      setDismissed(window.localStorage.getItem(HINT_DISMISS_KEY) === '1');
+    } catch {
+      setDismissed(false);
+    }
+  }, []);
+
+  if (dismissed !== false) return null;
+
+  const dismiss = () => {
+    setDismissed(true);
+    try {
+      window.localStorage.setItem(HINT_DISMISS_KEY, '1');
+    } catch {
+      // No persistence available (private mode); the in-memory dismiss still
+      // takes effect for this session.
+    }
+  };
+
+  return (
+    <div
+      role="status"
+      className="pointer-events-auto absolute bottom-3 right-3 z-10 flex items-center gap-2 rounded-md border border-[var(--border-default)] px-3 py-1.5 text-[11px] text-[var(--text-secondary)] shadow-lg"
+      style={{ background: 'var(--bg-elevated)' }}
+    >
+      <span>Click any marker for trade details</span>
+      <button
+        type="button"
+        onClick={dismiss}
+        className="rounded p-0.5 text-[var(--text-muted)] transition-colors hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]"
+        aria-label="Dismiss hint"
+      >
+        <X size={11} strokeWidth={2} />
+      </button>
+    </div>
   );
 }
 
@@ -490,6 +546,284 @@ function TradeMarkerTooltip({ trade, x, y }: { trade: BacktestTrade; x: number; 
       )}
     </div>
   );
+}
+
+/**
+ * Click-pinned detail card. Shown in the chart's top-right when a trade
+ * marker is clicked. The hover tooltip is the quick-scan affordance; this
+ * is the "I want the full picture for this trade" view — strategy + TF,
+ * entry/exit times and prices, SL/TP levels, P&L, R-multiple, and which
+ * legs hit what. Dismiss via the close button or by pressing ESC on the
+ * focused chart container.
+ */
+function TradeDetailCard({ trade, onClose }: { trade: BacktestTrade; onClose: () => void }) {
+  const isLong = trade.direction === 'LONG';
+  const pnlColor = trade.realizedPnl >= 0 ? 'var(--color-profit)' : 'var(--color-loss)';
+  const outcome = deriveTradeOutcome(trade.positions);
+  const outcomeColors = tooltipOutcomeColors(outcome.tone);
+  const duration = trade.exitTime != null ? trade.exitTime - trade.entryTime : null;
+
+  return (
+    <div
+      className="absolute right-3 top-3 z-20 w-[280px] rounded-md border border-[var(--border-default)] shadow-lg"
+      style={{ background: 'var(--bg-elevated)' }}
+      role="dialog"
+      aria-label="Trade details"
+    >
+      {/* Header — direction, outcome, close */}
+      <div className="flex items-center justify-between gap-2 border-b border-[var(--border-subtle)] px-3 py-2">
+        <div className="flex min-w-0 items-center gap-2">
+          <span
+            className="rounded-sm px-1.5 py-0.5 font-mono text-[10px] font-semibold tracking-wider"
+            style={{
+              background: isLong ? 'rgba(0,200,150,0.15)' : 'rgba(255,77,106,0.15)',
+              color: isLong ? 'var(--color-profit)' : 'var(--color-loss)',
+            }}
+          >
+            {trade.direction}
+          </span>
+          <span
+            className="rounded-sm px-1.5 py-0.5 font-mono text-[10px] font-semibold tracking-wider"
+            title={outcome.description}
+            style={{ background: outcomeColors.bg, color: outcomeColors.fg }}
+          >
+            {outcome.label}
+          </span>
+        </div>
+        <button
+          type="button"
+          onClick={onClose}
+          className="rounded p-0.5 text-[var(--text-muted)] transition-colors hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]"
+          aria-label="Close trade details"
+        >
+          <X size={13} strokeWidth={2} />
+        </button>
+      </div>
+
+      {/* Strategy + TF — surfaces the per-trade attribution we recently added */}
+      <div className="flex items-center gap-2 border-b border-[var(--border-subtle)] px-3 py-2">
+        {trade.strategyCode || trade.strategyName ? (
+          <span
+            className="truncate rounded-sm border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-1.5 py-0.5 font-mono text-[10px] font-semibold text-[var(--text-primary)]"
+            title={trade.strategyName ?? trade.strategyCode ?? ''}
+          >
+            {trade.strategyCode ?? trade.strategyName}
+          </span>
+        ) : (
+          <span className="font-mono text-[10px] text-[var(--text-muted)]">no strategy</span>
+        )}
+        <span className="font-mono text-[10px] uppercase tracking-wider text-[var(--text-muted)]">
+          {trade.interval ?? '—'}
+        </span>
+      </div>
+
+      {/* Entry / exit times */}
+      <div className="space-y-1 border-b border-[var(--border-subtle)] px-3 py-2 font-mono text-[11px]">
+        <DetailRow label="Entry" value={formatDate(trade.entryTime)} muted />
+        <DetailRow
+          label="Exit"
+          value={trade.exitTime != null ? formatDate(trade.exitTime) : '— still open'}
+          muted
+        />
+        {duration != null && (
+          <DetailRow label="Held" value={formatDuration(duration)} muted />
+        )}
+      </div>
+
+      {/* Price levels — the SL / TP / entry prices the trade was sized against */}
+      <div className="space-y-1 border-b border-[var(--border-subtle)] px-3 py-2 font-mono text-[11px] tabular-nums">
+        <DetailRow label="Entry @" value={formatPrice(trade.entryPrice)} />
+        <DetailRow
+          label="Exit @"
+          value={trade.exitPrice != null ? formatPrice(trade.exitPrice) : '—'}
+        />
+        <DetailRow
+          label="Stop loss"
+          value={formatPrice(trade.stopLossPrice)}
+          dotColor="var(--color-loss)"
+        />
+        <DetailRow
+          label="Take profit 1"
+          value={trade.tp1Price != null ? formatPrice(trade.tp1Price) : '—'}
+          dotColor="var(--color-profit)"
+        />
+        {trade.tp2Price != null && (
+          <DetailRow
+            label="Take profit 2"
+            value={formatPrice(trade.tp2Price)}
+            dotColor="var(--color-profit)"
+          />
+        )}
+      </div>
+
+      {/* P&L summary */}
+      <div className="space-y-1 border-b border-[var(--border-subtle)] px-3 py-2 font-mono text-[11px] tabular-nums">
+        <div className="flex items-center justify-between">
+          <span className="text-[10px] uppercase tracking-wider text-[var(--text-muted)]">
+            Realized P&L
+          </span>
+          <span className="font-semibold" style={{ color: pnlColor }}>
+            {formatPnl(trade.realizedPnl)}
+          </span>
+        </div>
+        <div className="flex items-center justify-between">
+          <span className="text-[10px] uppercase tracking-wider text-[var(--text-muted)]">
+            R-multiple
+          </span>
+          <span style={{ color: pnlColor }}>{formatRMultiple(trade.rMultiple)}</span>
+        </div>
+        <DetailRow label="Quantity" value={trade.quantity.toString()} muted />
+      </div>
+
+      {/* Per-leg breakdown — what each child position did */}
+      <div className="px-3 py-2">
+        <div className="label-caps mb-1 !text-[9px]">Legs</div>
+        {trade.positions.length === 0 ? (
+          <div className="font-mono text-[10px] text-[var(--text-muted)]">— no positions</div>
+        ) : (
+          <ul className="space-y-1 font-mono text-[10px]">
+            {trade.positions.map((p) => (
+              <li key={p.id} className="flex items-center justify-between gap-2">
+                <span className="flex items-center gap-1">
+                  <span
+                    aria-hidden="true"
+                    className="h-1.5 w-1.5 rounded-full"
+                    style={{ background: legDotColor(p.exitReason) }}
+                  />
+                  <span className="font-semibold text-[var(--text-primary)]">{p.type}</span>
+                </span>
+                <span className="text-[var(--text-muted)]">{legSummary(p.exitReason, p.exitPrice)}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function DetailRow({
+  label,
+  value,
+  muted,
+  dotColor,
+}: {
+  label: string;
+  value: string;
+  muted?: boolean;
+  dotColor?: string;
+}) {
+  return (
+    <div className="flex items-center justify-between">
+      <span className="flex items-center gap-1 text-[10px] uppercase tracking-wider text-[var(--text-muted)]">
+        {dotColor && (
+          <span
+            aria-hidden="true"
+            className="h-1.5 w-1.5 rounded-full"
+            style={{ background: dotColor }}
+          />
+        )}
+        {label}
+      </span>
+      <span className={muted ? 'text-[var(--text-secondary)]' : 'text-[var(--text-primary)]'}>
+        {value}
+      </span>
+    </div>
+  );
+}
+
+function legSummary(reason: PositionExitReason | null | undefined, exitPrice: number | null): string {
+  if (!reason) return 'open';
+  const priceTail = exitPrice != null ? ` @ ${formatPrice(exitPrice)}` : '';
+  switch (reason) {
+    case 'TP_HIT':
+      return `TP hit${priceTail}`;
+    case 'SL_HIT':
+      return `SL hit${priceTail}`;
+    case 'RUNNER_CLOSE':
+      return `trail${priceTail}`;
+    case 'MANUAL_CLOSE':
+      return `manual${priceTail}`;
+    case 'BACKTEST_END':
+      return `bt-end${priceTail}`;
+    default:
+      return `${reason}${priceTail}`;
+  }
+}
+
+function legDotColor(reason: PositionExitReason | null | undefined): string {
+  switch (reason) {
+    case 'TP_HIT':
+      return 'var(--color-profit)';
+    case 'RUNNER_CLOSE':
+      return 'var(--color-info)';
+    case 'SL_HIT':
+      return 'var(--color-loss)';
+    case 'MANUAL_CLOSE':
+    case 'BACKTEST_END':
+      return 'var(--color-warning)';
+    default:
+      return 'var(--text-muted)';
+  }
+}
+
+// Nearest marker to a click/hover point in pixel space. The x-distance
+// quick-reject keeps this cheap on dense charts; we measure from the
+// marker's price coord (not its rendered glyph offset) and rely on the
+// generous radius to absorb the visual offset.
+function findClosestMarkerByPixel(
+  metaByTime: Map<number, MarkerMeta[]>,
+  series: ISeriesApi<'Candlestick'>,
+  chart: IChartApi,
+  point: { x: number; y: number },
+  hitRadiusPx: number,
+): MarkerMeta | null {
+  const timeScale = chart.timeScale();
+  let chosen: MarkerMeta | null = null;
+  let bestDist = Infinity;
+
+  metaByTime.forEach((metas, time) => {
+    const x = timeScale.timeToCoordinate(time as Time);
+    if (x == null) return; // marker scrolled off the visible time scale
+    const dx = x - point.x;
+    if (Math.abs(dx) > hitRadiusPx) return; // x-only quick-reject
+    for (const meta of metas) {
+      const y = series.priceToCoordinate(meta.price);
+      if (y == null) continue;
+      const dy = y - point.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist < bestDist && dist <= hitRadiusPx) {
+        bestDist = dist;
+        chosen = meta;
+      }
+    }
+  });
+
+  return chosen;
+}
+
+// Snap to the candle whose [start, start + interval) contains t. Falls
+// back to identity until candles load; mid-bar markers won't snap in that
+// window but exact-aligned trades still bind.
+function makeCandleTimeSnapper(sortedTimes: number[]): (t: number) => number {
+  if (sortedTimes.length < 2) return (t) => t;
+  // Backend contract: ascending. We don't re-sort.
+  const last = sortedTimes[sortedTimes.length - 1];
+  const first = sortedTimes[0];
+  return (t: number): number => {
+    if (t <= first) return first;
+    // Past the loaded range — anchor to the last candle so it stays clickable.
+    if (t >= last) return last;
+    let lo = 0;
+    let hi = sortedTimes.length - 1;
+    // Largest index whose value is <= t.
+    while (lo < hi) {
+      const mid = (lo + hi + 1) >> 1;
+      if (sortedTimes[mid] <= t) lo = mid;
+      else hi = mid - 1;
+    }
+    return sortedTimes[lo];
+  };
 }
 
 function tooltipOutcomeColors(tone: OutcomeTone): { bg: string; fg: string } {

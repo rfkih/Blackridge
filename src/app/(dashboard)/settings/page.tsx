@@ -2,7 +2,9 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
+import { useQuery } from '@tanstack/react-query';
 import { KeyRound, Loader2, LogOut, Plus, ShieldCheck } from 'lucide-react';
+import { formatDate } from '@/lib/formatters';
 import { useAuth } from '@/hooks/useAuth';
 import { useAccounts, useUpdateAccountRiskConfig } from '@/hooks/useAccounts';
 import { useIsAdmin } from '@/hooks/useIsAdmin';
@@ -19,14 +21,8 @@ import {
 } from '@/store/currencyStore';
 import type { AccountSummary } from '@/types/account';
 
-// ─── Settings nav — mirrors the MONO-MINT design pack's left rail ───────────
-//
-// Each nav item carries a `wired` flag so we can visually match the design
-// pack (showing every section the product will eventually expose) while being
-// honest about what works today — everything not-yet-backed by backend
-// endpoints dims and disables its click target rather than routing to a
-// placeholder.
-
+// `wired` flag: only items backed by real endpoints render in the nav;
+// the rest are collected into the "Coming later" group below.
 interface NavItem {
   k: string;
   label: string;
@@ -43,6 +39,7 @@ const NAV: NavGroup[] = [
     items: [
       { k: 'profile', label: 'Profile', wired: true },
       { k: 'security', label: 'Security', wired: true },
+      { k: 'activity', label: 'Recent activity', wired: true },
       { k: 'api', label: 'API keys', wired: false },
       { k: 'sessions', label: 'Active sessions', wired: false },
     ],
@@ -71,6 +68,10 @@ const NAV: NavGroup[] = [
       { k: 'referrals', label: 'Referrals', wired: false },
     ],
   },
+  {
+    group: 'HELP',
+    items: [{ k: 'support', label: 'Help & support', wired: true }],
+  },
 ];
 
 type SectionKey = string;
@@ -80,9 +81,13 @@ export default function SettingsPage() {
 
   return (
     <div
-      className="mm"
+      className="mm settings-grid"
       style={{
         display: 'grid',
+        // Two-column on tablet+, stack vertically on phones. The
+        // tailwind-friendly approach would be `md:grid-cols-[260px_1fr]`,
+        // but the existing layout uses inline styles — we flip them via
+        // a container query class defined in globals.css.
         gridTemplateColumns: '260px 1fr',
         gap: 20,
         minHeight: 0,
@@ -107,72 +112,58 @@ export default function SettingsPage() {
             overflowY: 'auto',
           }}
         >
-          {NAV.map((group) => (
-            <div key={group.group}>
-              <div
-                className="mm-kicker"
-                style={{
-                  padding: '0 8px',
-                  marginBottom: 6,
-                  fontSize: 9,
-                  letterSpacing: '0.18em',
-                  color: 'var(--mm-ink-3)',
-                }}
-              >
-                {group.group}
+          {NAV.map((group) => {
+            // Filter to only the items we actually ship today. Empty groups
+            // disappear entirely — better than rendering a header followed
+            // by zero buttons.
+            const wired = group.items.filter((it) => it.wired);
+            if (wired.length === 0) return null;
+            return (
+              <div key={group.group}>
+                <div
+                  className="mm-kicker"
+                  style={{
+                    padding: '0 8px',
+                    marginBottom: 6,
+                    fontSize: 9,
+                    letterSpacing: '0.18em',
+                    color: 'var(--mm-ink-3)',
+                  }}
+                >
+                  {group.group}
+                </div>
+                {wired.map((it) => {
+                  const isActive = it.k === active;
+                  return (
+                    <button
+                      type="button"
+                      key={it.k}
+                      onClick={() => setActive(it.k)}
+                      style={{
+                        width: '100%',
+                        textAlign: 'left',
+                        padding: '9px 10px',
+                        borderRadius: 8,
+                        fontSize: 13,
+                        color: isActive ? 'var(--mm-ink-0)' : 'var(--mm-ink-1)',
+                        background: isActive ? 'var(--mm-surface-2)' : 'transparent',
+                        borderLeft: isActive
+                          ? '2px solid var(--mm-mint)'
+                          : '2px solid transparent',
+                        cursor: 'pointer',
+                        fontFamily: 'var(--font-body)',
+                        transition: 'background 120ms, color 120ms',
+                      }}
+                    >
+                      {it.label}
+                    </button>
+                  );
+                })}
               </div>
-              {group.items.map((it) => {
-                const isActive = it.k === active;
-                return (
-                  <button
-                    type="button"
-                    key={it.k}
-                    onClick={() => it.wired && setActive(it.k)}
-                    disabled={!it.wired}
-                    title={it.wired ? undefined : 'Coming soon'}
-                    style={{
-                      width: '100%',
-                      textAlign: 'left',
-                      padding: '9px 10px',
-                      borderRadius: 8,
-                      fontSize: 13,
-                      color: isActive
-                        ? 'var(--mm-ink-0)'
-                        : it.wired
-                          ? 'var(--mm-ink-1)'
-                          : 'var(--mm-ink-3)',
-                      background: isActive ? 'var(--mm-surface-2)' : 'transparent',
-                      borderLeft: isActive
-                        ? '2px solid var(--mm-mint)'
-                        : '2px solid transparent',
-                      cursor: it.wired ? 'pointer' : 'not-allowed',
-                      fontFamily: 'var(--font-body)',
-                      transition: 'background 120ms, color 120ms',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      opacity: it.wired ? 1 : 0.6,
-                    }}
-                  >
-                    <span>{it.label}</span>
-                    {!it.wired && (
-                      <span
-                        className="font-mono"
-                        style={{
-                          fontSize: 8,
-                          letterSpacing: '0.16em',
-                          color: 'var(--mm-ink-3)',
-                          textTransform: 'uppercase',
-                        }}
-                      >
-                        soon
-                      </span>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-          ))}
+            );
+          })}
+
+          <ComingLaterGroup nav={NAV} />
         </div>
 
         <PlanCard />
@@ -191,12 +182,70 @@ export default function SettingsPage() {
       >
         {active === 'profile' && <ProfileSection />}
         {active === 'security' && <SecuritySection />}
+        {active === 'activity' && <RecentActivitySection />}
         {active === 'brokers' && <BrokersSection />}
         {active === 'risk' && <RiskGuardrailsSection />}
+        {active === 'support' && <SupportSection />}
         {/* Profile view is the landing one — when there's no match we fall
             back to it rather than showing an empty canvas. */}
-        {!['profile', 'security', 'brokers', 'risk'].includes(active) && <ProfileSection />}
+        {!['profile', 'security', 'activity', 'brokers', 'risk', 'support'].includes(active) && (
+          <ProfileSection />
+        )}
       </div>
+    </div>
+  );
+}
+
+// Collapsed bucket of every {wired: false} nav item — one click to peek
+// at the roadmap, never in the way.
+function ComingLaterGroup({ nav }: { nav: NavGroup[] }) {
+  const upcoming = nav.flatMap((g) => g.items.filter((i) => !i.wired));
+  const [open, setOpen] = useState(false);
+  if (upcoming.length === 0) return null;
+  return (
+    <div>
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="mm-kicker"
+        style={{
+          width: '100%',
+          textAlign: 'left',
+          padding: '4px 8px',
+          marginBottom: 6,
+          fontSize: 9,
+          letterSpacing: '0.18em',
+          color: 'var(--mm-ink-3)',
+          background: 'transparent',
+          border: 'none',
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}
+        aria-expanded={open}
+      >
+        <span>COMING LATER · {upcoming.length}</span>
+        <span aria-hidden="true">{open ? '−' : '+'}</span>
+      </button>
+      {open && (
+        <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+          {upcoming.map((it) => (
+            <li
+              key={it.k}
+              style={{
+                padding: '7px 10px',
+                fontSize: 12,
+                color: 'var(--mm-ink-3)',
+                fontFamily: 'var(--font-body)',
+              }}
+              title="Not implemented yet — backend endpoint pending"
+            >
+              {it.label}
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }
@@ -210,26 +259,471 @@ function PlanCard() {
   const planName = isAdmin ? 'Full access' : 'Desk Pro';
 
   return (
-    <div
+    <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
+      <div
+        style={{
+          padding: '12px 10px',
+          borderRadius: 12,
+          background: 'var(--mm-surface-2)',
+          fontSize: 11,
+          color: 'var(--mm-ink-2)',
+          lineHeight: 1.5,
+        }}
+      >
+        <div
+          className="font-mono"
+          style={{ fontSize: 9, letterSpacing: '0.15em', color: 'var(--mm-ink-3)' }}
+        >
+          {planLabel}
+        </div>
+        <div style={{ color: 'var(--mm-ink-0)', fontWeight: 500, marginTop: 4 }}>{planName}</div>
+        <div style={{ marginTop: 4 }}>{user?.email ?? '—'}</div>
+      </div>
+      <div
+        style={{
+          display: 'flex',
+          gap: 12,
+          padding: '0 10px',
+          fontSize: 10,
+          color: 'var(--mm-ink-3)',
+        }}
+      >
+        <Link href="/privacy" style={{ color: 'var(--mm-ink-2)', textDecoration: 'none' }}>
+          Privacy
+        </Link>
+        <Link href="/terms" style={{ color: 'var(--mm-ink-2)', textDecoration: 'none' }}>
+          Terms
+        </Link>
+        <Link href="/cookies" style={{ color: 'var(--mm-ink-2)', textDecoration: 'none' }}>
+          Cookies
+        </Link>
+      </div>
+    </div>
+  );
+}
+
+// Audit trail for the caller — strategy mutations, kill-switch rearms,
+// risk-config changes. Server-side scoped; no admin-wide visibility here.
+function RecentActivitySection() {
+  const PAGE_SIZE = 25;
+  const [page, setPage] = useState(0);
+  const query = useQuery({
+    queryKey: ['audit-events', page, PAGE_SIZE],
+    queryFn: () =>
+      import('@/lib/api/auditEvents').then((m) => m.listMyAuditEvents(page, PAGE_SIZE)),
+    staleTime: 30_000,
+    placeholderData: (prev) => prev,
+  });
+
+  const data = query.data;
+  const total = data?.totalElements ?? 0;
+  const totalPages = data?.totalPages ?? 0;
+  const events = data?.content ?? [];
+
+  return (
+    <section
+      className="mm-card"
+      style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}
+    >
+      <div>
+        <h2 className="font-display" style={{ fontSize: 18, color: 'var(--mm-ink-0)' }}>
+          Recent activity
+        </h2>
+        <p style={{ marginTop: 4, fontSize: 13, color: 'var(--mm-ink-2)' }}>
+          Every security-sensitive change to your strategies, accounts, and risk config —
+          newest first. Scoped to your own actions.
+        </p>
+      </div>
+
+      {query.isLoading && events.length === 0 ? (
+        <div style={{ padding: 16, fontSize: 12, color: 'var(--mm-ink-2)' }}>
+          Loading activity…
+        </div>
+      ) : query.isError ? (
+        <div
+          role="alert"
+          style={{
+            padding: 12,
+            borderRadius: 8,
+            border: '1px solid rgba(255,77,106,0.40)',
+            background: 'rgba(255,77,106,0.08)',
+            fontSize: 12,
+            color: 'var(--color-loss)',
+          }}
+        >
+          Could not load activity. Try again in a moment.
+        </div>
+      ) : events.length === 0 ? (
+        <div
+          style={{
+            padding: '20px 16px',
+            textAlign: 'center',
+            border: '1px dashed var(--mm-border)',
+            borderRadius: 8,
+            fontSize: 12,
+            color: 'var(--mm-ink-2)',
+          }}
+        >
+          No activity yet. Strategy creations, kill-switch rearms, and risk-config changes
+          show up here once you start using the app.
+        </div>
+      ) : (
+        <>
+          <ul
+            style={{
+              listStyle: 'none',
+              padding: 0,
+              margin: 0,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 1,
+              background: 'var(--mm-border)',
+              borderRadius: 8,
+              overflow: 'hidden',
+            }}
+          >
+            {events.map((e) => (
+              <ActivityRow key={e.auditEventId} event={e} />
+            ))}
+          </ul>
+
+          <footer
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              fontSize: 11,
+              color: 'var(--mm-ink-2)',
+              fontFamily: 'var(--font-mono)',
+            }}
+          >
+            <span>
+              {events.length === 0
+                ? 'No results'
+                : `Showing ${page * PAGE_SIZE + 1}–${page * PAGE_SIZE + events.length} of ${total}`}
+            </span>
+            <div style={{ display: 'flex', gap: 6 }}>
+              <button
+                type="button"
+                className="mm-btn"
+                disabled={page === 0 || query.isFetching}
+                onClick={() => setPage((p) => Math.max(0, p - 1))}
+              >
+                Prev
+              </button>
+              <button
+                type="button"
+                className="mm-btn"
+                disabled={page + 1 >= totalPages || query.isFetching}
+                onClick={() => setPage((p) => p + 1)}
+              >
+                Next
+              </button>
+            </div>
+          </footer>
+        </>
+      )}
+    </section>
+  );
+}
+
+function ActivityRow({ event }: { event: import('@/lib/api/auditEvents').AuditEvent }) {
+  const ts = event.createdAt ? new Date(event.createdAt).getTime() : null;
+  const tone = ACTION_TONE[event.action] ?? 'neutral';
+  const colour = ACTIVITY_TONE_COLOURS[tone];
+  return (
+    <li
       style={{
-        padding: '12px 10px',
-        borderRadius: 12,
-        background: 'var(--mm-surface-2)',
-        fontSize: 11,
-        color: 'var(--mm-ink-2)',
-        lineHeight: 1.5,
-        marginTop: 12,
+        background: 'var(--mm-surface)',
+        padding: '10px 14px',
+        display: 'grid',
+        gridTemplateColumns: 'auto 1fr auto',
+        gap: 12,
+        alignItems: 'center',
       }}
     >
-      <div
-        className="font-mono"
-        style={{ fontSize: 9, letterSpacing: '0.15em', color: 'var(--mm-ink-3)' }}
-      >
-        {planLabel}
+      <span
+        aria-hidden="true"
+        style={{
+          width: 8,
+          height: 8,
+          borderRadius: 999,
+          background: colour,
+          flexShrink: 0,
+        }}
+      />
+      <div style={{ minWidth: 0 }}>
+        <p
+          className="font-mono"
+          style={{ fontSize: 12, fontWeight: 600, color: 'var(--mm-ink-0)' }}
+        >
+          {humanAction(event.action)}
+        </p>
+        <p style={{ fontSize: 11, color: 'var(--mm-ink-2)' }}>
+          {event.entityType ?? '—'}
+          {event.entityId ? ` · ${event.entityId.slice(0, 8)}…` : ''}
+          {event.reason ? ` · ${event.reason}` : ''}
+        </p>
       </div>
-      <div style={{ color: 'var(--mm-ink-0)', fontWeight: 500, marginTop: 4 }}>{planName}</div>
-      <div style={{ marginTop: 4 }}>{user?.email ?? '—'}</div>
-    </div>
+      <span
+        className="font-mono"
+        style={{
+          fontSize: 10,
+          color: 'var(--mm-ink-3)',
+          whiteSpace: 'nowrap',
+        }}
+      >
+        {ts ? formatDate(ts) : '—'}
+      </span>
+    </li>
+  );
+}
+
+type ActivityTone = 'positive' | 'negative' | 'warning' | 'neutral';
+
+const ACTIVITY_TONE_COLOURS: Record<ActivityTone, string> = {
+  positive: 'var(--color-profit)',
+  negative: 'var(--color-loss)',
+  warning: 'var(--color-warning)',
+  neutral: 'var(--color-info)',
+};
+
+const ACTION_TONE: Record<string, ActivityTone> = {
+  STRATEGY_CREATED: 'positive',
+  STRATEGY_ACTIVATED: 'positive',
+  STRATEGY_DEACTIVATED: 'warning',
+  STRATEGY_DELETED: 'negative',
+  STRATEGY_UPDATED: 'neutral',
+  KILL_SWITCH_REARMED: 'warning',
+  ACCOUNT_RISK_UPDATED: 'neutral',
+};
+
+function humanAction(action: string): string {
+  // Split SNAKE_CASE into Title Case: STRATEGY_CREATED → "Strategy created".
+  const parts = action.split('_');
+  if (parts.length === 0) return action;
+  const first = parts[0];
+  const rest = parts.slice(1);
+  return [
+    first.charAt(0) + first.slice(1).toLowerCase(),
+    ...rest.map((p) => p.toLowerCase()),
+  ].join(' ');
+}
+
+// Posts to POST /api/v1/support; admins read it on /admin/inbox. The
+// `diagnostic` snapshot never includes JWT or secrets.
+function SupportSection() {
+  const { user } = useAuth();
+  const appVersion = process.env.NEXT_PUBLIC_APP_VERSION ?? 'dev';
+  const [subject, setSubject] = useState('');
+  const [body, setBody] = useState('');
+  const [includeDiagnostic, setIncludeDiagnostic] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [submittedId, setSubmittedId] = useState<string | null>(null);
+
+  // Note: never include JWT or any secret here.
+  const diagnostic = useMemo(() => {
+    const lines = [
+      `Time: ${new Date().toISOString()}`,
+      `App version: ${appVersion}`,
+      `User ID: ${user?.id ?? 'unknown'}`,
+      `Email: ${user?.email ?? 'unknown'}`,
+      `Role: ${user?.role ?? 'unknown'}`,
+      `User-Agent: ${typeof navigator !== 'undefined' ? navigator.userAgent : 'n/a'}`,
+      `Page: ${typeof window !== 'undefined' ? window.location.pathname + window.location.search : 'n/a'}`,
+    ];
+    return lines.join('\n');
+  }, [user, appVersion]);
+
+  const trimmedSubject = subject.trim();
+  const trimmedBody = body.trim();
+  const valid = trimmedSubject.length > 0 && trimmedBody.length >= 10;
+
+  const onSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!valid || submitting) return;
+    setSubmitting(true);
+    try {
+      const { submitSupportMessage } = await import('@/lib/api/support');
+      const result = await submitSupportMessage({
+        subject: trimmedSubject,
+        body: trimmedBody,
+        diagnostic: includeDiagnostic ? diagnostic : undefined,
+      });
+      setSubmittedId(result.supportMessageId);
+      setSubject('');
+      setBody('');
+      toast.success({ title: 'Message sent', description: 'We\u2019ll get back to you soon.' });
+    } catch (err) {
+      toast.error({ title: 'Could not send', description: normalizeError(err) });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <section
+      className="mm-card"
+      style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 18 }}
+    >
+      <div>
+        <h2 className="font-display" style={{ fontSize: 18, color: 'var(--mm-ink-0)' }}>
+          Help &amp; support
+        </h2>
+        <p style={{ marginTop: 4, fontSize: 13, color: 'var(--mm-ink-2)' }}>
+          Hit a bug or have a question? Send us a message — it lands in the team inbox and we
+          reply by email. The diagnostic snapshot helps us reproduce issues without you needing
+          to dig for the version or page.
+        </p>
+      </div>
+
+      {submittedId && (
+        <div
+          role="status"
+          style={{
+            padding: '10px 14px',
+            borderRadius: 10,
+            border: '1px solid rgba(0,200,150,0.32)',
+            background: 'rgba(0,200,150,0.08)',
+            fontSize: 12,
+            color: 'var(--mm-ink-1)',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            gap: 12,
+          }}
+        >
+          <span>
+            <strong style={{ color: 'var(--color-profit)' }}>Message sent.</strong> Reference{' '}
+            <span className="font-mono">{submittedId.slice(0, 8)}</span>.
+          </span>
+          <button
+            type="button"
+            className="mm-btn mm-btn-ghost"
+            style={{ fontSize: 11, padding: '4px 10px' }}
+            onClick={() => setSubmittedId(null)}
+          >
+            Send another
+          </button>
+        </div>
+      )}
+
+      <form onSubmit={onSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+        <div>
+          <label htmlFor="support-subject" className="mm-label">
+            Subject
+          </label>
+          <input
+            id="support-subject"
+            className="mm-input"
+            value={subject}
+            onChange={(e) => setSubject(e.target.value)}
+            placeholder="Briefly: e.g. Backtest fails to load equity curve"
+            maxLength={200}
+            disabled={submitting}
+            required
+          />
+        </div>
+
+        <div>
+          <label htmlFor="support-body" className="mm-label">
+            Message
+          </label>
+          <textarea
+            id="support-body"
+            className="mm-input"
+            value={body}
+            onChange={(e) => setBody(e.target.value)}
+            placeholder="What were you trying to do, and what happened? Steps to reproduce help us a lot."
+            maxLength={5000}
+            rows={6}
+            disabled={submitting}
+            required
+            style={{ resize: 'vertical', minHeight: 120, fontFamily: 'var(--font-body)' }}
+          />
+          <div
+            className="font-mono"
+            style={{
+              marginTop: 4,
+              fontSize: 10,
+              color: trimmedBody.length < 10 ? 'var(--mm-ink-3)' : 'var(--mm-ink-2)',
+              display: 'flex',
+              justifyContent: 'space-between',
+            }}
+          >
+            <span>
+              {trimmedBody.length < 10
+                ? `Need at least 10 characters (${trimmedBody.length}/10)`
+                : 'Looks good'}
+            </span>
+            <span>{body.length}/5000</span>
+          </div>
+        </div>
+
+        <label
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 8,
+            fontSize: 12,
+            color: 'var(--mm-ink-1)',
+            cursor: 'pointer',
+          }}
+        >
+          <input
+            type="checkbox"
+            checked={includeDiagnostic}
+            onChange={(e) => setIncludeDiagnostic(e.target.checked)}
+            disabled={submitting}
+          />
+          Attach diagnostic snapshot (no token, no secrets)
+        </label>
+
+        {includeDiagnostic && (
+          <details className="mm-card" style={{ padding: 12 }}>
+            <summary
+              className="mm-kicker"
+              style={{ cursor: 'pointer', fontSize: 9, letterSpacing: '0.18em', color: 'var(--mm-ink-3)' }}
+            >
+              PREVIEW DIAGNOSTIC
+            </summary>
+            <pre
+              style={{
+                marginTop: 8,
+                padding: 10,
+                background: 'var(--mm-surface-2)',
+                borderRadius: 6,
+                fontSize: 11,
+                fontFamily: 'var(--font-mono)',
+                color: 'var(--mm-ink-1)',
+                whiteSpace: 'pre-wrap',
+                wordBreak: 'break-all',
+              }}
+            >
+              {diagnostic}
+            </pre>
+          </details>
+        )}
+
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
+          <button
+            type="submit"
+            className="mm-btn mm-btn-mint"
+            disabled={!valid || submitting}
+            style={{
+              opacity: !valid || submitting ? 0.6 : 1,
+              cursor: !valid || submitting ? 'not-allowed' : 'pointer',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+            }}
+          >
+            {submitting ? <Loader2 size={12} className="animate-spin" /> : null}
+            {submitting ? 'Sending\u2026' : 'Send message'}
+          </button>
+        </div>
+      </form>
+    </section>
   );
 }
 

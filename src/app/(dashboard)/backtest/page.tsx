@@ -33,7 +33,8 @@ const STATUSES: Array<{ value: '' | BacktestStatus; label: string }> = [
   { value: 'FAILED', label: 'Failed' },
 ];
 
-const INTERVALS = ['', '1m', '5m', '15m', '1h', '4h', '1d'] as const;
+// Backtests are restricted to 5m/15m/1h/4h. The "" option means "no filter".
+const INTERVALS = ['', '5m', '15m', '1h', '4h'] as const;
 const PAGE_SIZES = [20, 50, 100];
 
 interface Filters {

@@ -33,7 +33,21 @@ const NAV_ITEMS: PaletteItem[] = [
   { id: 'nav-pnl', label: 'P&L Analytics', href: '/pnl', icon: BarChart3, group: 'Pages' },
   { id: 'nav-portfolio', label: 'Portfolio', href: '/portfolio', icon: Wallet, group: 'Pages' },
   { id: 'nav-market', label: 'Market', href: '/market', icon: CandlestickChart, group: 'Pages' },
-  { id: 'nav-monte', label: 'Forward Projections', href: '/montecarlo', icon: Dices, group: 'Pages' },
+  {
+    id: 'nav-monte',
+    label: 'Forward Projections',
+    href: '/montecarlo',
+    icon: Dices,
+    group: 'Pages',
+  },
+  {
+    id: 'nav-help',
+    label: 'Help',
+    subtitle: 'Quick-explain entries for metrics + the engine',
+    href: '/help',
+    icon: Search,
+    group: 'Pages',
+  },
   {
     id: 'nav-backtest-new',
     label: 'New Backtest',

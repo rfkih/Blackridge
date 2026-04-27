@@ -219,6 +219,23 @@ export function useUpdateStrategyInterval() {
 }
 
 /**
+ * Update the priority order on an account strategy. Lower numbers win
+ * the live orchestrator's fan-out tiebreak when multiple strategies on
+ * the same interval signal entries simultaneously.
+ */
+export function useUpdateStrategyPriority() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, priorityOrder }: { id: string; priorityOrder: number }) =>
+      updateAccountStrategy(id, { priorityOrder }),
+    onSuccess: (strategy) => {
+      queryClient.invalidateQueries({ queryKey: ['strategies'] });
+      queryClient.setQueryData(['strategy', strategy.id], strategy);
+    },
+  });
+}
+
+/**
  * Wipes all LSR overrides on an account-strategy row. Backend responds
  * with the row cleared — on success we invalidate the per-strategy query
  * so the form re-fetches a clean `effectiveParams` that collapses to

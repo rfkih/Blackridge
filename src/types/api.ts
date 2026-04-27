@@ -97,6 +97,8 @@ export interface User {
   role?: string;
   createdAt?: ISO8601;
   phoneNumber?: string | null;
+  /** True once the user has confirmed their email via /verify-email. */
+  emailVerified?: boolean;
 }
 
 export type AccountVenue = 'BINANCE_SPOT' | 'BINANCE_FUTURES';

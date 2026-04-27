@@ -110,12 +110,21 @@ export async function deactivateAccountStrategy(id: string): Promise<AccountStra
 }
 
 /**
- * Update editable fields on an account strategy. Currently only the candle
- * interval. Rejects (409) if open trades reference the strategy.
+ * Update editable fields on an account strategy. All fields optional —
+ * server applies whichever are present. Backend rejects an interval
+ * change with 409 if open trades reference the strategy; priority
+ * changes have no such guard since priority only affects future entry
+ * fan-out.
  */
+export interface AccountStrategyPatch {
+  intervalName?: string;
+  /** 1–99 inclusive. Lower wins the orchestrator's fan-out tiebreak. */
+  priorityOrder?: number;
+}
+
 export async function updateAccountStrategy(
   id: string,
-  patch: { intervalName: string },
+  patch: AccountStrategyPatch,
 ): Promise<AccountStrategy> {
   const { data } = await apiClient.patch<BackendAccountStrategy>(
     `/api/v1/account-strategies/${id}`,
