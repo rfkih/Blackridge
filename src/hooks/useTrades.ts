@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import {
   getOpenTrades,
   getRecentTrades,
+  getTradeAnomalies,
   getTradeAttribution,
   getTradeById,
   getTradePositions,
@@ -134,5 +135,20 @@ export function usePnlByStrategy(from?: string, to?: string) {
     queryKey: ['pnl', 'by-strategy', from ?? null, to ?? null],
     queryFn: () => getPnlByStrategy(from, to),
     staleTime: QUERY_STALE_TIMES.pnlSummary,
+  });
+}
+
+/**
+ * Stuck-trade anomaly feed for the admin /research dashboard. 30 s poll —
+ * matches the rest of the ops panels. Healthy state returns []; the panel
+ * renders nothing in that case.
+ */
+export function useTradeAnomalies() {
+  return useQuery({
+    queryKey: ['trades', 'anomalies'],
+    queryFn: getTradeAnomalies,
+    staleTime: 30_000,
+    refetchInterval: 30_000,
+    refetchIntervalInBackground: false,
   });
 }

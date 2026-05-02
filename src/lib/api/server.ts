@@ -39,3 +39,39 @@ export async function getServerIpStatus(): Promise<ServerIpStatus> {
     recordedAt: data?.recordedAt ?? null,
   };
 }
+
+export interface WsStatus {
+  running: boolean;
+  symbol: string | null;
+  intervals: string[];
+  lastMessageAt: string | null;
+  ageMs: number;
+  stale: boolean;
+}
+
+interface BackendWsStatus {
+  running?: boolean | null;
+  symbol?: string | null;
+  intervals?: string[] | null;
+  lastMessageAt?: string | null;
+  ageMs?: number | null;
+  stale?: boolean | null;
+}
+
+/**
+ * Binance WebSocket heartbeat. Trading-JVM-only endpoint — research JVM does
+ * not hold the WS client. `ageMs` is the wall-clock gap between the last
+ * received frame and the request; `stale=true` once it exceeds the backend's
+ * 30 s watchdog threshold.
+ */
+export async function getWsStatus(): Promise<WsStatus> {
+  const { data } = await apiClient.get<BackendWsStatus>('/api/v1/server/ws-status');
+  return {
+    running: Boolean(data?.running),
+    symbol: data?.symbol ?? null,
+    intervals: Array.isArray(data?.intervals) ? data!.intervals! : [],
+    lastMessageAt: data?.lastMessageAt ?? null,
+    ageMs: typeof data?.ageMs === 'number' ? data.ageMs : 0,
+    stale: Boolean(data?.stale),
+  };
+}

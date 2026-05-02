@@ -136,8 +136,11 @@ export function buildBacktestPayload(
     minQty: DEFAULT_SIZING.minQty,
     qtyStep: DEFAULT_SIZING.qtyStep,
     maxOpenPositions: DEFAULT_SIZING.maxOpenPositions,
-    allowLong: DEFAULT_SIZING.allowLong,
-    allowShort: DEFAULT_SIZING.allowShort,
+    // Wizard-driven (Step 1 toggles). Falls back to long-only if the wizard
+    // somehow didn't set them — backend's resolveAllowShort defaults null
+    // → TRUE, so we must always send a concrete boolean.
+    allowLong: config.allowLong ?? DEFAULT_SIZING.allowLong,
+    allowShort: config.allowShort ?? DEFAULT_SIZING.allowShort,
     strategyParamOverrides: Object.fromEntries(
       config.strategyCodes.map((code) => [
         code,

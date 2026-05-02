@@ -3,6 +3,7 @@
 import { Menu, Search, Sun, Moon } from 'lucide-react';
 import { AccountSwitcher } from '@/components/layout/AccountSwitcher';
 import { NotificationPanel } from '@/components/layout/NotificationPanel';
+import { ResearchStatusPill } from '@/components/research/ResearchStatusPill';
 import { useWsStore } from '@/store/wsStore';
 import { useTheme } from '@/components/theme/ThemeProvider';
 import { cn } from '@/lib/utils';
@@ -100,6 +101,8 @@ export function TopNav({ onMenuClick, onCommandOpen }: TopNavProps) {
         />
         <span style={{ color: 'var(--mm-ink-1)' }}>{wsMeta.label}</span>
       </div>
+
+      <ResearchStatusPill />
 
       <div className="hidden sm:block">
         <AccountSwitcher />

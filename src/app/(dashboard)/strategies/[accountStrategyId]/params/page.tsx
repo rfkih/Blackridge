@@ -1,13 +1,43 @@
-// SLICE 6: Live param edit — LsrParamsForm / VcbParamsForm in 'live' mode → PUT /api/v1/lsr-params/:id.
-export default function StrategyParamsPage({ params }: { params: { accountStrategyId: string } }) {
+'use client';
+
+import Link from 'next/link';
+import { ArrowLeft } from 'lucide-react';
+
+import { StrategyParamPresetsPanel } from '@/components/strategy/StrategyParamPresetsPanel';
+
+interface PageProps {
+  params: { accountStrategyId: string };
+}
+
+/**
+ * Saved-preset management for one account_strategy. Strictly additive — the
+ * existing per-strategy edit form (LSR/VCB/VBO) on the strategy detail page
+ * keeps writing into the active preset row. This page just exposes the list +
+ * activate/deactivate/delete + create controls that V29's 1:N model unlocks.
+ */
+export default function StrategyParamPresetsPage({ params }: PageProps) {
+  const { accountStrategyId } = params;
   return (
-    <section className="flex min-h-[60vh] items-center justify-center p-8">
-      <div className="w-full max-w-md rounded-md border border-bd-subtle bg-bg-surface p-8 text-center shadow-panel">
-        <p className="font-mono text-xs uppercase tracking-widest text-text-muted">Slice 6</p>
-        <h1 className="mt-3 font-display text-2xl text-text-primary">Strategy Params</h1>
-        <p className="mt-2 text-sm text-text-secondary">Coming soon</p>
-        <p className="mt-3 font-mono text-xs text-text-muted">id: {params.accountStrategyId}</p>
+    <div className="space-y-6">
+      <div className="flex flex-wrap items-center gap-2 text-xs text-[var(--text-muted)]">
+        <Link
+          href={`/strategies/${accountStrategyId}`}
+          className="inline-flex items-center gap-1.5 transition-colors hover:text-[var(--text-primary)]"
+        >
+          <ArrowLeft size={12} />
+          Strategy detail
+        </Link>
       </div>
-    </section>
+
+      <header className="space-y-1">
+        <h1 className="font-display text-2xl text-text-primary">Strategy param presets</h1>
+        <p className="text-sm text-text-secondary">
+          Manage named override sets for this strategy. The active preset is what live trading
+          uses; backtests can pin any preset by ID for reproducibility.
+        </p>
+      </header>
+
+      <StrategyParamPresetsPanel accountStrategyId={accountStrategyId} />
+    </div>
   );
 }

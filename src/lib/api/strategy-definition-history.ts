@@ -1,0 +1,64 @@
+// Read-only client for /api/v1/strategy-definition-history on the trading
+// JVM. Backed by the strategy_definition_history table (V18). Writes are
+// owned by StrategyDefinitionHistoryService — the UI is forensic only.
+import { apiClient } from './client';
+
+export type SpecOperation = 'INSERT' | 'UPDATE' | 'DELETE' | 'UPGRADE';
+
+export interface StrategyDefinitionHistoryRow {
+  historyId: string;
+  priorHistoryId: string | null;
+  strategyCode: string;
+  strategyDefinitionId: string;
+  archetype: string;
+  archetypeVersion: number;
+  specSchemaVersion: number;
+  operation: SpecOperation;
+  changedByUserId: string | null;
+  changedAt: string | null;
+  changeReason: string | null;
+}
+
+export interface StrategyDefinitionHistoryDetail
+  extends StrategyDefinitionHistoryRow {
+  specJsonb: Record<string, unknown> | null;
+}
+
+export interface StrategyDefinitionHistoryPage {
+  content: StrategyDefinitionHistoryRow[];
+  page: number;
+  size: number;
+  totalElements: number;
+  totalPages: number;
+}
+
+export interface ListHistoryParams {
+  strategyCode: string;
+  page?: number;
+  size?: number;
+}
+
+export async function listStrategyDefinitionHistory(
+  opts: ListHistoryParams,
+): Promise<StrategyDefinitionHistoryPage> {
+  const { data } = await apiClient.get<StrategyDefinitionHistoryPage>(
+    '/api/v1/strategy-definition-history',
+    {
+      params: {
+        strategyCode: opts.strategyCode,
+        page: opts.page ?? 0,
+        size: opts.size ?? 50,
+      },
+    },
+  );
+  return data;
+}
+
+export async function getStrategyDefinitionHistory(
+  id: string,
+): Promise<StrategyDefinitionHistoryDetail> {
+  const { data } = await apiClient.get<StrategyDefinitionHistoryDetail>(
+    `/api/v1/strategy-definition-history/${id}`,
+  );
+  return data;
+}

@@ -12,6 +12,11 @@ interface BackendStrategyDefinition {
   strategyType: string | null;
   description: string | null;
   status: string | null;
+  archetype: string | null;
+  archetypeVersion: number | null;
+  specJsonb: Record<string, unknown> | null;
+  enabled: boolean | null;
+  simulated: boolean | null;
   createdTime: string | null;
   updatedTime: string | null;
 }
@@ -24,6 +29,11 @@ function map(r: BackendStrategyDefinition): StrategyDefinition {
     strategyType: r.strategyType ?? '',
     description: r.description,
     status: (r.status ?? 'ACTIVE') as StrategyDefinition['status'],
+    archetype: r.archetype,
+    archetypeVersion: r.archetypeVersion,
+    specJsonb: r.specJsonb,
+    enabled: r.enabled ?? false,
+    simulated: r.simulated ?? true,
     createdAt: r.createdTime ?? '',
     updatedAt: r.updatedTime ?? '',
   };

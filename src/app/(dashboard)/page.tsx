@@ -14,6 +14,7 @@ import { usePositionStore } from '@/store/positionStore';
 import { useCurrencyFormatter } from '@/hooks/useCurrency';
 import { OnboardingPanel } from '@/components/dashboard/OnboardingPanel';
 import { EmailVerificationBanner } from '@/components/dashboard/EmailVerificationBanner';
+import { KillSwitchBanner } from '@/components/dashboard/KillSwitchBanner';
 import type { LivePosition } from '@/types/trading';
 import type { AccountStrategy } from '@/types/strategy';
 import type { EquityPoint } from '@/types/market';
@@ -49,6 +50,9 @@ export default function DashboardPage() {
     <div className="flex flex-col gap-5">
       {/* Email-verification reminder — auto-hides once verified. */}
       <EmailVerificationBanner />
+
+      {/* Drawdown kill-switch alerts — auto-hides when no strategy is tripped. */}
+      <KillSwitchBanner />
 
       {/* Onboarding ladder — auto-hides when the user is fully set up. */}
       <OnboardingPanel />

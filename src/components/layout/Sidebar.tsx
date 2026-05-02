@@ -20,6 +20,14 @@ import {
   Microscope,
   Grid3x3,
   Inbox,
+  Activity,
+  ListChecks,
+  Bell,
+  ScrollText,
+  AlertOctagon,
+  Repeat,
+  Binary,
+  GitBranch,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
@@ -44,14 +52,22 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'Forward Projections', href: '/montecarlo', icon: Dices },
   { label: 'P&L', href: '/pnl', icon: BarChart3 },
   { label: 'Journal', href: '/trades', icon: Book },
+  { label: 'Audit Log', href: '/audit', icon: ScrollText },
   { label: 'Settings', href: '/settings', icon: Settings },
   { label: 'Help', href: '/help', icon: HelpCircle },
 ];
 
 const ADMIN_NAV_ITEMS: NavItem[] = [
+  { label: 'Ops Dashboard', href: '/research', icon: Activity },
+  { label: 'Research Queue', href: '/research/queue', icon: ListChecks },
   { label: 'Catalogue', href: '/admin/strategies', icon: ShieldCheck },
   { label: 'Historical Data', href: '/admin/historical', icon: Database },
   { label: 'Inbox', href: '/admin/inbox', icon: Inbox },
+  { label: 'Alerts', href: '/admin/alerts', icon: Bell },
+  { label: 'Errors', href: '/admin/errors', icon: AlertOctagon },
+  { label: 'Walk-forward', href: '/research/walk-forward', icon: Repeat },
+  { label: 'Spec Trace', href: '/admin/spec-trace', icon: Binary },
+  { label: 'Spec History', href: '/admin/strategy-history', icon: GitBranch },
   { label: 'Research Log', href: '/research/log', icon: Microscope },
 ];
 

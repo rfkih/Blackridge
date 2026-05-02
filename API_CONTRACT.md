@@ -4,9 +4,21 @@
 > Every endpoint listed here is either **already called** by the frontend or **required** for a feature
 > that is built and waiting on the backend implementation.
 >
-> **Base URL** `http://localhost:8080` (configured via `NEXT_PUBLIC_API_URL`)  
-> **WebSocket URL** `ws://localhost:8080/ws` (configured via `NEXT_PUBLIC_WS_URL`)  
-> **Auth** Bearer token in `Authorization` header on every protected request.
+> **Base URLs** — the backend now runs as **two JVMs** (Phase 1 decoupling, 2026-04-29):
+>
+> | Service | Default URL | Env var | Purpose |
+> |---|---|---|---|
+> | Trading JVM | `http://localhost:8080` | `NEXT_PUBLIC_API_URL` | Live trading + everything except research endpoints below |
+> | Research JVM | `http://localhost:8081` | `NEXT_PUBLIC_RESEARCH_URL` | `/api/v1/backtest`, `/api/v1/research`, `/api/v1/montecarlo`, `/api/v1/historical` |
+> | WebSocket | `ws://localhost:8080/ws` | `NEXT_PUBLIC_WS_URL` | STOMP P&L stream — trading JVM |
+>
+> Each section header below carries a **JVM** badge indicating which client to use:
+> - 🟦 **TRADING** → use `apiClient` (default for everything except the four sections explicitly marked RESEARCH)
+> - 🟧 **RESEARCH** → use `researchClient`
+>
+> In production, leaving `NEXT_PUBLIC_RESEARCH_URL` unset falls back to `NEXT_PUBLIC_API_URL` (single-JVM deploys keep working).
+>
+> **Auth** — HttpOnly `blackheart-token` cookie set by the backend on `/users/login`. Both JVMs verify the same cookie because they share `JWT_SECRET`. Browser sends it automatically via `withCredentials: true`. No `Authorization: Bearer` header is attached by the frontend.
 
 ---
 
@@ -537,7 +549,9 @@ Partial update.
 
 ---
 
-## 7. Backtest
+## 7. Backtest 🟧 RESEARCH (port 8081)
+
+> All endpoints in this section live on the **research JVM**. Use `researchClient`. They are excluded from the trading JAR via `@Profile("research")` + `tradingBootJar` exclusions, and a request to port 8080 returns 500 (or 404 once the trading JVM picks up the latest GlobalExceptionHandler fix).
 
 ### POST `/api/v1/backtest`
 Protected. Submits a new backtest run.
@@ -694,6 +708,7 @@ Protected. All trades executed in this backtest run, with nested position legs.
 ---
 
 ### GET `/api/v1/backtest/:id/candles`
+🟧 RESEARCH (port 8081)
 Protected. OHLCV data for the backtest's symbol/interval/date range.
 
 **Response `data`**
@@ -714,6 +729,159 @@ Protected. OHLCV data for the backtest's symbol/interval/date range.
 ```
 
 > All timestamps are **epoch milliseconds UTC**.
+
+---
+
+## 7b. Research / Sweeps / TPR Params 🟧 RESEARCH (port 8081)
+
+> Sweep-driver, TPR hot-reloadable params, and analysis endpoints. Mixed access — sweep CRUD endpoints accept any authenticated user (each sweep is owned by the caller's `userId` and ownership is enforced server-side); the log + analysis endpoints are admin-only via `@PreAuthorize("hasRole('ADMIN')")`.
+
+### POST `/api/v1/research/sweeps`
+User-accessible. Submit a parameter sweep.
+
+**Request body**
+```json
+{
+  "strategyCode": "LSR",
+  "interval": "1h",
+  "asset": "BTCUSDT",
+  "fromDate": "2024-01-01T00:00:00",
+  "toDate": "2026-04-26T00:00:00",
+  "initialCapital": 100,
+  "params": [
+    {"name": "adxEntryMin", "values": [13, 15, 17, 19]}
+  ],
+  "iterBudget": 4
+}
+```
+
+**Response `data`** — `SweepState`:
+```json
+{
+  "sweepId": "uuid",
+  "userId": "uuid",
+  "strategyCode": "LSR",
+  "status": "RUNNING",
+  "totalCombos": 4,
+  "completedCombos": 0,
+  "createdAt": "2026-04-29T01:23:00Z"
+}
+```
+
+### GET `/api/v1/research/sweeps`
+User-accessible. List sweeps owned by the authenticated user.
+
+### GET `/api/v1/research/sweeps/:sweepId`
+User-accessible. Owner-only — returns 403 if `userId` mismatch.
+
+### POST `/api/v1/research/sweeps/:sweepId/cancel`
+User-accessible. Owner-only.
+
+### DELETE `/api/v1/research/sweeps/:sweepId`
+User-accessible. Owner-only.
+
+### GET `/api/v1/research/tpr/params`
+User-accessible read-only. Returns the current hot-reloaded TPR (Trend Pullback) strategy params. The sweep wizard reads this as the TPR baseline.
+
+### PUT `/api/v1/research/tpr/params`
+**Admin-only.** Mutate the live TPR params (in-memory + persisted to JSON file on disk).
+
+### POST `/api/v1/research/tpr/params/reset`
+**Admin-only.** Reset TPR params to baked-in defaults.
+
+### GET `/api/v1/research/log`
+**Admin-only.** Global research_iteration_log view across all users + strategies.
+
+### GET `/api/v1/research/backtest/:runId/analysis`
+**Admin-only.** Quant-grade diagnostic report for one backtest run. Optional `?recompute=true` re-runs the analyzer against current bucket definitions.
+
+**Response `data`** — `AnalysisReport`:
+```json
+{
+  "backtestRunId": "uuid",
+  "strategyCode": "LSR",
+  "verdict": "INSUFFICIENT_EVIDENCE",
+  "metrics": { "profitFactor": 1.18, "sharpeRatio": 0.85, "tradeCount": 47 },
+  "confidenceIntervals": {
+    "pf95": { "low": 0.86, "high": 1.42 },
+    "psr": 0.62
+  },
+  "slippageSensitivity": { "5bps": 11.2, "10bps": 8.4, "20bps": 2.1, "50bps": -7.3 },
+  "regimeStratification": [
+    { "quarter": "2024-Q1", "pnl": 4.5, "trades": 12 }
+  ]
+}
+```
+
+---
+
+## 7c. Monte Carlo 🟧 RESEARCH (port 8081)
+
+### POST `/api/v1/montecarlo/run`
+Protected. Submit a Monte Carlo simulation against backtest trade results.
+
+**Request body**
+```json
+{
+  "backtestRunId": "uuid",
+  "simulations": 1000,
+  "mode": "BOOTSTRAP",
+  "drawdownThresholdPct": 30,
+  "initialCapital": 10000
+}
+```
+
+**Response `data`** — `MonteCarloResult`:
+```json
+{
+  "monteCarloRunId": "uuid",
+  "totalSimulations": 1000,
+  "ruinProbability": 0.04,
+  "drawdownThresholdProbability": 0.18,
+  "percentiles": {
+    "p5": -1850.0, "p25": -250.0, "p50": 1200.0, "p75": 2800.0, "p95": 5400.0
+  },
+  "paths": [
+    { "pathIndex": 0, "finalEquity": 12100, "totalReturnPct": 21.0, "maxDrawdownPct": 12.5, "ruinBreached": false, "drawdownThresholdBreached": false, "equityCurve": [10000, 10100, /* ... */ 12100] }
+  ]
+}
+```
+
+---
+
+## 7d. Historical Backfill 🟧 RESEARCH (port 8081)
+
+> Heavy CPU/IO operations against shared market-data tables. Lives on the research JVM specifically so backfill load doesn't compete with live trading. **Admin-only** via `@PreAuthorize("hasRole('ADMIN')")`.
+
+### POST `/api/v1/historical/backfill`
+**Admin-only.** Backfill OHLCV market data for a symbol+interval+range.
+
+**Query parameters**
+| Param | Type | Required | Description |
+|---|---|---|---|
+| `symbol` | `string` | Yes | e.g. `BTCUSDT` |
+| `interval` | `string` | Yes | `5m`/`15m`/`1h`/`4h` |
+| `from` | `ISO8601` | Yes | Start time |
+| `to` | `ISO8601` | No | End time (default: now) |
+
+**Response `data`** — `WarmupResult`:
+```json
+{ "symbol": "BTCUSDT", "interval": "1h", "message": "Backfilled 8760 candles" }
+```
+
+### POST `/api/v1/historical/backfill/indicators`
+**Admin-only.** Backfill FeatureStore indicator computations for a symbol+interval+range.
+
+**Query parameters** (same as above) plus:
+| Param | Type | Required | Description |
+|---|---|---|---|
+| `recompute` | `boolean` | No | If `true`, deletes existing FeatureStore rows in the range and recomputes. Default `false` (missing-only fill). |
+
+**Response `data`** — `IndicatorBackfillResult`:
+```json
+{ "symbol": "BTCUSDT", "interval": "1h", "from": "2024-01-01", "to": "2026-04-29",
+  "recompute": false, "recordsUpdated": 17520 }
+```
 
 ---
 
@@ -887,15 +1055,19 @@ defined in `src/types/` exactly. If the backend uses different names, add them t
 
 ## 13. CORS Configuration Required
 
-The backend must allow requests from the frontend origin.
+**Both JVMs** must allow requests from the frontend origin (the frontend talks to both, so both must respond to preflights).
 
 ```java
-// Minimum required CORS config for development
-@CrossOrigin(origins = "http://localhost:3000")
-// OR global config in SecurityConfig:
+// SecurityConfig.java — applied on the trading JVM AND research JVM
 config.setAllowedOrigins(List.of("http://localhost:3000"));
 config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
 config.setAllowedHeaders(List.of("Authorization", "Content-Type"));
+config.setAllowCredentials(true);  // required — frontend sends withCredentials:true
+```
+
+In production, allow your real frontend domain (and possibly `https://research.blackheart.example.com` if research traffic uses a separate hostname):
+```java
+config.setAllowedOrigins(List.of("https://app.blackheart.example.com"));
 ```
 
 CSRF must be **disabled** for REST API endpoints (the frontend does not send CSRF tokens):
@@ -907,34 +1079,41 @@ http.csrf(AbstractHttpConfigurer::disable)
 
 ## 14. Endpoint Priority Summary
 
-| Priority | Endpoint | Status | Used By |
-|---|---|---|---|
-| ✅ Done | `POST /api/v1/users/login` | **Live** | Auth |
-| ✅ Done | `POST /api/v1/users/register` | **Live** | Auth |
-| ✅ Done | `GET /api/v1/users/me` | **Live** | Auth refresh |
-| ✅ Done | `GET /api/v1/account-strategies` | **Live** | Dashboard, Strategies page |
-| ✅ Done | `GET /api/v1/trades` | **Live** | Dashboard, Trades page |
-| ✅ Done | `GET /api/v1/trades/:id` | **Live** | Trade detail |
-| ⚠️ Needed | `GET /api/v1/pnl/summary?period=today` | **Missing** | Dashboard hero stats |
-| ⚠️ Needed | `GET /api/v1/pnl/daily` | **Missing** | P&L analytics page |
-| ⚠️ Needed | `GET /api/v1/pnl/by-strategy` | **Missing** | P&L analytics page |
-| ⚠️ Needed | `GET /api/v1/portfolio` | **Missing** | Portfolio page |
-| ⚠️ Needed | `GET /api/v1/lsr-params/:id` | **Missing** | Strategy detail |
-| ⚠️ Needed | `GET /api/v1/lsr-params/defaults` | **Missing** | Backtest param tuner |
-| ⚠️ Needed | `PUT /api/v1/lsr-params/:id` | **Missing** | Strategy detail |
-| ⚠️ Needed | `GET /api/v1/vcb-params/:id` | **Missing** | Strategy detail |
-| ⚠️ Needed | `GET /api/v1/vcb-params/defaults` | **Missing** | Backtest param tuner |
-| ⚠️ Needed | `PUT /api/v1/vcb-params/:id` | **Missing** | Strategy detail |
-| ⚠️ Needed | `POST /api/v1/backtest` | **Missing** | Backtest wizard |
-| ⚠️ Needed | `GET /api/v1/backtest` | **Missing** | Backtest list |
-| ⚠️ Needed | `GET /api/v1/backtest/:id` | **Missing** | Backtest result |
-| ⚠️ Needed | `GET /api/v1/backtest/:id/equity-points` | **Missing** | Equity curve chart |
-| ⚠️ Needed | `GET /api/v1/backtest/:id/trades` | **Missing** | Annotated chart overlay |
-| ⚠️ Needed | `GET /api/v1/backtest/:id/candles` | **Missing** | Annotated chart overlay |
-| ⚠️ Needed | `GET /api/v1/market` | **Missing** | Market page |
-| ⚠️ Needed | `POST /api/v1/montecarlo` | **Missing** | Monte Carlo page |
-| ⚠️ Needed | WS `/topic/pnl/:accountId` | **Missing** | Live P&L on dashboard |
-| 🔵 Nice to have | `GET /api/v1/market/indicators` | **Missing** | Chart overlays |
+JVM column: 🟦 trading (8080) / 🟧 research (8081).
+
+| Priority | JVM | Endpoint | Status | Used By |
+|---|---|---|---|---|
+| ✅ Done | 🟦 | `POST /api/v1/users/login` | **Live** | Auth |
+| ✅ Done | 🟦 | `POST /api/v1/users/register` | **Live** | Auth |
+| ✅ Done | 🟦 | `GET /api/v1/users/me` | **Live** | Auth refresh |
+| ✅ Done | 🟦 | `GET /api/v1/account-strategies` | **Live** | Dashboard, Strategies page |
+| ✅ Done | 🟦 | `GET /api/v1/trades` | **Live** | Dashboard, Trades page |
+| ✅ Done | 🟦 | `GET /api/v1/trades/:id` | **Live** | Trade detail |
+| ⚠️ Needed | 🟦 | `GET /api/v1/pnl/summary?period=today` | **Missing** | Dashboard hero stats |
+| ⚠️ Needed | 🟦 | `GET /api/v1/pnl/daily` | **Missing** | P&L analytics page |
+| ⚠️ Needed | 🟦 | `GET /api/v1/pnl/by-strategy` | **Missing** | P&L analytics page |
+| ⚠️ Needed | 🟦 | `GET /api/v1/portfolio` | **Missing** | Portfolio page |
+| ⚠️ Needed | 🟦 | `GET /api/v1/lsr-params/:id` | **Missing** | Strategy detail |
+| ⚠️ Needed | 🟦 | `GET /api/v1/lsr-params/defaults` | **Missing** | Backtest param tuner |
+| ⚠️ Needed | 🟦 | `PUT /api/v1/lsr-params/:id` | **Missing** | Strategy detail |
+| ⚠️ Needed | 🟦 | `GET /api/v1/vcb-params/:id` | **Missing** | Strategy detail |
+| ⚠️ Needed | 🟦 | `GET /api/v1/vcb-params/defaults` | **Missing** | Backtest param tuner |
+| ⚠️ Needed | 🟦 | `PUT /api/v1/vcb-params/:id` | **Missing** | Strategy detail |
+| ⚠️ Needed | 🟧 | `POST /api/v1/backtest` | **Missing** | Backtest wizard |
+| ⚠️ Needed | 🟧 | `GET /api/v1/backtest` | **Missing** | Backtest list |
+| ⚠️ Needed | 🟧 | `GET /api/v1/backtest/:id` | **Missing** | Backtest result |
+| ⚠️ Needed | 🟧 | `GET /api/v1/backtest/:id/equity-points` | **Missing** | Equity curve chart |
+| ⚠️ Needed | 🟧 | `GET /api/v1/backtest/:id/trades` | **Missing** | Annotated chart overlay |
+| ⚠️ Needed | 🟧 | `GET /api/v1/backtest/:id/candles` | **Missing** | Annotated chart overlay |
+| ⚠️ Needed | 🟦 | `GET /api/v1/market` | **Missing** | Market page |
+| ⚠️ Needed | 🟧 | `POST /api/v1/montecarlo/run` | **Missing** | Monte Carlo page |
+| ⚠️ Needed | 🟧 | `POST /api/v1/research/sweeps` | **Missing** | Sweeps page |
+| ⚠️ Needed | 🟧 | `GET /api/v1/research/sweeps` | **Missing** | Sweeps list |
+| ⚠️ Needed | 🟧 | `GET /api/v1/research/tpr/params` | **Missing** | Sweep wizard |
+| ⚠️ Needed | 🟧 | `POST /api/v1/historical/backfill` | **Missing** | Admin data backfill |
+| ⚠️ Needed | 🟦 | WS `/topic/pnl/:accountId` | **Missing** | Live P&L on dashboard |
+| 🔵 Nice to have | 🟦 | `GET /api/v1/market/indicators` | **Missing** | Chart overlays |
+| 🔵 Nice to have | 🟧 | `GET /api/v1/research/backtest/:id/analysis` | **Missing** | Quant-grade analysis page (admin) |
 | 🔵 Nice to have | `GET /api/v1/scheduler` | **Missing** | Scheduler management |
 | 🔵 Nice to have | `POST /api/v1/scheduler/pause` | **Missing** | Strategy pause button |
 | 🔵 Nice to have | `POST /api/v1/scheduler/resume` | **Missing** | Strategy resume button |

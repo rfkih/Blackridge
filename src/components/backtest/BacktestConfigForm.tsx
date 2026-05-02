@@ -6,6 +6,7 @@ import { ArrowRight, AlertTriangle, Check, ChevronDown, Loader2 } from 'lucide-r
 import { z } from 'zod';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import { DatePicker } from '@/components/ui/date-picker';
 import {
   Select,
@@ -63,6 +64,8 @@ const configSchema = z
       )
       .optional(),
     evaluationMode: z.enum(['single', 'multi']).optional(),
+    allowLong: z.boolean(),
+    allowShort: z.boolean(),
   })
   .refine((d) => d.toDate > d.fromDate, {
     message: 'To date must be after From date',
@@ -71,6 +74,10 @@ const configSchema = z
   .refine((d) => d.strategyCodes.every((code) => Boolean(d.strategyAccountStrategyIds[code])), {
     message: 'Every selected strategy needs an account-strategy',
     path: ['strategyAccountStrategyIds'],
+  })
+  .refine((d) => d.allowLong || d.allowShort, {
+    message: 'At least one direction (long or short) must be allowed',
+    path: ['allowLong'],
   });
 
 type FormErrors = Partial<Record<string, string>>;
@@ -156,6 +163,12 @@ export function BacktestConfigForm() {
   const [evaluationMode, setEvaluationMode] = useState<'single' | 'multi'>(
     savedConfig?.evaluationMode ?? 'single',
   );
+  // Direction toggles. Default long-only — most strategies in the book are
+  // long-favored on BTC's structural bull regime, and the backend's null
+  // → TRUE default would silently allow shorts on a strategy not validated
+  // for them. Explicit user choice from the form is the safe default.
+  const [allowLong, setAllowLong] = useState<boolean>(savedConfig?.allowLong ?? true);
+  const [allowShort, setAllowShort] = useState<boolean>(savedConfig?.allowShort ?? false);
   const [errors, setErrors] = useState<FormErrors>({});
 
   const strategyOptionsByCode = useMemo(() => {
@@ -361,6 +374,8 @@ export function BacktestConfigForm() {
       strategyAllocations: Object.keys(allocs).length ? allocs : undefined,
       strategyIntervals: Object.keys(intervals).length ? intervals : undefined,
       evaluationMode,
+      allowLong,
+      allowShort,
     });
 
     if (!parsed.success) {
@@ -389,6 +404,8 @@ export function BacktestConfigForm() {
     strategyAllocations,
     strategyIntervals,
     evaluationMode,
+    allowLong,
+    allowShort,
     setConfig,
     router,
   ]);
@@ -467,6 +484,41 @@ export function BacktestConfigForm() {
               className="num h-9"
             />
           </Field>
+        </div>
+      </section>
+
+      <section className="rounded-md border border-bd-subtle bg-bg-surface">
+        <SectionHeader
+          title="Direction"
+          hint={
+            allowLong && allowShort
+              ? 'Long + short'
+              : allowLong
+                ? 'Long-only'
+                : allowShort
+                  ? 'Short-only'
+                  : 'No direction selected'
+          }
+        />
+        <div className="flex flex-col gap-3 px-5 py-4">
+          <div className="flex items-center gap-6">
+            <div className="flex items-center gap-2">
+              <Switch checked={allowLong} onCheckedChange={setAllowLong} />
+              <Label className="font-mono text-xs uppercase tracking-wider">Allow Long</Label>
+            </div>
+            <div className="flex items-center gap-2">
+              <Switch checked={allowShort} onCheckedChange={setAllowShort} />
+              <Label className="font-mono text-xs uppercase tracking-wider">Allow Short</Label>
+            </div>
+          </div>
+          <p className="text-[11px] text-text-muted">
+            Backend defaults missing flags to long+short. The wizard now sends your explicit choice
+            so a strategy not validated for shorts (e.g. trend followers in a structural bull
+            regime) can be safely run long-only without touching the strategy code.
+          </p>
+          {errors.allowLong && (
+            <p className="text-xs text-[var(--color-warning)]">{errors.allowLong}</p>
+          )}
         </div>
       </section>
 

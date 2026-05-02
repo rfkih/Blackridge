@@ -186,7 +186,7 @@ export default function ResearchPage() {
     const spec: SweepSpec = {
       strategyCode: selected.strategyCode,
       accountStrategyId,
-      asset,
+      asset: asset.trim().toUpperCase(),
       interval,
       fromDate: `${fromDate}T00:00:00`,
       toDate: `${toDate}T00:00:00`,
@@ -237,7 +237,16 @@ export default function ResearchPage() {
       <section className="space-y-4 rounded-md border border-bd-subtle bg-bg-surface p-5">
         <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
           <Field label="Asset">
-            <input className="mm-input" value={asset} onChange={(e) => setAsset(e.target.value)} />
+            <input
+              className="mm-input"
+              value={asset}
+              onChange={(e) => setAsset(e.target.value)}
+              list="research-backtest-asset-options"
+            />
+            <datalist id="research-backtest-asset-options">
+              <option value="BTCUSDT" />
+              <option value="ETHUSDT" />
+            </datalist>
           </Field>
           <Field label="Interval">
             <input

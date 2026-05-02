@@ -13,6 +13,12 @@ export interface AccountStrategy {
   symbol: string;
   interval: Interval | string;
   status: AccountStrategyStatus;
+  /** Paper-trade flag (V15+). Combined with `status` (LIVE/STOPPED), defines
+   *  the promotion state used by the /research dashboard:
+   *    STOPPED                      → RESEARCH / DEMOTED / REJECTED
+   *    LIVE  + simulated=true       → PAPER_TRADE
+   *    LIVE  + simulated=false      → PROMOTED. */
+  simulated: boolean;
   /** Fraction of the owning account's equity allocated to this strategy (0–100). */
   capitalAllocationPct: number;
   maxOpenPositions: number;
@@ -197,3 +203,45 @@ export interface VboParams {
 }
 
 export type StrategyParams = LsrParams | VcbParams | VboParams;
+
+/**
+ * Unified saved-preset row from `/api/v1/strategy-params` (V29+ backend).
+ *
+ * Each preset is a named override map for one `account_strategy`. At most one
+ * preset per account_strategy is `active` at a time; the live executor reads
+ * the active preset, backtests can pin any preset by `paramId` (including
+ * soft-deleted ones, which the list endpoint hides).
+ */
+export interface StrategyParamPreset {
+  paramId: string;
+  accountStrategyId: string;
+  name: string;
+  overrides: Record<string, unknown>;
+  active: boolean;
+  deleted: boolean;
+  deletedAt: string | null;
+  /** Originating backtest run id when the preset was saved from a run's
+   *  Re-run-with-params flow. Null otherwise — wizard "Save current" and
+   *  legacy {lsr,vcb,vbo}-params shims do not set this. */
+  sourceBacktestRunId: string | null;
+  version: number;
+  createdAt: string;
+  createdBy: string | null;
+  updatedAt: string;
+  updatedBy: string | null;
+}
+
+export interface StrategyParamCreateRequest {
+  accountStrategyId: string;
+  name: string;
+  overrides: Record<string, unknown>;
+  activate?: boolean;
+  /** Originating backtest run id — sent by the Re-run-with-params "Save to
+   *  library" button. Omit elsewhere. */
+  sourceBacktestRunId?: string;
+}
+
+export interface StrategyParamUpdateRequest {
+  name?: string | null;
+  overrides?: Record<string, unknown> | null;
+}

@@ -16,6 +16,8 @@ import { BacktestParamPresetBar } from './BacktestParamPresetBar';
 import { LsrParamsForm } from '@/components/strategy/LsrParamsForm';
 import { VcbParamsForm } from '@/components/strategy/VcbParamsForm';
 import { VboParamsForm } from '@/components/strategy/VboParamsForm';
+import { SpecParamsForm } from '@/components/strategy/SpecParamsForm';
+import { useStrategyDefinitions } from '@/hooks/useStrategyDefinitions';
 import {
   useLsrDefaults,
   useVcbDefaults,
@@ -74,6 +76,7 @@ export function BacktestParamTuner() {
   const config = useBacktestParamStore((s) => s.config);
   const paramOverrides = useBacktestParamStore((s) => s.paramOverrides);
   const activePresetName = useBacktestParamStore((s) => s.activePresetName);
+  const sourceBacktestRunId = useBacktestParamStore((s) => s.sourceBacktestRunId);
   const setParamOverride = useBacktestParamStore((s) => s.setParamOverride);
   const resetParamOverrides = useBacktestParamStore((s) => s.resetParamOverrides);
   const loadPreset = useBacktestParamStore((s) => s.loadPreset);
@@ -124,6 +127,33 @@ export function BacktestParamTuner() {
   const vcbDefaults = needsVcb ? vcbDefaultsQ.data : undefined;
   const vboDefaults = needsVbo ? vboDefaultsQ.data : undefined;
 
+  // Spec-driven strategies (M1+): pull archetype + spec_jsonb.params from
+  // strategy_definition. Legacy LSR/VCB/VBO short-circuit above this, so this
+  // covers MMR / TPR / etc. — anything whose `archetype` is not LEGACY_JAVA.
+  const definitionsQ = useStrategyDefinitions();
+  const specByCode = useMemo<
+    Record<string, { archetype: string | null; params: Record<string, number | boolean> }>
+  >(() => {
+    const out: Record<
+      string,
+      { archetype: string | null; params: Record<string, number | boolean> }
+    > = {};
+    const defs = definitionsQ.data ?? [];
+    for (const def of defs) {
+      if (!def.specJsonb) continue;
+      const rawParams = (def.specJsonb as { params?: unknown }).params;
+      if (!rawParams || typeof rawParams !== 'object') continue;
+      const params: Record<string, number | boolean> = {};
+      for (const [k, v] of Object.entries(rawParams as Record<string, unknown>)) {
+        if (typeof v === 'number' || typeof v === 'boolean') {
+          params[k] = v;
+        }
+      }
+      out[def.strategyCode] = { archetype: def.archetype, params };
+    }
+    return out;
+  }, [definitionsQ.data]);
+
   const defaultsByCode = useMemo<Record<string, Record<string, unknown>>>(() => {
     const map: Record<string, Record<string, unknown>> = {};
     for (const code of strategyCodes) {
@@ -132,10 +162,11 @@ export function BacktestParamTuner() {
         map[code] = vcbDefaults as unknown as Record<string, unknown>;
       else if (isVbo(code) && vboDefaults)
         map[code] = vboDefaults as unknown as Record<string, unknown>;
+      else if (specByCode[code]) map[code] = specByCode[code].params as Record<string, unknown>;
       else map[code] = {};
     }
     return map;
-  }, [strategyCodes, lsrDefaults, vcbDefaults, vboDefaults]);
+  }, [strategyCodes, lsrDefaults, vcbDefaults, vboDefaults, specByCode]);
 
   const overrideCounts = useMemo(() => {
     const out: Record<string, number> = {};
@@ -324,6 +355,8 @@ export function BacktestParamTuner() {
             activePresetName={activePresetName}
             onLoad={(preset) => loadPreset(preset)}
             onReset={() => resetParamOverrides(activeTab)}
+            accountStrategyId={config?.strategyAccountStrategyIds[activeTab]}
+            sourceBacktestRunId={sourceBacktestRunId ?? undefined}
           />
         </div>
 
@@ -341,6 +374,7 @@ export function BacktestParamTuner() {
               lsrDefaults={lsrDefaults}
               vcbDefaults={vcbDefaults}
               vboDefaults={vboDefaults}
+              specDef={specByCode[activeTab]}
               overrides={paramOverrides[activeTab] ?? {}}
               onOverrideChange={(key, value) => setParamOverride(activeTab, key, value)}
               onSaveLsr={async (params: LsrParams) => {
@@ -510,6 +544,7 @@ function ActiveParamForm({
   lsrDefaults,
   vcbDefaults,
   vboDefaults,
+  specDef,
   overrides,
   onOverrideChange,
   onSaveLsr,
@@ -521,6 +556,7 @@ function ActiveParamForm({
   lsrDefaults: LsrParams | undefined;
   vcbDefaults: VcbParams | undefined;
   vboDefaults: VboParams | undefined;
+  specDef: { archetype: string | null; params: Record<string, number | boolean> } | undefined;
   overrides: Record<string, unknown>;
   onOverrideChange: (key: string, value: unknown) => void;
   onSaveLsr: (params: LsrParams) => Promise<void>;
@@ -569,6 +605,20 @@ function ActiveParamForm({
         initialValues={overrides as Partial<VboParams>}
         onChange={(k, v) => onOverrideChange(k as string, v)}
         onSaveAsLive={onSaveVbo}
+      />
+    );
+  }
+
+  // Spec-driven strategies (M1+) — archetype + spec_jsonb.params from
+  // strategy_definition. Anything not LEGACY_JAVA falls through to here.
+  if (specDef && Object.keys(specDef.params).length > 0) {
+    return (
+      <SpecParamsForm
+        strategyCode={strategyCode}
+        archetype={specDef.archetype}
+        defaults={specDef.params}
+        overrides={overrides}
+        onChange={onOverrideChange}
       />
     );
   }

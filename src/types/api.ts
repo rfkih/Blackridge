@@ -58,6 +58,11 @@ export interface BackendAccountStrategy {
   symbol: string;
   intervalName: string; // frontend: interval
   enabled: boolean; // frontend: derives `status` from this
+  /** Paper-trade flag: when true the strategy emits real signals but
+   *  OPEN_LONG/OPEN_SHORT are diverted to paper_trade_run. Combined with
+   *  `enabled` this defines the promotion state (RESEARCH / PAPER_TRADE /
+   *  PROMOTED / DEMOTED). Optional for pre-V15 cached responses. */
+  simulated?: boolean | null;
   currentStatus: string; // DB column is never updated by backend — do not use
   /** Fraction of the account's equity allocated to this strategy (0–100). */
   capitalAllocationPct: number | string | null;

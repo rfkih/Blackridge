@@ -110,7 +110,15 @@ src/
 │   │   ├── portfolio/page.tsx
 │   │   ├── market/page.tsx
 │   │   ├── pnl/page.tsx
-│   │   └── montecarlo/page.tsx
+│   │   ├── montecarlo/page.tsx
+│   │   ├── alerts/page.tsx                 # Alert inbox (gated by header badge count)
+│   │   └── admin/                          # All admin-only pages — gated `hasRole('ADMIN')`
+│   │       ├── error-log/page.tsx          # /api/v1/error-log inbox + status flip
+│   │       ├── audit-log/page.tsx          # audit_event viewer
+│   │       ├── spec-trace/page.tsx         # V19 spec_trace viewer (mounts SpecTraceViewer)
+│   │       ├── strategy-history/page.tsx   # V18 strategy_definition_history diff browser
+│   │       ├── walk-forward/page.tsx       # Operator walk-forward runs + scheduler controls
+│   │       └── paper-trade/page.tsx        # PROMOTED vs paper-trade comparison surface
 │   └── api/                      # Next API routes (proxy if needed)
 │
 ├── components/
@@ -122,6 +130,7 @@ src/
 │   │                             # BacktestParamPresetBar, BacktestResultCard, BacktestMetricsGrid, BacktestEquityPanel
 │   ├── strategy/                 # LsrParamsForm, VcbParamsForm, StrategyStatusBadge,
 │   │                             # NewStrategyDialog, DeleteStrategyDialog
+│   ├── research/                 # SpecTraceViewer (decision-tree drilldown, errors-only, spec snapshot)
 │   └── shared/                   # PnlCell, PriceCell, StatusIndicator, DataTable, StatCard, EmptyState
 │
 ├── hooks/                        # useWebSocket, useLivePnl, useTrades, useBacktest, useStrategies, useAuth
@@ -138,18 +147,55 @@ src/
 
 ## Backend API Integration
 
-### Base URL & Auth
+### Base URLs & Auth (dual-client after Phase 1 decoupling)
+
+The Java backend now runs as **two separate JVMs** (Phase 1 decoupling, 2026-04-29):
+- **Trading JVM** on `NEXT_PUBLIC_API_URL` (default `http://localhost:8080`) — live trading, accounts, trades, P&L, portfolio, strategies, params, scheduler, server diagnostics, websocket.
+- **Research JVM** on `NEXT_PUBLIC_RESEARCH_URL` (default `http://localhost:8081`) — `/api/v1/backtest/*`, `/api/v1/research/*`, `/api/v1/montecarlo/*`, `/api/v1/historical/*`. Falls back to `apiUrl` in production if unset (single-JVM deploys keep working).
 
 ```typescript
 // lib/api/client.ts
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8080';
-const client = axios.create({ baseURL: BASE_URL });
-client.interceptors.request.use((config) => {
-  const token = useAuthStore.getState().token;
-  if (token) config.headers.Authorization = `Bearer ${token}`;
-  return config;
-});
+import { apiClient, researchClient } from '@/lib/api/client';
+
+// Trading endpoints — apiClient
+apiClient.get('/api/v1/trades');
+apiClient.get('/api/v1/account-strategies');
+
+// Research endpoints — researchClient
+researchClient.post('/api/v1/backtest', payload);
+researchClient.get('/api/v1/research/sweeps');
 ```
+
+Both clients share identical config + interceptors via the `createApiClient(baseURL)` factory:
+- Cookie auth (`withCredentials: true`) — same `blackheart-token` HttpOnly cookie works on both JVMs because they share `JWT_SECRET`.
+- Backend envelope unwrap (`{responseCode, data, errorMessage}` → caller sees `data` directly).
+- 401 → clear auth store + redirect to `/login`. The redirect latch is module-level so a 401 from EITHER client cannot trigger a redirect storm.
+- Origin-safety belt: an absolute URL outside `apiUrl` AND `researchUrl` strips `withCredentials` to prevent cookie leakage.
+
+**Module assignment:**
+
+| API module | Client | Why |
+|---|---|---|
+| `accounts.ts` | apiClient | Trading-side (account CRUD, credentials) |
+| `auditEvents.ts` | apiClient | Audit trail of trading actions |
+| `backtest.ts` | **researchClient** | `/api/v1/backtest/*` |
+| `backtest-params.ts` | apiClient | Per-account-strategy params; trading-side LSR/VCB/VBO |
+| `emailVerification.ts` | apiClient | User flow |
+| `equity.ts` | apiClient | Live P&L equity |
+| `historical.ts` | **researchClient** | `/api/v1/historical/*` (heavy I/O, isolated) |
+| `lsr-params.ts` / `vcb-params.ts` / `vbo-params.ts` | apiClient | Live strategy param services |
+| `market.ts` | apiClient | Market data + indicators |
+| `montecarlo.ts` | **researchClient** | `/api/v1/montecarlo/*` |
+| `passwordReset.ts` | apiClient | User flow |
+| `pnl.ts` | apiClient | Realized P&L queries |
+| `portfolio.ts` | apiClient | Account balances |
+| `research.ts` | **researchClient** | Sweeps, TPR params, log, analysis |
+| `server.ts` | apiClient | IP monitor diagnostics |
+| `strategies.ts` | apiClient | Account-strategy lifecycle |
+| `strategy-definitions.ts` | apiClient | Admin definitions table |
+| `support.ts` | apiClient | Support messages |
+| `trades.ts` | apiClient | Trade history + positions |
+| `users.ts` | apiClient | Login, register, profile |
 
 ### Endpoint Map (existing backend)
 
@@ -172,6 +218,9 @@ client.interceptors.request.use((config) => {
 | Research / TPR params | `/api/v1/research/tpr/params` | GET | User-accessible read-only; sweep wizard reads it as the TPR baseline. PUT/POST mutations stay admin-only. |
 | Research / Log + Analysis | `/api/v1/research/log` `/backtest/:id/analysis` | GET | Admin-only — global view + IDOR-unsafe per-run analysis. |
 | Server diagnostics | `/api/v1/server/ip` `/ip/status` | GET | `/ip` calls ipify (live); `/ip/status` returns the latest persisted `ServerIpLog` row written by the IP_MONITOR scheduler. The `IpWhitelistBanner` polls `/ip/status` every 60 s and warns when `event === "CHANGED"` so users update their Binance whitelist. |
+| Error inbox (admin) | `/api/v1/error-log` `/{id}` `/{id}/status` `/open-count` | GET/PATCH | Fingerprint-deduped error rows. List omits stack; detail returns full stack + redacted MDC. `PATCH /{id}/status` flips NEW/INVESTIGATING/RESOLVED/IGNORED/WONT_FIX — reopen pre-checks the partial-unique-index and 409s if a fresh open row already exists for the fingerprint. `/open-count?minSeverity=` drives the header inbox badge. |
+| Spec trace (admin) | `/api/v1/spec-trace` `/{id}` | GET | V19 `spec_trace` viewer. **List requires** `backtestRunId` OR `accountStrategyId` (server rejects unscoped requests — table is hundreds of thousands of rows per backtest). List omits the heavyweight `specSnapshot`; detail returns spec snapshot + per-rule trace. |
+| Spec history (admin) | `/api/v1/strategy-definition-history` `/{id}` | GET | V18 audit log of every spec mutation. Each list row carries server-provided `priorHistoryId` so the "diff vs prev" toggle works across pagination boundaries. Detail returns full `specJsonb`. Frontend diff walks objects + arrays element-wise. |
 
 ### WebSocket / STOMP
 
@@ -223,6 +272,28 @@ TV Lightweight Charts candlestick for any symbol/interval. Overlay FeatureStore 
 
 ### 8. Monte Carlo (`/montecarlo`)
 Submit sim params → distribution as fan chart (percentile bands).
+
+### 9. Research Dashboard (`/research`)
+Single admin-only page consolidating ops + research workflow. Seven panels:
+
+1. **Service health** — trading + research JVM up/down dots, status, last-seen, port. Polls `GET /actuator/health` on each JVM (apiClient + researchClient) every 30s.
+2. **JVM telemetry per JVM** — heap used/max with sparkline, non-heap, GC pause p99, live threads, uptime, system + process CPU%. Polls `/actuator/metrics/{jvm.memory.used,jvm.memory.max,jvm.gc.pause,jvm.threads.live,process.uptime,system.cpu.usage,process.cpu.usage}` every 5s. Frame buffer keeps last 60 samples for the sparkline.
+3. **Scheduler status** — IP_MONITOR + research-tick last/next run from `/api/v1/scheduler`.
+4. **Sweep activity** — queued/running/done counts + top-5 in-flight sweeps with progress bar. Reads existing `/api/v1/research/sweeps`.
+5. **Promotion candidates (definition-scope, V40)** — one row per `StrategyDefinition` (NOT per `AccountStrategy`), grouped by current promotion state (PROMOTED / PAPER_TRADE / INACTIVE) derived client-side from `definition.enabled` + `definition.simulated`. Per-row Promote / Demote / Reject opens a confirm dialog (reason + evidence JSON) and calls `POST /api/v1/strategy-promotion/definition/{strategyCode}/promote`. The panel auto-opens the dialog when the URL hash matches `#promote-{strategyCode}` (deep-link from `/research/walk-forward`'s "Ready to promote" badge). The `StrategyDefinition` wire shape carries `enabled: boolean` and `simulated: boolean` (V40-added). Per-account `account_strategy.enabled`/`.simulated` still exist as overrides — the live executor papers an OPEN_* decision when EITHER scope says paper.
+6. **Recent promotions feed** — last 50 promotion-log rows across all strategies via `GET /api/v1/strategy-promotion/recent` (added V23 backend).
+7. **Research log tail** — last 200 lines of the research-tick log via existing `/api/v1/research/log` (admin-only).
+
+Existing `/research/sweeps` and `/research/log` URLs unchanged. The new index lives at `/research`. Page is gated `hasRole('ADMIN')` to match the underlying endpoints. Polling cadence: 5s telemetry, 30s health/scheduler/sweeps/promotions, manual refresh button.
+
+API modules added:
+- `lib/api/strategy-promotion.ts` — promote, currentState, history, paperTrades, recentPromotions.
+- `lib/api/actuator.ts` — health, metrics-by-name; dual-client (`apiClient` for trading JVM, `researchClient` for research JVM).
+
+Hooks added:
+- `useJvmTelemetry()` returns `{ trading: TelemetrySnapshot, research: TelemetrySnapshot, samples: TelemetryFrame[] }`.
+- `useServiceHealth()` returns `{ trading: HealthStatus, research: HealthStatus }`.
+- `useStrategyPromote()`, `useRecentPromotions()`.
 
 ---
 
@@ -679,6 +750,9 @@ TanStack Query handles all REST. Zustand handles WS-derived real-time + auth.
 | P2 | `GET /api/v1/market/indicators?symbol&interval` | FeatureStore overlay |
 | P2 | `GET /api/v1/pnl/by-strategy` | Per-strategy P&L breakdown |
 | P2 | `GET /api/v1/pnl/daily?from&to` | Daily P&L bars |
+| P1 | `GET /api/v1/research/sweeps?status=&sort=&page=&size=` | Server-side filter+sort+page for sweep list. Status accepts CSV (`RUNNING,PENDING`) for the in-flight scope. Without these params, `/research`'s Sweep activity panel cannot offer status pills / sort dropdown without violating the **Pagination, Sorting, Filtering — Server-Side Only** rule. |
+| P1 | `GET /api/v1/research/log?strategyCode=&asset=&interval=&page=&size=` | Server-side filter+page for the research log tail. Required before `/research`'s Research log panel can re-introduce the strategy/symbol/interval filter input. |
+| P1 | `GET /api/v1/strategy-definitions?query=&sort=&page=&size=` | Server-side substring filter (`query` matches strategy code or name, ILIKE) and sort (`strategyCode`, `strategyType`, `archetype`). Required before `/research`'s Promotion candidates panel can re-introduce the filter input + sortable column headers. |
 
 > `GET /defaults` likely already exists per backend contract — confirm returns full defaults, not just diffs.
 
@@ -713,6 +787,18 @@ TanStack Query handles all REST. Zustand handles WS-derived real-time + auth.
 - Loading states: skeleton loaders (not spinners) for table/chart content.
 - Error states: inline w/ retry button, not full-page, for fetch failures.
 
+### Pagination, Sorting, Filtering — Server-Side Only
+
+Lists are **always** paginated, sorted, and filtered by the backend. The frontend forwards user-selected page/size/sort/filter through query params and renders the resulting page envelope as-is. **Never** reorder, slice, search, or otherwise narrow a list client-side.
+
+- **Why**: a panel showing "top 5" of a client-side `slice(0, 5)` is wrong as soon as the list exceeds the page size — items beyond page 1 are invisible to the sort. The backend has the full set, the right indexes, and the canonical ordering.
+- **Page envelope**: backend list endpoints return Spring Data's `Page<T>` shape — `{ content, totalElements, totalPages, number, size }`. Treat `content` as the rendered page and `totalElements` as the source of truth for counts. Do not derive totals from `content.length`.
+- **Sort param**: pass `sort=field,asc|desc` (Spring's convention). When a column header is clicked, update the query param and refetch — do not call `Array.prototype.sort()` on the result.
+- **Filter / search**: pass filters as discrete query params (e.g. `?strategyCode=LSR&toState=PROMOTED`). The query key must include every filter value so each filter combination forms its own cache entry. Debounce text inputs (250 ms) before re-keying. Do not run `.filter()`/`.includes()` over `content` to narrow the list.
+- **TanStack Query keys**: include `page`, `size`, `sort`, and every filter param verbatim — `['recent', { page, size, sort, strategyCode, toState }]`. `placeholderData: (prev) => prev` keeps the previous page visible during refetch so the table doesn't flicker empty.
+- **If the backend doesn't support a needed sort/filter**: do not work around it client-side. Add the endpoint to **"New Backend Endpoints to Request"**, ship the backend change, then wire the UI.
+- **Narrow exception**: pure visual reordering with no semantic meaning (e.g. drag-to-reorder dashboard cards stored in localStorage, or zipping two parallel arrays for a chart) is not a list query — that's UI state, not data. Server-side rule applies to anything that came from a list endpoint.
+
 ### Performance
 - Virtualize lists >100 rows (trades, backtest trades) — `react-virtual`.
 - Memoize chart data transformations — equity arrays can be large.
@@ -730,6 +816,11 @@ TanStack Query handles all REST. Zustand handles WS-derived real-time + auth.
 ```env
 # .env.local
 NEXT_PUBLIC_API_URL=http://localhost:8080
+# Phase 1 decoupling: research endpoints route to a separate JVM.
+# Leave unset in production to fall back to NEXT_PUBLIC_API_URL
+# (single-JVM deploy). Required to be set explicitly only if running
+# the two-JVM topology with different hostnames in prod.
+NEXT_PUBLIC_RESEARCH_URL=http://localhost:8081
 NEXT_PUBLIC_WS_URL=ws://localhost:8080/ws
 ```
 
@@ -759,6 +850,7 @@ pnpm build
 - Hardcode strategy codes — load from backend; fallback labels: `LSR`, `LSR_V2`, `VCB`, `TREND_PULLBACK_SINGLE_EXIT`, `RAHT_V1`, `TSMOM_V1`.
 - Use `<form>` HTML elements — controlled `<div>` + `onClick` patterns w/ RHF.
 - Bypass auth interceptor with raw `fetch` — always go through Axios client.
+- Sort, filter, paginate, or `slice()` lists client-side — **always server-side** via query params. See **Coding Rules → Pagination, Sorting, Filtering**.
 
 ---
 

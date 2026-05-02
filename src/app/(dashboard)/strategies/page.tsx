@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { formatDistanceToNow } from 'date-fns';
 import {
   ArrowUpRight,
   ArrowDownRight,
@@ -11,6 +12,7 @@ import {
   Loader2,
   Plus,
   Radio,
+  ShieldAlert,
   Trash2,
   Zap,
 } from 'lucide-react';
@@ -24,6 +26,7 @@ import {
   useAccountStrategies,
   useActivateStrategy,
   useDeactivateStrategy,
+  useRearmKillSwitch,
   useUpdateStrategyInterval,
   useUpdateStrategyPriority,
 } from '@/hooks/useStrategies';
@@ -48,9 +51,11 @@ function StrategyCard({
   onActivate,
   onDeactivate,
   onIntervalChange,
+  onRearm,
   isActivating,
   isDeactivating,
   isUpdatingInterval,
+  isRearming,
   isDragging,
   isDragOver,
   onDragStart,
@@ -67,9 +72,11 @@ function StrategyCard({
   onActivate: (s: AccountStrategy) => void;
   onDeactivate: (s: AccountStrategy) => void;
   onIntervalChange: (s: AccountStrategy, intervalName: string) => void;
+  onRearm: (s: AccountStrategy) => void;
   isActivating: boolean;
   isDeactivating: boolean;
   isUpdatingInterval: boolean;
+  isRearming: boolean;
   isDragging: boolean;
   isDragOver: boolean;
   onDragStart: () => void;
@@ -187,6 +194,10 @@ function StrategyCard({
       >
         <GripVertical size={14} />
       </span>
+
+      {strategy.isKillSwitchTripped && (
+        <KillSwitchPanel strategy={strategy} onRearm={onRearm} isRearming={isRearming} />
+      )}
 
       {groupHasOtherPreset && (
         <div className="-mt-2 flex items-center justify-between border-t border-[var(--border-subtle)] pt-3">
@@ -309,6 +320,70 @@ function DirectionPill({ direction, enabled }: { direction: 'long' | 'short'; en
 }
 
 /**
+ * Surfaces the drawdown kill-switch trip on a card. Shows the trip reason +
+ * how long ago it tripped, plus a Re-arm button that calls
+ * POST /:id/rearm to clear the flag. Sits below the card's main Link so
+ * the button is not nested inside an anchor.
+ */
+function KillSwitchPanel({
+  strategy,
+  onRearm,
+  isRearming,
+}: {
+  strategy: AccountStrategy;
+  onRearm: (s: AccountStrategy) => void;
+  isRearming: boolean;
+}) {
+  const trippedAt = strategy.killSwitchTrippedAt;
+  const reason = strategy.killSwitchReason?.trim() || 'Drawdown kill-switch tripped';
+  const trippedLabel = trippedAt ? formatDistanceToNow(new Date(trippedAt), { addSuffix: true }) : null;
+
+  return (
+    <div
+      className="-mt-2 flex items-start gap-2 rounded-md border px-3 py-2"
+      style={{
+        borderColor: 'rgba(255,77,106,0.32)',
+        backgroundColor: 'rgba(255,77,106,0.08)',
+      }}
+      role="alert"
+    >
+      <ShieldAlert size={14} style={{ color: 'var(--color-loss)', marginTop: 2 }} />
+      <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+        <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--color-loss)]">
+          Kill-switch tripped
+          {trippedLabel ? (
+            <span className="ml-1.5 font-normal normal-case text-[var(--text-muted)]">
+              · {trippedLabel}
+            </span>
+          ) : null}
+        </span>
+        <span className="line-clamp-2 text-[11px] text-[var(--text-secondary)]" title={reason}>
+          {reason}
+        </span>
+      </div>
+      <button
+        type="button"
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          onRearm(strategy);
+        }}
+        disabled={isRearming}
+        className="inline-flex shrink-0 items-center gap-1 rounded border px-2 py-1 font-mono text-[10px] uppercase tracking-[0.14em] transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+        style={{
+          borderColor: 'rgba(255,77,106,0.32)',
+          color: 'var(--color-loss)',
+          backgroundColor: 'transparent',
+        }}
+      >
+        {isRearming ? <Loader2 size={10} className="animate-spin" /> : <ShieldAlert size={10} />}
+        {isRearming ? 'Re-arming…' : 'Re-arm'}
+      </button>
+    </div>
+  );
+}
+
+/**
  * Inline editor for the per-account "max concurrent trades" cap. Local
  * draft state keeps the input responsive; commit on blur or Enter, snap
  * back to the row's value if the entered number is invalid.
@@ -409,10 +484,12 @@ function IntervalGroupSortable({
   onActivate,
   onDeactivate,
   onIntervalChange,
+  onRearm,
   onReorder,
   activatingId,
   deactivatingId,
   updatingIntervalId,
+  rearmingId,
 }: {
   interval: string;
   strategies: AccountStrategy[];
@@ -421,10 +498,12 @@ function IntervalGroupSortable({
   onActivate: (s: AccountStrategy) => void;
   onDeactivate: (s: AccountStrategy) => void;
   onIntervalChange: (s: AccountStrategy, intervalName: string) => void;
+  onRearm: (s: AccountStrategy) => void;
   onReorder: (sourceId: string, targetId: string, ordered: AccountStrategy[]) => void;
   activatingId: string | undefined;
   deactivatingId: string | undefined;
   updatingIntervalId: string | undefined;
+  rearmingId: string | undefined;
 }) {
   const [draggedId, setDraggedId] = useState<string | null>(null);
   const [dragOverId, setDragOverId] = useState<string | null>(null);
@@ -466,9 +545,11 @@ function IntervalGroupSortable({
             onActivate={onActivate}
             onDeactivate={onDeactivate}
             onIntervalChange={onIntervalChange}
+            onRearm={onRearm}
             isActivating={activatingId === s.id}
             isDeactivating={deactivatingId === s.id}
             isUpdatingInterval={updatingIntervalId === s.id}
+            isRearming={rearmingId === s.id}
             isDragging={draggedId === s.id}
             isDragOver={dragOverId === s.id}
             onDragStart={() => setDraggedId(s.id)}
@@ -517,6 +598,7 @@ export default function StrategiesPage() {
   const deactivateMutation = useDeactivateStrategy();
   const intervalMutation = useUpdateStrategyInterval();
   const priorityMutation = useUpdateStrategyPriority();
+  const rearmMutation = useRearmKillSwitch();
   const riskConfigMutation = useUpdateAccountRiskConfig();
 
   const visibleStrategies = scopedAccountId
@@ -559,6 +641,23 @@ export default function StrategiesPage() {
       onError: (err) => {
         toast.error({
           title: 'Could not stop preset',
+          description: normalizeError(err),
+        });
+      },
+    });
+  };
+
+  const handleRearm = (strategy: AccountStrategy) => {
+    rearmMutation.mutate(strategy.id, {
+      onSuccess: (s) => {
+        toast.success({
+          title: `Re-armed "${s.presetName}"`,
+          description: 'Kill-switch cleared — strategy resumes on the next signal.',
+        });
+      },
+      onError: (err) => {
+        toast.error({
+          title: 'Could not re-arm kill-switch',
           description: normalizeError(err),
         });
       },
@@ -730,12 +829,14 @@ export default function StrategiesPage() {
           onActivate={handleActivate}
           onDeactivate={handleDeactivate}
           onIntervalChange={handleIntervalChange}
+          onRearm={handleRearm}
           onReorder={handleReorder}
           activatingId={activateMutation.isPending ? activateMutation.variables : undefined}
           deactivatingId={deactivateMutation.isPending ? deactivateMutation.variables : undefined}
           updatingIntervalId={
             intervalMutation.isPending ? intervalMutation.variables?.id : undefined
           }
+          rearmingId={rearmMutation.isPending ? rearmMutation.variables : undefined}
         />
       )}
 
@@ -777,10 +878,12 @@ function AccountsAndIntervalsView({
   onActivate,
   onDeactivate,
   onIntervalChange,
+  onRearm,
   onReorder,
   activatingId,
   deactivatingId,
   updatingIntervalId,
+  rearmingId,
 }: {
   accounts: AccountSummary[];
   strategies: AccountStrategy[];
@@ -790,10 +893,12 @@ function AccountsAndIntervalsView({
   onActivate: (s: AccountStrategy) => void;
   onDeactivate: (s: AccountStrategy) => void;
   onIntervalChange: (s: AccountStrategy, intervalName: string) => void;
+  onRearm: (s: AccountStrategy) => void;
   onReorder: (sourceId: string, targetId: string, ordered: AccountStrategy[]) => void;
   activatingId: string | undefined;
   deactivatingId: string | undefined;
   updatingIntervalId: string | undefined;
+  rearmingId: string | undefined;
 }) {
   // Bucket by accountId. Preserve account list order; tack on stragglers.
   const byAccount = new Map<string, AccountStrategy[]>();
@@ -856,10 +961,12 @@ function AccountsAndIntervalsView({
                   onActivate={onActivate}
                   onDeactivate={onDeactivate}
                   onIntervalChange={onIntervalChange}
+                  onRearm={onRearm}
                   onReorder={onReorder}
                   activatingId={activatingId}
                   deactivatingId={deactivatingId}
                   updatingIntervalId={updatingIntervalId}
+                  rearmingId={rearmingId}
                 />
               ))}
             </div>

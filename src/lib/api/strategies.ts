@@ -29,6 +29,7 @@ function mapAccountStrategy(s: BackendAccountStrategy): AccountStrategy {
     symbol: s.symbol,
     interval: s.intervalName,
     status: (s.enabled ? 'LIVE' : 'STOPPED') as AccountStrategyStatus,
+    simulated: Boolean(s.simulated),
     capitalAllocationPct: toNumber(s.capitalAllocationPct),
     maxOpenPositions: toNumber(s.maxOpenPositions),
     allowLong: s.allowLong,

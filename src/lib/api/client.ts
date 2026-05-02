@@ -1,11 +1,24 @@
-// SLICE 1: Axios instance + error normalization.
+// SLICE 1: Axios instances + error normalization.
 //
-// Authentication rides entirely on the HttpOnly `blackheart-token` cookie set
-// by the backend on /login and /register. No in-memory Authorization header
-// is attached — the browser sends the cookie automatically via
-// `withCredentials: true`. Removing the Bearer fallback is deliberate: a JS-
-// readable token in Zustand would be liftable by any XSS payload, and the
-// cookie path covers every reachable browser environment.
+// Single public client after V14 (2026-04-30). The research JVM is now
+// internal-only (binds to 127.0.0.1:8081); the trading JVM exposes a
+// reverse-proxy at /api/v1/{backtest,research,montecarlo,historical}/**
+// and /research-actuator/** that forwards to it (ResearchProxyController).
+// Both clients therefore share the same baseURL — `researchClient` is
+// retained as an export so the per-module assignment in CLAUDE.md keeps
+// working without a sweeping rename. New code can use either; both
+// resolve to `env.apiUrl`.
+//
+// Auth model: HttpOnly `blackheart-token` cookie set by the backend on
+// /login. The trading JVM validates the cookie before forwarding to the
+// research JVM, which re-validates using the shared JWT_SECRET.
+//
+// Authentication rides entirely on the HttpOnly cookie. No in-memory
+// Authorization header is attached — the browser sends the cookie
+// automatically via `withCredentials: true`. Removing the Bearer fallback
+// is deliberate: a JS-readable token in Zustand would be liftable by any
+// XSS payload, and the cookie path covers every reachable browser
+// environment.
 import axios, { type AxiosError, type AxiosInstance } from 'axios';
 import { useAuthStore } from '@/store/authStore';
 import { env } from '@/lib/env';
@@ -14,29 +27,48 @@ import { env } from '@/lib/env';
 // keep working after the lift into `./errorMap`.
 export { normalizeError, messageForStatus, FALLBACK_MESSAGE } from './errorMap';
 
-export const apiClient: AxiosInstance = axios.create({
-  baseURL: env.apiUrl,
-  headers: { 'Content-Type': 'application/json' },
-  timeout: 20_000,
-  // Send the HttpOnly auth cookie on every API call. The server authenticates
-  // from the cookie alone — the token no longer lives in JS-readable storage,
-  // so an XSS payload on our origin cannot exfiltrate it.
-  withCredentials: true,
-});
+/**
+ * Axios instance factory. Both clients share identical config + interceptors;
+ * only the `baseURL` differs. Keeping a single factory means cookie auth,
+ * envelope unwrapping, 401-handling, and dev logging stay in lockstep
+ * across the two JVMs.
+ */
+function createApiClient(baseURL: string): AxiosInstance {
+  const instance = axios.create({
+    baseURL,
+    headers: { 'Content-Type': 'application/json' },
+    timeout: 20_000,
+    withCredentials: true,
+  });
 
-apiClient.interceptors.request.use((config) => {
-  // Safety belt — if a request URL resolves outside our API origin, refuse to
-  // send credentials. `withCredentials: true` scopes the cookie to the target
-  // origin via browser SOP already, but this guards against a misconfigured
-  // caller that passes a full https://attacker.example URL through apiClient.
-  const rawUrl = config.url ?? '';
-  const isAbsolute = /^https?:/i.test(rawUrl);
-  if (isAbsolute && !rawUrl.startsWith(env.apiUrl)) {
-    config.withCredentials = false;
-    if (config.headers) delete config.headers.Authorization;
-  }
-  return config;
-});
+  instance.interceptors.request.use((config) => {
+    // Safety belt — if a request URL resolves outside our known API
+    // origin, refuse to send credentials. `withCredentials: true` scopes
+    // the cookie to the target origin via browser SOP already, but this
+    // guards against a misconfigured caller passing a full
+    // https://attacker.example URL through the client.
+    const rawUrl = config.url ?? '';
+    const isAbsolute = /^https?:/i.test(rawUrl);
+    if (isAbsolute && !rawUrl.startsWith(env.apiUrl)) {
+      config.withCredentials = false;
+      if (config.headers) delete config.headers.Authorization;
+    }
+    return config;
+  });
+
+  instance.interceptors.response.use(envelopeUnwrapResponseHandler, sharedErrorHandler);
+  return instance;
+}
+
+export const apiClient: AxiosInstance = createApiClient(env.apiUrl);
+/**
+ * Research-service axios client. Kept as a separate export for backwards
+ * compatibility with the per-module assignment documented in CLAUDE.md;
+ * after V14 (2026-04-30) it points at the same trading-JVM origin and the
+ * trading JVM reverse-proxies /api/v1/{backtest,research,montecarlo,
+ * historical}/** into the internal research JVM.
+ */
+export const researchClient: AxiosInstance = apiClient;
 
 function logDevAxiosFailure(error: AxiosError) {
   if (process.env.NODE_ENV !== 'development') return;
@@ -126,43 +158,49 @@ export function consumeSessionExpiredFlag(): boolean {
 // flashes the PageLoader between each).
 let redirectingToLogin = false;
 
-apiClient.interceptors.response.use(
-  (response) => {
-    // Unwrap the backend envelope: { responseCode, responseDesc, data, errorMessage }
-    // so every caller just receives the inner `data` directly.
-    if (isEnvelope(response.data)) {
-      const envelope = response.data;
-      if (envelope.errorMessage) {
-        return Promise.reject(new Error(envelope.errorMessage));
-      }
-      response.data = envelope.data;
+/**
+ * Response interceptor: unwrap the backend envelope so callers receive the
+ * inner `data` directly. Identical for both apiClient and researchClient.
+ */
+function envelopeUnwrapResponseHandler(response: import('axios').AxiosResponse) {
+  if (isEnvelope(response.data)) {
+    const envelope = response.data;
+    if (envelope.errorMessage) {
+      return Promise.reject(new Error(envelope.errorMessage));
     }
-    return response;
-  },
-  (error: AxiosError) => {
-    logDevAxiosFailure(error);
-    if (error.response?.status === 401) {
-      // Clear local auth state on every 401 — cheap and idempotent, and
-      // critically: it clears the `blackheart-session` signal cookie so Next
-      // middleware bounces the next navigation at the edge instead of letting
-      // more API calls through.
-      const { clearAuth } = useAuthStore.getState();
-      clearAuth();
+    response.data = envelope.data;
+  }
+  return response;
+}
 
-      if (
-        typeof window !== 'undefined' &&
-        !redirectingToLogin &&
-        !isAuthPath(window.location.pathname)
-      ) {
-        redirectingToLogin = true;
-        // Stash a one-shot flag so the login page can show "Your session
-        // expired — please sign in again" instead of looking like the user
-        // arrived for no reason.
-        markSessionExpired();
-        const next = encodeURIComponent(window.location.pathname + window.location.search);
-        window.location.assign(`/login?next=${next}`);
-      }
+/**
+ * Shared error handler: 401 → clear auth + redirect to /login. The
+ * `redirectingToLogin` latch is module-level so a 401 from EITHER client
+ * cannot trigger a redirect storm if the other client is also retrying.
+ */
+function sharedErrorHandler(error: AxiosError) {
+  logDevAxiosFailure(error);
+  if (error.response?.status === 401) {
+    // Clear local auth state on every 401 — cheap and idempotent, and
+    // critically: it clears the `blackheart-session` signal cookie so Next
+    // middleware bounces the next navigation at the edge instead of letting
+    // more API calls through.
+    const { clearAuth } = useAuthStore.getState();
+    clearAuth();
+
+    if (
+      typeof window !== 'undefined' &&
+      !redirectingToLogin &&
+      !isAuthPath(window.location.pathname)
+    ) {
+      redirectingToLogin = true;
+      // Stash a one-shot flag so the login page can show "Your session
+      // expired — please sign in again" instead of looking like the user
+      // arrived for no reason.
+      markSessionExpired();
+      const next = encodeURIComponent(window.location.pathname + window.location.search);
+      window.location.assign(`/login?next=${next}`);
     }
-    return Promise.reject(error);
-  },
-);
+  }
+  return Promise.reject(error);
+}

@@ -23,6 +23,8 @@ import { useBacktestRuns } from '@/hooks/useBacktest';
 import { apiClient } from '@/lib/api/client';
 import { useQuery } from '@tanstack/react-query';
 import { formatDate } from '@/lib/formatters';
+import { useIsAdmin } from '@/hooks/useIsAdmin';
+import { listAlerts, type AlertEvent } from '@/lib/api/alerts';
 
 interface ServerIpStatus {
   currentIp?: string | null;
@@ -31,7 +33,7 @@ interface ServerIpStatus {
   recordedAt?: string | null;
 }
 
-type NotificationKind = 'killSwitch' | 'ipChange' | 'backtestDone';
+type NotificationKind = 'killSwitch' | 'ipChange' | 'backtestDone' | 'systemAlert';
 
 interface Notification {
   id: string;
@@ -78,6 +80,18 @@ export function NotificationPanel() {
     retry: 0,
   });
   const recentBacktests = useBacktestRuns({ status: 'COMPLETED', size: 5 });
+
+  // Admin-only feed of operational alerts (kill-switch trips, ingest stalls,
+  // P&L deviation, verdict drift). 403 for non-admins is fine — `enabled`
+  // guards against firing it at all.
+  const isAdmin = useIsAdmin();
+  const recentAlerts = useQuery({
+    queryKey: ['alerts', 'recent-popover'],
+    queryFn: () => listAlerts({ size: 10, includeSuppressed: false }),
+    staleTime: 30_000,
+    enabled: isAdmin,
+    retry: 0,
+  });
 
   const notifications = useMemo<Notification[]>(() => {
     const out: Notification[] = [];
@@ -131,10 +145,25 @@ export function NotificationPanel() {
       });
     }
 
+    // 4. Operational alerts (admin only) — Phase 7 system signals.
+    const alerts = recentAlerts.data?.content ?? [];
+    for (const a of alerts.slice(0, 5)) {
+      if (!a.createdAt) continue;
+      out.push({
+        id: `alert-${a.alertEventId}`,
+        kind: 'systemAlert',
+        ts: a.createdAt,
+        title: alertTitle(a),
+        body: a.message,
+        href: '/admin/alerts',
+        severity: alertSeverity(a),
+      });
+    }
+
     // Newest first — the panel is about "what just happened".
     out.sort((a, b) => new Date(b.ts).getTime() - new Date(a.ts).getTime());
     return out;
-  }, [strategies, ipStatus.data, recentBacktests.data]);
+  }, [strategies, ipStatus.data, recentBacktests.data, recentAlerts.data]);
 
   // Unread = notifications produced after the last time the user opened the
   // panel. We don't track per-item read state because composing from multiple
@@ -276,8 +305,26 @@ function iconFor(n: Notification): React.ElementType {
       return Globe2;
     case 'backtestDone':
       return History;
+    case 'systemAlert':
+      return AlertTriangle;
     default:
       return AlertTriangle;
+  }
+}
+
+function alertTitle(a: AlertEvent): string {
+  return `${a.severity} — ${a.kind}`;
+}
+
+function alertSeverity(a: AlertEvent): Notification['severity'] {
+  switch (a.severity) {
+    case 'CRITICAL':
+      return 'critical';
+    case 'WARN':
+      return 'warning';
+    case 'INFO':
+    default:
+      return 'info';
   }
 }
 

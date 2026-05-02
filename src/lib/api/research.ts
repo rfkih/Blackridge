@@ -1,4 +1,6 @@
-import { apiClient } from './client';
+// Phase 1 decoupling: research endpoints live on the research JVM (8081).
+// Aliasing to `apiClient` keeps every call-site below unchanged.
+import { researchClient as apiClient } from './client';
 import type {
   AnalysisReport,
   ResearchLogRow,

@@ -7,9 +7,11 @@ import { useRouter } from 'next/navigation';
 import { AlertCircle, ArrowLeft, PlayCircle, RefreshCw } from 'lucide-react';
 import { format } from 'date-fns';
 import { StrategyBadge } from '@/components/trading/StrategyBadge';
+import { RunSourceBadge } from '@/components/backtest/RunSourceBadge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { BacktestMetricsGrid } from '@/components/backtest/BacktestMetricsGrid';
 import { BacktestTradeTable } from '@/components/backtest/BacktestTradeTable';
+import { FundingRatePanel } from '@/components/backtest/FundingRatePanel';
 import { AnalysisCard } from '@/components/research/AnalysisCard';
 import { ErrorBoundary } from '@/components/shared/ErrorBoundary';
 import {
@@ -111,8 +113,18 @@ export default function BacktestResultPage({ params }: { params: { id: string } 
         initialCapital: run.initialCapital,
         strategyCodes: codes,
         strategyAccountStrategyIds,
+        // V2 reproduction: backend now exposes the run-level wizard fields
+        // alongside paramSnapshot. Falling back to long-only on legacy rows
+        // that pre-date the field exposure (run.allowLong === null).
+        allowLong: run.allowLong ?? true,
+        allowShort: run.allowShort ?? false,
+        maxConcurrentStrategies: run.maxConcurrentStrategies ?? undefined,
+        strategyAllocations: run.strategyAllocations ?? undefined,
+        strategyIntervals: run.strategyIntervals ?? undefined,
+        evaluationMode: run.strategyIntervals ? 'multi' : 'single',
       },
       run.paramSnapshot ?? {},
+      run.id,
     );
     router.push('/backtest/new');
   }, [runQ.data, hydrateFromRun, router]);
@@ -159,6 +171,17 @@ export default function BacktestResultPage({ params }: { params: { id: string } 
       {runQ.data && <BacktestProgressBar run={runQ.data} />}
 
       <BacktestMetricsGrid metrics={runQ.data?.metrics ?? null} isLoading={runQ.isLoading} />
+
+      {runQ.data && (
+        <ErrorBoundary label="Funding rate">
+          <FundingRatePanel
+            symbol={runQ.data.symbol}
+            fromDate={runQ.data.fromDate}
+            toDate={runQ.data.toDate}
+            configuredBpsPer8h={runQ.data.fundingRateBpsPer8h}
+          />
+        </ErrorBoundary>
+      )}
 
       {idIsValid && runQ.data?.status?.toUpperCase() === 'COMPLETED' && (
         <ErrorBoundary label="Research analysis">
@@ -286,6 +309,7 @@ function ResultHeader({ run, isLoading, onRerun }: ResultHeaderProps) {
             )}
           </h1>
           <RunStatusPill status={run?.status} />
+          {run && <RunSourceBadge source={run.triggeredBy} size="md" />}
         </div>
         <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] text-text-secondary">
           {codes.length === 0 ? (
@@ -422,12 +446,15 @@ function ReproducibilityPanel({ run }: { run: BacktestRun }) {
   const sha = run.gitCommitSha ?? '—';
   const shortSha = sha !== '—' && sha !== 'unknown' ? sha.slice(0, 12) : sha;
   const version = run.appVersion ?? '—';
-  const overrideCount = run.paramSnapshot
-    ? Object.values(run.paramSnapshot).reduce(
-        (acc, kv) => acc + Object.keys(kv).length,
-        0,
+  const snapshotEntries = run.paramSnapshot
+    ? Object.entries(run.paramSnapshot).filter(
+        ([, kv]) => kv && Object.keys(kv).length > 0,
       )
-    : 0;
+    : [];
+  const overrideCount = snapshotEntries.reduce(
+    (acc, [, kv]) => acc + Object.keys(kv).length,
+    0,
+  );
 
   return (
     <section className="rounded-md border border-bd-subtle bg-bg-surface">
@@ -458,8 +485,48 @@ function ReproducibilityPanel({ run }: { run: BacktestRun }) {
           )}
         </ManifestField>
       </dl>
+      {snapshotEntries.length > 0 && (
+        <div className="border-t border-bd-subtle px-4 py-3">
+          <p className="mb-2 font-mono text-[9px] uppercase tracking-wider text-text-muted">
+            Override values
+          </p>
+          <div className="space-y-3">
+            {snapshotEntries.map(([code, kv]) => (
+              <div key={code}>
+                <p className="font-mono text-[11px] font-semibold text-text-primary">
+                  {code}
+                </p>
+                <table className="mt-1 w-full font-mono text-[11px]">
+                  <tbody>
+                    {Object.entries(kv).map(([k, v]) => (
+                      <tr key={k} className="border-t border-bd-subtle/60">
+                        <td className="py-1 pr-3 text-text-secondary">{k}</td>
+                        <td className="py-1 text-text-primary tabular-nums">
+                          {formatOverrideValue(v)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </section>
   );
+}
+
+function formatOverrideValue(v: unknown): string {
+  if (v === null || v === undefined) return '—';
+  if (typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean') {
+    return String(v);
+  }
+  try {
+    return JSON.stringify(v);
+  } catch {
+    return String(v);
+  }
 }
 
 function ManifestField({

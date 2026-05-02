@@ -88,7 +88,10 @@
       "Bash(\"C:/MyFiles/blackheart/blackheart/gradlew.bat\" -p C:/MyFiles/blackheart/blackheart compileJava -q)",
       "Bash(\"C:/MyFiles/blackheart/blackheart/gradlew.bat\" -p C:/MyFiles/blackheart/blackheart compileJava)",
       "Bash(\"C:/MyFiles/blackheart/blackheart/gradlew.bat\" -p C:/MyFiles/blackheart/blackheart compileJava --rerun-tasks)",
-      "Read(//c/MyFiles/blackheart/**)"
+      "Read(//c/MyFiles/blackheart/**)",
+      "Bash(powershell.exe *)",
+      "Bash(exit 0)",
+      "Bash(exit 1)"
     ]
   }
 }

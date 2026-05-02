@@ -1,4 +1,5 @@
-import { apiClient } from './client';
+// Phase 1 decoupling: monte carlo runs on the research JVM (8081).
+import { researchClient as apiClient } from './client';
 import type {
   MonteCarloPathSummary,
   MonteCarloResult,

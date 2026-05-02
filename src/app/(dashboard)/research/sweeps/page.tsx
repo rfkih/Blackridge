@@ -290,7 +290,7 @@ function NewSweepForm({ onSubmitted }: { onSubmitted: (sweepId: string) => void 
     const spec: SweepSpec = {
       strategyCode: selected.strategyCode,
       accountStrategyId,
-      asset,
+      asset: asset.trim().toUpperCase(),
       interval,
       fromDate: `${fromDate}T00:00:00`,
       toDate: `${toDate}T00:00:00`,
@@ -337,7 +337,12 @@ function NewSweepForm({ onSubmitted }: { onSubmitted: (sweepId: string) => void 
             className="mm-input"
             value={asset}
             onChange={(e) => setAsset(e.target.value)}
+            list="sweep-asset-options"
           />
+          <datalist id="sweep-asset-options">
+            <option value="BTCUSDT" />
+            <option value="ETHUSDT" />
+          </datalist>
         </Field>
         <Field label="Interval">
           <input

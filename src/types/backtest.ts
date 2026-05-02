@@ -59,6 +59,19 @@ export interface BackendBacktestRun {
   /** Reproducibility manifest — git SHA + app version stamped at submit. */
   gitCommitSha?: string | null;
   appVersion?: string | null;
+  /** Origin tag — USER (wizard) or RESEARCHER (autonomous orchestrator).
+   *  Defaults USER on legacy rows via DB; treat unknown values as USER. */
+  triggeredBy?: string | null;
+  /** Run-level wizard config the UI restores on "Re-run with these params".
+   *  paramSnapshot only carries per-strategy override maps; these fields
+   *  carry direction toggles, allocation, multi-tf, and concurrency cap. */
+  allowLong?: boolean | null;
+  allowShort?: boolean | null;
+  maxConcurrentStrategies?: number | null;
+  strategyAllocations?: Record<string, number | string> | null;
+  strategyIntervals?: Record<string, string> | null;
+  /** Flat funding-rate stub (basis points per 8h). Null on legacy runs. */
+  fundingRateBpsPer8h?: number | string | null;
   metrics?: BackendBacktestRunMetrics | null;
 
   // Legacy aliases (BacktestRunResponse) — same run, different field names.
@@ -181,6 +194,21 @@ export interface BacktestRun {
    *  fromDate, and toDate, these uniquely identify the run for replay. */
   gitCommitSha: string | null;
   appVersion: string | null;
+  /** Origin tag — USER for wizard-submitted runs, RESEARCHER for autonomous
+   *  research-orchestrator runs. Drives the RESEARCHER badge on the run list
+   *  and detail header. */
+  triggeredBy: 'USER' | 'RESEARCHER';
+  /** Run-level wizard config — used by "Re-run with these params" so the
+   *  user gets a faithful reproduction, not just the strategy-param subset.
+   *  Null when the legacy run pre-dates the field exposure. */
+  allowLong: boolean | null;
+  allowShort: boolean | null;
+  maxConcurrentStrategies: number | null;
+  strategyAllocations: Record<string, number> | null;
+  strategyIntervals: Record<string, string> | null;
+  /** Flat funding-rate stub captured at submit (bps per 8h). Null on
+   *  legacy runs that pre-date V22. */
+  fundingRateBpsPer8h: number | null;
 }
 
 /**
@@ -251,6 +279,14 @@ export interface BacktestWizardConfig {
    *  "interval mismatch" warning. Not sent to the backend — payload
    *  shape is fully determined by strategyIntervals. */
   evaluationMode?: 'single' | 'multi';
+  /** Direction toggles. Default: long-only. Both can be enabled (run
+   *  long+short on strategies that support both); both off is rejected
+   *  by the form. Wired through to {@link BacktestRunPayload.allowLong}
+   *  / {@code allowShort} — backend's `resolveAllowShort` defaults
+   *  null → TRUE, so the wizard *must* send the user's choice
+   *  explicitly to express "long-only". */
+  allowLong: boolean;
+  allowShort: boolean;
 }
 
 export interface BacktestParamPreset {

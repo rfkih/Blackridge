@@ -304,3 +304,32 @@ export async function getTradePositions(id: string): Promise<TradePosition[]> {
   );
   return extractList(data).map(mapPosition);
 }
+
+/**
+ * Trade-state anomalies for the admin /research stuck-trade panel. Healthy
+ * state returns []; one row per inconsistent parent trade otherwise. See
+ * {@code TradeAnomalyService} on the backend for the classification rules.
+ */
+export type TradeAnomalyType =
+  | 'OPEN_NO_CHILDREN'
+  | 'OPEN_NO_OPEN_CHILDREN'
+  | 'PARTIAL_NO_OPEN_CHILDREN';
+
+export interface TradeAnomaly {
+  tradeId: string;
+  accountId: string;
+  accountStrategyId: string;
+  asset: string;
+  interval: string;
+  side: string;
+  status: string;
+  entryTime: string | null;
+  totalLegs: number;
+  openLegs: number;
+  anomalyType: TradeAnomalyType;
+}
+
+export async function getTradeAnomalies(): Promise<TradeAnomaly[]> {
+  const { data } = await apiClient.get<TradeAnomaly[]>('/api/v1/trades/anomalies');
+  return Array.isArray(data) ? data : [];
+}

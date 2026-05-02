@@ -8,7 +8,9 @@ import type {
   BackendBacktestRun,
 } from '@/types/backtest';
 import type { CandleData } from '@/types/market';
-import { apiClient } from './client';
+// Phase 1 decoupling: backtest endpoints live on the research JVM (8081),
+// not the trading JVM (8080). Use researchClient throughout this module.
+import { researchClient as apiClient } from './client';
 
 const BASE = '/api/v1/backtest';
 
@@ -177,7 +179,44 @@ export function mapBacktestRun(b: BackendBacktestRun): BacktestRun {
     paramSnapshot: mapParamSnapshot(b.paramSnapshot),
     gitCommitSha: b.gitCommitSha ?? null,
     appVersion: b.appVersion ?? null,
+    triggeredBy: b.triggeredBy === 'RESEARCHER' ? 'RESEARCHER' : 'USER',
+    allowLong: typeof b.allowLong === 'boolean' ? b.allowLong : null,
+    allowShort: typeof b.allowShort === 'boolean' ? b.allowShort : null,
+    maxConcurrentStrategies:
+      typeof b.maxConcurrentStrategies === 'number' ? b.maxConcurrentStrategies : null,
+    strategyAllocations: coerceStrategyAllocations(b.strategyAllocations),
+    strategyIntervals: coerceStrategyIntervals(b.strategyIntervals),
+    fundingRateBpsPer8h: coerceNullableNumber(b.fundingRateBpsPer8h),
   };
+}
+
+function coerceNullableNumber(raw: number | string | null | undefined): number | null {
+  if (raw == null) return null;
+  const n = typeof raw === 'number' ? raw : Number(raw);
+  return Number.isFinite(n) ? n : null;
+}
+
+function coerceStrategyAllocations(
+  raw: Record<string, number | string> | null | undefined,
+): Record<string, number> | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const out: Record<string, number> = {};
+  for (const [k, v] of Object.entries(raw)) {
+    const n = typeof v === 'number' ? v : Number(v);
+    if (Number.isFinite(n)) out[k] = n;
+  }
+  return Object.keys(out).length > 0 ? out : null;
+}
+
+function coerceStrategyIntervals(
+  raw: Record<string, string> | null | undefined,
+): Record<string, string> | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const out: Record<string, string> = {};
+  for (const [k, v] of Object.entries(raw)) {
+    if (typeof v === 'string' && v.length > 0) out[k] = v;
+  }
+  return Object.keys(out).length > 0 ? out : null;
 }
 
 /** Server-side sort keys the backend whitelists — see BacktestQueryService. */

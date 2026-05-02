@@ -292,12 +292,32 @@ export function BacktestAnnotatedChart({
         priceLineRefs.current.push(line);
       };
 
-      add(trade.stopLossPrice, '#FF4D6A', 'SL', 'SL');
-      add(trade.tp1Price, '#00C896', 'TP1', 'TP1');
-      add(trade.tp2Price, '#00E5B0', 'TP2', 'TP2');
-      // Runner trailing stop has no fixed price — exitPrice of the RUNNER leg
-      // is the best anchor we have for "where the trail actually closed".
-      if (hitLine === 'RUNNER') {
+      // RUNNER_ONLY trades (e.g. DCT) exit purely via trailing stop with no
+      // fixed TP. Their stored tp1Price is a sentinel (e.g. entry + 20R)
+      // that keeps the persistence layer happy but doesn't represent a real
+      // target — drawing it as a price line is misleading and pushes the
+      // chart's price scale way off. Detect by "every position is a RUNNER
+      // leg", then suppress TP lines and use the trade's actual exit price
+      // as the operative exit level instead.
+      const isRunnerOnly =
+        trade.positions.length > 0 &&
+        trade.positions.every((p) => p.type === 'RUNNER');
+
+      add(trade.stopLossPrice, '#FF4D6A', isRunnerOnly ? 'INIT SL' : 'SL', 'SL');
+      if (!isRunnerOnly) {
+        add(trade.tp1Price, '#00C896', 'TP1', 'TP1');
+        add(trade.tp2Price, '#00E5B0', 'TP2', 'TP2');
+      }
+      if (isRunnerOnly) {
+        // Trail exit = where the chandelier finally caught price. Works for
+        // both TRAILING_STOP and RUNNER_CLOSE exit reasons, since both close
+        // the trade on the trail in a runner-only structure.
+        if (trade.exitPrice != null && Number.isFinite(trade.exitPrice)) {
+          add(trade.exitPrice, '#4E9EFF', 'TRAIL EXIT', 'RUNNER');
+        }
+      } else if (hitLine === 'RUNNER') {
+        // Multi-leg trades (TP1+RUNNER): only show the trail anchor when the
+        // runner actually closed via the trail.
         const runnerLeg = trade.positions.find(
           (p) => p.type === 'RUNNER' && p.exitReason === 'RUNNER_CLOSE',
         );
@@ -630,31 +650,52 @@ function TradeDetailCard({ trade, onClose }: { trade: BacktestTrade; onClose: ()
         )}
       </div>
 
-      {/* Price levels — the SL / TP / entry prices the trade was sized against */}
-      <div className="space-y-1 border-b border-[var(--border-subtle)] px-3 py-2 font-mono text-[11px] tabular-nums">
-        <DetailRow label="Entry @" value={formatPrice(trade.entryPrice)} />
-        <DetailRow
-          label="Exit @"
-          value={trade.exitPrice != null ? formatPrice(trade.exitPrice) : '—'}
-        />
-        <DetailRow
-          label="Stop loss"
-          value={formatPrice(trade.stopLossPrice)}
-          dotColor="var(--color-loss)"
-        />
-        <DetailRow
-          label="Take profit 1"
-          value={trade.tp1Price != null ? formatPrice(trade.tp1Price) : '—'}
-          dotColor="var(--color-profit)"
-        />
-        {trade.tp2Price != null && (
-          <DetailRow
-            label="Take profit 2"
-            value={formatPrice(trade.tp2Price)}
-            dotColor="var(--color-profit)"
-          />
-        )}
-      </div>
+      {/* Price levels — the SL / TP / entry prices the trade was sized against.
+          For RUNNER_ONLY trades (no fixed TP, pure trailing exit) we hide
+          TP rows since the stored tp1Price is just a sentinel. */}
+      {(() => {
+        const isRunnerOnly =
+          trade.positions.length > 0 &&
+          trade.positions.every((p) => p.type === 'RUNNER');
+        return (
+          <div className="space-y-1 border-b border-[var(--border-subtle)] px-3 py-2 font-mono text-[11px] tabular-nums">
+            <DetailRow label="Entry @" value={formatPrice(trade.entryPrice)} />
+            <DetailRow
+              label="Exit @"
+              value={trade.exitPrice != null ? formatPrice(trade.exitPrice) : '—'}
+            />
+            <DetailRow
+              label={isRunnerOnly ? 'Initial stop' : 'Stop loss'}
+              value={formatPrice(trade.stopLossPrice)}
+              dotColor="var(--color-loss)"
+            />
+            {isRunnerOnly ? (
+              <DetailRow
+                label="Trailing exit"
+                value={
+                  trade.exitPrice != null ? formatPrice(trade.exitPrice) : '— in flight'
+                }
+                dotColor="var(--color-info)"
+              />
+            ) : (
+              <>
+                <DetailRow
+                  label="Take profit 1"
+                  value={trade.tp1Price != null ? formatPrice(trade.tp1Price) : '—'}
+                  dotColor="var(--color-profit)"
+                />
+                {trade.tp2Price != null && (
+                  <DetailRow
+                    label="Take profit 2"
+                    value={formatPrice(trade.tp2Price)}
+                    dotColor="var(--color-profit)"
+                  />
+                )}
+              </>
+            )}
+          </div>
+        );
+      })()}
 
       {/* P&L summary */}
       <div className="space-y-1 border-b border-[var(--border-subtle)] px-3 py-2 font-mono text-[11px] tabular-nums">

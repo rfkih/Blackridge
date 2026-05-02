@@ -18,6 +18,7 @@ import {
 import { ChevronRight, FlaskConical, Plus, TrendingDown, TrendingUp, X } from 'lucide-react';
 import { DataTable } from '@/components/shared/DataTable';
 import { StrategyBadge } from '@/components/trading/StrategyBadge';
+import { RunSourceBadge } from '@/components/backtest/RunSourceBadge';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { Skeleton } from '@/components/ui/skeleton';
 import { DatePicker } from '@/components/ui/date-picker';
@@ -212,6 +213,7 @@ function BacktestListContent() {
               {codes.map((code) => (
                 <StrategyBadge key={code} code={code} size="sm" />
               ))}
+              <RunSourceBadge source={row.original.triggeredBy} size="sm" />
             </div>
           );
         },

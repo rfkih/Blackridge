@@ -4,6 +4,7 @@
 // exactly where the app actually talks to. Fallbacks match lib/env.ts so dev
 // boots with sensible defaults.
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+const RESEARCH_URL = process.env.NEXT_PUBLIC_RESEARCH_URL || 'http://localhost:8081';
 const WS_URL = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8080/ws';
 
 // SockJS upgrades via XHR first, then WS — allow both schemes.
@@ -33,7 +34,9 @@ const CSP = [
   "font-src 'self' data:",
   "style-src 'self' 'unsafe-inline'",
   scriptSrc,
-  `connect-src 'self' ${API_URL} ${WS_URL} ${wsHttpOrigin}`,
+  // Research JVM (Phase 1 decoupling) added to connect-src; deduped if equal to API_URL
+  // (single-JVM deploys collapse the two values).
+  `connect-src 'self' ${API_URL}${RESEARCH_URL !== API_URL ? ` ${RESEARCH_URL}` : ''} ${WS_URL} ${wsHttpOrigin}`,
 ].join('; ');
 
 const SECURITY_HEADERS = [

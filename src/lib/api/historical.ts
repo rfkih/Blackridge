@@ -1,4 +1,6 @@
-import { apiClient } from './client';
+// Phase 1 decoupling: historical-backfill is a heavy I/O operation that
+// belongs on the research JVM (8081), away from live trading.
+import { researchClient as apiClient } from './client';
 
 export interface WarmupResult {
   symbol: string;

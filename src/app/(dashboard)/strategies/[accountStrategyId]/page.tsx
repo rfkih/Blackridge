@@ -8,6 +8,8 @@ import { StrategyBadge } from '@/components/trading/StrategyBadge';
 import { StrategyStatusBadge } from '@/components/strategy/StrategyStatusBadge';
 import { LsrParamsForm } from '@/components/strategy/LsrParamsForm';
 import { VcbParamsForm } from '@/components/strategy/VcbParamsForm';
+import { CrossWindowPanel } from '@/components/strategy/CrossWindowPanel';
+import { PaperTradePanel } from '@/components/strategy/PaperTradePanel';
 import {
   useAccountStrategy,
   useLsrDefaults,
@@ -136,6 +138,17 @@ function StrategyDetail({ strategy }: { strategy: AccountStrategy }) {
       </header>
 
       <RiskGuardPanel strategy={strategy} />
+
+      <CrossWindowPanel
+        strategyCode={strategy.strategyCode}
+        intervalName={strategy.interval}
+        instrument={strategy.symbol}
+      />
+
+      <PaperTradePanel
+        accountStrategyId={strategy.id}
+        isPaperTrade={strategy.status === 'LIVE' && strategy.simulated}
+      />
 
       <Tabs defaultValue="live" className="space-y-4">
         <TabsList className="bg-[var(--bg-surface)]">

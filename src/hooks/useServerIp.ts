@@ -1,7 +1,13 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { getServerIp, getServerIpStatus, type ServerIpStatus } from '@/lib/api/server';
+import {
+  getServerIp,
+  getServerIpStatus,
+  getWsStatus,
+  type ServerIpStatus,
+  type WsStatus,
+} from '@/lib/api/server';
 import { useAuthStore } from '@/store/authStore';
 
 /**
@@ -36,6 +42,25 @@ export function useServerIpStatus() {
     enabled: Boolean(userId),
     staleTime: 55_000,
     refetchInterval: 60_000,
+    refetchIntervalInBackground: false,
+    retry: 1,
+  });
+}
+
+/**
+ * Polls the live Binance WebSocket heartbeat for the admin /research tile.
+ * 10s cadence — fast enough to catch a feed outage well before the backend's
+ * 30s watchdog logs it, slow enough that an idle dashboard tab does not
+ * hammer the trading JVM.
+ */
+export function useWsStatus() {
+  const userId = useAuthStore((s) => s.user?.id);
+  return useQuery<WsStatus>({
+    queryKey: ['system', 'ws-status'],
+    queryFn: getWsStatus,
+    enabled: Boolean(userId),
+    staleTime: 10_000,
+    refetchInterval: 10_000,
     refetchIntervalInBackground: false,
     retry: 1,
   });

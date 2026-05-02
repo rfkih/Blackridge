@@ -1,7 +1,15 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { BookmarkPlus, ChevronDown, RotateCcw, Trash2, Check as CheckIcon } from 'lucide-react';
+import {
+  BookmarkPlus,
+  ChevronDown,
+  Library,
+  Loader2,
+  RotateCcw,
+  Trash2,
+  Check as CheckIcon,
+} from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,6 +30,8 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { listPresets, savePreset, deletePreset } from '@/lib/api/backtest-params';
+import { createStrategyParam } from '@/lib/api/strategy-params';
+import { normalizeError } from '@/lib/api/client';
 import { toast } from '@/hooks/useToast';
 import { cn } from '@/lib/utils';
 import { format, formatDistanceToNowStrict } from 'date-fns';
@@ -34,6 +44,14 @@ interface BacktestParamPresetBarProps {
   activePresetName: string | null;
   onLoad: (preset: BacktestParamPreset) => void;
   onReset: () => void;
+  /** When set, enables "Save to library" — persists overrides to the
+   *  backend strategy_param table so they're reusable in live trading
+   *  and across sessions, not just this browser. */
+  accountStrategyId?: string;
+  /** Originating backtest run id — when present, "Save to library" stamps
+   *  the new preset with `sourceBacktestRunId` so the preset list can show
+   *  "from run #abcd". Set by the run-detail Re-run-with-params flow. */
+  sourceBacktestRunId?: string;
   className?: string;
 }
 
@@ -44,12 +62,17 @@ export function BacktestParamPresetBar({
   activePresetName,
   onLoad,
   onReset,
+  accountStrategyId,
+  sourceBacktestRunId,
   className,
 }: BacktestParamPresetBarProps) {
   const [presets, setPresets] = useState<BacktestParamPreset[]>([]);
   const [saveOpen, setSaveOpen] = useState(false);
   const [name, setName] = useState('');
   const [resetOpen, setResetOpen] = useState(false);
+  const [libraryOpen, setLibraryOpen] = useState(false);
+  const [libraryName, setLibraryName] = useState('');
+  const [librarySaving, setLibrarySaving] = useState(false);
 
   const refresh = useCallback(() => {
     setPresets(listPresets(strategyCode));
@@ -89,7 +112,36 @@ export function BacktestParamPresetBar({
     setResetOpen(false);
   }, [onReset]);
 
+  const handleLibrarySave = useCallback(async () => {
+    const trimmed = libraryName.trim();
+    if (!trimmed || !accountStrategyId) return;
+    setLibrarySaving(true);
+    try {
+      const preset = await createStrategyParam({
+        accountStrategyId,
+        name: trimmed,
+        overrides: currentOverrides,
+        activate: false,
+        ...(sourceBacktestRunId ? { sourceBacktestRunId } : {}),
+      });
+      toast.success({
+        title: 'Saved to strategy library',
+        description: `${preset.name} · ${strategyCode}`,
+      });
+      setLibraryName('');
+      setLibraryOpen(false);
+    } catch (e) {
+      toast.error({
+        title: 'Save failed',
+        description: normalizeError(e),
+      });
+    } finally {
+      setLibrarySaving(false);
+    }
+  }, [libraryName, accountStrategyId, currentOverrides, strategyCode, sourceBacktestRunId]);
+
   const saveDisabled = overrideCount === 0;
+  const libraryDisabled = saveDisabled || !accountStrategyId;
 
   return (
     <div
@@ -192,6 +244,78 @@ export function BacktestParamPresetBar({
                 disabled={!name.trim()}
                 className="rounded-sm bg-profit px-2 py-1 text-[11px] font-semibold text-text-inverse transition-opacity duration-fast hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
               >
+                Save
+              </button>
+            </div>
+          </div>
+        </PopoverContent>
+      </Popover>
+
+      {/* Save to backend library — persists to strategy_param so the
+          preset is reusable in live trading and across browsers. */}
+      <Popover open={libraryOpen} onOpenChange={setLibraryOpen}>
+        <PopoverTrigger asChild>
+          <button
+            type="button"
+            disabled={libraryDisabled}
+            className={cn(
+              'inline-flex h-7 items-center gap-1.5 rounded-sm border border-bd-subtle px-2 text-[11px]',
+              'bg-bg-base text-text-secondary transition-colors duration-fast',
+              'hover:border-bd hover:bg-bg-elevated hover:text-text-primary',
+              'focus:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+              'disabled:cursor-not-allowed disabled:opacity-50',
+            )}
+            title={
+              !accountStrategyId
+                ? 'Pick an account strategy in step 1 first'
+                : saveDisabled
+                  ? 'Make an override first'
+                  : 'Save overrides to the strategy library (reusable in live trading)'
+            }
+          >
+            <Library size={12} strokeWidth={1.75} />
+            Save to library
+          </button>
+        </PopoverTrigger>
+        <PopoverContent align="start" className="w-72 border-bd bg-bg-surface">
+          <div className="space-y-3">
+            <div className="space-y-1.5">
+              <Label className="label-caps !text-[9px]">Preset name</Label>
+              <Input
+                value={libraryName}
+                onChange={(e) => setLibraryName(e.target.value)}
+                placeholder={`e.g. ${strategyCode}-tuned-2026-05`}
+                autoFocus
+                maxLength={120}
+                className="h-8 text-[12px]"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleLibrarySave();
+                  }
+                }}
+              />
+              <p className="label-caps !text-[9px]">
+                Saves {overrideCount} override{overrideCount === 1 ? '' : 's'} to the backend
+                strategy library. Will not auto-activate.
+              </p>
+            </div>
+            <div className="flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setLibraryOpen(false)}
+                disabled={librarySaving}
+                className="rounded-sm border border-bd-subtle bg-bg-elevated px-2 py-1 text-[11px] text-text-secondary transition-colors duration-fast hover:bg-bg-hover disabled:opacity-60"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleLibrarySave}
+                disabled={!libraryName.trim() || librarySaving}
+                className="inline-flex items-center gap-1.5 rounded-sm bg-profit px-2 py-1 text-[11px] font-semibold text-text-inverse transition-opacity duration-fast hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {librarySaving && <Loader2 size={11} strokeWidth={2} className="animate-spin" />}
                 Save
               </button>
             </div>
