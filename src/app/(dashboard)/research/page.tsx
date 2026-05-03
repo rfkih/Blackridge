@@ -31,7 +31,7 @@ import {
 import { useQueryClient } from '@tanstack/react-query';
 import { useIsAdmin } from '@/hooks/useIsAdmin';
 import { useRearmKillSwitch, useStrategies } from '@/hooks/useStrategies';
-import { useListSweeps, useResearchLog } from '@/hooks/useResearch';
+import { useSearchResearchLog, useSearchSweeps } from '@/hooks/useResearch';
 import { useResearchControl } from '@/hooks/useResearchControl';
 import {
   useResearchAutomationControl,
@@ -53,7 +53,7 @@ import {
   type PromotionState,
   type StrategyPromotionLog,
 } from '@/lib/api/strategy-promotion';
-import { useStrategyDefinitions } from '@/hooks/useStrategyDefinitions';
+import { useSearchStrategyDefinitions } from '@/hooks/useStrategyDefinitions';
 import type { StrategyDefinition } from '@/types/strategyDefinition';
 import { useJvmTelemetry, useServiceHealth, type ServiceHealthMap } from '@/hooks/useTelemetry';
 import {
@@ -61,7 +61,7 @@ import {
   useJournalList,
   useLeaderboard,
   useQueueList,
-  useRecentIterations,
+  useSearchRecentIterations,
   useTick,
   useWalkForwardCandidates,
 } from '@/hooks/useOrchestrator';
@@ -1089,36 +1089,43 @@ function SchedulerEditDialog({ job, onClose }: { job: SchedulerJobStatus; onClos
 
 // ── Panel: Sweep activity ───────────────────────────────────────────────────
 
+const SWEEP_STATUS_FILTERS: { label: string; value: string }[] = [
+  { label: 'In-flight', value: 'RUNNING,PENDING' },
+  { label: 'Running', value: 'RUNNING' },
+  { label: 'Pending', value: 'PENDING' },
+  { label: 'Completed', value: 'COMPLETED' },
+  { label: 'Failed', value: 'FAILED' },
+  { label: 'All', value: '' },
+];
+
+const SWEEP_SORT_OPTIONS: { label: string; value: string }[] = [
+  { label: 'Newest', value: 'createdAt,desc' },
+  { label: 'Oldest', value: 'createdAt,asc' },
+  { label: 'Most progress', value: 'finishedCombos,desc' },
+  { label: 'Largest', value: 'totalCombos,desc' },
+  { label: 'Status', value: 'status,asc' },
+];
+
+const SWEEP_PAGE_SIZE = 5;
+
 function SweepActivityPanel() {
-  // Per CLAUDE.md → Pagination, Sorting, Filtering: user-driven status filter
-  // and sort were removed pending a backend change to /api/v1/research/sweeps
-  // for `?status=&sort=&size=` params. The structural in-flight scope
-  // (RUNNING + PENDING, top 5 by backend default order) and the cross-status
-  // counts derived in one shot stay until the endpoint can express both.
-  const { data: sweeps = [], isLoading, isFetching } = useListSweeps();
+  const [status, setStatus] = useState<string>('RUNNING,PENDING');
+  const [sort, setSort] = useState<string>('createdAt,desc');
+  const [page, setPage] = useState(0);
 
-  const counts = useMemo(() => {
-    const c = { PENDING: 0, RUNNING: 0, COMPLETED: 0, FAILED: 0, CANCELLED: 0 } as Record<
-      string,
-      number
-    >;
-    for (const s of sweeps) c[s.status] = (c[s.status] ?? 0) + 1;
-    return c;
-  }, [sweeps]);
-
-  const inFlight = useMemo(
-    () => sweeps.filter((s) => s.status === 'RUNNING' || s.status === 'PENDING').slice(0, 5),
-    [sweeps],
-  );
+  const search = useSearchSweeps({ status, sort, page, size: SWEEP_PAGE_SIZE });
+  const rows = search.data?.content ?? [];
+  const totalPages = search.data?.totalPages ?? 0;
+  const totalElements = search.data?.totalElements ?? 0;
 
   return (
     <PanelShell
       icon={<Activity size={14} />}
       title="Sweep activity"
-      sub="Top 5 in-flight · 30 s poll"
+      sub="Server-side filter + sort + paginate · 10 s poll"
       headerSlot={
         <div className="flex items-center gap-3">
-          {isFetching && !isLoading && <RefreshingPill />}
+          {search.isFetching && !search.isLoading && <RefreshingPill />}
           <Link
             href="/research/sweeps"
             className="font-mono text-[10px] uppercase tracking-wider text-[var(--accent-primary)] hover:underline"
@@ -1128,35 +1135,93 @@ function SweepActivityPanel() {
         </div>
       }
     >
-      <div className="grid grid-cols-3 gap-2">
-        <Metric label="Running" value={String(counts.RUNNING ?? 0)} tone="info" />
-        <Metric label="Pending" value={String(counts.PENDING ?? 0)} />
-        <Metric label="Completed" value={String(counts.COMPLETED ?? 0)} tone="profit" />
+      <div className="mb-2 flex flex-wrap items-center gap-2">
+        <span className="font-mono text-[10px] uppercase tracking-widest text-text-muted">
+          Status
+        </span>
+        {SWEEP_STATUS_FILTERS.map((f) => {
+          const active = status === f.value;
+          return (
+            <button
+              key={f.value || 'all'}
+              type="button"
+              onClick={() => {
+                setStatus(f.value);
+                setPage(0);
+              }}
+              aria-pressed={active}
+              className="rounded-sm px-2 py-0.5 text-[10px] transition-colors"
+              style={{
+                background: active ? 'var(--bg-hover)' : 'transparent',
+                color: active ? 'var(--text-primary)' : 'var(--text-secondary)',
+                border: '1px solid',
+                borderColor: active ? 'var(--border-default)' : 'transparent',
+              }}
+            >
+              {f.label}
+            </button>
+          );
+        })}
+        <span className="h-4 w-px bg-bd-subtle" />
+        <div className="flex items-center gap-1.5 text-[11px] text-text-secondary">
+          <span className="font-mono text-[10px] uppercase tracking-widest text-text-muted">
+            Sort
+          </span>
+          <select
+            value={sort}
+            onChange={(e) => {
+              setSort(e.target.value);
+              setPage(0);
+            }}
+            aria-label="Sort sweeps by"
+            className="rounded-sm border border-bd-subtle bg-bg-base px-2 py-1 font-mono text-[11px] text-text-primary"
+          >
+            {SWEEP_SORT_OPTIONS.map((o) => (
+              <option key={o.value} value={o.value}>
+                {o.label}
+              </option>
+            ))}
+          </select>
+        </div>
+        <span className="ml-auto font-mono text-[10px] uppercase tracking-widest text-text-muted">
+          {totalElements} {totalElements === 1 ? 'row' : 'rows'}
+        </span>
       </div>
-      {isLoading ? (
-        <Skeleton className="mt-3 h-24 w-full" />
-      ) : inFlight.length === 0 ? (
-        <div className="bg-bg-base/40 mt-3 rounded-sm border border-bd-subtle p-4 text-center">
+      {search.isLoading ? (
+        <Skeleton className="mt-1 h-24 w-full" />
+      ) : rows.length === 0 ? (
+        <div className="bg-bg-base/40 mt-1 rounded-sm border border-bd-subtle p-4 text-center">
           <Activity size={14} className="mx-auto mb-1 text-text-muted" />
-          <p className="text-[11px] text-text-muted">No sweeps running.</p>
+          <p className="text-[11px] text-text-muted">No sweeps match this filter.</p>
         </div>
       ) : (
-        <ul className="mt-3 space-y-1.5">
-          {inFlight.map((s) => {
+        <ul className="mt-1 space-y-1.5">
+          {rows.map((s) => {
             const pct =
               s.totalCombos > 0 ? Math.round((s.finishedCombos / s.totalCombos) * 100) : 0;
+            const statusTone: Tone =
+              s.status === 'RUNNING'
+                ? 'info'
+                : s.status === 'COMPLETED'
+                  ? 'profit'
+                  : s.status === 'FAILED' || s.status === 'CANCELLED'
+                    ? 'loss'
+                    : 'muted';
             return (
               <li key={s.sweepId}>
                 <Link
                   href={`/research/sweeps/${s.sweepId}`}
                   className="block rounded-sm border border-bd-subtle bg-bg-elevated px-2.5 py-2 transition-colors hover:bg-bg-hover"
                 >
-                  <div className="flex items-center justify-between text-[11px]">
+                  <div className="flex items-center justify-between gap-2 text-[11px]">
                     <span className="font-mono text-text-secondary">
                       {s.spec.strategyCode} · {s.spec.asset} {s.spec.interval}
                     </span>
-                    <span className="font-mono text-text-muted">
-                      {s.finishedCombos}/{s.totalCombos} · {pct}%
+                    <span className="flex items-center gap-2">
+                      <VerdictPill tone={statusTone} label={s.status} />
+                      <span className="font-mono text-text-muted">
+                        {s.finishedCombos}/{s.totalCombos} · {pct}%
+                      </span>
                     </span>
                   </div>
                   <div className="bg-bg-base/50 mt-1.5 h-1 w-full overflow-hidden rounded-full">
@@ -1173,6 +1238,29 @@ function SweepActivityPanel() {
             );
           })}
         </ul>
+      )}
+      {totalPages > 1 && (
+        <div className="mt-2 flex items-center justify-end gap-2">
+          <button
+            type="button"
+            onClick={() => setPage((p) => Math.max(0, p - 1))}
+            disabled={page <= 0}
+            className="rounded-sm border border-bd-subtle bg-bg-surface px-2 py-1 text-[11px] text-text-secondary hover:bg-bg-elevated disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            Prev
+          </button>
+          <span className="font-mono text-[10px] text-text-muted">
+            Page {page + 1} / {totalPages}
+          </span>
+          <button
+            type="button"
+            onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+            disabled={page >= totalPages - 1}
+            className="rounded-sm border border-bd-subtle bg-bg-surface px-2 py-1 text-[11px] text-text-secondary hover:bg-bg-elevated disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            Next
+          </button>
+        </div>
       )}
     </PanelShell>
   );
@@ -1443,73 +1531,127 @@ function DetailRow({ label, children }: { label: string; children: React.ReactNo
 
 // ── Panel: Promotion candidates ────────────────────────────────────────────
 
+const PROMOTION_CANDIDATES_PAGE_SIZE = 25;
+
+const PROMOTION_SORT_FIELDS: Array<{ key: string; label: string }> = [
+  { key: 'strategyCode', label: 'Strategy' },
+  { key: 'strategyType', label: 'Type' },
+  { key: 'archetype', label: 'Archetype' },
+];
+
+const STATE_TONE: Record<DerivedPromotionState, Tone> = {
+  PROMOTED: 'profit',
+  PAPER_TRADE: 'info',
+  INACTIVE: 'muted',
+};
+
 function PromotionCandidatesPanel() {
-  // V40 — promotion lifecycle is now a property of the strategy itself
-  // (one decision per strategyCode, applied to every account), so the panel
-  // groups strategy_definition rows instead of account_strategy rows.
-  // Filter / sort are deliberately NOT implemented client-side. The backend
-  // /api/v1/strategy-definitions endpoint owes us `?query=&sort=&page=&size=`
-  // params (see CLAUDE.md → New Backend Endpoints to Request) before we add
-  // filter/sort UI here. Until then the panel renders the full active set
-  // grouped by promotion state.
-  const { data: definitions = [], isLoading } = useStrategyDefinitions();
+  // V40 — promotion lifecycle lives on strategy_definition (one decision per
+  // strategyCode). Backend supports `?query=&sort=&page=&size=` so this panel
+  // pushes filter/sort/paginate to the server (see CLAUDE.md → Pagination,
+  // Sorting, Filtering — Server-Side Only). State is a derived display column
+  // rather than a backend filter — the backend doesn't expose
+  // enabled/simulated as filterable params yet.
+  // TODO(backend): add `?excludeStatus=DEPRECATED` so soft-deleted definitions
+  // can be hidden server-side. Today they appear in the list as INACTIVE.
+  const [query, setQuery] = useState('');
+  const [sortField, setSortField] = useState('strategyCode');
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
+  const [page, setPage] = useState(0);
+
+  const [debouncedQuery, setDebouncedQuery] = useState('');
+  useEffect(() => {
+    const id = setTimeout(() => {
+      setDebouncedQuery(query);
+      setPage(0);
+    }, 250);
+    return () => clearTimeout(id);
+  }, [query]);
+
+  const search = useSearchStrategyDefinitions({
+    query: debouncedQuery || undefined,
+    sort: `${sortField},${sortDir}`,
+    page,
+    size: PROMOTION_CANDIDATES_PAGE_SIZE,
+  });
+  const rows = useMemo(() => search.data?.content ?? [], [search.data?.content]);
+  const totalPages = search.data?.totalPages ?? 0;
+  const totalElements = search.data?.totalElements ?? 0;
+  const filtersActive = Boolean(debouncedQuery);
+
   const [target, setTarget] = useState<StrategyDefinition | null>(null);
-
-  // Filter out soft-deleted / deprecated definitions — they're historical
-  // metadata for the trade table, not promotion candidates.
-  const activeDefs = useMemo(
-    () => definitions.filter((d) => d.status !== 'DEPRECATED'),
-    [definitions],
-  );
-
-  const buckets = useMemo(() => {
-    const out: Record<DerivedPromotionState, StrategyDefinition[]> = {
-      PROMOTED: [],
-      PAPER_TRADE: [],
-      INACTIVE: [],
-    };
-    for (const d of activeDefs) {
-      const state = derivePromotionState(Boolean(d.enabled), Boolean(d.simulated));
-      out[state].push(d);
-    }
-    return out;
-  }, [activeDefs]);
+  const [targetIsDeepLinked, setTargetIsDeepLinked] = useState(false);
 
   // Walk-forward deep-link: /research#promote-{strategyCode} auto-opens the
-  // dialog for that strategy. Used by `ReadyToPromoteBadge` on the WF page.
-  // The ref tracks which hash we already opened a dialog for so subsequent
-  // refetches of `activeDefs` (e.g. after a successful promote) don't re-open
-  // the dialog. Storing the *value* (not just a bool) lets a fresh hash
-  // navigation re-fire even within the same mount.
-  const consumedHashRef = useRef<string | null>(null);
+  // dialog for that strategy. Mount-only effect parses the hash and seeds
+  // both `query` and `debouncedQuery` so the very first fetch is filtered
+  // (no 250 ms debounce wait, no race against unfiltered page-1 data). The
+  // separate find-effect below resolves the target once the matching fetch
+  // returns. Splitting into two effects avoids the bug where a single
+  // `[rows]`-keyed effect would force `setQuery` + `setPage(0)` on every
+  // poll while the hash was unconsumed, snapping the user back to page 0.
+  const [pendingTargetCode, setPendingTargetCode] = useState<string | null>(null);
+  const deepLinkParsedRef = useRef(false);
   useEffect(() => {
     if (typeof window === 'undefined') return;
+    if (deepLinkParsedRef.current) return;
+    deepLinkParsedRef.current = true;
     const hash = window.location.hash;
-    if (!hash || consumedHashRef.current === hash) return;
+    if (!hash) return;
     const m = hash.match(/^#promote-(.+)$/);
     if (!m) return;
     let code: string;
     try {
       code = decodeURIComponent(m[1]);
     } catch {
-      consumedHashRef.current = hash;
       return;
     }
-    const def = activeDefs.find((d) => d.strategyCode === code);
+    setQuery(code);
+    setDebouncedQuery(code);
+    setPage(0);
+    setPendingTargetCode(code);
+  }, []);
+
+  // Resolve the deep-link target once a fetch that matches the deep-link
+  // query has settled. Clears `pendingTargetCode` after one settled attempt
+  // so a non-existent code doesn't loop forever and so user-driven navigation
+  // afterwards doesn't accidentally reopen the dialog.
+  useEffect(() => {
+    if (!pendingTargetCode) return;
+    if (debouncedQuery !== pendingTargetCode) return;
+    if (search.isFetching) return;
+    const def = rows.find((d) => d.strategyCode === pendingTargetCode);
     if (def) {
       setTarget(def);
-      consumedHashRef.current = hash;
+      setTargetIsDeepLinked(true);
     }
-  }, [activeDefs]);
+    setPendingTargetCode(null);
+  }, [rows, debouncedQuery, pendingTargetCode, search.isFetching]);
 
-  // Clearing the hash on close prevents the deep-linked dialog from
-  // re-appearing on a soft refresh, and lets the operator re-fire the link
-  // by clicking the WF badge again rather than being blocked by stale state.
   const closeTarget = () => {
+    const wasDeepLinked = targetIsDeepLinked;
     setTarget(null);
+    setTargetIsDeepLinked(false);
     if (typeof window !== 'undefined' && window.location.hash.startsWith('#promote-')) {
       window.history.replaceState(null, '', window.location.pathname + window.location.search);
     }
+    // Restore the default unfiltered view when closing a deep-linked dialog so
+    // the operator isn't left staring at a single-row table.
+    if (wasDeepLinked) {
+      setQuery('');
+      setDebouncedQuery('');
+      setPage(0);
+    }
+  };
+
+  const onSort = (field: string) => {
+    if (sortField === field) {
+      setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortField(field);
+      setSortDir('asc');
+    }
+    setPage(0);
   };
 
   return (
@@ -1517,37 +1659,137 @@ function PromotionCandidatesPanel() {
       icon={<Sparkles size={14} />}
       title="Promotion candidates"
       sub="One row per strategy. Promote / demote / reject applies to every account."
+      headerSlot={search.isFetching && !search.isLoading ? <RefreshingPill /> : null}
     >
-      {isLoading ? (
+      <div className="mb-2 flex flex-wrap items-center gap-2">
+        <div className="flex items-center gap-1.5 text-[11px] text-text-secondary">
+          <span className="font-mono text-[10px] uppercase tracking-widest text-text-muted">
+            Search
+          </span>
+          <input
+            type="text"
+            value={query}
+            placeholder="strategy code or name"
+            onChange={(e) => setQuery(e.target.value)}
+            aria-label="Filter promotion candidates by strategy code or name"
+            className="w-48 rounded-sm border border-bd-subtle bg-bg-base px-2 py-1 font-mono text-[11px] text-text-primary"
+          />
+        </div>
+        {filtersActive && (
+          <button
+            type="button"
+            onClick={() => setQuery('')}
+            className="rounded-sm border border-bd-subtle px-2 py-0.5 text-[10px] text-text-secondary hover:bg-bg-hover"
+          >
+            Clear
+          </button>
+        )}
+        <span className="ml-auto font-mono text-[10px] uppercase tracking-widest text-text-muted">
+          {totalElements} {totalElements === 1 ? 'row' : 'rows'}
+        </span>
+      </div>
+      {search.isLoading ? (
         <Skeleton className="h-32 w-full" />
-      ) : activeDefs.length === 0 ? (
+      ) : rows.length === 0 ? (
         <div className="bg-bg-base/40 rounded-sm border border-bd-subtle p-6 text-center">
           <Sparkles size={16} className="mx-auto mb-2 text-text-muted" />
           <p className="text-[11px] text-text-muted">
-            No active strategy definitions. Seed one via the research orchestrator or POST{' '}
-            <code className="font-mono">/api/v1/strategy-definitions</code>.
+            {filtersActive
+              ? 'No definitions match the current filter.'
+              : 'No active strategy definitions. Seed one via the research orchestrator or POST '}
+            {!filtersActive && <code className="font-mono">/api/v1/strategy-definitions</code>}
+            {!filtersActive && '.'}
           </p>
         </div>
       ) : (
-        <div className="space-y-3">
-          <BucketTable
-            label="Promoted (real capital)"
-            tone="profit"
-            rows={buckets.PROMOTED}
-            onClick={setTarget}
-          />
-          <BucketTable
-            label="Paper-trade (live signals, simulated fills)"
-            tone="info"
-            rows={buckets.PAPER_TRADE}
-            onClick={setTarget}
-          />
-          <BucketTable
-            label="Inactive (research / demoted / rejected)"
-            tone="muted"
-            rows={buckets.INACTIVE}
-            onClick={setTarget}
-          />
+        <div className="overflow-hidden rounded-md border border-bd-subtle">
+          <table className="w-full text-[11px]">
+            <thead>
+              <tr className="border-b border-bd-subtle bg-bg-elevated">
+                {PROMOTION_SORT_FIELDS.map((f) => (
+                  <SortableTh
+                    key={f.key}
+                    label={f.label}
+                    field={f.key}
+                    activeField={sortField}
+                    dir={sortDir}
+                    onSort={onSort}
+                  />
+                ))}
+                <Th>State</Th>
+                <Th align="right" />
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((d) => {
+                const state = derivePromotionState(Boolean(d.enabled), Boolean(d.simulated));
+                return (
+                  <tr
+                    key={d.id}
+                    className="border-b border-bd-subtle bg-bg-surface last:border-b-0 hover:bg-bg-elevated"
+                  >
+                    <Td className="font-mono">
+                      <div className="flex flex-col">
+                        <span>{d.strategyCode}</span>
+                        <span className="text-[10px] text-text-muted">{d.strategyName}</span>
+                      </div>
+                    </Td>
+                    <Td className="text-text-secondary">{d.strategyType}</Td>
+                    <Td className="font-mono text-text-muted">
+                      {d.archetype ?? '—'}
+                      {d.archetypeVersion != null && (
+                        <span className="ml-1 text-text-muted">v{d.archetypeVersion}</span>
+                      )}
+                    </Td>
+                    <Td>
+                      <span className="inline-flex items-center gap-1.5">
+                        <Dot tone={STATE_TONE[state]} />
+                        <span className="font-mono text-[10px] uppercase tracking-wider text-text-secondary">
+                          {state.replace('_', ' ')}
+                        </span>
+                      </span>
+                    </Td>
+                    <Td align="right">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setTarget(d);
+                          setTargetIsDeepLinked(false);
+                        }}
+                        aria-label={`Manage promotion for ${d.strategyCode}`}
+                        className="inline-flex items-center gap-1 rounded-sm border border-bd-subtle px-2 py-1 font-mono text-[10px] uppercase tracking-wider text-[var(--accent-primary)] transition-colors hover:border-[var(--accent-primary)] hover:bg-[rgba(78,158,255,0.08)] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--accent-primary)]"
+                      >
+                        Manage →
+                      </button>
+                    </Td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+      {totalPages > 1 && (
+        <div className="mt-2 flex items-center justify-end gap-2">
+          <button
+            type="button"
+            onClick={() => setPage((p) => Math.max(0, p - 1))}
+            disabled={page <= 0}
+            className="rounded-sm border border-bd-subtle bg-bg-surface px-2 py-1 text-[11px] text-text-secondary hover:bg-bg-elevated disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            Prev
+          </button>
+          <span className="font-mono text-[10px] text-text-muted">
+            Page {page + 1} / {totalPages}
+          </span>
+          <button
+            type="button"
+            onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+            disabled={page >= totalPages - 1}
+            className="rounded-sm border border-bd-subtle bg-bg-surface px-2 py-1 text-[11px] text-text-secondary hover:bg-bg-elevated disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            Next
+          </button>
         </div>
       )}
       {target && <PromoteDialog target={target} onClose={closeTarget} />}
@@ -1555,71 +1797,35 @@ function PromotionCandidatesPanel() {
   );
 }
 
-function BucketTable({
+function SortableTh({
   label,
-  tone,
-  rows,
-  onClick,
+  field,
+  activeField,
+  dir,
+  onSort,
 }: {
   label: string;
-  tone: Tone;
-  rows: StrategyDefinition[];
-  onClick: (d: StrategyDefinition) => void;
+  field: string;
+  activeField: string;
+  dir: 'asc' | 'desc';
+  onSort: (field: string) => void;
 }) {
-  if (rows.length === 0) return null;
+  const active = activeField === field;
   return (
-    <div>
-      <div className="mb-1.5 flex items-center gap-2">
-        <Dot tone={tone} />
-        <span className="font-mono text-[10px] uppercase tracking-wider text-text-secondary">
-          {label} · {rows.length}
-        </span>
-      </div>
-      <div className="overflow-hidden rounded-md border border-bd-subtle">
-        <table className="w-full text-[11px]">
-          <thead>
-            <tr className="border-b border-bd-subtle bg-bg-elevated">
-              <Th>Strategy</Th>
-              <Th>Type</Th>
-              <Th>Archetype</Th>
-              <Th align="right" />
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((d) => (
-              <tr
-                key={d.id}
-                className="border-b border-bd-subtle bg-bg-surface last:border-b-0 hover:bg-bg-elevated"
-              >
-                <Td className="font-mono">
-                  <div className="flex flex-col">
-                    <span>{d.strategyCode}</span>
-                    <span className="text-[10px] text-text-muted">{d.strategyName}</span>
-                  </div>
-                </Td>
-                <Td className="text-text-secondary">{d.strategyType}</Td>
-                <Td className="font-mono text-text-muted">
-                  {d.archetype ?? '—'}
-                  {d.archetypeVersion != null && (
-                    <span className="ml-1 text-text-muted">v{d.archetypeVersion}</span>
-                  )}
-                </Td>
-                <Td align="right">
-                  <button
-                    type="button"
-                    onClick={() => onClick(d)}
-                    aria-label={`Manage promotion for ${d.strategyCode}`}
-                    className="inline-flex items-center gap-1 rounded-sm border border-bd-subtle px-2 py-1 font-mono text-[10px] uppercase tracking-wider text-[var(--accent-primary)] transition-colors hover:border-[var(--accent-primary)] hover:bg-[rgba(78,158,255,0.08)] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--accent-primary)]"
-                  >
-                    Manage →
-                  </button>
-                </Td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
+    <th
+      className="px-2 py-1.5 text-left"
+      aria-sort={active ? (dir === 'asc' ? 'ascending' : 'descending') : 'none'}
+    >
+      <button
+        type="button"
+        onClick={() => onSort(field)}
+        className="inline-flex items-center gap-1 font-mono text-[10px] uppercase tracking-wider text-text-muted transition-colors hover:text-text-secondary"
+        style={{ color: active ? 'var(--text-secondary)' : undefined }}
+      >
+        {label}
+        {active && <span aria-hidden="true">{dir === 'asc' ? '▲' : '▼'}</span>}
+      </button>
+    </th>
   );
 }
 
@@ -1897,22 +2103,47 @@ function PromoteDialog({ target, onClose }: { target: StrategyDefinition; onClos
 
 // ── Panel: Research log tail ────────────────────────────────────────────────
 
+const RESEARCH_LOG_PAGE_SIZE = 25;
+
 function ResearchLogPanel() {
-  // Per CLAUDE.md → Pagination, Sorting, Filtering: all narrowing is
-  // server-side. The /api/v1/research/log endpoint owes us
-  // `?strategyCode=&asset=&interval=&page=&size=` params before we add a
-  // filter UI; until then we render the page as returned and ask for the
-  // panel's display size (50) as the backend limit.
-  const { data: rows = [], isLoading, isFetching } = useResearchLog(undefined, 50);
+  const [strategyCode, setStrategyCode] = useState('');
+  const [asset, setAsset] = useState('');
+  const [intervalFilter, setIntervalFilter] = useState('');
+  const [page, setPage] = useState(0);
+
+  const [strategyQuery, setStrategyQuery] = useState('');
+  const [assetQuery, setAssetQuery] = useState('');
+  const [intervalQuery, setIntervalQuery] = useState('');
+  useEffect(() => {
+    const id = setTimeout(() => {
+      setStrategyQuery(strategyCode);
+      setAssetQuery(asset);
+      setIntervalQuery(intervalFilter);
+      setPage(0);
+    }, 250);
+    return () => clearTimeout(id);
+  }, [strategyCode, asset, intervalFilter]);
+
+  const search = useSearchResearchLog({
+    strategyCode: strategyQuery || undefined,
+    asset: assetQuery || undefined,
+    interval: intervalQuery || undefined,
+    page,
+    size: RESEARCH_LOG_PAGE_SIZE,
+  });
+  const rows = search.data?.content ?? [];
+  const totalPages = search.data?.totalPages ?? 0;
+  const totalElements = search.data?.totalElements ?? 0;
+  const filtersActive = Boolean(strategyQuery || assetQuery || intervalQuery);
 
   return (
     <PanelShell
       icon={<CircleDot size={14} />}
       title="Research log"
-      sub="Latest 200 iteration rows · cross-strategy"
+      sub="Server-side filter + paginate · 30 s poll"
       headerSlot={
         <div className="flex items-center gap-3">
-          {isFetching && !isLoading && <RefreshingPill />}
+          {search.isFetching && !search.isLoading && <RefreshingPill />}
           <Link
             href="/research/log"
             className="font-mono text-[10px] uppercase tracking-wider text-[var(--accent-primary)] hover:underline"
@@ -1922,12 +2153,71 @@ function ResearchLogPanel() {
         </div>
       }
     >
-      {isLoading ? (
+      <div className="mb-2 flex flex-wrap items-center gap-2">
+        <div className="flex items-center gap-1.5 text-[11px] text-text-secondary">
+          <span className="font-mono text-[10px] uppercase tracking-widest text-text-muted">
+            Strategy
+          </span>
+          <input
+            type="text"
+            value={strategyCode}
+            placeholder="e.g. LSR"
+            onChange={(e) => setStrategyCode(e.target.value)}
+            aria-label="Filter research log by strategy code"
+            className="w-24 rounded-sm border border-bd-subtle bg-bg-base px-2 py-1 font-mono text-[11px] text-text-primary"
+          />
+        </div>
+        <div className="flex items-center gap-1.5 text-[11px] text-text-secondary">
+          <span className="font-mono text-[10px] uppercase tracking-widest text-text-muted">
+            Asset
+          </span>
+          <input
+            type="text"
+            value={asset}
+            placeholder="BTCUSDT"
+            onChange={(e) => setAsset(e.target.value)}
+            aria-label="Filter research log by asset"
+            className="w-24 rounded-sm border border-bd-subtle bg-bg-base px-2 py-1 font-mono text-[11px] text-text-primary"
+          />
+        </div>
+        <div className="flex items-center gap-1.5 text-[11px] text-text-secondary">
+          <span className="font-mono text-[10px] uppercase tracking-widest text-text-muted">
+            Interval
+          </span>
+          <input
+            type="text"
+            value={intervalFilter}
+            placeholder="1h"
+            onChange={(e) => setIntervalFilter(e.target.value)}
+            aria-label="Filter research log by interval"
+            className="w-16 rounded-sm border border-bd-subtle bg-bg-base px-2 py-1 font-mono text-[11px] text-text-primary"
+          />
+        </div>
+        {filtersActive && (
+          <button
+            type="button"
+            onClick={() => {
+              setStrategyCode('');
+              setAsset('');
+              setIntervalFilter('');
+            }}
+            className="rounded-sm border border-bd-subtle px-2 py-0.5 text-[10px] text-text-secondary hover:bg-bg-hover"
+          >
+            Clear
+          </button>
+        )}
+        <span className="ml-auto font-mono text-[10px] uppercase tracking-widest text-text-muted">
+          {totalElements} {totalElements === 1 ? 'row' : 'rows'}
+        </span>
+      </div>
+      {search.isLoading ? (
         <Skeleton className="h-32 w-full" />
       ) : rows.length === 0 ? (
         <div className="bg-bg-base/40 rounded-sm border border-bd-subtle p-4 text-center text-[11px] text-text-muted">
           <CircleDot size={14} className="mx-auto mb-1 text-text-muted" />
-          No research log entries yet.
+          {filtersActive
+            ? 'No log entries match the current filters.'
+            : 'No research log entries yet.'}
         </div>
       ) : (
         <div className="max-h-[280px] overflow-y-auto rounded-md border border-bd-subtle">
@@ -1991,6 +2281,29 @@ function ResearchLogPanel() {
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+      {totalPages > 1 && (
+        <div className="mt-2 flex items-center justify-end gap-2">
+          <button
+            type="button"
+            onClick={() => setPage((p) => Math.max(0, p - 1))}
+            disabled={page <= 0}
+            className="rounded-sm border border-bd-subtle bg-bg-surface px-2 py-1 text-[11px] text-text-secondary hover:bg-bg-elevated disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            Prev
+          </button>
+          <span className="font-mono text-[10px] text-text-muted">
+            Page {page + 1} / {totalPages}
+          </span>
+          <button
+            type="button"
+            onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+            disabled={page >= totalPages - 1}
+            className="rounded-sm border border-bd-subtle bg-bg-surface px-2 py-1 text-[11px] text-text-secondary hover:bg-bg-elevated disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            Next
+          </button>
         </div>
       )}
     </PanelShell>
@@ -2157,21 +2470,119 @@ function LeaderboardPanel() {
 
 // ── Panel: Recent iterations ────────────────────────────────────────────────
 
+const ITERATIONS_PAGE_SIZE = 20;
+const ITERATION_VERDICT_FILTERS: { label: string; value: '' | IterationVerdict }[] = [
+  { label: 'All', value: '' },
+  { label: 'PASS', value: 'PASS' },
+  { label: 'ITERATE', value: 'ITERATE' },
+  { label: 'DISCARD', value: 'DISCARD' },
+  { label: 'FAILED', value: 'FAILED' },
+];
+
 function RecentIterationsPanel() {
-  const { data: rows = [], isLoading } = useRecentIterations(20);
+  // Orchestrator uses cursor pagination — keep a stack so Prev pops back to
+  // the previous page's cursor (cursor APIs don't natively support Prev).
+  const [strategyCode, setStrategyCode] = useState('');
+  const [verdict, setVerdict] = useState<'' | IterationVerdict>('');
+  const [cursorStack, setCursorStack] = useState<(string | null)[]>([null]);
+
+  const [codeQuery, setCodeQuery] = useState('');
+  useEffect(() => {
+    const id = setTimeout(() => {
+      setCodeQuery(strategyCode);
+      setCursorStack([null]);
+    }, 250);
+    return () => clearTimeout(id);
+  }, [strategyCode]);
+
+  const cursor = cursorStack[cursorStack.length - 1] ?? null;
+  const search = useSearchRecentIterations({
+    cursor,
+    strategyCode: codeQuery || undefined,
+    verdict: verdict || undefined,
+    limit: ITERATIONS_PAGE_SIZE,
+  });
+  const rows = search.data?.items ?? [];
+  const nextCursor = search.data?.next_cursor ?? null;
+  const filtersActive = Boolean(codeQuery || verdict);
+
+  const onNext = () => {
+    if (!nextCursor) return;
+    setCursorStack((s) => [...s, nextCursor]);
+  };
+  const onPrev = () => {
+    setCursorStack((s) => (s.length > 1 ? s.slice(0, -1) : s));
+  };
 
   return (
     <PanelShell
       icon={<Sparkles size={14} />}
       title="Recent iterations"
-      sub="Last 20 ticks · 30 s poll"
+      sub="Cursor-paginated · 30 s poll"
+      headerSlot={search.isFetching && !search.isLoading ? <RefreshingPill /> : null}
     >
-      {isLoading ? (
+      <div className="mb-2 flex flex-wrap items-center gap-2">
+        <div className="flex items-center gap-1.5 text-[11px] text-text-secondary">
+          <span className="font-mono text-[10px] uppercase tracking-widest text-text-muted">
+            Strategy
+          </span>
+          <input
+            type="text"
+            value={strategyCode}
+            placeholder="e.g. LSR"
+            onChange={(e) => setStrategyCode(e.target.value)}
+            aria-label="Filter iterations by strategy code"
+            className="w-24 rounded-sm border border-bd-subtle bg-bg-base px-2 py-1 font-mono text-[11px] text-text-primary"
+          />
+        </div>
+        <span className="h-4 w-px bg-bd-subtle" />
+        <span className="font-mono text-[10px] uppercase tracking-widest text-text-muted">
+          Verdict
+        </span>
+        {ITERATION_VERDICT_FILTERS.map((v) => {
+          const active = verdict === v.value;
+          return (
+            <button
+              key={v.value || 'all'}
+              type="button"
+              onClick={() => {
+                setVerdict(v.value);
+                setCursorStack([null]);
+              }}
+              aria-pressed={active}
+              className="rounded-sm px-2 py-0.5 text-[10px] transition-colors"
+              style={{
+                background: active ? 'var(--bg-hover)' : 'transparent',
+                color: active ? 'var(--text-primary)' : 'var(--text-secondary)',
+                border: '1px solid',
+                borderColor: active ? 'var(--border-default)' : 'transparent',
+              }}
+            >
+              {v.label}
+            </button>
+          );
+        })}
+        {filtersActive && (
+          <button
+            type="button"
+            onClick={() => {
+              setStrategyCode('');
+              setVerdict('');
+              setCursorStack([null]);
+            }}
+            className="ml-1 rounded-sm border border-bd-subtle px-2 py-0.5 text-[10px] text-text-secondary hover:bg-bg-hover"
+          >
+            Clear
+          </button>
+        )}
+      </div>
+      {search.isLoading ? (
         <Skeleton className="h-40 w-full" />
       ) : rows.length === 0 ? (
         <div className="bg-bg-base/40 rounded-sm border border-bd-subtle p-4 text-center text-[11px] text-text-muted">
-          No tick has completed yet. Run <code className="font-mono">POST /tick</code> via the
-          agent.
+          {filtersActive
+            ? 'No iterations match the current filters.'
+            : 'No tick has completed yet. Run /tick via the agent.'}
         </div>
       ) : (
         <ul className="space-y-1">
@@ -2211,6 +2622,27 @@ function RecentIterationsPanel() {
             );
           })}
         </ul>
+      )}
+      {(cursorStack.length > 1 || nextCursor) && (
+        <div className="mt-2 flex items-center justify-end gap-2">
+          <button
+            type="button"
+            onClick={onPrev}
+            disabled={cursorStack.length <= 1}
+            className="rounded-sm border border-bd-subtle bg-bg-surface px-2 py-1 text-[11px] text-text-secondary hover:bg-bg-elevated disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            Prev
+          </button>
+          <span className="font-mono text-[10px] text-text-muted">Page {cursorStack.length}</span>
+          <button
+            type="button"
+            onClick={onNext}
+            disabled={!nextCursor}
+            className="rounded-sm border border-bd-subtle bg-bg-surface px-2 py-1 text-[11px] text-text-secondary hover:bg-bg-elevated disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            Next
+          </button>
+        </div>
       )}
     </PanelShell>
   );

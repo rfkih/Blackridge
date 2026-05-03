@@ -9,6 +9,10 @@ import {
   getSweep,
   getTprParams,
   listSweeps,
+  searchResearchLog,
+  searchSweeps,
+  type ResearchLogQuery,
+  type SweepsQuery,
 } from '@/lib/api/research';
 import { getLsrDefaults } from '@/lib/api/lsr-params';
 import { getVcbDefaults } from '@/lib/api/vcb-params';
@@ -37,6 +41,32 @@ export function useResearchLog(strategyCode?: string, limit = 50) {
     queryFn: () => getResearchLog(strategyCode, limit),
     enabled: Boolean(userId),
     staleTime: 15_000,
+  });
+}
+
+/**
+ * Filterable + paginated research log. Returns a Page envelope so the panel
+ * can render Prev/Next + total counts. Query key includes every filter so
+ * each filter combination forms its own cache entry. `placeholderData` keeps
+ * the previous page visible during refetch to avoid flicker.
+ */
+export function useSearchResearchLog(q: ResearchLogQuery) {
+  const userId = useAuthStore((s) => s.user?.id);
+  return useQuery({
+    queryKey: [
+      ...LOG_KEY,
+      'search',
+      q.strategyCode ?? '',
+      q.asset ?? '',
+      q.interval ?? '',
+      q.page ?? 0,
+      q.size ?? 25,
+    ],
+    queryFn: () => searchResearchLog(q),
+    enabled: Boolean(userId),
+    staleTime: 15_000,
+    refetchInterval: 30_000,
+    placeholderData: (prev) => prev,
   });
 }
 
@@ -81,6 +111,32 @@ export function useListSweeps() {
     enabled: Boolean(userId),
     staleTime: 5_000,
     refetchInterval: 10_000,
+  });
+}
+
+/**
+ * Filterable + paginated sweep list. Status accepts CSV ("RUNNING,PENDING").
+ * Sort is Spring's "field,direction" string. Returns a Page envelope so the
+ * panel can render Prev/Next + total counts. Polls more aggressively than
+ * the recent-promotions feed because in-flight sweep counters move every
+ * combo (~seconds).
+ */
+export function useSearchSweeps(q: SweepsQuery) {
+  const userId = useAuthStore((s) => s.user?.id);
+  return useQuery({
+    queryKey: [
+      ...SWEEP_LIST_KEY,
+      'search',
+      q.status ?? '',
+      q.sort ?? '',
+      q.page ?? 0,
+      q.size ?? 25,
+    ],
+    queryFn: () => searchSweeps(q),
+    enabled: Boolean(userId),
+    staleTime: 5_000,
+    refetchInterval: 10_000,
+    placeholderData: (prev) => prev,
   });
 }
 

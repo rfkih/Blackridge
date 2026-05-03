@@ -5,7 +5,9 @@ import {
   createStrategyDefinition,
   deprecateStrategyDefinition,
   listStrategyDefinitions,
+  searchStrategyDefinitions,
   updateStrategyDefinition,
+  type StrategyDefinitionsQuery,
 } from '@/lib/api/strategy-definitions';
 import { QUERY_STALE_TIMES } from '@/lib/constants';
 import type {
@@ -20,6 +22,29 @@ export function useStrategyDefinitions() {
     queryKey: QUERY_KEY,
     queryFn: listStrategyDefinitions,
     staleTime: QUERY_STALE_TIMES.strategyParams,
+  });
+}
+
+/**
+ * Filterable + paginated strategy definitions. Returns the Page envelope so
+ * the /research promotion-candidates panel can render Prev/Next + sortable
+ * column headers. Query key includes every filter so each filter combination
+ * caches independently.
+ */
+export function useSearchStrategyDefinitions(q: StrategyDefinitionsQuery) {
+  return useQuery({
+    queryKey: [
+      ...QUERY_KEY,
+      'search',
+      q.query ?? '',
+      q.sort ?? '',
+      q.page ?? 0,
+      q.size ?? 25,
+    ],
+    queryFn: () => searchStrategyDefinitions(q),
+    staleTime: QUERY_STALE_TIMES.strategyParams,
+    refetchInterval: 30_000,
+    placeholderData: (prev) => prev,
   });
 }
 

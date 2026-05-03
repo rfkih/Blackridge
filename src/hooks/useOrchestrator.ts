@@ -11,10 +11,12 @@ import {
   listQueue,
   listWalkForwardCandidates,
   runTick,
+  searchIterations,
 } from '@/lib/api/orchestrator';
 import type {
   EnqueueSweepRequest,
   IterationRow,
+  IterationsPage,
   JournalRow,
   LeaderboardRow,
   QueueRow,
@@ -38,6 +40,35 @@ export function useRecentIterations(limit = 20) {
     queryFn: () => listIterations({ limit }),
     staleTime: 15_000,
     refetchInterval: 30_000,
+  });
+}
+
+/**
+ * Cursor-aware iterations fetch. The orchestrator uses cursor pagination, so
+ * the panel emulates Prev/Next via a cursor stack maintained in component
+ * state — push the current page's `next_cursor` on Next, pop to navigate
+ * back. The query key is keyed on `cursor` so each page caches independently.
+ */
+export function useSearchRecentIterations(params: {
+  cursor?: string | null;
+  strategyCode?: string;
+  verdict?: 'PASS' | 'ITERATE' | 'DISCARD' | 'FAILED';
+  limit?: number;
+}) {
+  return useQuery<IterationsPage>({
+    queryKey: [
+      ...ORCH_KEY,
+      'iterations',
+      'search',
+      params.strategyCode ?? '',
+      params.verdict ?? '',
+      params.cursor ?? '',
+      params.limit ?? 25,
+    ],
+    queryFn: () => searchIterations(params),
+    staleTime: 15_000,
+    refetchInterval: 30_000,
+    placeholderData: (prev) => prev,
   });
 }
 

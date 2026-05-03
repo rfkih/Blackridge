@@ -52,6 +52,29 @@ export async function listIterations(params?: {
   return data.items;
 }
 
+/**
+ * Cursor-aware iterations fetcher — returns the full page envelope including
+ * `next_cursor` so the caller can implement Next-page navigation. Cursor
+ * pagination doesn't natively support Prev; emulate with a cursor stack on
+ * the consumer side (push on Next, pop on Prev).
+ */
+export async function searchIterations(params?: {
+  strategyCode?: string;
+  verdict?: 'PASS' | 'ITERATE' | 'DISCARD' | 'FAILED';
+  cursor?: string | null;
+  limit?: number;
+}): Promise<IterationsPage> {
+  const { data } = await apiClient.get<IterationsPage>(`${BASE}/iterations`, {
+    params: {
+      strategy_code: params?.strategyCode || undefined,
+      verdict: params?.verdict || undefined,
+      cursor: params?.cursor || undefined,
+      limit: params?.limit ?? 25,
+    },
+  });
+  return data;
+}
+
 export async function getIteration(iterationId: string): Promise<IterationRow> {
   const { data } = await apiClient.get<IterationRow>(`${BASE}/iterations/${iterationId}`);
   return data;

@@ -16,6 +16,20 @@ export interface PageResponse<T> {
   total: number;
 }
 
+/**
+ * Spring Data Page envelope shape — what every paginated backend list endpoint
+ * returns when called with `?page=&size=`. `number` is the 0-based page index.
+ * Treat `totalElements` as the source of truth for the unfiltered count, never
+ * `content.length`.
+ */
+export interface Page<T> {
+  content: T[];
+  totalElements: number;
+  totalPages: number;
+  number: number;
+  size: number;
+}
+
 /** Standard API response envelope — every backend endpoint wraps its payload in this. */
 export interface BackendApiResponse<T> {
   responseCode: string;
