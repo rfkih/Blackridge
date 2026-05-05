@@ -1,5 +1,5 @@
-// Phase 1 decoupling: monte carlo runs on the research JVM (8081).
 import { researchClient as apiClient } from './client';
+import { toNum } from './coerce';
 import type {
   MonteCarloPathSummary,
   MonteCarloResult,
@@ -54,12 +54,6 @@ interface BackendMonteCarloResult {
   worstPath?: BackendPathSummary | null;
 }
 
-function num(v: number | string | null | undefined): number {
-  if (v == null) return 0;
-  const n = typeof v === 'number' ? v : Number(v);
-  return Number.isFinite(n) ? n : 0;
-}
-
 function narrowMode(v: string | null | undefined): MonteCarloSimulationMode {
   return v === 'TRADE_SEQUENCE_SHUFFLE' ? 'TRADE_SEQUENCE_SHUFFLE' : 'BOOTSTRAP_RETURNS';
 }
@@ -69,12 +63,12 @@ function mapPath(p: BackendPathSummary | null | undefined): MonteCarloPathSummar
   return {
     pathIndex: p.pathIndex ?? 0,
     label: p.label ?? '',
-    finalEquity: num(p.finalEquity),
-    totalReturnPct: num(p.totalReturnPct),
-    maxDrawdownPct: num(p.maxDrawdownPct),
+    finalEquity: toNum(p.finalEquity),
+    totalReturnPct: toNum(p.totalReturnPct),
+    maxDrawdownPct: toNum(p.maxDrawdownPct),
     ruinBreached: Boolean(p.ruinBreached),
     drawdownThresholdBreached: Boolean(p.drawdownThresholdBreached),
-    equityCurve: (p.equityCurve ?? []).map((v) => num(v)),
+    equityCurve: (p.equityCurve ?? []).map((v) => toNum(v)),
   };
 }
 
@@ -85,7 +79,7 @@ function mapPercentiles(
   const out: Record<string, number> = {};
   for (const [k, v] of Object.entries(raw)) {
     if (v == null) continue;
-    const n = num(v);
+    const n = toNum(v);
     if (Number.isFinite(n)) out[k] = n;
   }
   return out;
@@ -98,29 +92,29 @@ function mapResult(r: BackendMonteCarloResult): MonteCarloResult {
     simulationMode: narrowMode(r.simulationMode),
     numberOfSimulations: r.numberOfSimulations ?? 0,
     tradesUsed: r.tradesUsed ?? 0,
-    initialCapital: num(r.initialCapital),
-    ruinThresholdPct: num(r.ruinThresholdPct),
-    maxAcceptableDrawdownPct: num(r.maxAcceptableDrawdownPct),
+    initialCapital: toNum(r.initialCapital),
+    ruinThresholdPct: toNum(r.ruinThresholdPct),
+    maxAcceptableDrawdownPct: toNum(r.maxAcceptableDrawdownPct),
     effectiveSeed: r.effectiveSeed ?? 0,
-    sourceMeanTradePnl: num(r.sourceMeanTradePnl),
-    sourceMedianTradePnl: num(r.sourceMedianTradePnl),
-    sourceStdDevTradePnl: num(r.sourceStdDevTradePnl),
-    sourceWinRate: num(r.sourceWinRate),
-    meanFinalEquity: num(r.meanFinalEquity),
-    medianFinalEquity: num(r.medianFinalEquity),
-    minFinalEquity: num(r.minFinalEquity),
-    maxFinalEquity: num(r.maxFinalEquity),
+    sourceMeanTradePnl: toNum(r.sourceMeanTradePnl),
+    sourceMedianTradePnl: toNum(r.sourceMedianTradePnl),
+    sourceStdDevTradePnl: toNum(r.sourceStdDevTradePnl),
+    sourceWinRate: toNum(r.sourceWinRate),
+    meanFinalEquity: toNum(r.meanFinalEquity),
+    medianFinalEquity: toNum(r.medianFinalEquity),
+    minFinalEquity: toNum(r.minFinalEquity),
+    maxFinalEquity: toNum(r.maxFinalEquity),
     finalEquityPercentiles: mapPercentiles(r.finalEquityPercentiles),
-    meanTotalReturnPct: num(r.meanTotalReturnPct),
-    medianTotalReturnPct: num(r.medianTotalReturnPct),
-    minTotalReturnPct: num(r.minTotalReturnPct),
-    maxTotalReturnPct: num(r.maxTotalReturnPct),
-    meanMaxDrawdownPct: num(r.meanMaxDrawdownPct),
-    medianMaxDrawdownPct: num(r.medianMaxDrawdownPct),
-    worstMaxDrawdownPct: num(r.worstMaxDrawdownPct),
-    probabilityOfRuin: num(r.probabilityOfRuin),
-    probabilityOfDrawdownBreach: num(r.probabilityOfDrawdownBreach),
-    probabilityOfProfit: num(r.probabilityOfProfit),
+    meanTotalReturnPct: toNum(r.meanTotalReturnPct),
+    medianTotalReturnPct: toNum(r.medianTotalReturnPct),
+    minTotalReturnPct: toNum(r.minTotalReturnPct),
+    maxTotalReturnPct: toNum(r.maxTotalReturnPct),
+    meanMaxDrawdownPct: toNum(r.meanMaxDrawdownPct),
+    medianMaxDrawdownPct: toNum(r.medianMaxDrawdownPct),
+    worstMaxDrawdownPct: toNum(r.worstMaxDrawdownPct),
+    probabilityOfRuin: toNum(r.probabilityOfRuin),
+    probabilityOfDrawdownBreach: toNum(r.probabilityOfDrawdownBreach),
+    probabilityOfProfit: toNum(r.probabilityOfProfit),
     bestPath: mapPath(r.bestPath),
     medianPath: mapPath(r.medianPath),
     worstPath: mapPath(r.worstPath),

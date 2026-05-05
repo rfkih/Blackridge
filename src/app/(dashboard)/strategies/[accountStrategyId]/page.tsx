@@ -1,7 +1,8 @@
 'use client';
 
+import React from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Calendar, ChevronRight, Hash } from 'lucide-react';
+import { ArrowLeft, Calendar, ChevronRight, Hash, TrendingUp } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
 import { StrategyBadge } from '@/components/trading/StrategyBadge';
@@ -12,9 +13,11 @@ import { CrossWindowPanel } from '@/components/strategy/CrossWindowPanel';
 import { PaperTradePanel } from '@/components/strategy/PaperTradePanel';
 import {
   useAccountStrategy,
+  useKellyStatus,
   useLsrDefaults,
   useLsrParams,
   useRearmKillSwitch,
+  useUpdateStrategy,
   useVcbDefaults,
   useVcbParams,
 } from '@/hooks/useStrategies';
@@ -139,6 +142,8 @@ function StrategyDetail({ strategy }: { strategy: AccountStrategy }) {
 
       <RiskGuardPanel strategy={strategy} />
 
+      <KellySizingPanel strategy={strategy} />
+
       <CrossWindowPanel
         strategyCode={strategy.strategyCode}
         intervalName={strategy.interval}
@@ -244,6 +249,168 @@ function RiskGuardPanel({ strategy }: { strategy: AccountStrategy }) {
       <span className="font-mono text-[11px] text-text-secondary">
         DD threshold {strategy.ddKillThresholdPct.toFixed(0)}% · 30d window
       </span>
+    </div>
+  );
+}
+
+/**
+ * Kelly / bankroll sizing panel. Surfaces the live multiplier (not just the
+ * configured cap) so operators can see what Kelly is actually doing today —
+ * a strategy with no qualifying backtests displays "inactive: needs ≥1 run"
+ * even when the toggle is on. Toggle and cap edits go via PATCH; the
+ * /kelly-status query auto-refetches on success.
+ */
+function KellySizingPanel({ strategy }: { strategy: AccountStrategy }) {
+  const updateMut = useUpdateStrategy();
+  const { data: kellyStatus } = useKellyStatus(strategy.id);
+  const [editing, setEditing] = React.useState(false);
+  const [maxFraction, setMaxFraction] = React.useState(
+    (strategy.kellyMaxFraction * 100).toFixed(0),
+  );
+
+  // Re-sync the input value with the strategy's current cap whenever the user
+  // enters edit mode. Without this the input retains the last-typed value
+  // across cancel/reopen cycles, or shows a stale value after a concurrent
+  // update from another tab.
+  const onEdit = () => {
+    setMaxFraction((strategy.kellyMaxFraction * 100).toFixed(0));
+    setEditing(true);
+  };
+
+  const onToggle = async () => {
+    try {
+      await updateMut.mutateAsync({
+        id: strategy.id,
+        patch: { kellySizingEnabled: !strategy.kellySizingEnabled },
+      });
+      toast.success({
+        title: strategy.kellySizingEnabled ? 'Kelly sizing disabled' : 'Kelly sizing enabled',
+      });
+    } catch (err) {
+      toast.error({ title: 'Could not update Kelly sizing', description: normalizeError(err) });
+    }
+  };
+
+  const onSaveCap = async () => {
+    const pct = parseFloat(maxFraction);
+    if (!Number.isFinite(pct) || pct < 5 || pct > 100) {
+      toast.error({ title: 'Cap must be between 5% and 100%' });
+      return;
+    }
+    try {
+      await updateMut.mutateAsync({
+        id: strategy.id,
+        patch: { kellyMaxFraction: pct / 100 },
+      });
+      toast.success({ title: `Kelly cap set to ${pct.toFixed(0)}%` });
+      setEditing(false);
+    } catch (err) {
+      toast.error({ title: 'Could not update Kelly cap', description: normalizeError(err) });
+    }
+  };
+
+  // "Inactive" when Kelly is enabled but the runtime can't compute a real
+  // multiplier (no qualifying runs / all degenerate). Distinct from "disabled"
+  // because the operator's intent is on but the data isn't there yet.
+  const isInactive =
+    strategy.kellySizingEnabled &&
+    kellyStatus != null &&
+    kellyStatus.qualifyingRuns === 0;
+
+  return (
+    <div className="flex flex-wrap items-center gap-3 rounded-lg border border-bd-subtle bg-bg-surface px-4 py-2.5">
+      <TrendingUp size={14} className="shrink-0 text-text-muted" aria-hidden="true" />
+      <span className="font-mono text-[10px] uppercase tracking-wider text-text-muted">
+        Kelly sizing
+      </span>
+
+      <span
+        className={cn(
+          'font-mono text-[11px]',
+          !strategy.kellySizingEnabled
+            ? 'text-text-muted'
+            : isInactive
+              ? 'text-[var(--color-warn,#d97706)]'
+              : 'text-[var(--color-profit)]',
+        )}
+      >
+        {!strategy.kellySizingEnabled
+          ? 'disabled'
+          : isInactive
+            ? 'enabled (inactive)'
+            : 'enabled'}
+      </span>
+
+      {strategy.kellySizingEnabled && !editing && (
+        <>
+          {kellyStatus && kellyStatus.qualifyingRuns > 0 && (
+            <span className="font-mono text-[11px] text-text-primary">
+              ×{kellyStatus.currentMultiplier.toFixed(2)}
+            </span>
+          )}
+          <span className="font-mono text-[11px] text-text-secondary">
+            cap {(strategy.kellyMaxFraction * 100).toFixed(0)}%
+          </span>
+          {kellyStatus && (
+            <span className="font-mono text-[10px] text-text-muted">{kellyStatus.reason}</span>
+          )}
+        </>
+      )}
+
+      {editing && (
+        <div className="flex items-center gap-1.5">
+          <input
+            type="number"
+            min={5}
+            max={100}
+            step={1}
+            value={maxFraction}
+            onChange={(e) => setMaxFraction(e.target.value)}
+            className="w-16 rounded border border-bd-subtle bg-bg-elevated px-2 py-0.5 font-mono text-[11px] text-text-primary focus:outline-none"
+            aria-label="Kelly max fraction percent"
+          />
+          <span className="font-mono text-[11px] text-text-muted">%</span>
+          <button
+            type="button"
+            onClick={onSaveCap}
+            disabled={updateMut.isPending}
+            className="rounded-sm border border-bd-subtle bg-bg-elevated px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-text-primary hover:bg-bg-hover disabled:opacity-50"
+          >
+            Save
+          </button>
+          <button
+            type="button"
+            onClick={() => setEditing(false)}
+            className="font-mono text-[10px] uppercase tracking-wider text-text-muted hover:text-text-primary"
+          >
+            Cancel
+          </button>
+        </div>
+      )}
+
+      <div className="ml-auto flex items-center gap-2">
+        {strategy.kellySizingEnabled && !editing && (
+          <button
+            type="button"
+            onClick={onEdit}
+            className="inline-flex items-center rounded-sm border border-bd-subtle bg-bg-elevated px-2.5 py-1 font-mono text-[10px] uppercase tracking-wider text-text-primary hover:bg-bg-hover"
+          >
+            Edit cap
+          </button>
+        )}
+        <button
+          type="button"
+          onClick={onToggle}
+          disabled={updateMut.isPending}
+          className="inline-flex items-center rounded-sm border border-bd-subtle bg-bg-elevated px-2.5 py-1 font-mono text-[10px] uppercase tracking-wider text-text-primary hover:bg-bg-hover disabled:opacity-50"
+        >
+          {updateMut.isPending
+            ? '…'
+            : strategy.kellySizingEnabled
+              ? 'Disable'
+              : 'Enable'}
+        </button>
+      </div>
     </div>
   );
 }

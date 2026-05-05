@@ -1,18 +1,13 @@
 import { apiClient } from './client';
+import { toNum } from './coerce';
 import type { EquityPoint } from '@/types/market';
 
-interface BackendEquityPoint {
+interface BackendPnlEquityPoint {
   time?: number | string | null;
   ts?: number | string | null;
   equity?: number | string | null;
   drawdown?: number | string | null;
   drawdownPct?: number | string | null;
-}
-
-function num(v: number | string | null | undefined): number {
-  if (v == null) return 0;
-  const n = typeof v === 'number' ? v : Number(v);
-  return Number.isFinite(n) ? n : 0;
 }
 
 function toMs(v: number | string | null | undefined): number | null {
@@ -28,7 +23,7 @@ export async function fetchEquityPoints(
   from: number,
   to: number,
 ): Promise<EquityPoint[]> {
-  const { data } = await apiClient.get<BackendEquityPoint[]>('/api/v1/pnl/equity', {
+  const { data } = await apiClient.get<BackendPnlEquityPoint[]>('/api/v1/pnl/equity', {
     params: { accountId, from, to },
   });
   // Accept either `time` or `ts` (the backtest endpoint uses the latter) and
@@ -36,8 +31,8 @@ export async function fetchEquityPoints(
   return (data ?? [])
     .map((p) => ({
       time: toMs(p.time ?? p.ts) ?? 0,
-      equity: num(p.equity),
-      drawdown: num(p.drawdown ?? p.drawdownPct),
+      equity: toNum(p.equity),
+      drawdown: toNum(p.drawdown ?? p.drawdownPct),
     }))
     .filter((p) => p.time > 0);
 }

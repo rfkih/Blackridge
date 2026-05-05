@@ -12,9 +12,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useQuery } from '@tanstack/react-query';
 import { fetchCandles, fetchIndicators } from '@/lib/api/market';
 import { REFETCH_INTERVALS } from '@/lib/charts/chartTheme';
-import type { ChartInterval } from '@/hooks/useMarketChart';
 import type { CandlestickChartIndicators } from '@/components/charts/CandlestickChart';
-import type { CandleData, IndicatorData } from '@/types/market';
+import type { CandleData, ChartInterval, IndicatorData } from '@/types/market';
 import { cn } from '@/lib/utils';
 
 // TradingView isn't SSR-safe — keep the wrapper dynamic.

@@ -17,7 +17,7 @@ function equal(a: unknown, b: unknown): boolean {
  * the full object would work, but the backend merge path handles partial diffs
  * and the slimmer payload is easier to diff in audit logs.
  */
-export function computeDiff(
+function computeDiff(
   defaults: Record<string, unknown>,
   overrides: Record<string, unknown>,
 ): Record<string, unknown> {

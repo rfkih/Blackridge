@@ -152,14 +152,13 @@ export function BacktestConfigForm() {
       ]),
     ),
   );
-  // Phase B2 — per-strategy interval. Blank string = "use primary interval".
+  // Per-strategy interval. Blank string = "use primary interval".
   const [strategyIntervals, setStrategyIntervals] = useState<Record<string, string>>(
     savedConfig?.strategyIntervals ?? {},
   );
-  // Phase B2 — backtest mode. 'single' is the legacy "all strategies share
-  // the primary interval" flow. 'multi' auto-fills each strategy's interval
-  // from its registered AccountStrategy so mismatch is impossible by
-  // construction.
+  // 'single': all strategies share the primary interval.
+  // 'multi': each strategy's interval is auto-filled from its AccountStrategy,
+  // making interval mismatch impossible by construction.
   const [evaluationMode, setEvaluationMode] = useState<'single' | 'multi'>(
     savedConfig?.evaluationMode ?? 'single',
   );

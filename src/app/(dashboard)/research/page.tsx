@@ -58,7 +58,7 @@ import type { StrategyDefinition } from '@/types/strategyDefinition';
 import { useJvmTelemetry, useServiceHealth, type ServiceHealthMap } from '@/hooks/useTelemetry';
 import {
   useEnqueueSweep,
-  useJournalList,
+  useJournalListInfinite,
   useLeaderboard,
   useQueueList,
   useSearchRecentIterations,
@@ -69,6 +69,7 @@ import type {
   EnqueueSweepRequest,
   IterationVerdict,
   JournalEntryType,
+  JournalStatus,
   QueueStatus,
   StatisticalVerdict,
 } from '@/types/orchestrator';
@@ -1546,14 +1547,10 @@ const STATE_TONE: Record<DerivedPromotionState, Tone> = {
 };
 
 function PromotionCandidatesPanel() {
-  // V40 — promotion lifecycle lives on strategy_definition (one decision per
-  // strategyCode). Backend supports `?query=&sort=&page=&size=` so this panel
-  // pushes filter/sort/paginate to the server (see CLAUDE.md → Pagination,
-  // Sorting, Filtering — Server-Side Only). State is a derived display column
-  // rather than a backend filter — the backend doesn't expose
-  // enabled/simulated as filterable params yet.
-  // TODO(backend): add `?excludeStatus=DEPRECATED` so soft-deleted definitions
-  // can be hidden server-side. Today they appear in the list as INACTIVE.
+  // Promotion lifecycle lives at the definition level (one decision per strategyCode).
+  // Filter/sort/paginate server-side; `state` is a client-derived display column —
+  // the backend doesn't expose enabled/simulated as filterable params.
+  // DEPRECATED definitions appear as INACTIVE until ?excludeStatus=DEPRECATED is added server-side.
   const [query, setQuery] = useState('');
   const [sortField, setSortField] = useState('strategyCode');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
@@ -1831,10 +1828,8 @@ function SortableTh({
 
 // ── Promotion dialog ───────────────────────────────────────────────────────
 
-// Legal-transition table mirrors the backend's `chk_promotion_states` CHECK
-// constraint (V15). Keeping this client-side for UX only — the backend is
-// still the source of truth and rejects anything illegal. Update both in
-// lockstep if the constraint ever changes.
+// Mirrors the backend's `chk_promotion_states` CHECK constraint. Client-side
+// only for UX — backend rejects illegal transitions. Update both in lockstep.
 const LEGAL_NEXT_STATES: Record<PromotionState, PromotionState[]> = {
   RESEARCH: ['PAPER_TRADE'],
   PAPER_TRADE: ['PROMOTED', 'REJECTED'],
@@ -1861,9 +1856,8 @@ function PromoteDialog({ target, onClose }: { target: StrategyDefinition; onClos
   const [reason, setReason] = useState('');
   const [evidence, setEvidence] = useState('');
 
-  // Live-parse the evidence field so the user sees JSON errors as they type
-  // instead of only on submit (which used to fail silently into a toast and
-  // leave the field unmarked). Empty string is valid (evidence is optional).
+  // Live-parse so the user sees JSON errors while typing.
+  // Empty string is valid — evidence is optional.
   const evidenceParse = useMemo<{
     parsed: unknown;
     error: string | null;
@@ -2821,6 +2815,14 @@ const JOURNAL_TYPES: Array<JournalEntryType | 'ALL'> = [
   'IDEA_BACKLOG',
 ];
 
+const JOURNAL_STATUSES: Array<JournalStatus | 'ALL'> = [
+  'ALL',
+  'ACTIVE',
+  'STALE',
+  'FALSIFIED',
+  'PARKED',
+];
+
 const JOURNAL_TYPE_TONE: Record<string, Tone> = {
   HYPOTHESIS: 'info',
   STRATEGY_OUTCOME: 'profit',
@@ -2830,12 +2832,52 @@ const JOURNAL_TYPE_TONE: Record<string, Tone> = {
   IDEA_BACKLOG: 'muted',
 };
 
+type JournalSortKey = 'newest' | 'oldest' | 'strategy' | 'status' | 'entry_type';
+
+const SORT_PARAMS: Record<JournalSortKey, { sortBy: string; sortDir: string }> = {
+  newest:     { sortBy: 'created_time', sortDir: 'desc' },
+  oldest:     { sortBy: 'created_time', sortDir: 'asc' },
+  strategy:   { sortBy: 'strategy_code', sortDir: 'asc' },
+  status:     { sortBy: 'status', sortDir: 'asc' },
+  entry_type: { sortBy: 'entry_type', sortDir: 'asc' },
+};
+
 function JournalPanel() {
   const [typeFilter, setTypeFilter] = useState<JournalEntryType | 'ALL'>('ALL');
-  const { data: rows = [], isLoading } = useJournalList({
+  const [statusFilter, setStatusFilter] = useState<JournalStatus | 'ALL'>('ALL');
+  const [strategyInput, setStrategyInput] = useState('');
+  const [searchInput, setSearchInput] = useState('');
+  const [sortKey, setSortKey] = useState<JournalSortKey>('newest');
+
+  const [debouncedStrategy, setDebouncedStrategy] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedStrategy(strategyInput), 400);
+    return () => clearTimeout(t);
+  }, [strategyInput]);
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(searchInput), 400);
+    return () => clearTimeout(t);
+  }, [searchInput]);
+
+  const { sortBy, sortDir } = SORT_PARAMS[sortKey];
+  const {
+    data,
+    isLoading,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useJournalListInfinite({
     entryType: typeFilter === 'ALL' ? undefined : typeFilter,
+    status: statusFilter === 'ALL' ? undefined : statusFilter,
+    strategyCode: debouncedStrategy || undefined,
+    search: debouncedSearch || undefined,
+    sortBy,
+    sortDir,
     limit: 25,
   });
+
+  const rows = useMemo(() => data?.pages.flatMap((p) => p.items) ?? [], [data]);
 
   return (
     <PanelShell
@@ -2861,48 +2903,105 @@ function JournalPanel() {
         </div>
       }
     >
+      {/* Secondary filter bar */}
+      <div className="mb-3 flex flex-wrap items-center gap-2 border-b border-bd-subtle pb-2">
+        <div className="flex items-center gap-1">
+          {JOURNAL_STATUSES.map((s) => (
+            <button
+              key={s}
+              type="button"
+              onClick={() => setStatusFilter(s)}
+              className={`rounded-sm px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider transition-colors ${
+                statusFilter === s
+                  ? 'bg-accent-secondary/15 text-accent-secondary'
+                  : 'text-text-muted hover:bg-bg-elevated hover:text-text-secondary'
+              }`}
+            >
+              {s}
+            </button>
+          ))}
+        </div>
+        <input
+          type="text"
+          placeholder="Strategy…"
+          value={strategyInput}
+          onChange={(e) => setStrategyInput(e.target.value)}
+          className="h-6 w-24 rounded-sm border border-bd-subtle bg-bg-base px-2 font-mono text-[10px] text-text-secondary placeholder:text-text-muted focus:border-accent-primary/50 focus:outline-none"
+        />
+        <input
+          type="text"
+          placeholder="Search…"
+          value={searchInput}
+          onChange={(e) => setSearchInput(e.target.value)}
+          className="h-6 w-32 rounded-sm border border-bd-subtle bg-bg-base px-2 font-mono text-[10px] text-text-secondary placeholder:text-text-muted focus:border-accent-primary/50 focus:outline-none"
+        />
+        <select
+          value={sortKey}
+          onChange={(e) => setSortKey(e.target.value as JournalSortKey)}
+          className="h-6 rounded-sm border border-bd-subtle bg-bg-base px-1 font-mono text-[10px] text-text-secondary focus:border-accent-primary/50 focus:outline-none"
+        >
+          <option value="newest">Newest</option>
+          <option value="oldest">Oldest</option>
+          <option value="strategy">Strategy A–Z</option>
+          <option value="status">Status</option>
+          <option value="entry_type">Type</option>
+        </select>
+      </div>
+
       {isLoading ? (
         <Skeleton className="h-32 w-full" />
       ) : rows.length === 0 ? (
         <div className="bg-bg-base/40 rounded-sm border border-bd-subtle p-4 text-center text-[11px] text-text-muted">
-          No journal entries{typeFilter !== 'ALL' ? ` of type ${typeFilter}` : ''} yet.
+          No journal entries match the current filters.
         </div>
       ) : (
-        <ul className="space-y-1.5">
-          {rows.map((r) => {
-            const tone = JOURNAL_TYPE_TONE[r.entry_type] ?? 'muted';
-            return (
-              <li
-                key={r.journal_id}
-                className="rounded-sm border border-bd-subtle bg-bg-elevated px-3 py-2"
-              >
-                <div className="flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-2">
-                    <VerdictPill tone={tone} label={r.entry_type.replace('_', ' ')} />
-                    <span className="font-mono text-[10px] uppercase tracking-wider text-text-muted">
-                      {r.status}
-                    </span>
-                    {r.strategy_code && (
-                      <span className="font-mono text-[10px] text-text-secondary">
-                        {r.strategy_code}
-                        {r.interval_name ? ` · ${r.interval_name}` : ''}
+        <>
+          <ul className="space-y-1.5">
+            {rows.map((r) => {
+              const tone = JOURNAL_TYPE_TONE[r.entry_type] ?? 'muted';
+              return (
+                <li
+                  key={r.journal_id}
+                  className="rounded-sm border border-bd-subtle bg-bg-elevated px-3 py-2"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <VerdictPill tone={tone} label={r.entry_type.replace('_', ' ')} />
+                      <span className="font-mono text-[10px] uppercase tracking-wider text-text-muted">
+                        {r.status}
                       </span>
-                    )}
+                      {r.strategy_code && (
+                        <span className="font-mono text-[10px] text-text-secondary">
+                          {r.strategy_code}
+                          {r.interval_name ? ` · ${r.interval_name}` : ''}
+                        </span>
+                      )}
+                    </div>
+                    <span className="font-mono text-[10px] text-text-muted">
+                      {fmtAgo(r.created_time)} ago · {r.created_by ?? '—'}
+                    </span>
                   </div>
-                  <span className="font-mono text-[10px] text-text-muted">
-                    {fmtAgo(r.created_time)} ago · {r.created_by ?? '—'}
-                  </span>
-                </div>
-                <div className="mt-1 font-display text-[12px] font-semibold text-text-primary">
-                  {r.title}
-                </div>
-                <div className="mt-1 line-clamp-3 whitespace-pre-wrap text-[11px] text-text-muted">
-                  {r.content}
-                </div>
-              </li>
-            );
-          })}
-        </ul>
+                  <div className="mt-1 font-display text-[12px] font-semibold text-text-primary">
+                    {r.title}
+                  </div>
+                  <div className="mt-1 line-clamp-3 whitespace-pre-wrap text-[11px] text-text-muted">
+                    {r.content}
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+          {hasNextPage && (
+            <button
+              type="button"
+              onClick={() => fetchNextPage()}
+              disabled={isFetchingNextPage}
+              className="mt-2 w-full rounded-sm border border-bd-subtle py-1 font-mono text-[10px] text-text-muted transition-colors hover:bg-bg-elevated hover:text-text-secondary disabled:opacity-50"
+            >
+              {isFetchingNextPage ? 'Loading…' : `Load more · ${rows.length} shown`}
+            </button>
+          )}
+        </>
       )}
     </PanelShell>
   );

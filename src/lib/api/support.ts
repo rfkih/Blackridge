@@ -1,6 +1,7 @@
 // Support-message API. POST: any logged-in user. GET + PATCH: admin only
 // (gated by @PreAuthorize on the backend, not the client).
 import { apiClient } from './client';
+import type { PageEnvelope } from '@/types/api';
 
 export type SupportMessageStatus = 'NEW' | 'READ' | 'RESOLVED';
 
@@ -16,12 +17,7 @@ export interface SupportMessage {
   readAt?: string | null;
 }
 
-export interface SupportMessagePage {
-  content: SupportMessage[];
-  page: number;
-  size: number;
-  totalElements: number;
-  totalPages: number;
+export interface SupportMessagePage extends PageEnvelope<SupportMessage> {
   /** Live count of NEW messages — drives the inbox badge. */
   unreadCount: number;
 }

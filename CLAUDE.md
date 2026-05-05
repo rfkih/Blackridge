@@ -53,12 +53,43 @@
 - **TS strict**, no `any`. Type API responses against `types/api.ts`.
 - **No raw `fetch`** — always Axios client / TanStack Query wrappers.
 - **No `useEffect` for data fetching** — TanStack Query.
-- **No client-side pagination/sort/filter** on list-endpoint data — always server-side via query params (`page`, `size`, `sort`, filters). Use Spring `Page<T>` envelope. See `CONVENTIONS.md`.
+- **No client-side pagination/sort/filter** on list-endpoint data — always server-side via query params (`page`, `size`, `sort`, filters). See `CONVENTIONS.md` and the Page-envelope guide below.
 - **Dark only** in v1 (no light mode).
 - **Mono numbers**: `font-mono tabular-nums` for all prices/qty/P&L.
 - **STOMP singleton** in app layout; refetch on reconnect to reconcile.
 - **Backtest vs Live** must be visually distinguished.
 - **Strategy status**: derive from `enabled: boolean` (backend `current_status` is dead seed `"STOPPED"`).
+
+## Shared utilities — use, don't reinvent
+
+When writing a new API module, hook, or page, reach for these first. Inlining a re-implementation will fail review.
+
+| Use case | Module | Helpers |
+|---|---|---|
+| Coerce wire numbers (Jackson BigDecimal as number-or-string) | `@/lib/api/coerce` | `toNum(v, fallback?)`, `toNumOrNull(v)` |
+| Unwrap `T[] \| Page<T>` from list endpoints | `@/lib/api/pageUtils` | `extractList(data)` |
+| Build query-param objects (page/size + optional filters) | `@/lib/api/queryParams` | `buildPageParams(opts, defaultSize)`, `addOptionalParam(params, key, value)` — strings are auto-trimmed; empties dropped |
+| New strategy-params CRUD module (LSR/VCB/VBO-style) | `@/lib/api/paramsCrud` | `createParamsCrud<T>(basePath)` — returns `{ getDefaults, get, put, patch, remove }` |
+| Strategy-params form (merge defaults + initial, diff, equality) | `@/lib/paramsFormHelpers` | `mergeParams`, `paramValuesEqual`, `computeParamsDiff` |
+| Idempotency keys for orchestrator/research mutations | `@/lib/idempotency` | `generateIdempotencyKey(prefix)` |
+| Debounced search input + auto page-reset for admin lists | `@/hooks/useDebouncedSearchPage` | `useDebouncedSearchPage(debounceMs?)` returns `{ searchInput, setSearchInput, debouncedSearch, page, setPage }` |
+
+## Type system standards
+
+- **Domain types live in `src/types/`**, not in API modules. API modules may re-export for backwards compatibility, but the canonical declaration belongs in `types/`.
+  - Examples: `TradeAttribution` → `types/trading.ts`; `SymbolSlippageStats` → `types/market.ts`; `AlertSeverity`/`AlertEvent` → `types/alerts.ts`; `ErrorSeverity`/`ErrorLogRow` → `types/errors.ts`; `ResearchLogQuery`/`SweepsQuery` → `types/research.ts`.
+- **`Backend*` wire types** (e.g. `BackendTrade`, `BackendPnlSummary`) stay in their API module — they are private mapper inputs, not domain shapes. If two modules need the same wire shape, give each a distinct name (e.g. `BackendBacktestEquityPoint` vs `BackendPnlEquityPoint`) rather than colliding on `BackendEquityPoint`.
+- **Three page envelopes — pick the one the endpoint actually returns:**
+  - `PageEnvelope<T>` (`@/types/api`) — `{ content, page, size, totalElements, totalPages }`. Used by admin lists: alerts, error-log, audit, spec-trace, support, walk-forward, strategy-definition-history. Default for new admin endpoints. Compose with `&` for extra fields (see `SupportMessagePage`).
+  - `Page<T>` (`@/types/api`) — Spring Data shape: `{ content, totalElements, totalPages, number, size }`. `number` not `page`. Used by research log/sweeps and the promotion log.
+  - `PageResponse<T>` (`@/types/api`) — `{ content, page, size, total }`. Used by trades and backtest, often as `T[] | PageResponse<T>` because the same endpoint emits a bare array for unfiltered queries. Pair with `extractList`.
+- **No new ad-hoc page types**. If you find yourself writing `interface FooPage { content: Foo[]; page: number; size: number; totalElements: number; totalPages: number }`, alias to `PageEnvelope<Foo>` instead.
+
+## DRY discipline
+
+- Before adding a helper, grep `src/lib/` and `src/hooks/` for an existing one. The shared modules above replaced ~270 lines of duplication; don't re-create them under a new name.
+- Three near-identical things is the threshold for extraction. Two is fine; four is overdue. Don't generify a component just because two siblings share JSX — only extract when the contract genuinely matches.
+- Don't merge code that *looks* similar but serves different purposes (e.g. `AlertSeverity` vs `ErrorSeverity`, `StabilityVerdict` vs `StatisticalVerdict` — distinct concepts at distinct layers, kept separate on purpose).
 
 ## Do not
 

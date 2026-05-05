@@ -16,6 +16,11 @@ import { ParamSection } from './ParamSection';
 import { VBO_PARAM_META, VBO_SECTIONS } from '@/lib/constants';
 import { useToast } from '@/hooks/useToast';
 import { useSaveVboParams, useResetVboParams } from '@/hooks/useStrategies';
+import {
+  mergeParams,
+  paramValuesEqual as valuesEqual,
+  computeParamsDiff as computeDiff,
+} from '@/lib/paramsFormHelpers';
 import type { VboParams } from '@/types/strategy';
 
 export interface VboParamFormProps {
@@ -28,38 +33,8 @@ export interface VboParamFormProps {
   onSaveAsLive?: (current: VboParams) => void | Promise<void>;
 }
 
-/**
- * Merge backend-returned params on top of the canonical defaults. Mirrors
- * VcbParamsForm — null/undefined fields fall through to the constant defaults
- * so a freshly-provisioned param row doesn't clobber values with nulls.
- */
-function mergeInitial(defaults: VboParams, initial: Partial<VboParams>): VboParams {
-  const filtered: Partial<VboParams> = {};
-  (Object.keys(initial) as Array<keyof VboParams>).forEach((key) => {
-    const v = initial[key];
-    if (v !== null && v !== undefined) {
-      (filtered as Record<string, unknown>)[key as string] = v;
-    }
-  });
-  return { ...defaults, ...filtered };
-}
-
-function valuesEqual(a: unknown, b: unknown): boolean {
-  if (typeof a === 'number' && typeof b === 'number') {
-    return Math.abs(a - b) < 1e-9;
-  }
-  return a === b;
-}
-
-function computeDiff(defaults: VboParams, current: VboParams): Partial<VboParams> {
-  const diff: Partial<VboParams> = {};
-  (Object.keys(defaults) as Array<keyof VboParams>).forEach((key) => {
-    if (!valuesEqual(defaults[key], current[key])) {
-      (diff as Record<string, unknown>)[key as string] = current[key];
-    }
-  });
-  return diff;
-}
+const mergeInitial = (defaults: VboParams, initial: Partial<VboParams>) =>
+  mergeParams(defaults, initial);
 
 export function VboParamsForm({
   mode,

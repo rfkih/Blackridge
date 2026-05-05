@@ -3,9 +3,31 @@
 // Parse API/WS origins from env so the CSP's connect-src allow-list matches
 // exactly where the app actually talks to. Fallbacks match lib/env.ts so dev
 // boots with sensible defaults.
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
-const RESEARCH_URL = process.env.NEXT_PUBLIC_RESEARCH_URL || 'http://localhost:8081';
-const WS_URL = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8080/ws';
+//
+// Production is strict: NEXT_PUBLIC_API_URL and NEXT_PUBLIC_WS_URL MUST be
+// set, otherwise the prod bundle would bake a localhost CSP that silently
+// blocks every API call. RESEARCH_URL stays optional in prod — when unset
+// we collapse to API_URL (single-JVM deploy, per CLAUDE.md). lib/env.ts
+// applies the same rule so the runtime URL and the CSP allow-list always
+// agree.
+const isProd = process.env.NODE_ENV === 'production';
+function requireProdEnv(name, fallback) {
+  const raw = process.env[name];
+  if (raw && raw.trim()) return raw.trim();
+  if (isProd) {
+    throw new Error(
+      `[next.config] ${name} is required for production builds. ` +
+        `Set it in the deploy environment before \`next build\`.`,
+    );
+  }
+  return fallback;
+}
+const API_URL = requireProdEnv('NEXT_PUBLIC_API_URL', 'http://localhost:8080');
+const WS_URL = requireProdEnv('NEXT_PUBLIC_WS_URL', 'ws://localhost:8080/ws');
+// In prod, missing RESEARCH_URL means single-JVM — collapse to API_URL.
+// In dev, fall back to the dual-JVM default so `pnpm dev` keeps working.
+const researchExplicit = process.env.NEXT_PUBLIC_RESEARCH_URL?.trim();
+const RESEARCH_URL = researchExplicit || (isProd ? API_URL : 'http://localhost:8081');
 
 // SockJS upgrades via XHR first, then WS — allow both schemes.
 const wsHttpOrigin = WS_URL.replace(/^ws:/, 'http:').replace(/^wss:/, 'https:');

@@ -2,6 +2,7 @@
 // JVM. Backed by the strategy_definition_history table (V18). Writes are
 // owned by StrategyDefinitionHistoryService — the UI is forensic only.
 import { apiClient } from './client';
+import type { PageEnvelope } from '@/types/api';
 
 export type SpecOperation = 'INSERT' | 'UPDATE' | 'DELETE' | 'UPGRADE';
 
@@ -19,18 +20,11 @@ export interface StrategyDefinitionHistoryRow {
   changeReason: string | null;
 }
 
-export interface StrategyDefinitionHistoryDetail
-  extends StrategyDefinitionHistoryRow {
+export interface StrategyDefinitionHistoryDetail extends StrategyDefinitionHistoryRow {
   specJsonb: Record<string, unknown> | null;
 }
 
-export interface StrategyDefinitionHistoryPage {
-  content: StrategyDefinitionHistoryRow[];
-  page: number;
-  size: number;
-  totalElements: number;
-  totalPages: number;
-}
+export type StrategyDefinitionHistoryPage = PageEnvelope<StrategyDefinitionHistoryRow>;
 
 export interface ListHistoryParams {
   strategyCode: string;

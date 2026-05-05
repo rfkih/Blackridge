@@ -91,7 +91,19 @@
       "Read(//c/MyFiles/blackheart/**)",
       "Bash(powershell.exe *)",
       "Bash(exit 0)",
-      "Bash(exit 1)"
+      "Bash(exit 1)",
+      "Bash(git stash *)",
+      "Bash(npx --yes knip --no-progress --max-issues 1000 --reporter compact)",
+      "Bash(npx --yes knip@5 --no-progress --reporter compact)",
+      "Bash(grep -rn \"user-event\\\\|userEvent\" tests/)",
+      "Bash(cat tests/unit/smoke.test.tsx)",
+      "Bash(npx knip *)",
+      "Bash(npx --yes knip --reporter json)",
+      "Bash(bash /tmp/check_deleted.sh)",
+      "Bash(bash /tmp/check_unused_exports.sh)",
+      "Bash(bash /tmp/compile_unused.sh)",
+      "Bash(bash /tmp/final_check.sh)",
+      "Bash(bash /tmp/verify_all_unused.sh)"
     ]
   }
 }

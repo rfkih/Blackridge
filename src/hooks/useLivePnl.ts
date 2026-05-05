@@ -80,8 +80,8 @@ export function useLivePnl(accountId: string | undefined) {
           });
         }
         if (batch.length > 0) updatePnlBatch(batch);
-      } catch {
-        // ignore malformed frames
+      } catch (err) {
+        console.warn('[useLivePnl] malformed PnL frame dropped:', err);
       }
     });
 

@@ -1,11 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import {
-  useMutation,
-  useQuery,
-  useQueryClient,
-} from '@tanstack/react-query';
+import { useDebouncedSearchPage } from '@/hooks/useDebouncedSearchPage';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   AlertOctagon,
   AlertTriangle,
@@ -14,6 +11,7 @@ import {
   ChevronRight,
   Loader2,
   RefreshCcw,
+  Search,
   ShieldAlert,
 } from 'lucide-react';
 import { useIsAdmin } from '@/hooks/useIsAdmin';
@@ -53,20 +51,31 @@ const JVM_FILTERS: { label: string; value: string | 'ALL' }[] = [
   { label: 'Frontend', value: 'frontend' },
 ];
 
+const SORT_OPTIONS: { label: string; value: string }[] = [
+  { label: 'Last seen ↓', value: 'lastSeenAt,desc' },
+  { label: 'Last seen ↑', value: 'lastSeenAt,asc' },
+  { label: 'First seen ↓', value: 'occurredAt,desc' },
+  { label: 'Occurrences ↓', value: 'occurrenceCount,desc' },
+  { label: 'Occurrences ↑', value: 'occurrenceCount,asc' },
+];
+
 export default function AdminErrorsPage() {
   const isAdmin = useIsAdmin();
   const [severity, setSeverity] = useState<ErrorSeverity | 'ALL'>('ALL');
   const [status, setStatus] = useState<ErrorStatus | 'ALL'>('NEW');
   const [jvm, setJvm] = useState<string | 'ALL'>('ALL');
-  const [page, setPage] = useState(0);
+  const [sort, setSort] = useState('lastSeenAt,desc');
+  const { searchInput, setSearchInput, debouncedSearch, page, setPage } = useDebouncedSearchPage();
 
   const query = useQuery({
-    queryKey: ['error-log', severity, status, jvm, page],
+    queryKey: ['error-log', severity, status, jvm, sort, debouncedSearch, page],
     queryFn: () =>
       listErrorLog({
         severity: severity === 'ALL' ? undefined : severity,
         status: status === 'ALL' ? undefined : status,
         jvm: jvm === 'ALL' ? undefined : jvm,
+        search: debouncedSearch || undefined,
+        sort,
         page,
         size: PAGE_SIZE,
       }),
@@ -76,11 +85,7 @@ export default function AdminErrorsPage() {
   });
 
   if (!isAdmin) {
-    return (
-      <div className="px-6 py-12 text-center text-text-secondary">
-        Admin access required.
-      </div>
-    );
+    return <div className="px-6 py-12 text-center text-text-secondary">Admin access required.</div>;
   }
 
   const rows = query.data?.content ?? [];
@@ -91,13 +96,10 @@ export default function AdminErrorsPage() {
     <div className="flex flex-col gap-4 px-6 py-6">
       <header className="flex items-baseline justify-between gap-4">
         <div>
-          <h1 className="font-display text-2xl font-semibold text-text-primary">
-            Errors
-          </h1>
+          <h1 className="font-display text-2xl font-semibold text-text-primary">Errors</h1>
           <p className="text-sm text-text-secondary">
-            Fingerprint-deduped error_log rows from both JVMs and the
-            frontend. Repeats UPSERT into the open row; closing it lets the
-            next occurrence reopen a fresh row.
+            Fingerprint-deduped error_log rows from both JVMs and the frontend. Repeats UPSERT into
+            the open row; closing it lets the next occurrence reopen a fresh row.
           </p>
         </div>
         <button
@@ -113,6 +115,24 @@ export default function AdminErrorsPage() {
       </header>
 
       <div className="flex flex-col gap-2 rounded-md border border-bd-subtle bg-bg-surface px-3 py-2.5">
+        {/* Search */}
+        <div className="flex items-center gap-2">
+          <span className="w-16 text-[11px] uppercase tracking-widest text-text-muted">Search</span>
+          <div className="relative">
+            <Search
+              size={11}
+              className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-text-muted"
+            />
+            <input
+              type="text"
+              placeholder="message, logger, exception…"
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              className="h-7 w-64 rounded-sm border border-bd-subtle bg-bg-elevated pl-6 pr-2 font-mono text-[12px] text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-1 focus:ring-[var(--accent-primary)]"
+            />
+          </div>
+        </div>
+
         <FilterRow
           label="Severity"
           options={SEVERITY_FILTERS}
@@ -140,8 +160,27 @@ export default function AdminErrorsPage() {
             setPage(0);
           }}
         />
-        <div className="ml-auto font-mono text-[10px] uppercase tracking-widest text-text-muted">
-          {totalElements} {totalElements === 1 ? 'row' : 'rows'}
+
+        {/* Sort + row count */}
+        <div className="flex items-center gap-2">
+          <span className="w-16 text-[11px] uppercase tracking-widest text-text-muted">Sort</span>
+          <select
+            value={sort}
+            onChange={(e) => {
+              setSort(e.target.value);
+              setPage(0);
+            }}
+            className="h-7 rounded-sm border border-bd-subtle bg-bg-elevated px-2 font-mono text-[12px] text-text-primary"
+          >
+            {SORT_OPTIONS.map((o) => (
+              <option key={o.value} value={o.value}>
+                {o.label}
+              </option>
+            ))}
+          </select>
+          <span className="ml-auto font-mono text-[10px] uppercase tracking-widest text-text-muted">
+            {totalElements} {totalElements === 1 ? 'row' : 'rows'}
+          </span>
         </div>
       </div>
 
@@ -203,9 +242,7 @@ function FilterRow<T extends string>({
 }) {
   return (
     <div className="flex items-center gap-2">
-      <span className="w-16 text-[11px] uppercase tracking-widest text-text-muted">
-        {label}
-      </span>
+      <span className="w-16 text-[11px] uppercase tracking-widest text-text-muted">{label}</span>
       <div className="flex flex-wrap items-center gap-1.5">
         {options.map((f) => {
           const isActive = active === f.value;
@@ -262,9 +299,7 @@ function ErrorRowItem({ row }: { row: ErrorLogRow }) {
               {row.jvm}
             </span>
             {row.occurrenceCount > 1 && (
-              <span className="font-mono text-[10px] text-text-muted">
-                ×{row.occurrenceCount}
-              </span>
+              <span className="font-mono text-[10px] text-text-muted">×{row.occurrenceCount}</span>
             )}
             <span className="ml-auto font-mono text-[10px] text-text-muted">
               {ts ? formatDate(ts) : '—'}
@@ -317,36 +352,28 @@ function ErrorRowDetail({ row }: { row: ErrorLogRow }) {
   return (
     <div className="ml-10 flex flex-col gap-3 rounded-sm border border-bd-subtle bg-bg-base px-3 py-3">
       <div className="flex flex-wrap items-center gap-2">
-        <span className="text-[11px] uppercase tracking-widest text-text-muted">
-          Set status
-        </span>
-        {(['NEW', 'INVESTIGATING', 'RESOLVED', 'IGNORED', 'WONT_FIX'] as const).map(
-          (s) => {
-            const active = row.status === s;
-            return (
-              <button
-                key={s}
-                type="button"
-                disabled={mutation.isPending || active}
-                onClick={() => mutation.mutate(s)}
-                className="rounded-sm px-2 py-1 text-[11px] transition-colors disabled:cursor-not-allowed disabled:opacity-50"
-                style={{
-                  background: active ? 'var(--bg-hover)' : 'transparent',
-                  color: active
-                    ? 'var(--text-primary)'
-                    : 'var(--text-secondary)',
-                  border: '1px solid',
-                  borderColor: active ? 'var(--border-default)' : 'var(--border-subtle)',
-                }}
-              >
-                {s.replace('_', ' ').toLowerCase()}
-              </button>
-            );
-          },
-        )}
-        {mutation.isPending && (
-          <Loader2 size={12} className="ml-1 animate-spin text-text-muted" />
-        )}
+        <span className="text-[11px] uppercase tracking-widest text-text-muted">Set status</span>
+        {(['NEW', 'INVESTIGATING', 'RESOLVED', 'IGNORED', 'WONT_FIX'] as const).map((s) => {
+          const active = row.status === s;
+          return (
+            <button
+              key={s}
+              type="button"
+              disabled={mutation.isPending || active}
+              onClick={() => mutation.mutate(s)}
+              className="rounded-sm px-2 py-1 text-[11px] transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+              style={{
+                background: active ? 'var(--bg-hover)' : 'transparent',
+                color: active ? 'var(--text-primary)' : 'var(--text-secondary)',
+                border: '1px solid',
+                borderColor: active ? 'var(--border-default)' : 'var(--border-subtle)',
+              }}
+            >
+              {s.replace('_', ' ').toLowerCase()}
+            </button>
+          );
+        })}
+        {mutation.isPending && <Loader2 size={12} className="ml-1 animate-spin text-text-muted" />}
         {mutation.isError && (
           <span className="font-mono text-[10px] text-loss">
             {(mutation.error as Error).message}
@@ -367,9 +394,7 @@ function ErrorRowDetail({ row }: { row: ErrorLogRow }) {
           <span>Loading stack trace…</span>
         </div>
       ) : detailQuery.isError || !detail ? (
-        <div className="text-[11px] text-text-secondary">
-          Could not load stack trace.
-        </div>
+        <div className="text-[11px] text-text-secondary">Could not load stack trace.</div>
       ) : (
         <>
           {detail.stackTrace && (
@@ -378,9 +403,11 @@ function ErrorRowDetail({ row }: { row: ErrorLogRow }) {
             </pre>
           )}
           {detail.mdc != null &&
-            !(typeof detail.mdc === 'object' &&
+            !(
+              typeof detail.mdc === 'object' &&
               detail.mdc !== null &&
-              Object.keys(detail.mdc as object).length === 0) && (
+              Object.keys(detail.mdc as object).length === 0
+            ) && (
               <div>
                 <div className="mb-1 font-mono text-[10px] uppercase tracking-widest text-text-muted">
                   MDC

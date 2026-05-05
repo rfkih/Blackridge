@@ -2,6 +2,7 @@
 // no admin-wide endpoint exposed (yet). Page/size based pagination
 // matches the Spring Data shape on the wire.
 import { apiClient } from './client';
+import type { PageEnvelope } from '@/types/api';
 
 export interface AuditEvent {
   auditEventId: string;
@@ -14,13 +15,7 @@ export interface AuditEvent {
   createdAt: string | null;
 }
 
-export interface AuditEventPage {
-  content: AuditEvent[];
-  page: number;
-  size: number;
-  totalElements: number;
-  totalPages: number;
-}
+export type AuditEventPage = PageEnvelope<AuditEvent>;
 
 export async function listMyAuditEvents(page = 0, size = 25): Promise<AuditEventPage> {
   const { data } = await apiClient.get<AuditEventPage>('/api/v1/audit-events', {

@@ -1,44 +1,11 @@
-import { apiClient } from './client';
 import type { VcbParams } from '@/types/strategy';
-import type { BackendParamResponse } from '@/types/api';
+import { createParamsCrud } from './paramsCrud';
 
-const BASE = '/api/v1/vcb-params';
+const vcb = createParamsCrud<VcbParams>('vcb-params');
 
 /** /defaults returns the same envelope as /:id — params live under effectiveParams. */
-export async function getVcbDefaults(): Promise<VcbParams> {
-  const { data } = await apiClient.get<BackendParamResponse<VcbParams>>(`${BASE}/defaults`);
-  return data.effectiveParams;
-}
-
-export async function getVcbParams(accountStrategyId: string): Promise<VcbParams> {
-  const { data } = await apiClient.get<BackendParamResponse<VcbParams>>(
-    `${BASE}/${accountStrategyId}`,
-  );
-  return data.effectiveParams;
-}
-
-export async function putVcbParams(
-  accountStrategyId: string,
-  params: VcbParams,
-): Promise<VcbParams> {
-  const { data } = await apiClient.put<BackendParamResponse<VcbParams>>(
-    `${BASE}/${accountStrategyId}`,
-    params,
-  );
-  return data.effectiveParams;
-}
-
-export async function patchVcbParams(
-  accountStrategyId: string,
-  params: Partial<VcbParams>,
-): Promise<VcbParams> {
-  const { data } = await apiClient.patch<BackendParamResponse<VcbParams>>(
-    `${BASE}/${accountStrategyId}`,
-    params,
-  );
-  return data.effectiveParams;
-}
-
-export async function deleteVcbParams(accountStrategyId: string): Promise<void> {
-  await apiClient.delete(`${BASE}/${accountStrategyId}`);
-}
+export const getVcbDefaults = vcb.getDefaults;
+export const getVcbParams = vcb.get;
+export const putVcbParams = vcb.put;
+export const patchVcbParams = vcb.patch;
+export const deleteVcbParams = vcb.remove;

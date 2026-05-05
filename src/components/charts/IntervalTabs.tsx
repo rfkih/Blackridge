@@ -1,5 +1,5 @@
 import { cn } from '@/lib/utils';
-import type { ChartInterval } from '@/hooks/useMarketChart';
+import type { ChartInterval } from '@/types/market';
 
 const INTERVALS: ChartInterval[] = ['5m', '15m', '1h', '4h'];
 

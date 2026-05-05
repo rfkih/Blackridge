@@ -81,7 +81,8 @@ export async function getJvmTelemetry(jvm: Jvm): Promise<JvmTelemetrySnapshot> {
   const safe = async <T,>(fn: () => Promise<T>): Promise<T | null> => {
     try {
       return await fn();
-    } catch {
+    } catch (err) {
+      console.warn('[actuator] metric fetch failed:', err);
       return null;
     }
   };

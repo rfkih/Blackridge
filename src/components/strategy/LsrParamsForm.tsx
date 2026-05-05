@@ -16,6 +16,11 @@ import { ParamSection } from './ParamSection';
 import { LSR_PARAM_META, LSR_SECTIONS } from '@/lib/constants';
 import { useToast } from '@/hooks/useToast';
 import { useSaveLsrParams, useResetLsrParams } from '@/hooks/useStrategies';
+import {
+  mergeParams,
+  paramValuesEqual as valuesEqual,
+  computeParamsDiff as computeDiff,
+} from '@/lib/paramsFormHelpers';
 import type { LsrParams } from '@/types/strategy';
 
 export interface LsrParamFormProps {
@@ -29,43 +34,8 @@ export interface LsrParamFormProps {
   onSaveAsLive?: (current: LsrParams) => void | Promise<void>;
 }
 
-/**
- * Merge backend-returned params on top of the canonical defaults.
- *
- * The backend's `effectiveParams` envelope can carry explicit `null` for
- * columns the user has never customised (a newly-provisioned
- * `lsr_strategy_param` row is all nulls until the first PATCH). A naive
- * `{...defaults, ...initial}` would let those nulls clobber the defaults
- * and leave the form showing nothing — we filter them out so "no value
- * in the table" falls through to the constant default.
- */
-function mergeInitial(defaults: LsrParams, initial: Partial<LsrParams>): LsrParams {
-  const filtered: Partial<LsrParams> = {};
-  (Object.keys(initial) as Array<keyof LsrParams>).forEach((key) => {
-    const v = initial[key];
-    if (v !== null && v !== undefined) {
-      (filtered as Record<string, unknown>)[key as string] = v;
-    }
-  });
-  return { ...defaults, ...filtered };
-}
-
-function valuesEqual(a: unknown, b: unknown): boolean {
-  if (typeof a === 'number' && typeof b === 'number') {
-    return Math.abs(a - b) < 1e-9;
-  }
-  return a === b;
-}
-
-function computeDiff(defaults: LsrParams, current: LsrParams): Partial<LsrParams> {
-  const diff: Partial<LsrParams> = {};
-  (Object.keys(defaults) as Array<keyof LsrParams>).forEach((key) => {
-    if (!valuesEqual(defaults[key], current[key])) {
-      (diff as Record<string, unknown>)[key as string] = current[key];
-    }
-  });
-  return diff;
-}
+const mergeInitial = (defaults: LsrParams, initial: Partial<LsrParams>) =>
+  mergeParams(defaults, initial);
 
 export function LsrParamsForm({
   mode,

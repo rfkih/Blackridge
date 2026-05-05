@@ -9,6 +9,7 @@ import {
 import {
   getAccountStrategies,
   getAccountStrategyById,
+  getKellyStatus,
   createAccountStrategy,
   deleteAccountStrategy,
   activateAccountStrategy,
@@ -16,6 +17,7 @@ import {
   rearmKillSwitch,
   updateAccountStrategy,
   type CreateAccountStrategyPayload,
+  type AccountStrategyPatch,
 } from '@/lib/api/strategies';
 import {
   getLsrParams,
@@ -32,7 +34,6 @@ import {
   deleteVcbParams,
 } from '@/lib/api/vcb-params';
 import {
-  getVboParams,
   getVboDefaults,
   patchVboParams,
   putVboParams,
@@ -58,6 +59,19 @@ export function useAccountStrategy(id: string | undefined) {
   return useQuery({
     queryKey: ['strategy', id],
     queryFn: () => getAccountStrategyById(id as string),
+    staleTime: QUERY_STALE_TIMES.strategyParams,
+    enabled: Boolean(id),
+  });
+}
+
+/**
+ * Live Kelly status for the strategy detail page. Refreshes when the strategy
+ * config changes (the panel invalidates this query after a Kelly toggle/cap save).
+ */
+export function useKellyStatus(id: string | undefined) {
+  return useQuery({
+    queryKey: ['kelly-status', id],
+    queryFn: () => getKellyStatus(id as string),
     staleTime: QUERY_STALE_TIMES.strategyParams,
     enabled: Boolean(id),
   });
@@ -236,6 +250,25 @@ export function useUpdateStrategyPriority() {
 }
 
 /**
+ * Patch any combination of editable strategy fields in one round-trip.
+ * Invalidates both the list and the per-strategy cache on success.
+ */
+export function useUpdateStrategy() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, patch }: { id: string; patch: AccountStrategyPatch }) =>
+      updateAccountStrategy(id, patch),
+    onSuccess: (strategy) => {
+      queryClient.invalidateQueries({ queryKey: ['strategies'] });
+      queryClient.setQueryData(['strategy', strategy.id], strategy);
+      // Kelly multiplier depends on the just-changed config (cap, enable flag) —
+      // invalidate so the panel re-fetches the live status.
+      queryClient.invalidateQueries({ queryKey: ['kelly-status', strategy.id] });
+    },
+  });
+}
+
+/**
  * Wipes all LSR overrides on an account-strategy row. Backend responds
  * with the row cleared — on success we invalidate the per-strategy query
  * so the form re-fetches a clean `effectiveParams` that collapses to
@@ -289,15 +322,6 @@ export function useVboDefaults() {
     queryKey: ['vbo-params', 'defaults'],
     queryFn: getVboDefaults,
     staleTime: QUERY_STALE_TIMES.strategyParams,
-  });
-}
-
-export function useVboParams(accountStrategyId: string | undefined) {
-  return useQuery({
-    queryKey: ['vbo-params', accountStrategyId],
-    queryFn: () => getVboParams(accountStrategyId as string),
-    staleTime: QUERY_STALE_TIMES.strategyParams,
-    enabled: Boolean(accountStrategyId),
   });
 }
 

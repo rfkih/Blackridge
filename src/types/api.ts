@@ -9,6 +9,12 @@ export interface ApiError {
   details?: Record<string, string>;
 }
 
+/**
+ * Compact page envelope used by trades and backtest list endpoints — the
+ * backend collapses Spring's metadata to a single `total` count instead of
+ * emitting `totalElements`/`totalPages`/`number` separately. Distinct from
+ * {@link PageEnvelope} below; do not conflate them.
+ */
 export interface PageResponse<T> {
   content: T[];
   page: number;
@@ -28,6 +34,21 @@ export interface Page<T> {
   totalPages: number;
   number: number;
   size: number;
+}
+
+/**
+ * Admin-style page envelope used by alerts, error-log, audit, support, etc. —
+ * the backend echoes the requested 0-based `page` index back instead of
+ * Spring's `number`, and includes both `totalElements` and `totalPages`.
+ * Per-endpoint extensions (e.g. `unreadCount` on the support inbox) intersect
+ * additional fields on top of this base.
+ */
+export interface PageEnvelope<T> {
+  content: T[];
+  page: number;
+  size: number;
+  totalElements: number;
+  totalPages: number;
 }
 
 /** Standard API response envelope — every backend endpoint wraps its payload in this. */
@@ -92,6 +113,13 @@ export interface BackendAccountStrategy {
   isKillSwitchTripped?: boolean | null;
   killSwitchTrippedAt?: ISO8601 | null;
   killSwitchReason?: string | null;
+  /** Regime gate (V43) — gate live entries on FeatureStore regime columns. */
+  regimeGateEnabled?: boolean | null;
+  allowedTrendRegimes?: string | null;
+  allowedVolatilityRegimes?: string | null;
+  /** Kelly/bankroll sizing (V45) — PSR-discounted half-Kelly multiplier. */
+  kellySizingEnabled?: boolean | null;
+  kellyMaxFraction?: number | string | null;
 }
 
 /** Backend strategy-param response — params are nested under effectiveParams. */
@@ -103,10 +131,6 @@ export interface BackendParamResponse<T> {
   version: number;
   updatedAt: ISO8601;
 }
-
-/** Convenience aliases */
-export type BackendLsrParamResponse<T> = BackendParamResponse<T>;
-export type BackendVcbParamResponse<T> = BackendParamResponse<T>;
 
 /** Frontend-normalised user (field names decoupled from the Java DTO). */
 export interface User {

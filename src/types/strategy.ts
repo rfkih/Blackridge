@@ -33,6 +33,30 @@ export interface AccountStrategy {
   isKillSwitchTripped: boolean;
   killSwitchTrippedAt: ISO8601 | null;
   killSwitchReason: string | null;
+  /** Regime gate (V43) — entries blocked unless current bar regime is in the allowed set. */
+  regimeGateEnabled: boolean;
+  allowedTrendRegimes: string | null;
+  allowedVolatilityRegimes: string | null;
+  /** Kelly/bankroll sizing (V45) — PSR-discounted half-Kelly position-size multiplier. */
+  kellySizingEnabled: boolean;
+  /** Hard cap on the Kelly fraction [0.05, 1.00]. Default 0.25. */
+  kellyMaxFraction: number;
+}
+
+/**
+ * Live Kelly status — what Kelly is doing right now, derived from the most
+ * recent qualifying backtest runs. Returned by GET /:id/kelly-status.
+ */
+export interface KellyStatus {
+  enabled: boolean;
+  /** Effective multiplier in [0.05, 1.0]. 1.0 means no scaling. */
+  currentMultiplier: number;
+  /** Configured cap; null when strategy not found. */
+  maxFraction: number | null;
+  /** How many backtest runs contributed to the multiplier. 0 means inactive. */
+  qualifyingRuns: number;
+  /** Human-readable explanation: "kelly disabled" / "computed from N runs" / etc. */
+  reason: string;
 }
 
 export interface LsrParams {
@@ -202,8 +226,6 @@ export interface VboParams {
   minSignalScore: number;
 }
 
-export type StrategyParams = LsrParams | VcbParams | VboParams;
-
 /**
  * Unified saved-preset row from `/api/v1/strategy-params` (V29+ backend).
  *
@@ -241,7 +263,3 @@ export interface StrategyParamCreateRequest {
   sourceBacktestRunId?: string;
 }
 
-export interface StrategyParamUpdateRequest {
-  name?: string | null;
-  overrides?: Record<string, unknown> | null;
-}

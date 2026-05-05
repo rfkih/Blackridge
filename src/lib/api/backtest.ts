@@ -128,7 +128,8 @@ function mapParamSnapshot(raw: unknown): Record<string, Record<string, unknown>>
   if (typeof raw === 'string') {
     try {
       return mapParamSnapshot(JSON.parse(raw));
-    } catch {
+    } catch (err) {
+      console.warn('[backtest] paramSnapshot JSON.parse failed — treating as no snapshot:', err);
       return null;
     }
   }
@@ -144,7 +145,7 @@ function mapParamSnapshot(raw: unknown): Record<string, Record<string, unknown>>
   return Object.keys(out).length ? out : null;
 }
 
-export function mapBacktestRun(b: BackendBacktestRun): BacktestRun {
+function mapBacktestRun(b: BackendBacktestRun): BacktestRun {
   // Accept either the new BacktestRunDetailResponse shape (id/symbol/fromDate)
   // or the legacy BacktestRunResponse shape (backtestRunId/asset/startTime).
   // The two endpoints that still emit the legacy shape are internal — we
@@ -244,6 +245,9 @@ export interface BacktestListFilters {
   sortDir?: 'ASC' | 'DESC';
   page?: number;
   size?: number;
+  /** Filter by run origin. 'USER' shows only the caller's own runs;
+   *  'RESEARCHER' shows only researcher-submitted runs; omit for all. */
+  triggeredBy?: 'USER' | 'RESEARCHER';
 }
 
 export interface BacktestRunsPage {
@@ -276,6 +280,7 @@ export async function listBacktestRuns(
   if (filters.sortDir) params.sortDir = filters.sortDir;
   if (filters.page != null) params.page = filters.page;
   if (filters.size != null) params.size = filters.size;
+  if (filters.triggeredBy) params.triggeredBy = filters.triggeredBy;
 
   const { data } = await apiClient.get<
     | BackendBacktestRun[]
@@ -351,7 +356,7 @@ interface BackendBacktestTrade {
   positions: BackendBacktestTradePosition[];
 }
 
-interface BackendEquityPoint {
+interface BackendBacktestEquityPoint {
   ts: number | string;
   equity: number;
   drawdown: number;
@@ -436,7 +441,7 @@ export async function getBacktestCandles(id: string): Promise<CandleData[]> {
 }
 
 export async function getBacktestEquityPoints(id: string): Promise<BacktestEquityPoint[]> {
-  const { data } = await apiClient.get<BackendEquityPoint[]>(`${BASE}/${id}/equity-points`);
+  const { data } = await apiClient.get<BackendBacktestEquityPoint[]>(`${BASE}/${id}/equity-points`);
   return (data ?? [])
     .map((p) => ({
       ts: toEpochMs(p.ts) ?? 0,

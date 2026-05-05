@@ -1,5 +1,5 @@
-// Phase 1 decoupling: historical-backfill is a heavy I/O operation that
-// belongs on the research JVM (8081), away from live trading.
+// Historical backfill is routed to the research JVM — heavy I/O belongs
+// away from the live trading path.
 import { researchClient as apiClient } from './client';
 
 export interface WarmupResult {
@@ -21,9 +21,6 @@ export interface IndicatorBackfillResult {
   recompute?: boolean;
   recordsUpdated: number;
 }
-
-/** @deprecated Backwards-compat alias — prefer {@link IndicatorBackfillResult}. */
-export type VcbBackfillResult = IndicatorBackfillResult;
 
 export async function backfillHistoricalData(
   symbol: string,
@@ -68,14 +65,4 @@ export async function backfillIndicators(
     { params: req },
   );
   return data;
-}
-
-/** @deprecated Backwards-compat alias — prefer {@link backfillIndicators}. */
-export async function backfillVcbIndicators(
-  symbol: string,
-  interval: string,
-  from: string,
-  to: string,
-): Promise<IndicatorBackfillResult> {
-  return backfillIndicators({ symbol, interval, from, to });
 }

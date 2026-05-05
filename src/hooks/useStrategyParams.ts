@@ -7,13 +7,9 @@ import {
   deactivateStrategyParam,
   deleteStrategyParam,
   listStrategyParams,
-  updateStrategyParam,
 } from '@/lib/api/strategy-params';
 import { QUERY_STALE_TIMES } from '@/lib/constants';
-import type {
-  StrategyParamCreateRequest,
-  StrategyParamUpdateRequest,
-} from '@/types/strategy';
+import type { StrategyParamCreateRequest } from '@/types/strategy';
 
 const presetsKey = (accountStrategyId: string | undefined) =>
   ['strategy-params', accountStrategyId ?? null] as const;
@@ -53,15 +49,6 @@ export function useCreateStrategyParam(accountStrategyId: string | undefined) {
   const invalidate = useInvalidatePresets(accountStrategyId);
   return useMutation({
     mutationFn: (request: StrategyParamCreateRequest) => createStrategyParam(request),
-    onSuccess: invalidate,
-  });
-}
-
-export function useUpdateStrategyParam(accountStrategyId: string | undefined) {
-  const invalidate = useInvalidatePresets(accountStrategyId);
-  return useMutation({
-    mutationFn: ({ paramId, request }: { paramId: string; request: StrategyParamUpdateRequest }) =>
-      updateStrategyParam(paramId, request),
     onSuccess: invalidate,
   });
 }

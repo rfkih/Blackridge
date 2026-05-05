@@ -16,6 +16,11 @@ import { ParamSection } from './ParamSection';
 import { VCB_PARAM_META, VCB_SECTIONS } from '@/lib/constants';
 import { useToast } from '@/hooks/useToast';
 import { useSaveVcbParams, useResetVcbParams } from '@/hooks/useStrategies';
+import {
+  mergeParams,
+  paramValuesEqual as valuesEqual,
+  computeParamsDiff as computeDiff,
+} from '@/lib/paramsFormHelpers';
 import type { VcbParams } from '@/types/strategy';
 
 export interface VcbParamFormProps {
@@ -28,41 +33,8 @@ export interface VcbParamFormProps {
   onSaveAsLive?: (current: VcbParams) => void | Promise<void>;
 }
 
-/**
- * Merge backend-returned params on top of the canonical defaults.
- *
- * A freshly-provisioned `vcb_strategy_param` row has nulls for every
- * un-overridden column. A naive `{...defaults, ...initial}` would let
- * those nulls clobber the defaults, so we filter them out first — "no
- * value in the table" should fall through to the constant default.
- */
-function mergeInitial(defaults: VcbParams, initial: Partial<VcbParams>): VcbParams {
-  const filtered: Partial<VcbParams> = {};
-  (Object.keys(initial) as Array<keyof VcbParams>).forEach((key) => {
-    const v = initial[key];
-    if (v !== null && v !== undefined) {
-      (filtered as Record<string, unknown>)[key as string] = v;
-    }
-  });
-  return { ...defaults, ...filtered };
-}
-
-function valuesEqual(a: unknown, b: unknown): boolean {
-  if (typeof a === 'number' && typeof b === 'number') {
-    return Math.abs(a - b) < 1e-9;
-  }
-  return a === b;
-}
-
-function computeDiff(defaults: VcbParams, current: VcbParams): Partial<VcbParams> {
-  const diff: Partial<VcbParams> = {};
-  (Object.keys(defaults) as Array<keyof VcbParams>).forEach((key) => {
-    if (!valuesEqual(defaults[key], current[key])) {
-      (diff as Record<string, unknown>)[key as string] = current[key];
-    }
-  });
-  return diff;
-}
+const mergeInitial = (defaults: VcbParams, initial: Partial<VcbParams>) =>
+  mergeParams(defaults, initial);
 
 export function VcbParamsForm({
   mode,

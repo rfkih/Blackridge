@@ -1,31 +1,20 @@
-// SLICE 1: Axios instances + error normalization.
+// Axios instances + auth interceptors.
 //
-// Single public client after V14 (2026-04-30). The research JVM is now
-// internal-only (binds to 127.0.0.1:8081); the trading JVM exposes a
-// reverse-proxy at /api/v1/{backtest,research,montecarlo,historical}/**
-// and /research-actuator/** that forwards to it (ResearchProxyController).
-// Both clients therefore share the same baseURL — `researchClient` is
-// retained as an export so the per-module assignment in CLAUDE.md keeps
-// working without a sweeping rename. New code can use either; both
-// resolve to `env.apiUrl`.
+// The research JVM (8081) is internal-only; the trading JVM reverse-proxies
+// /api/v1/{backtest,research,montecarlo,historical}/** → research JVM via
+// ResearchProxyController. Both clients hit the same origin.
+// `researchClient` is an alias for `apiClient` kept so each API module can
+// declare which JVM it targets — the assignment is meaningful documentation,
+// not an actual network distinction.
 //
-// Auth model: HttpOnly `blackheart-token` cookie set by the backend on
-// /login. The trading JVM validates the cookie before forwarding to the
-// research JVM, which re-validates using the shared JWT_SECRET.
-//
-// Authentication rides entirely on the HttpOnly cookie. No in-memory
-// Authorization header is attached — the browser sends the cookie
-// automatically via `withCredentials: true`. Removing the Bearer fallback
-// is deliberate: a JS-readable token in Zustand would be liftable by any
-// XSS payload, and the cookie path covers every reachable browser
-// environment.
+// Auth: HttpOnly `blackheart-token` cookie, no Authorization header.
+// A JS-readable token in Zustand would be exfiltrable by any XSS payload;
+// the cookie path covers every browser environment without that risk.
 import axios, { type AxiosError, type AxiosInstance } from 'axios';
 import { useAuthStore } from '@/store/authStore';
 import { env } from '@/lib/env';
 
-// Re-export the error helpers so callers that imported them from `./client`
-// keep working after the lift into `./errorMap`.
-export { normalizeError, messageForStatus, FALLBACK_MESSAGE } from './errorMap';
+export { normalizeError } from './errorMap';
 
 /**
  * Axios instance factory. Both clients share identical config + interceptors;
@@ -61,13 +50,7 @@ function createApiClient(baseURL: string): AxiosInstance {
 }
 
 export const apiClient: AxiosInstance = createApiClient(env.apiUrl);
-/**
- * Research-service axios client. Kept as a separate export for backwards
- * compatibility with the per-module assignment documented in CLAUDE.md;
- * after V14 (2026-04-30) it points at the same trading-JVM origin and the
- * trading JVM reverse-proxies /api/v1/{backtest,research,montecarlo,
- * historical}/** into the internal research JVM.
- */
+/** Alias for `apiClient`; API modules use this to declare research-JVM affinity. */
 export const researchClient: AxiosInstance = apiClient;
 
 function logDevAxiosFailure(error: AxiosError) {

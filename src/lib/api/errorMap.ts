@@ -1,4 +1,4 @@
-import axios, { type AxiosError } from 'axios';
+import axios from 'axios';
 import { env } from '@/lib/env';
 
 /**
@@ -20,7 +20,7 @@ interface BackendErrorPayload {
   detail?: string;
 }
 
-export const FALLBACK_MESSAGE = 'Something went wrong. Please try again.';
+const FALLBACK_MESSAGE = 'Something went wrong. Please try again.';
 
 const STATUS_MESSAGES: Record<number, string> = {
   400: 'Bad request. Check your inputs and try again.',
@@ -67,15 +67,3 @@ export function normalizeError(err: unknown): string {
   return FALLBACK_MESSAGE;
 }
 
-/**
- * Resolve a raw HTTP status to a user-facing message without any request
- * context. Use from places that handle fetch errors outside of axios.
- */
-export function messageForStatus(status: number): string {
-  return STATUS_MESSAGES[status] ?? FALLBACK_MESSAGE;
-}
-
-/** Re-export so isAxiosError is available without pulling axios elsewhere. */
-export function isAxiosError(err: unknown): err is AxiosError<BackendErrorPayload> {
-  return axios.isAxiosError(err);
-}

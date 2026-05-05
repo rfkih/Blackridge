@@ -5,7 +5,7 @@
 // Routes through `apiClient` because StrategyPromotionController lives
 // on the trading JVM (it mutates account_strategy state).
 import { apiClient } from './client';
-import type { ISO8601, UUID } from '@/types/api';
+import type { ISO8601, Page, UUID } from '@/types/api';
 
 export type PromotionState = 'RESEARCH' | 'PAPER_TRADE' | 'PROMOTED' | 'DEMOTED' | 'REJECTED';
 
@@ -59,48 +59,10 @@ export interface PaperTradeRun {
 
 const BASE = '/api/v1/strategy-promotion';
 
-export async function promote(
-  accountStrategyId: UUID,
-  body: PromoteRequest,
-): Promise<PromoteResponse> {
-  const { data } = await apiClient.post<PromoteResponse>(
-    `${BASE}/${accountStrategyId}/promote`,
-    body,
-  );
-  return data;
-}
-
-export async function getCurrentState(accountStrategyId: UUID): Promise<PromotionState> {
-  const { data } = await apiClient.get<{ state: PromotionState }>(
-    `${BASE}/${accountStrategyId}/state`,
-  );
-  return data.state;
-}
-
-export async function getPromotionHistory(
-  accountStrategyId: UUID,
-): Promise<StrategyPromotionLog[]> {
-  const { data } = await apiClient.get<StrategyPromotionLog[]>(
-    `${BASE}/${accountStrategyId}/history`,
-  );
-  return data;
-}
-
 export async function getPaperTrades(accountStrategyId: UUID): Promise<PaperTradeRun[]> {
   const { data } = await apiClient.get<PaperTradeRun[]>(
     `${BASE}/${accountStrategyId}/paper-trades`,
   );
-  return data;
-}
-
-/**
- * Cross-strategy promotions feed for the /research dashboard. Backend caps
- * `limit` at 200; default 50 matches the dashboard panel size.
- */
-export async function getRecentPromotions(limit = 50): Promise<StrategyPromotionLog[]> {
-  const { data } = await apiClient.get<StrategyPromotionLog[]>(`${BASE}/recent`, {
-    params: { limit },
-  });
   return data;
 }
 
@@ -111,29 +73,21 @@ export interface RecentPromotionsQuery {
   size?: number;
 }
 
-export interface RecentPromotionsPage {
-  content: StrategyPromotionLog[];
-  totalElements: number;
-  totalPages: number;
-  number: number;
-  size: number;
-}
-
 /**
- * Filterable + paginated counterpart of {@link getRecentPromotions}. Backend
- * page-size cap is 100. Empty/blank `strategyCode` and `toState` mean
- * "no filter on that column".
+ * Filterable + paginated cross-strategy promotions feed for the /research
+ * dashboard. Backend page-size cap is 100. Empty/blank `strategyCode` and
+ * `toState` mean "no filter on that column".
  */
 export async function searchRecentPromotions(
   q: RecentPromotionsQuery = {},
-): Promise<RecentPromotionsPage> {
+): Promise<Page<StrategyPromotionLog>> {
   const params: Record<string, string | number> = {
     page: q.page ?? 0,
     size: q.size ?? 25,
   };
   if (q.strategyCode && q.strategyCode.trim()) params.strategyCode = q.strategyCode.trim();
   if (q.toState) params.toState = q.toState;
-  const { data } = await apiClient.get<RecentPromotionsPage>(`${BASE}/recent/search`, {
+  const { data } = await apiClient.get<Page<StrategyPromotionLog>>(`${BASE}/recent/search`, {
     params,
   });
   return data;
@@ -157,11 +111,7 @@ export function derivePromotionState(enabled: boolean, simulated: boolean): Deri
   return 'INACTIVE';
 }
 
-// ── definition-scope (V40) ────────────────────────────────────────────────
-//
-// The promotion lifecycle is now a property of the strategy itself. The
-// /research panel drives off these endpoints; per-account endpoints above
-// stay for back-compat.
+// ── Definition-scoped promotion endpoints ─────────────────────────────────
 
 export async function promoteDefinition(
   strategyCode: string,
@@ -181,9 +131,3 @@ export async function getDefinitionState(strategyCode: string): Promise<Promotio
   return data.state;
 }
 
-export async function getDefinitionHistory(strategyCode: string): Promise<StrategyPromotionLog[]> {
-  const { data } = await apiClient.get<StrategyPromotionLog[]>(
-    `${BASE}/definition/${encodeURIComponent(strategyCode)}/history`,
-  );
-  return data;
-}

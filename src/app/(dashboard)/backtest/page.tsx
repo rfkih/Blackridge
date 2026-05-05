@@ -6,7 +6,7 @@
 /* eslint-disable react/no-unstable-nested-components */
 
 import Link from 'next/link';
-import { Suspense, useCallback, useMemo } from 'react';
+import { Suspense, useCallback, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { format } from 'date-fns';
 import {
@@ -37,6 +37,8 @@ const STATUSES: Array<{ value: '' | BacktestStatus; label: string }> = [
 // Backtests are restricted to 5m/15m/1h/4h. The "" option means "no filter".
 const INTERVALS = ['', '5m', '15m', '1h', '4h'] as const;
 const PAGE_SIZES = [20, 50, 100];
+
+type SourceFilter = 'USER' | 'RESEARCHER';
 
 interface Filters {
   status: '' | BacktestStatus;
@@ -103,6 +105,7 @@ function BacktestListContent() {
     () => readFilters(new URLSearchParams(searchParams.toString())),
     [searchParams],
   );
+  const [source, setSource] = useState<SourceFilter>('USER');
 
   const patchFilters = useCallback(
     (patch: Partial<Filters>, opts: { resetPage?: boolean } = {}) => {
@@ -137,6 +140,7 @@ function BacktestListContent() {
 
   const runsQuery = useBacktestRuns({
     status: filters.status || undefined,
+    triggeredBy: source,
     strategyCode: filters.strategyCode || undefined,
     symbol: filters.symbol || undefined,
     interval: filters.interval || undefined,
@@ -153,6 +157,7 @@ function BacktestListContent() {
   const totalPages = Math.max(1, Math.ceil(total / filters.size));
   const hasActiveFilters =
     Boolean(filters.status) ||
+    source === 'RESEARCHER' ||
     Boolean(filters.strategyCode) ||
     Boolean(filters.symbol) ||
     Boolean(filters.interval) ||
@@ -396,6 +401,22 @@ function BacktestListContent() {
 
         <div className="h-5 w-px bg-bd-subtle" aria-hidden="true" />
 
+        <button
+          type="button"
+          onClick={() => setSource(source === 'RESEARCHER' ? 'USER' : 'RESEARCHER')}
+          className={cn(
+            'rounded-sm px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider transition-colors',
+            source === 'RESEARCHER'
+              ? 'bg-[#a855f7]/15 text-[#a855f7]'
+              : 'text-text-muted hover:bg-bg-elevated hover:text-text-secondary',
+          )}
+          aria-pressed={source === 'RESEARCHER'}
+        >
+          Researcher
+        </button>
+
+        <div className="h-5 w-px bg-bd-subtle" aria-hidden="true" />
+
         <div className="flex items-center gap-2 text-[11px] text-text-muted">
           <span>Strategy</span>
           <input
@@ -476,7 +497,8 @@ function BacktestListContent() {
           {hasActiveFilters && (
             <button
               type="button"
-              onClick={() =>
+              onClick={() => {
+                setSource('USER');
                 patchFilters({
                   status: '',
                   strategyCode: '',
@@ -484,8 +506,8 @@ function BacktestListContent() {
                   interval: '',
                   from: '',
                   to: '',
-                })
-              }
+                });
+              }}
               className="inline-flex h-8 items-center gap-1 rounded-md border border-bd-subtle bg-bg-base px-2.5 text-[11px] text-text-muted transition-colors hover:border-bd hover:text-text-primary"
             >
               <X size={11} strokeWidth={1.75} />

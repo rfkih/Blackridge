@@ -1,4 +1,5 @@
 import { apiClient } from './client';
+import { toNum } from './coerce';
 import type { UUID } from '@/types/api';
 import type { PortfolioAsset, PortfolioBalance } from '@/types/portfolio';
 
@@ -17,27 +18,21 @@ interface BackendPortfolioBalance {
   assets: BackendPortfolioAsset[] | null;
 }
 
-function toNumber(v: number | string | null | undefined): number {
-  if (v == null) return 0;
-  const n = typeof v === 'number' ? v : Number(v);
-  return Number.isFinite(n) ? n : 0;
-}
-
 function mapAsset(a: BackendPortfolioAsset): PortfolioAsset {
   return {
     asset: a.asset ?? '',
-    free: toNumber(a.free),
-    locked: toNumber(a.locked),
-    usdtValue: toNumber(a.usdtValue),
+    free: toNum(a.free),
+    locked: toNum(a.locked),
+    usdtValue: toNum(a.usdtValue),
   };
 }
 
 function mapBalance(b: BackendPortfolioBalance): PortfolioBalance {
   return {
     accountId: b.accountId ?? '',
-    totalUsdt: toNumber(b.totalUsdt),
-    availableUsdt: toNumber(b.availableUsdt),
-    lockedUsdt: toNumber(b.lockedUsdt),
+    totalUsdt: toNum(b.totalUsdt),
+    availableUsdt: toNum(b.availableUsdt),
+    lockedUsdt: toNum(b.lockedUsdt),
     assets: (b.assets ?? []).map(mapAsset),
   };
 }

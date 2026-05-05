@@ -26,6 +26,3 @@ export function useBackfillIndicators() {
     mutationFn: backfillIndicators,
   });
 }
-
-/** @deprecated Backwards-compat alias — prefer {@link useBackfillIndicators}. */
-export const useBackfillVcbIndicators = useBackfillIndicators;

@@ -1,9 +1,13 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api/client';
-import { initStompClient, disconnectStompClient } from '@/lib/ws/stompClient';
+import {
+  initStompClient,
+  disconnectStompClient,
+  type StompTokenProvider,
+} from '@/lib/ws/stompClient';
 import { useAuthStore } from '@/store/authStore';
 import { useWsStore } from '@/store/wsStore';
 
@@ -31,40 +35,43 @@ export function useWebSocket() {
   const reconnecting = useWsStore((s) => s.reconnecting);
   const queryClient = useQueryClient();
 
-  // Fetch a short-lived WS ticket whenever we're authenticated but don't have
-  // an in-memory JWT (e.g. after a page refresh — the HttpOnly cookie still
-  // authenticates, but the in-memory Bearer is gone). If the in-memory token
-  // is present (immediately after login), use it directly.
-  const [wsToken, setWsToken] = useState<string | null>(null);
-  useEffect(() => {
-    if (!user) {
-      setWsToken(null);
-      return;
-    }
-    if (token) {
-      setWsToken(token);
-      return;
-    }
-    let cancelled = false;
-    fetchWsTicket()
-      .then((ticket) => {
-        if (!cancelled) setWsToken(ticket);
-      })
-      .catch(() => {
-        if (!cancelled) setWsToken(null);
-      });
-    return () => {
-      cancelled = true;
+  // Refs so the token provider closure can read the latest values on each
+  // reconnect without churning provider identity (which would re-init the
+  // STOMP client every render).
+  const tokenRef = useRef<string | null>(token);
+  const userRef = useRef<typeof user>(user);
+  tokenRef.current = token;
+  userRef.current = user;
+
+  // One stable provider per authenticated session. Called by stompjs's
+  // beforeConnect hook on the initial connect AND every reconnect, so a
+  // ticket that expired between attempts is replaced before CONNECT is sent.
+  // Using the in-memory Bearer when present saves a round-trip on first
+  // connect; falls back to ws-ticket after a refresh when the token is gone
+  // but the HttpOnly cookie still authenticates.
+  const tokenProvider = useMemo<StompTokenProvider | null>(() => {
+    if (!user) return null;
+    return async () => {
+      if (!userRef.current) return null;
+      if (tokenRef.current) return tokenRef.current;
+      return await fetchWsTicket();
     };
-  }, [user, token]);
+    // We deliberately key the provider on the user identity (and not the
+    // in-memory `token`) so that a token going stale during reconnect does
+    // not reset the STOMP client — beforeConnect picks up the latest value
+    // via tokenRef on the next attempt.
+  }, [user]);
 
   useEffect(() => {
-    if (!wsToken) return;
-    initStompClient(wsToken);
+    if (!tokenProvider) {
+      disconnectStompClient();
+      return;
+    }
+    initStompClient(tokenProvider);
     return () => {
       disconnectStompClient();
     };
-  }, [wsToken]);
+  }, [tokenProvider]);
 
   // On every false→true transition (initial connect AND reconnects), refetch
   // server state that the WS is responsible for keeping live. Per CLAUDE.md

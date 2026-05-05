@@ -1,5 +1,6 @@
 import type { AccountSummary, BackendAccountSummary } from '@/types/account';
 import { apiClient } from './client';
+import { toNum } from './coerce';
 
 /**
  * Backend stores `accounts.is_active` as a CHAR(1) flag. In prod the column
@@ -13,12 +14,6 @@ function isAccountActive(raw: string | null | undefined): boolean {
   return v === '1' || v === 'y' || v === 'true';
 }
 
-function toNumber(v: number | string | null | undefined, fallback: number): number {
-  if (v == null) return fallback;
-  const n = typeof v === 'number' ? v : Number(v);
-  return Number.isFinite(n) ? n : fallback;
-}
-
 function mapAccount(a: BackendAccountSummary): AccountSummary {
   return {
     id: a.accountId,
@@ -27,23 +22,18 @@ function mapAccount(a: BackendAccountSummary): AccountSummary {
     exchange: a.exchange,
     active: isAccountActive(a.isActive),
     createdAt: a.createdTime,
-    maxConcurrentLongs: toNumber(a.maxConcurrentLongs, 2),
-    maxConcurrentShorts: toNumber(a.maxConcurrentShorts, 2),
+    maxConcurrentLongs: toNum(a.maxConcurrentLongs, 2),
+    maxConcurrentShorts: toNum(a.maxConcurrentShorts, 2),
     // Total cap is null when not set on the backend — distinguish from "0".
     maxConcurrentTrades: a.maxConcurrentTrades == null ? null : Number(a.maxConcurrentTrades),
     volTargetingEnabled: Boolean(a.volTargetingEnabled),
-    bookVolTargetPct: toNumber(a.bookVolTargetPct, 15),
+    bookVolTargetPct: toNum(a.bookVolTargetPct, 15),
   };
 }
 
 export async function getMyAccounts(): Promise<AccountSummary[]> {
   const { data } = await apiClient.get<BackendAccountSummary[]>('/api/v1/accounts');
   return data.map(mapAccount);
-}
-
-export async function getAccountById(id: string): Promise<AccountSummary> {
-  const { data } = await apiClient.get<BackendAccountSummary>(`/api/v1/accounts/${id}`);
-  return mapAccount(data);
 }
 
 /**

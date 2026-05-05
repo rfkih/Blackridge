@@ -83,3 +83,19 @@ export interface PnlSummary {
   winRate: number;
   openCount?: number;
 }
+
+/**
+ * Phase 2c — realized P&L decomposed into the three orthogonal legs.
+ * Returned by `GET /api/v1/trades/:id/attribution`. Null when the trade is
+ * still open or predates Phase 2c (no intent captured at decision time).
+ * Sum of {@code signalAlpha + executionDrift + sizingResidual} equals
+ * {@code realizedPnl}.
+ */
+export interface TradeAttribution {
+  realizedPnl: number;
+  signalAlpha: number;
+  executionDrift: number;
+  sizingResidual: number;
+  entrySlippagePct: number | null;
+  sizeRatio: number | null;
+}

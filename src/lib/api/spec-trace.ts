@@ -3,6 +3,7 @@
 // evaluate() call (dense in backtest, 1% sample in live). Drives the
 // SpecTraceViewer admin UI for forensic decision replay.
 import { apiClient } from './client';
+import type { PageEnvelope } from '@/types/api';
 
 export interface SpecTraceRow {
   traceId: string;
@@ -32,13 +33,7 @@ export interface SpecTraceDetail extends SpecTraceRow {
   errorMessage: string | null;
 }
 
-export interface SpecTracePage {
-  content: SpecTraceRow[];
-  page: number;
-  size: number;
-  totalElements: number;
-  totalPages: number;
-}
+export type SpecTracePage = PageEnvelope<SpecTraceRow>;
 
 export interface ListSpecTraceParams {
   backtestRunId?: string;
@@ -51,9 +46,7 @@ export interface ListSpecTraceParams {
   size?: number;
 }
 
-export async function listSpecTraces(
-  opts: ListSpecTraceParams = {},
-): Promise<SpecTracePage> {
+export async function listSpecTraces(opts: ListSpecTraceParams = {}): Promise<SpecTracePage> {
   const params: Record<string, string | number | boolean> = {
     page: opts.page ?? 0,
     size: opts.size ?? 50,
@@ -71,8 +64,6 @@ export async function listSpecTraces(
 }
 
 export async function getSpecTrace(id: string): Promise<SpecTraceDetail> {
-  const { data } = await apiClient.get<SpecTraceDetail>(
-    `/api/v1/spec-trace/${id}`,
-  );
+  const { data } = await apiClient.get<SpecTraceDetail>(`/api/v1/spec-trace/${id}`);
   return data;
 }

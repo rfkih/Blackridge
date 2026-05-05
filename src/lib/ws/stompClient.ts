@@ -1,12 +1,21 @@
 import { Client, type StompSubscription } from '@stomp/stompjs';
-import { WS_URL } from '@/lib/constants';
+import { env } from '@/lib/env';
 import { useWsStore } from '@/store/wsStore';
 
+/**
+ * Async producer of the credential placed in the STOMP CONNECT
+ * Authorization header. Called once per connect attempt (initial AND every
+ * reconnect) so short-lived ws-tickets (≤60 s) are always fresh — a stale
+ * ticket from a slow initial /me would otherwise wedge the client in an
+ * infinite reconnect loop with no recovery path.
+ */
+export type StompTokenProvider = () => Promise<string | null>;
+
 let stompClient: Client | null = null;
-// Tracked so we can detect a token change on re-init and spin up a fresh
-// client with the new Bearer — a plain `stompClient?.active` short-circuit
-// would keep the old token alive after a re-login.
-let currentToken: string | null = null;
+// Tracked so we can detect a provider swap on re-init (e.g. after re-login)
+// and spin up a fresh client. Comparing references is enough — the auth
+// hook recreates the closure when the user identity changes.
+let currentTokenProvider: StompTokenProvider | null = null;
 // True while we're intentionally tearing down — suppresses the spurious
 // "reconnecting" flash that would otherwise fire from the final onWebSocketClose.
 let intentionalDisconnect = false;
@@ -27,29 +36,51 @@ function backoffMs(attempt: number): number {
   return Math.min(BASE_DELAY_MS * 2 ** (attempt - 1), MAX_DELAY_MS);
 }
 
-export function initStompClient(token: string | null): void {
-  if (stompClient?.active && currentToken === token) return;
-  // Token changed while a client was still live — drop it so we can activate
-  // a new one with the updated CONNECT header.
+export function initStompClient(tokenProvider: StompTokenProvider | null): void {
+  if (stompClient?.active && currentTokenProvider === tokenProvider) return;
+  // Provider swapped while a client was still live — drop it so we can
+  // activate a new one that will mint its own CONNECT credential.
   if (stompClient) {
     intentionalDisconnect = true;
     void stompClient.deactivate();
     stompClient = null;
   }
-  currentToken = token;
+  currentTokenProvider = tokenProvider;
   intentionalDisconnect = false;
   attemptCount = 0;
   const ws = useWsStore.getState();
   ws.setReconnectAttempts(0);
   ws.setPermanentlyDisconnected(false);
 
+  if (!tokenProvider) return;
+
   stompClient = new Client({
-    brokerURL: WS_URL,
+    brokerURL: env.wsUrl,
     // Initial reconnect cadence — onWebSocketClose mutates this on the live
     // client to implement exponential backoff before stompjs schedules the
     // next attempt.
     reconnectDelay: BASE_DELAY_MS,
-    connectHeaders: token ? { Authorization: `Bearer ${token}` } : {},
+    // beforeConnect runs on the initial activate AND every reconnect, so
+    // short-lived ws-tickets (≤60 s) are refreshed every attempt. Stash the
+    // result in connectHeaders, which stompjs reads when it sends CONNECT.
+    beforeConnect: async () => {
+      if (!stompClient) return;
+      try {
+        const fresh = await tokenProvider();
+        // Re-check after the async ticket fetch — disconnectStompClient() may
+        // have run concurrently (logout, page unload) and set stompClient = null.
+        if (stompClient) {
+          stompClient.connectHeaders = fresh ? { Authorization: `Bearer ${fresh}` } : {};
+        }
+      } catch {
+        // Ticket fetch failed (likely 401 on /me — cookie expired). Clear
+        // the header so CONNECT fails fast with a recognizable auth error
+        // instead of using a stale one. The reconnect loop will retry until
+        // the user re-authenticates or the circuit breaker trips.
+        if (stompClient) stompClient.connectHeaders = {};
+      }
+    },
+    connectHeaders: {},
     onConnect: () => {
       attemptCount = 0;
       if (stompClient) stompClient.reconnectDelay = BASE_DELAY_MS;
@@ -109,11 +140,11 @@ export function initStompClient(token: string | null): void {
  */
 export function retryStompClient(): void {
   if (stompClient?.active) return;
-  const token = currentToken;
+  const provider = currentTokenProvider;
   // Force a fresh init by clearing module state — initStompClient's
-  // short-circuit otherwise treats the stored token as still-valid.
-  currentToken = null;
-  initStompClient(token);
+  // short-circuit otherwise treats the stored provider as still-valid.
+  currentTokenProvider = null;
+  initStompClient(provider);
 }
 
 export function disconnectStompClient(): void {
@@ -121,7 +152,7 @@ export function disconnectStompClient(): void {
     intentionalDisconnect = true;
     void stompClient.deactivate();
     stompClient = null;
-    currentToken = null;
+    currentTokenProvider = null;
     attemptCount = 0;
     const s = useWsStore.getState();
     s.setConnected(false);

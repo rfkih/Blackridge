@@ -5,15 +5,13 @@ import {
   createSweep,
   evaluateHoldout,
   getBacktestAnalysis,
-  getResearchLog,
   getSweep,
   getTprParams,
   listSweeps,
   searchResearchLog,
   searchSweeps,
-  type ResearchLogQuery,
-  type SweepsQuery,
 } from '@/lib/api/research';
+import type { ResearchLogQuery, SweepsQuery } from '@/types/research';
 import { getLsrDefaults } from '@/lib/api/lsr-params';
 import { getVcbDefaults } from '@/lib/api/vcb-params';
 import { useAuthStore } from '@/store/authStore';
@@ -34,16 +32,6 @@ export function useBacktestAnalysis(runId: string | undefined, recompute = false
   });
 }
 
-export function useResearchLog(strategyCode?: string, limit = 50) {
-  const userId = useAuthStore((s) => s.user?.id);
-  return useQuery({
-    queryKey: [...LOG_KEY, strategyCode ?? '*', limit],
-    queryFn: () => getResearchLog(strategyCode, limit),
-    enabled: Boolean(userId),
-    staleTime: 15_000,
-  });
-}
-
 /**
  * Filterable + paginated research log. Returns a Page envelope so the panel
  * can render Prev/Next + total counts. Query key includes every filter so
@@ -59,6 +47,8 @@ export function useSearchResearchLog(q: ResearchLogQuery) {
       q.strategyCode ?? '',
       q.asset ?? '',
       q.interval ?? '',
+      q.search ?? '',
+      q.sort ?? '',
       q.page ?? 0,
       q.size ?? 25,
     ],

@@ -265,3 +265,27 @@ export interface ResearchLogRow {
   maxDrawdown: number;
   maxConsecutiveLosses: number;
 }
+
+/** Filter shape for `searchResearchLog`. Empty/blank values are dropped before send. */
+export interface ResearchLogQuery {
+  strategyCode?: string;
+  asset?: string;
+  interval?: string;
+  search?: string;
+  /** Spring sort string — "createdAt,desc" / "tradeCount,asc" etc. */
+  sort?: string;
+  page?: number;
+  size?: number;
+}
+
+/** Filter shape for `searchSweeps`. */
+export interface SweepsQuery {
+  /** CSV like "RUNNING,PENDING" matching the controller's `?status=` parser. */
+  status?: string;
+  /** Spring sort string — "createdAt,desc" / "status,asc" / "finishedCombos,desc"
+   *  / "totalCombos,desc". Backend whitelists the field; unknown falls back to
+   *  createdAt,desc so a malformed param can't drop the page. */
+  sort?: string;
+  page?: number;
+  size?: number;
+}

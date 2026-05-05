@@ -2,22 +2,22 @@
 // All polling cadences match other research panels (10–30s); the orchestrator
 // is loopback-only and cheap to poll, but the underlying tables only mutate
 // on tick boundaries (~minutes), so 30s is plenty.
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   enqueueSweep,
   getLeaderboard,
-  listIterations,
   listJournal,
   listQueue,
   listWalkForwardCandidates,
   runTick,
   searchIterations,
 } from '@/lib/api/orchestrator';
+import { generateIdempotencyKey } from '@/lib/idempotency';
 import type {
   EnqueueSweepRequest,
   IterationRow,
   IterationsPage,
-  JournalRow,
+  JournalPage,
   LeaderboardRow,
   QueueRow,
   QueueStatus,
@@ -29,15 +29,6 @@ export function useLeaderboard(limit = 15) {
   return useQuery<LeaderboardRow[]>({
     queryKey: [...ORCH_KEY, 'leaderboard', limit],
     queryFn: () => getLeaderboard({ limit, sort: 'pf' }),
-    staleTime: 15_000,
-    refetchInterval: 30_000,
-  });
-}
-
-export function useRecentIterations(limit = 20) {
-  return useQuery<IterationRow[]>({
-    queryKey: [...ORCH_KEY, 'iterations', limit],
-    queryFn: () => listIterations({ limit }),
     staleTime: 15_000,
     refetchInterval: 30_000,
   });
@@ -90,15 +81,21 @@ export function useQueueList(status?: QueueStatus, limit = 50) {
   });
 }
 
-export function useJournalList(filters?: {
+export function useJournalListInfinite(filters?: {
   entryType?: string;
   status?: string;
   strategyCode?: string;
+  search?: string;
+  sortBy?: string;
+  sortDir?: string;
   limit?: number;
 }) {
-  return useQuery<JournalRow[]>({
+  return useInfiniteQuery<JournalPage>({
     queryKey: [...ORCH_KEY, 'journal', filters ?? {}],
-    queryFn: () => listJournal(filters),
+    queryFn: ({ pageParam }) =>
+      listJournal({ ...filters, cursor: pageParam as string | undefined }),
+    getNextPageParam: (lastPage) => lastPage.next_cursor ?? undefined,
+    initialPageParam: undefined,
     staleTime: 30_000,
     refetchInterval: 60_000,
   });
@@ -113,7 +110,7 @@ export function useJournalList(filters?: {
 export function useTick() {
   const qc = useQueryClient();
   return useMutation<IterationRow, Error, void>({
-    mutationFn: () => runTick(`tick-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`),
+    mutationFn: () => runTick(generateIdempotencyKey('tick')),
     onSettled: () => {
       qc.invalidateQueries({ queryKey: ORCH_KEY });
     },
@@ -123,8 +120,7 @@ export function useTick() {
 export function useEnqueueSweep() {
   const qc = useQueryClient();
   return useMutation<QueueRow, Error, EnqueueSweepRequest>({
-    mutationFn: (body) =>
-      enqueueSweep(body, `enqueue-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`),
+    mutationFn: (body) => enqueueSweep(body, generateIdempotencyKey('enqueue')),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: [...ORCH_KEY, 'queue'] });
     },

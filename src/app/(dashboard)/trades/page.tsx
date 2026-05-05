@@ -346,8 +346,6 @@ function TradesPageContent() {
           alignItems: 'center',
         }}
       >
-        {/* Search field — pill shaped, icon-led. Decorative for now — real
-            server-side search on symbol/strategy/notes is an open TODO. */}
         <div
           style={{
             flex: '0 1 280px',

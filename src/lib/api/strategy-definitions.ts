@@ -85,11 +85,6 @@ export async function searchStrategyDefinitions(
   };
 }
 
-export async function getStrategyDefinition(id: string): Promise<StrategyDefinition> {
-  const { data } = await apiClient.get<BackendStrategyDefinition>(`${BASE}/${id}`);
-  return map(data);
-}
-
 export async function createStrategyDefinition(
   payload: CreateStrategyDefinitionPayload,
 ): Promise<StrategyDefinition> {

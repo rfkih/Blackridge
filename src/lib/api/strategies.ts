@@ -1,23 +1,8 @@
 import { apiClient } from './client';
-import type { AccountStrategy, AccountStrategyStatus } from '@/types/strategy';
+import { toNum } from './coerce';
+import { extractList } from './pageUtils';
+import type { AccountStrategy, AccountStrategyStatus, KellyStatus } from '@/types/strategy';
 import type { BackendAccountStrategy, PageResponse } from '@/types/api';
-
-function extractList<T>(data: T[] | PageResponse<T>): T[] {
-  if (Array.isArray(data)) return data;
-  return (data as PageResponse<T>).content ?? [];
-}
-
-/**
- * Coerce a possibly-null BigDecimal string from the wire into a number. Java
- * serialises BigDecimal as either number or string depending on Jackson config;
- * anything that can't be parsed cleanly falls back to 0 so arithmetic stays
- * safe (sort-by-capital, aggregates) and the UI renders "0" instead of NaN.
- */
-function toNumber(v: number | string | null | undefined): number {
-  if (v == null) return 0;
-  const n = typeof v === 'number' ? v : Number(v);
-  return Number.isFinite(n) ? n : 0;
-}
 
 /** Map Java DTO field names to the frontend AccountStrategy shape. */
 function mapAccountStrategy(s: BackendAccountStrategy): AccountStrategy {
@@ -30,17 +15,22 @@ function mapAccountStrategy(s: BackendAccountStrategy): AccountStrategy {
     interval: s.intervalName,
     status: (s.enabled ? 'LIVE' : 'STOPPED') as AccountStrategyStatus,
     simulated: Boolean(s.simulated),
-    capitalAllocationPct: toNumber(s.capitalAllocationPct),
-    maxOpenPositions: toNumber(s.maxOpenPositions),
+    capitalAllocationPct: toNum(s.capitalAllocationPct),
+    maxOpenPositions: toNum(s.maxOpenPositions),
     allowLong: s.allowLong,
     allowShort: s.allowShort,
     priorityOrder: s.priorityOrder,
     createdAt: s.createdTime,
     updatedAt: s.updatedTime,
-    ddKillThresholdPct: toNumber(s.ddKillThresholdPct),
+    ddKillThresholdPct: toNum(s.ddKillThresholdPct),
     isKillSwitchTripped: Boolean(s.isKillSwitchTripped),
     killSwitchTrippedAt: s.killSwitchTrippedAt ?? null,
     killSwitchReason: s.killSwitchReason ?? null,
+    regimeGateEnabled: Boolean(s.regimeGateEnabled),
+    allowedTrendRegimes: s.allowedTrendRegimes ?? null,
+    allowedVolatilityRegimes: s.allowedVolatilityRegimes ?? null,
+    kellySizingEnabled: Boolean(s.kellySizingEnabled),
+    kellyMaxFraction: toNum(s.kellyMaxFraction) || 0.25,
   };
 }
 
@@ -121,6 +111,14 @@ export interface AccountStrategyPatch {
   intervalName?: string;
   /** 1–99 inclusive. Lower wins the orchestrator's fan-out tiebreak. */
   priorityOrder?: number;
+  /** Regime gate (V43) */
+  regimeGateEnabled?: boolean;
+  allowedTrendRegimes?: string;
+  allowedVolatilityRegimes?: string;
+  /** Kelly/bankroll sizing (V45) */
+  kellySizingEnabled?: boolean;
+  /** Hard cap on the Kelly fraction [0.05, 1.00]. */
+  kellyMaxFraction?: number;
 }
 
 export async function updateAccountStrategy(
@@ -132,6 +130,29 @@ export async function updateAccountStrategy(
     patch,
   );
   return mapAccountStrategy(data);
+}
+
+/**
+ * Fetch the live Kelly status — current multiplier, qualifying-run count,
+ * and a human-readable reason. Backend-computed from the most recent
+ * qualifying backtest runs; refresh whenever the strategy's Kelly config
+ * changes or a new backtest completes.
+ */
+export async function getKellyStatus(id: string): Promise<KellyStatus> {
+  const { data } = await apiClient.get<{
+    enabled: boolean;
+    currentMultiplier: number | string;
+    maxFraction: number | string | null;
+    qualifyingRuns: number;
+    reason: string;
+  }>(`/api/v1/account-strategies/${id}/kelly-status`);
+  return {
+    enabled: Boolean(data.enabled),
+    currentMultiplier: Number(data.currentMultiplier),
+    maxFraction: data.maxFraction == null ? null : Number(data.maxFraction),
+    qualifyingRuns: data.qualifyingRuns,
+    reason: data.reason,
+  };
 }
 
 /**

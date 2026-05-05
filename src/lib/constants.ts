@@ -1,12 +1,6 @@
 // Circular type-only import — erased at runtime (strategy.ts re-imports Interval/StrategyCode).
 // eslint-disable-next-line import/no-cycle
 import type { LsrParams, VboParams, VcbParams } from '@/types/strategy';
-import { env } from './env';
-
-/** @deprecated prefer `import { env } from '@/lib/env'`. Re-exported so existing call sites keep working. */
-export const API_URL = env.apiUrl;
-/** @deprecated prefer `import { env } from '@/lib/env'`. */
-export const WS_URL = env.wsUrl;
 
 export const INTERVALS = ['1m', '5m', '15m', '1h', '4h', '1d'] as const;
 export type Interval = (typeof INTERVALS)[number];
@@ -19,7 +13,6 @@ export type Interval = (typeof INTERVALS)[number];
  * that's why the global INTERVALS list keeps the broader range.
  */
 export const BACKTEST_INTERVALS = ['5m', '15m', '1h', '4h'] as const;
-export type BacktestInterval = (typeof BACKTEST_INTERVALS)[number];
 
 /** Regex source for backtest interval Zod validation. */
 export const BACKTEST_INTERVAL_REGEX_SOURCE = '^(5m|15m|1h|4h)$';

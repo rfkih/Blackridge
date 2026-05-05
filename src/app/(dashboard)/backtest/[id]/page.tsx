@@ -113,9 +113,8 @@ export default function BacktestResultPage({ params }: { params: { id: string } 
         initialCapital: run.initialCapital,
         strategyCodes: codes,
         strategyAccountStrategyIds,
-        // V2 reproduction: backend now exposes the run-level wizard fields
-        // alongside paramSnapshot. Falling back to long-only on legacy rows
-        // that pre-date the field exposure (run.allowLong === null).
+        // allowLong is null on older rows — default to long-only to avoid
+        // silently enabling shorts on strategies not validated for them.
         allowLong: run.allowLong ?? true,
         allowShort: run.allowShort ?? false,
         maxConcurrentStrategies: run.maxConcurrentStrategies ?? undefined,

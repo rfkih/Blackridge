@@ -1,5 +1,6 @@
 import { apiClient } from './client';
-import type { CandleData, IndicatorData } from '@/types/market';
+import { toNum } from './coerce';
+import type { CandleData, IndicatorData, SymbolSlippageStats } from '@/types/market';
 import { INTERVAL_SECONDS } from '@/lib/charts/chartTheme';
 
 // Backend may return time as `time`, `openTime`, or `timestamp`.
@@ -107,20 +108,6 @@ export async function fetchIndicators(
     .sort((a, b) => a.time - b.time);
 }
 
-/**
- * Phase 3.8 — calibrated slippage stats for a symbol, fit from the user's
- * own intended-vs-actual fills. Returns null when the symbol has no closed
- * trades with intent recorded (legacy or unused).
- */
-export interface SymbolSlippageStats {
-  symbol: string;
-  sampleSize: number;
-  meanBps: number;
-  stddevBps: number;
-  p95AbsBps: number;
-  trustworthy: boolean;
-}
-
 interface BackendSymbolSlippageStats {
   symbol?: string | null;
   sampleSize?: number | null;
@@ -128,12 +115,6 @@ interface BackendSymbolSlippageStats {
   stddevBps?: number | string | null;
   p95AbsBps?: number | string | null;
   trustworthy?: boolean | null;
-}
-
-function num(v: number | string | null | undefined): number {
-  if (v == null) return 0;
-  const n = typeof v === 'number' ? v : Number(v);
-  return Number.isFinite(n) ? n : 0;
 }
 
 export async function getSymbolSlippage(symbol: string): Promise<SymbolSlippageStats | null> {
@@ -144,9 +125,9 @@ export async function getSymbolSlippage(symbol: string): Promise<SymbolSlippageS
   return {
     symbol: data.symbol ?? symbol,
     sampleSize: data.sampleSize ?? 0,
-    meanBps: num(data.meanBps),
-    stddevBps: num(data.stddevBps),
-    p95AbsBps: num(data.p95AbsBps),
+    meanBps: toNum(data.meanBps),
+    stddevBps: toNum(data.stddevBps),
+    p95AbsBps: toNum(data.p95AbsBps),
     trustworthy: Boolean(data.trustworthy),
   };
 }

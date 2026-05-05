@@ -20,6 +20,7 @@ import { StrategyBadge } from '@/components/trading/StrategyBadge';
 import { StrategyStatusBadge } from '@/components/strategy/StrategyStatusBadge';
 import { NewStrategyDialog } from '@/components/strategy/NewStrategyDialog';
 import { DeleteStrategyDialog } from '@/components/strategy/DeleteStrategyDialog';
+import { RearmKillSwitchDialog } from '@/components/strategy/RearmKillSwitchDialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/shared/EmptyState';
 import {
@@ -594,6 +595,7 @@ export default function StrategiesPage() {
   const { accounts, isAll, activeAccount, scopedAccountId } = useActiveAccount();
   const [isCreateOpen, setCreateOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<AccountStrategy | null>(null);
+  const [rearmTarget, setRearmTarget] = useState<AccountStrategy | null>(null);
   const activateMutation = useActivateStrategy();
   const deactivateMutation = useDeactivateStrategy();
   const intervalMutation = useUpdateStrategyInterval();
@@ -647,13 +649,14 @@ export default function StrategiesPage() {
     });
   };
 
-  const handleRearm = (strategy: AccountStrategy) => {
+  const handleRearmConfirmed = (strategy: AccountStrategy) => {
     rearmMutation.mutate(strategy.id, {
       onSuccess: (s) => {
         toast.success({
           title: `Re-armed "${s.presetName}"`,
           description: 'Kill-switch cleared — strategy resumes on the next signal.',
         });
+        setRearmTarget(null);
       },
       onError: (err) => {
         toast.error({
@@ -829,7 +832,7 @@ export default function StrategiesPage() {
           onActivate={handleActivate}
           onDeactivate={handleDeactivate}
           onIntervalChange={handleIntervalChange}
-          onRearm={handleRearm}
+          onRearm={setRearmTarget}
           onReorder={handleReorder}
           activatingId={activateMutation.isPending ? activateMutation.variables : undefined}
           deactivatingId={deactivateMutation.isPending ? deactivateMutation.variables : undefined}
@@ -852,6 +855,15 @@ export default function StrategiesPage() {
           if (!open) setDeleteTarget(null);
         }}
         strategy={deleteTarget}
+      />
+      <RearmKillSwitchDialog
+        open={Boolean(rearmTarget)}
+        onOpenChange={(open) => {
+          if (!open && !rearmMutation.isPending) setRearmTarget(null);
+        }}
+        strategy={rearmTarget}
+        isRearming={rearmMutation.isPending && rearmMutation.variables === rearmTarget?.id}
+        onConfirm={handleRearmConfirmed}
       />
     </div>
   );

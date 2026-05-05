@@ -11,10 +11,9 @@
 
 const DEFAULT_API_URL = 'http://localhost:8080';
 const DEFAULT_WS_URL = 'ws://localhost:8080/ws';
-// Phase 1 decoupling: research endpoints (/api/v1/backtest, /api/v1/research,
-// /api/v1/montecarlo, /api/v1/historical) live on a separate JVM by default.
-// Falls back to apiUrl in environments where the JVM split hasn't been
-// deployed yet — single-JVM deploys keep working unchanged.
+// Research endpoints (/api/v1/backtest, /api/v1/research, /api/v1/montecarlo,
+// /api/v1/historical) default to a separate JVM. Falls back to apiUrl when
+// NEXT_PUBLIC_RESEARCH_URL is unset — single-JVM deploys work unchanged.
 const DEFAULT_RESEARCH_URL = 'http://localhost:8081';
 
 function read(name: string, fallback: string): string {
@@ -57,11 +56,7 @@ const researchUrlResolved = researchExplicit
  */
 export const env = Object.freeze({
   apiUrl: apiUrlResolved,
-  /**
-   * Research-service base URL. Used by `researchClient` for backtest, research,
-   * monte carlo, and historical-backfill endpoints. Defaults to localhost:8081
-   * (Phase 1 decoupled JVM); falls back to apiUrl in production if unset.
-   */
+  /** Research-service base URL. Defaults to localhost:8081; falls back to apiUrl in production when NEXT_PUBLIC_RESEARCH_URL is unset. */
   researchUrl: researchUrlResolved,
   wsUrl: read('NEXT_PUBLIC_WS_URL', DEFAULT_WS_URL),
 });

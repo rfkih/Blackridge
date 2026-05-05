@@ -38,18 +38,6 @@ export interface EquityPoint {
   drawdown: number; // percentage (negative, e.g. -5.2 means -5.2%)
 }
 
-export interface MarketData {
-  symbol: string;
-  interval: Interval | string;
-  openTime: EpochMs;
-  open: number;
-  high: number;
-  low: number;
-  close: number;
-  volume: number;
-  closeTime: EpochMs;
-}
-
 export interface FeatureStore {
   symbol: string;
   interval: Interval | string;
@@ -66,3 +54,20 @@ export interface FeatureStore {
   kcMiddle: number | null;
   kcLower: number | null;
 }
+
+/**
+ * Phase 3.8 — calibrated slippage stats for a symbol, fit from the user's
+ * own intended-vs-actual fills. Returned by `GET /api/v1/market/slippage/:symbol`,
+ * null when the symbol has no closed trades with intent recorded.
+ */
+export interface SymbolSlippageStats {
+  symbol: string;
+  sampleSize: number;
+  meanBps: number;
+  stddevBps: number;
+  p95AbsBps: number;
+  trustworthy: boolean;
+}
+
+/** Chart interval picker values for the market page. */
+export type ChartInterval = '5m' | '15m' | '1h' | '4h';

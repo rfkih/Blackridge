@@ -1,4 +1,5 @@
 import { apiClient } from './client';
+import { toNum } from './coerce';
 import type { PnlSummary } from '@/types/trading';
 import type { DailyPnl, StrategyPnl } from '@/types/pnl';
 
@@ -27,12 +28,6 @@ interface BackendStrategyPnl {
   winRate: number | string | null;
 }
 
-function num(v: number | string | null | undefined): number {
-  if (v == null) return 0;
-  const n = typeof v === 'number' ? v : Number(v);
-  return Number.isFinite(n) ? n : 0;
-}
-
 function narrowPeriod(v: string | null | undefined): PnlSummary['period'] {
   if (v === 'week' || v === 'month') return v;
   return 'today';
@@ -44,11 +39,11 @@ export async function getPnlSummary(period: 'today' | 'week' | 'month'): Promise
   });
   return {
     period: narrowPeriod(data.period) || period,
-    realizedPnl: num(data.realizedPnl),
-    unrealizedPnl: num(data.unrealizedPnl),
-    totalPnl: num(data.totalPnl),
+    realizedPnl: toNum(data.realizedPnl),
+    unrealizedPnl: toNum(data.unrealizedPnl),
+    totalPnl: toNum(data.totalPnl),
     tradeCount: data.tradeCount ?? 0,
-    winRate: num(data.winRate),
+    winRate: toNum(data.winRate),
     openCount: data.openCount ?? 0,
   };
 }
@@ -64,7 +59,7 @@ export async function getDailyPnl(
   return (data ?? [])
     .map((d) => ({
       date: d.date ?? '',
-      realizedPnl: num(d.realizedPnl),
+      realizedPnl: toNum(d.realizedPnl),
       tradeCount: d.tradeCount ?? 0,
     }))
     .filter((d) => d.date.length > 0)
@@ -78,8 +73,8 @@ export async function getPnlByStrategy(from?: string, to?: string): Promise<Stra
   const { data } = await apiClient.get<BackendStrategyPnl[]>('/api/v1/pnl/by-strategy', { params });
   return (data ?? []).map((s) => ({
     strategyCode: s.strategyCode ?? '',
-    totalPnl: num(s.totalPnl ?? s.realizedPnl),
-    winRate: num(s.winRate),
+    totalPnl: toNum(s.totalPnl ?? s.realizedPnl),
+    winRate: toNum(s.winRate),
     tradeCount: s.tradeCount ?? 0,
   }));
 }

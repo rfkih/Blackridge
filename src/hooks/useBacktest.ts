@@ -46,6 +46,7 @@ export function useBacktestRuns(filters: BacktestListFilters = {}) {
       filters.sortDir ?? 'DESC',
       filters.page ?? 0,
       filters.size ?? 20,
+      filters.triggeredBy ?? null,
     ],
     queryFn: () => listBacktestRuns(filters),
     staleTime: 2_000,
@@ -155,16 +156,6 @@ export function useBacktestEquityPoints(id: string | undefined) {
   });
 }
 
-/**
- * Convenience: does the current list page contain any still-running run?
- * Uses the default (first-page) filter so every caller shares the same
- * cache entry and the poll fires once per app.
- */
-export function useHasActiveBacktest(): boolean {
-  const { data } = useBacktestRuns();
-  return useMemo(() => (data?.content ?? []).some((r) => ACTIVE_STATUSES.has(r.status)), [data]);
-}
-
 interface ProgressFrame {
   backtestRunId?: string;
   status?: string;
@@ -195,7 +186,8 @@ export function useBacktestProgressStream(runId: string | undefined): void {
       let frame: ProgressFrame;
       try {
         frame = JSON.parse(body) as ProgressFrame;
-      } catch {
+      } catch (err) {
+        console.warn('[useBacktest] malformed progress frame dropped:', err);
         return;
       }
       if (frame.backtestRunId && frame.backtestRunId !== runId) return;

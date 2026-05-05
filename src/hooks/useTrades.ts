@@ -3,11 +3,9 @@
 import { useQuery } from '@tanstack/react-query';
 import {
   getOpenTrades,
-  getRecentTrades,
   getTradeAnomalies,
   getTradeAttribution,
   getTradeById,
-  getTradePositions,
   getTradesPage,
   type TradesPageFilters,
 } from '@/lib/api/trades';
@@ -39,14 +37,6 @@ export function useOpenTrades(accountId?: string) {
     staleTime: QUERY_STALE_TIMES.openPositions,
     refetchInterval: wsConnected ? false : OPEN_TRADES_REST_POLL_MS,
     refetchIntervalInBackground: false,
-  });
-}
-
-export function useRecentTrades(limit = 10, accountId?: string) {
-  return useQuery({
-    queryKey: ['trades', 'recent', limit, accountId ?? null],
-    queryFn: () => getRecentTrades(limit, accountId),
-    staleTime: QUERY_STALE_TIMES.closedTrades,
   });
 }
 
@@ -82,15 +72,6 @@ export function useTrade(id: string | undefined) {
     queryKey: ['trades', 'detail', id ?? null],
     queryFn: () => getTradeById(id as string),
     enabled: Boolean(id),
-    staleTime: QUERY_STALE_TIMES.closedTrades,
-  });
-}
-
-export function useTradePositions(id: string | undefined, options?: { enabled?: boolean }) {
-  return useQuery({
-    queryKey: ['trades', 'positions', id ?? null],
-    queryFn: () => getTradePositions(id as string),
-    enabled: Boolean(id) && (options?.enabled ?? true),
     staleTime: QUERY_STALE_TIMES.closedTrades,
   });
 }

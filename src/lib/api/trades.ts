@@ -1,8 +1,11 @@
 import { apiClient } from './client';
+import { toNum, toNumOrNull } from './coerce';
+import { extractList } from './pageUtils';
 import type {
   LivePosition,
   PositionExitReason,
   PositionType,
+  TradeAttribution,
   TradeDirection,
   TradePosition,
   TradeStatus,
@@ -53,25 +56,6 @@ interface BackendTrade {
   positions: BackendTradePosition[] | null;
 }
 
-function extractList<T>(data: T[] | PageResponse<T>): T[] {
-  if (Array.isArray(data)) return data;
-  return (data as PageResponse<T>).content ?? [];
-}
-
-/** Required numeric field — null/NaN fall back to 0. */
-function numOr0(v: number | string | null | undefined): number {
-  if (v == null) return 0;
-  const n = typeof v === 'number' ? v : Number(v);
-  return Number.isFinite(n) ? n : 0;
-}
-
-/** Optional numeric field — null stays null, never collapses to 0. */
-function numOrNull(v: number | string | null | undefined): number | null {
-  if (v == null || v === '') return null;
-  const n = typeof v === 'number' ? v : Number(v);
-  return Number.isFinite(n) ? n : null;
-}
-
 function asUuid(v: string | null | undefined): UUID {
   return v ?? '';
 }
@@ -110,13 +94,13 @@ function mapPosition(p: BackendTradePosition): TradePosition {
     id: asUuid(p.id),
     tradeId: asUuid(p.tradeId),
     type: narrowPositionType(p.type),
-    quantity: numOr0(p.quantity),
-    entryPrice: numOr0(p.entryPrice),
+    quantity: toNum(p.quantity),
+    entryPrice: toNum(p.entryPrice),
     exitTime: p.exitTime ?? null,
-    exitPrice: numOrNull(p.exitPrice),
+    exitPrice: toNumOrNull(p.exitPrice),
     exitReason: narrowExitReason(p.exitReason),
-    feeUsdt: numOr0(p.feeUsdt),
-    realizedPnl: numOr0(p.realizedPnl),
+    feeUsdt: toNum(p.feeUsdt),
+    realizedPnl: toNum(p.realizedPnl),
   };
 }
 
@@ -130,18 +114,18 @@ function mapTrade(t: BackendTrade): Trades {
     direction: narrowDirection(t.direction),
     status: narrowStatus(t.status),
     entryTime: t.entryTime ?? 0,
-    entryPrice: numOr0(t.entryPrice),
+    entryPrice: toNum(t.entryPrice),
     exitTime: t.exitTime ?? null,
-    exitAvgPrice: numOrNull(t.exitAvgPrice),
-    stopLossPrice: numOr0(t.stopLossPrice),
-    tp1Price: numOrNull(t.tp1Price),
-    tp2Price: numOrNull(t.tp2Price),
-    quantity: numOr0(t.quantity),
-    realizedPnl: numOr0(t.realizedPnl),
-    unrealizedPnl: numOr0(t.unrealizedPnl),
-    feeUsdt: numOr0(t.feeUsdt),
-    markPrice: numOrNull(t.markPrice),
-    unrealizedPnlPct: numOrNull(t.unrealizedPnlPct),
+    exitAvgPrice: toNumOrNull(t.exitAvgPrice),
+    stopLossPrice: toNum(t.stopLossPrice),
+    tp1Price: toNumOrNull(t.tp1Price),
+    tp2Price: toNumOrNull(t.tp2Price),
+    quantity: toNum(t.quantity),
+    realizedPnl: toNum(t.realizedPnl),
+    unrealizedPnl: toNum(t.unrealizedPnl),
+    feeUsdt: toNum(t.feeUsdt),
+    markPrice: toNumOrNull(t.markPrice),
+    unrealizedPnlPct: toNumOrNull(t.unrealizedPnlPct),
     positions: (t.positions ?? []).map(mapPosition),
   };
 }
@@ -176,16 +160,6 @@ export async function getOpenTrades(accountId?: string): Promise<LivePosition[]>
     { params },
   );
   return extractList(data).map(mapTrade).map(tradeToLivePosition);
-}
-
-export async function getRecentTrades(limit = 10, accountId?: string): Promise<Trades[]> {
-  const params: Record<string, unknown> = { status: 'CLOSED', limit };
-  if (accountId) params.accountId = accountId;
-  const { data } = await apiClient.get<BackendTrade[] | PageResponse<BackendTrade>>(
-    '/api/v1/trades',
-    { params },
-  );
-  return extractList(data).map(mapTrade);
 }
 
 export interface TradesPageFilters {
@@ -251,20 +225,6 @@ export async function getTradeById(id: string): Promise<Trades> {
   return mapTrade(data);
 }
 
-/**
- * Phase 2c — realized P&L decomposed into the three orthogonal legs.
- * Returns null when the trade is still open or predates Phase 2c (no
- * intent captured at decision time). Sum of legs equals realizedPnl.
- */
-export interface TradeAttribution {
-  realizedPnl: number;
-  signalAlpha: number;
-  executionDrift: number;
-  sizingResidual: number;
-  entrySlippagePct: number | null;
-  sizeRatio: number | null;
-}
-
 interface BackendTradeAttribution {
   realizedPnl: number | string | null;
   signalAlpha: number | string | null;
@@ -274,35 +234,19 @@ interface BackendTradeAttribution {
   sizeRatio: number | string | null;
 }
 
-function num(v: number | string | null | undefined): number | null {
-  if (v == null) return null;
-  const n = typeof v === 'number' ? v : Number(v);
-  return Number.isFinite(n) ? n : null;
-}
-
 export async function getTradeAttribution(id: string): Promise<TradeAttribution | null> {
   const { data } = await apiClient.get<BackendTradeAttribution | null>(
     `/api/v1/trades/${id}/attribution`,
   );
   if (!data) return null;
   return {
-    realizedPnl: num(data.realizedPnl) ?? 0,
-    signalAlpha: num(data.signalAlpha) ?? 0,
-    executionDrift: num(data.executionDrift) ?? 0,
-    sizingResidual: num(data.sizingResidual) ?? 0,
-    entrySlippagePct: num(data.entrySlippagePct),
-    sizeRatio: num(data.sizeRatio),
+    realizedPnl: toNum(data.realizedPnl),
+    signalAlpha: toNum(data.signalAlpha),
+    executionDrift: toNum(data.executionDrift),
+    sizingResidual: toNum(data.sizingResidual),
+    entrySlippagePct: toNumOrNull(data.entrySlippagePct),
+    sizeRatio: toNumOrNull(data.sizeRatio),
   };
-}
-
-export async function getTradePositions(id: string): Promise<TradePosition[]> {
-  // Backend returns `{content: []}` page OR raw array. The nested `positions`
-  // on the trade detail usually covers this — this endpoint is kept for flows
-  // that want to refetch legs independently (partial-close live updates).
-  const { data } = await apiClient.get<BackendTradePosition[] | PageResponse<BackendTradePosition>>(
-    `/api/v1/trades/${id}/positions`,
-  );
-  return extractList(data).map(mapPosition);
 }
 
 /**

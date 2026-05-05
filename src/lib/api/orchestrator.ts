@@ -37,21 +37,6 @@ export async function getLeaderboard(params?: {
   return data.items;
 }
 
-export async function listIterations(params?: {
-  strategyCode?: string;
-  verdict?: 'PASS' | 'ITERATE' | 'DISCARD' | 'FAILED';
-  limit?: number;
-}): Promise<IterationRow[]> {
-  const { data } = await apiClient.get<IterationsPage>(`${BASE}/iterations`, {
-    params: {
-      strategy_code: params?.strategyCode || undefined,
-      verdict: params?.verdict || undefined,
-      limit: params?.limit ?? 20,
-    },
-  });
-  return data.items;
-}
-
 /**
  * Cursor-aware iterations fetcher — returns the full page envelope including
  * `next_cursor` so the caller can implement Next-page navigation. Cursor
@@ -72,11 +57,6 @@ export async function searchIterations(params?: {
       limit: params?.limit ?? 25,
     },
   });
-  return data;
-}
-
-export async function getIteration(iterationId: string): Promise<IterationRow> {
-  const { data } = await apiClient.get<IterationRow>(`${BASE}/iterations/${iterationId}`);
   return data;
 }
 
@@ -113,18 +93,24 @@ export async function listJournal(params?: {
   status?: string;
   strategyCode?: string;
   search?: string;
+  sortBy?: string;
+  sortDir?: string;
+  cursor?: string;
   limit?: number;
-}): Promise<JournalRow[]> {
+}): Promise<JournalPage> {
   const { data } = await apiClient.get<JournalPage>(`${BASE}/journal`, {
     params: {
       entry_type: params?.entryType || undefined,
       status: params?.status || undefined,
       strategy_code: params?.strategyCode || undefined,
       search: params?.search || undefined,
+      sort_by: params?.sortBy || undefined,
+      sort_dir: params?.sortDir || undefined,
+      cursor: params?.cursor || undefined,
       limit: params?.limit ?? 25,
     },
   });
-  return data.items;
+  return data;
 }
 
 /**
