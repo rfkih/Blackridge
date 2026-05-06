@@ -18,7 +18,7 @@ import {
   X,
   XCircle,
 } from 'lucide-react';
-import { format, formatDistanceToNowStrict, subDays } from 'date-fns';
+import { format, formatDistanceToNowStrict, subDays, subYears } from 'date-fns';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -50,7 +50,7 @@ import {
 } from '@/hooks/useHistoricalBackfill';
 import { normalizeError } from '@/lib/api/client';
 import { toast } from '@/hooks/useToast';
-import { INTERVALS } from '@/lib/constants';
+import { BACKTEST_INTERVALS, INTERVALS } from '@/lib/constants';
 import {
   isJobTerminal,
   type CoverageReport,
@@ -348,7 +348,7 @@ function HistoricalIntegrityConsole() {
     const submittedIds: string[] = settled.flatMap((r) => (r.ok ? [r.jobId] : []));
 
     if (submittedIds.length > 0) {
-      setActiveJobIds(submittedIds);
+      setActiveJobIds((prev) => [...prev, ...submittedIds]);
       setSelected(new Set());
       toast.success({
         title: `Submitted ${submittedIds.length} job(s)`,
@@ -382,6 +382,10 @@ function HistoricalIntegrityConsole() {
       </header>
 
       <AdminNotice />
+
+      <BackfillCandleRangeCard
+        onJobsSubmitted={(ids) => setActiveJobIds((prev) => [...prev, ...ids])}
+      />
 
       <ScopeCard
         symbol={symbol}
@@ -1194,6 +1198,169 @@ function RecomputeConfirmDialog(props: RecomputeConfirmDialogProps) {
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+}
+
+// ─── Backfill candle range card ──────────────────────────────────────────────
+
+function BackfillCandleRangeCard({ onJobsSubmitted }: { onJobsSubmitted: (ids: string[]) => void }) {
+  const [symbol, setSymbol] = useState('BTCUSDT');
+  const [from, setFrom] = useState<string>('2020-01-01T00:00');
+  const [to, setTo] = useState<string>(
+    format(subYears(new Date(), 3), "yyyy-MM-dd'T'HH:mm"),
+  );
+  // Local flag because useMutation.isPending flips false after the first
+  // mutateAsync settles — not after all parallel calls complete.
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const submit = useSubmitJob();
+
+  const rangeError = useMemo(() => {
+    if (!from || !to) return 'Pick both start and end.';
+    if (new Date(from) >= new Date(to)) return 'End must be after start.';
+    return null;
+  }, [from, to]);
+
+  const canSubmit = symbol.trim().length >= 3 && !rangeError;
+
+  const handleSubmit = async () => {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+    const fromIso = toIsoSeconds(from);
+    const toIso = toIsoSeconds(to);
+
+    try {
+      // Submit one job per active interval in parallel.
+      const settled = await Promise.all(
+        BACKTEST_INTERVALS.map(async (interval) => {
+          try {
+            const job = await submit.mutateAsync({
+              jobType: 'COVERAGE_REPAIR',
+              symbol,
+              interval,
+              params: { mode: 'range', from: fromIso, to: toIso },
+            });
+            return { ok: true as const, jobId: job.jobId };
+          } catch (err) {
+            toast.error({
+              title: `Failed to submit ${interval}`,
+              description: normalizeError(err),
+            });
+            return { ok: false as const };
+          }
+        }),
+      );
+
+      const succeededIds = settled.flatMap((r) => (r.ok ? [r.jobId] : []));
+      if (succeededIds.length > 0) {
+        onJobsSubmitted(succeededIds);
+        toast.success({
+          title: `${succeededIds.length}/${BACKTEST_INTERVALS.length} backfill jobs submitted`,
+          description: `${symbol} · ${BACKTEST_INTERVALS.join(', ')} · ${from} → ${to}`,
+        });
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <section className="overflow-hidden rounded-md border border-bd-subtle bg-bg-surface">
+      <header className="flex items-center gap-2.5 border-b border-bd-subtle px-4 py-3">
+        <span
+          aria-hidden="true"
+          className="flex h-7 w-7 items-center justify-center rounded-sm"
+          style={{ background: 'rgba(46,196,138,0.12)', color: 'var(--color-profit)' }}
+        >
+          <Database size={14} strokeWidth={1.75} />
+        </span>
+        <div>
+          <h2 className="font-display text-[14px] font-semibold text-text-primary">
+            Add candle range
+          </h2>
+          <p className="text-[11px] text-text-secondary">
+            Fetch raw OHLCV candles from Binance for a custom date window across all active
+            intervals&nbsp;
+            <span className="font-mono text-text-muted">
+              ({BACKTEST_INTERVALS.join(' · ')})
+            </span>
+            .
+          </p>
+        </div>
+      </header>
+
+      <div className="space-y-4 p-4">
+        <div className="space-y-1.5">
+          <Label className="label-caps">Symbol</Label>
+          <div className="flex gap-2">
+            <Input
+              value={symbol}
+              onChange={(e) => setSymbol(e.target.value.toUpperCase())}
+              placeholder="BTCUSDT"
+              className="font-mono"
+              autoComplete="off"
+              spellCheck={false}
+            />
+            <Select
+              value={COMMON_SYMBOLS.includes(symbol) ? symbol : ''}
+              onValueChange={setSymbol}
+            >
+              <SelectTrigger className="w-[140px]">
+                <SelectValue placeholder="Common…" />
+              </SelectTrigger>
+              <SelectContent>
+                {COMMON_SYMBOLS.map((s) => (
+                  <SelectItem key={s} value={s}>
+                    {s}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-1.5">
+            <Label className="label-caps">From</Label>
+            <Input
+              type="datetime-local"
+              value={from}
+              onChange={(e) => setFrom(e.target.value)}
+              className="font-mono"
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label className="label-caps">To</Label>
+            <Input
+              type="datetime-local"
+              value={to}
+              onChange={(e) => setTo(e.target.value)}
+              className="font-mono"
+            />
+          </div>
+        </div>
+
+        {rangeError && (
+          <p className="inline-flex items-center gap-1.5 text-[11px] text-[var(--color-loss)]">
+            <AlertTriangle size={11} /> {rangeError}
+          </p>
+        )}
+
+        <div className="flex items-center justify-between pt-1">
+          <p className="text-[11px] text-text-muted">
+            Submits {BACKTEST_INTERVALS.length} jobs in parallel — one per interval. Idempotent; existing
+            candles are skipped.
+          </p>
+          <Button onClick={handleSubmit} disabled={!canSubmit || isSubmitting} className="gap-1.5">
+            {isSubmitting ? (
+              <Loader2 size={14} className="animate-spin" />
+            ) : (
+              <Database size={14} />
+            )}
+            Fetch candles
+          </Button>
+        </div>
+      </div>
+    </section>
   );
 }
 
