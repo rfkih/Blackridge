@@ -48,10 +48,12 @@ export function DeleteStrategyDialog({ open, onOpenChange, strategy }: DeleteStr
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md border-[var(--border-default)] bg-[var(--bg-surface)] text-[var(--text-primary)]">
         <DialogHeader>
-          <DialogTitle className="font-display text-lg">Delete strategy?</DialogTitle>
+          <DialogTitle className="font-display text-lg">
+            Remove {strategy.strategyCode} · {strategy.symbol}?
+          </DialogTitle>
           <DialogDescription className="text-[var(--text-secondary)]">
-            This soft-deletes the strategy — it stops running and disappears from the list, but
-            historical trades and P&L remain intact.
+            Stops the strategy and removes it from the list. Historical trades and P&L remain
+            intact.
           </DialogDescription>
         </DialogHeader>
 

@@ -90,17 +90,22 @@
   --flash-profit: rgba(10, 122, 88, 0.24);
   --flash-loss: rgba(255, 122, 122, 0.18);
 
-  /* Accent = forest mint. Everything live / focused / active pulls from profit-up. */
-  --accent-primary: var(--color-profit);
-  --accent-subtle: rgba(10, 122, 88, 0.30);
-  --accent-glow: rgba(10, 122, 88, 0.18);
+  /* Interactive blue — buttons, focus rings, links. Separate from profit so
+     clicking something doesn't read as "this number went up". */
+  --color-interactive: #4a8fff;
+  --color-bot: #a855f7;
+
+  /* Accent = interactive blue. Profit/loss keep their own semantic tokens. */
+  --accent-primary: var(--color-interactive);
+  --accent-subtle: rgba(74, 143, 255, 0.22);
+  --accent-glow: rgba(74, 143, 255, 0.14);
 
   --shadow-panel: 0 0 0 1px var(--border-subtle), 0 1px 2px rgba(0, 0, 0, 0.4);
   --shadow-float: 0 0 0 1px var(--border-default), 0 8px 32px rgba(0, 0, 0, 0.48);
   --shadow-glow-profit: 0 0 16px rgba(10, 122, 88, 0.32);
   --shadow-glow-loss: 0 0 16px rgba(255, 122, 122, 0.22);
 
-  --ring: 162 85% 26%;
+  --ring: 217 100% 64%;
 
   /* ── shadcn/ui HSL vars ─────────── */
   --background: 180 8% 7%;
@@ -109,8 +114,8 @@
   --card-foreground: 150 3% 95%;
   --popover: 195 7% 14%;
   --popover-foreground: 150 3% 95%;
-  --primary: 162 78% 56%;
-  --primary-foreground: 180 8% 7%;
+  --primary: 217 100% 64%;
+  --primary-foreground: 0 0% 100%;
   --secondary: 195 6% 17%;
   --secondary-foreground: 150 3% 95%;
   --muted: 195 6% 15%;
@@ -125,18 +130,18 @@
   /* Charts — Recharts/TV series colors paired to the MONO-MINT palette. */
   --chart-1: 162 78% 56%; /* profit · mint */
   --chart-2: 0 100% 74%;  /* loss  · coral */
-  --chart-3: 213 100% 68%; /* info · blue */
+  --chart-3: 217 100% 64%; /* interactive · blue */
   --chart-4: 44 86% 66%;  /* warning · amber */
   --chart-5: 180 3% 55%;  /* neutral */
 
   --sidebar: 180 8% 7%;
   --sidebar-foreground: 150 3% 95%;
-  --sidebar-primary: 162 78% 56%;
-  --sidebar-primary-foreground: 180 8% 7%;
+  --sidebar-primary: 217 100% 64%;
+  --sidebar-primary-foreground: 0 0% 100%;
   --sidebar-accent: 195 6% 15%;
   --sidebar-accent-foreground: 150 3% 95%;
   --sidebar-border: 180 3% 16%;
-  --sidebar-ring: 162 78% 56%;
+  --sidebar-ring: 217 100% 64%;
 }
 
 /* ── LIGHT THEME — "Platinum Terminal" ──────────────────────────────
@@ -183,16 +188,19 @@
   --flash-profit: rgba(4, 77, 57, 0.22);
   --flash-loss: rgba(203, 76, 76, 0.16);
 
-  --accent-primary: var(--color-profit);
-  --accent-subtle: rgba(4, 77, 57, 0.28);
-  --accent-glow: rgba(4, 77, 57, 0.14);
+  --color-interactive: #1b56bc;
+  --color-bot: #7c3aed;
+
+  --accent-primary: var(--color-interactive);
+  --accent-subtle: rgba(27, 86, 188, 0.20);
+  --accent-glow: rgba(27, 86, 188, 0.10);
 
   --shadow-panel: 0 0 0 1px var(--border-subtle), 0 1px 2px rgba(15, 17, 17, 0.04);
   --shadow-float: 0 0 0 1px var(--border-default), 0 12px 32px rgba(15, 17, 17, 0.08);
   --shadow-glow-profit: 0 0 12px rgba(4, 77, 57, 0.22);
   --shadow-glow-loss: 0 0 12px rgba(203, 76, 76, 0.14);
 
-  --ring: 162 90% 16%;
+  --ring: 219 74% 43%;
 
   --background: 120 6% 96%;
   --foreground: 180 8% 7%;
@@ -200,7 +208,7 @@
   --card-foreground: 180 8% 7%;
   --popover: 0 0% 100%;
   --popover-foreground: 180 8% 7%;
-  --primary: 164 85% 34%;
+  --primary: 219 74% 43%;
   --primary-foreground: 0 0% 100%;
   --secondary: 120 4% 94%;
   --secondary-foreground: 180 8% 7%;
@@ -215,18 +223,18 @@
 
   --chart-1: 164 85% 34%;
   --chart-2: 0 56% 54%;
-  --chart-3: 216 75% 43%;
+  --chart-3: 219 74% 43%;
   --chart-4: 36 70% 42%;
   --chart-5: 180 2% 43%;
 
   --sidebar: 120 6% 96%;
   --sidebar-foreground: 180 8% 7%;
-  --sidebar-primary: 164 85% 34%;
+  --sidebar-primary: 219 74% 43%;
   --sidebar-primary-foreground: 0 0% 100%;
   --sidebar-accent: 120 4% 94%;
   --sidebar-accent-foreground: 180 8% 7%;
   --sidebar-border: 180 4% 90%;
-  --sidebar-ring: 164 85% 34%;
+  --sidebar-ring: 219 74% 43%;
 }
 
 /* First-paint respect for OS preference when the user hasn't explicitly
@@ -511,6 +519,11 @@ pre {
   --mm-dn-soft: rgba(255, 122, 122, 0.12);
   --mm-warn: #f3c95e;
   --mm-warn-soft: rgba(243, 201, 94, 0.14);
+
+  --mm-interactive: #4a8fff;
+  --mm-interactive-soft: rgba(74, 143, 255, 0.18);
+  --mm-bot: #a855f7;
+  --mm-bot-soft: rgba(168, 85, 247, 0.15);
 }
 
 [data-theme='light'] .mm,
@@ -539,6 +552,11 @@ pre {
   --mm-dn-soft: rgba(203, 76, 76, 0.1);
   --mm-warn: #b78620;
   --mm-warn-soft: rgba(183, 134, 32, 0.12);
+
+  --mm-interactive: #1b56bc;
+  --mm-interactive-soft: rgba(27, 86, 188, 0.14);
+  --mm-bot: #7c3aed;
+  --mm-bot-soft: rgba(124, 58, 237, 0.12);
 }
 
 .mm {

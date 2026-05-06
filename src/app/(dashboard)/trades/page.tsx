@@ -5,7 +5,7 @@
 // stability concern the no-unstable-nested-components rule warns about
 // doesn't apply. Disable it for this file only.
 /* eslint-disable react/no-unstable-nested-components */
-import { Suspense, useCallback, useMemo } from 'react';
+import { Suspense, useCallback, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { format, subDays } from 'date-fns';
 import { type ColumnDef } from '@tanstack/react-table';
@@ -166,6 +166,8 @@ function TradesPageContent() {
       [openSlice],
     ),
   );
+
+  const [filtersOpen, setFiltersOpen] = useState(false);
 
   const { data: strategies = [] } = useStrategies();
   const uniqueStrategyCodes = useMemo(() => {
@@ -335,125 +337,174 @@ function TradesPageContent() {
            require a new endpoint. This is honest to what's on screen. ── */}
       <JournalStatsStrip trades={tradesQuery.data?.content ?? []} />
 
-      {/* ── Filter bar — design pack's pill treatment ── */}
-      <section
-        className="mm-card"
-        style={{
-          padding: '12px 16px',
-          display: 'flex',
-          flexWrap: 'wrap',
-          gap: 10,
-          alignItems: 'center',
-        }}
-      >
-        <div
-          style={{
-            flex: '0 1 280px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 8,
-            padding: '7px 12px',
-            borderRadius: 999,
-            background: 'var(--mm-surface-2)',
-            fontSize: 12,
-            color: 'var(--mm-ink-3)',
-            minWidth: 0,
-          }}
-        >
-          <Search size={12} strokeWidth={1.75} aria-hidden="true" />
-          <span>Search symbol, strategy, note…</span>
-        </div>
-
-        {/* Status pills (All / Open / Partial / Closed) matching the pack */}
-        <div style={{ display: 'flex', gap: 6 }}>
-          {STATUSES.map((s) => (
-            <button
-              key={s}
-              type="button"
-              onClick={() => patchFilters({ status: s })}
-              className={cn('mm-pill', filters.status === s && 'mm-pill-active')}
-              style={{ padding: '5px 12px', fontSize: 11 }}
-              aria-pressed={filters.status === s}
-            >
-              {STATUS_META[s].label}
-            </button>
-          ))}
-        </div>
-
-        <div style={{ flex: 1 }} aria-hidden="true" />
-
-        {/* Strategy */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <span style={{ fontSize: 11, color: 'var(--mm-ink-3)' }}>Strategy</span>
-          <select
-            aria-label="Filter by strategy"
-            value={filters.strategyCode}
-            onChange={(e) => patchFilters({ strategyCode: e.target.value })}
-            className="mm-btn"
-            style={{ padding: '5px 10px', fontSize: 12, cursor: 'pointer' }}
-          >
-            <option value="">any</option>
-            {uniqueStrategyCodes.map((code) => (
-              <option key={code} value={code}>
-                {code}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* Symbol */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <span style={{ fontSize: 11, color: 'var(--mm-ink-3)' }}>Symbol</span>
-          <input
-            aria-label="Filter by symbol"
-            type="text"
-            value={filters.symbol}
-            onChange={(e) => patchFilters({ symbol: e.target.value.toUpperCase() })}
-            placeholder="any"
-            className="mm-btn"
+      {/* ── Filter bar ── */}
+      <section className="mm-card" style={{ padding: '12px 16px' }}>
+        {/* Primary row: status pills + filter toggle */}
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center' }}>
+          <div
             style={{
-              padding: '5px 10px',
+              flex: '0 1 280px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              padding: '7px 12px',
+              borderRadius: 999,
+              background: 'var(--mm-surface-2)',
               fontSize: 12,
-              width: 110,
-              fontFamily: 'var(--font-mono)',
-              textTransform: 'uppercase',
-              cursor: 'text',
+              color: 'var(--mm-ink-3)',
+              minWidth: 0,
             }}
-          />
-        </div>
+          >
+            <Search size={12} strokeWidth={1.75} aria-hidden="true" />
+            <span>Search symbol, strategy, note…</span>
+          </div>
 
-        {/* Dates */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <span style={{ fontSize: 11, color: 'var(--mm-ink-3)' }}>From</span>
-          <DatePicker
-            id="trades-from"
-            value={filters.from}
-            onChange={(v) => patchFilters({ from: v })}
-            placeholder="From"
-            clearable
-            className="h-7 px-2 py-0 text-[12px]"
-          />
-          <span style={{ fontSize: 11, color: 'var(--mm-ink-3)' }}>To</span>
-          <DatePicker
-            id="trades-to"
-            value={filters.to}
-            onChange={(v) => patchFilters({ to: v })}
-            placeholder="To"
-            clearable
-            className="h-7 px-2 py-0 text-[12px]"
-          />
-        </div>
+          <div style={{ display: 'flex', gap: 6 }}>
+            {STATUSES.map((s) => (
+              <button
+                key={s}
+                type="button"
+                onClick={() => patchFilters({ status: s })}
+                className={cn('mm-pill', filters.status === s && 'mm-pill-active')}
+                style={{ padding: '5px 12px', fontSize: 11 }}
+                aria-pressed={filters.status === s}
+              >
+                {STATUS_META[s].label}
+              </button>
+            ))}
+          </div>
 
-        {hasActiveFilters && (
+          <div style={{ flex: 1 }} aria-hidden="true" />
+
           <button
             type="button"
-            onClick={() => patchFilters({ status: 'ALL', strategyCode: '', symbol: '' })}
-            className="mm-btn mm-btn-ghost"
-            style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11, padding: '5px 10px' }}
+            onClick={() => setFiltersOpen((o) => !o)}
+            className={cn('mm-btn', (filtersOpen || hasActiveFilters) && 'mm-btn-mint')}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+              padding: '5px 12px',
+              fontSize: 11,
+            }}
+            aria-expanded={filtersOpen}
           >
-            <X size={11} strokeWidth={1.75} />
-            Clear
+            <ListFilter size={12} strokeWidth={1.75} />
+            Filters
+            {hasActiveFilters && (
+              <span
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: 16,
+                  height: 16,
+                  borderRadius: 999,
+                  background: 'rgba(255,255,255,0.25)',
+                  fontSize: 10,
+                  fontWeight: 600,
+                  lineHeight: 1,
+                }}
+              >
+                {[filters.strategyCode, filters.symbol].filter(Boolean).length}
+              </span>
+            )}
           </button>
+        </div>
+
+        {/* Secondary row: expanded filters */}
+        {filtersOpen && (
+          <div
+            style={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              gap: 10,
+              alignItems: 'center',
+              marginTop: 10,
+              paddingTop: 10,
+              borderTop: '1px solid var(--mm-hair)',
+            }}
+          >
+            {/* Strategy */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span style={{ fontSize: 11, color: 'var(--mm-ink-3)' }}>Strategy</span>
+              <select
+                aria-label="Filter by strategy"
+                value={filters.strategyCode}
+                onChange={(e) => patchFilters({ strategyCode: e.target.value })}
+                className="mm-btn"
+                style={{ padding: '5px 10px', fontSize: 12, cursor: 'pointer' }}
+              >
+                <option value="">any</option>
+                {uniqueStrategyCodes.map((code) => (
+                  <option key={code} value={code}>
+                    {code}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Symbol */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span style={{ fontSize: 11, color: 'var(--mm-ink-3)' }}>Symbol</span>
+              <input
+                aria-label="Filter by symbol"
+                type="text"
+                value={filters.symbol}
+                onChange={(e) => patchFilters({ symbol: e.target.value.toUpperCase() })}
+                placeholder="any"
+                className="mm-btn"
+                style={{
+                  padding: '5px 10px',
+                  fontSize: 12,
+                  width: 110,
+                  fontFamily: 'var(--font-mono)',
+                  textTransform: 'uppercase',
+                  cursor: 'text',
+                }}
+              />
+            </div>
+
+            {/* Dates */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span style={{ fontSize: 11, color: 'var(--mm-ink-3)' }}>From</span>
+              <DatePicker
+                id="trades-from"
+                value={filters.from}
+                onChange={(v) => patchFilters({ from: v })}
+                placeholder="From"
+                clearable
+                className="h-7 px-2 py-0 text-[12px]"
+              />
+              <span style={{ fontSize: 11, color: 'var(--mm-ink-3)' }}>To</span>
+              <DatePicker
+                id="trades-to"
+                value={filters.to}
+                onChange={(v) => patchFilters({ to: v })}
+                placeholder="To"
+                clearable
+                className="h-7 px-2 py-0 text-[12px]"
+              />
+            </div>
+
+            {hasActiveFilters && (
+              <button
+                type="button"
+                onClick={() => patchFilters({ status: 'ALL', strategyCode: '', symbol: '' })}
+                className="mm-btn mm-btn-ghost"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 4,
+                  fontSize: 11,
+                  padding: '5px 10px',
+                }}
+              >
+                <X size={11} strokeWidth={1.75} />
+                Clear
+              </button>
+            )}
+          </div>
         )}
       </section>
 

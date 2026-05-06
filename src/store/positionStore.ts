@@ -13,6 +13,8 @@ interface PositionStore {
    * rerenders when only the one they don't care about changed.
    */
   markMap: Record<string, number>;
+  /** Epoch-ms timestamp of the last WS batch commit. Null until first frame. */
+  lastUpdatedAt: number | null;
   /**
    * Replaces the open positions list AND prunes pnlMap/markMap to only the
    * trade ids in the new list. Without the prune, the maps accumulate
@@ -34,6 +36,7 @@ export const usePositionStore = create<PositionStore>((set) => ({
   positions: [],
   pnlMap: {},
   markMap: {},
+  lastUpdatedAt: null,
   setPositions: (positions) =>
     set((state) => {
       const activeIds = new Set(positions.map((p) => p.tradeId));
@@ -53,6 +56,7 @@ export const usePositionStore = create<PositionStore>((set) => ({
       markMap: Number.isFinite(update.markPrice)
         ? { ...state.markMap, [update.tradeId]: update.markPrice }
         : state.markMap,
+      lastUpdatedAt: Date.now(),
     })),
   updatePnlBatch: (updates) =>
     set((state) => {
@@ -77,7 +81,8 @@ export const usePositionStore = create<PositionStore>((set) => ({
       return {
         pnlMap: pnlMutated ? nextPnl : state.pnlMap,
         markMap: markMutated ? nextMark : state.markMap,
+        lastUpdatedAt: Date.now(),
       };
     }),
-  reset: () => set({ positions: [], pnlMap: {}, markMap: {} }),
+  reset: () => set({ positions: [], pnlMap: {}, markMap: {}, lastUpdatedAt: null }),
 }));

@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useState } from 'react';
 import {
   Home,
   Zap,
@@ -28,6 +29,7 @@ import {
   Repeat,
   Binary,
   GitBranch,
+  ChevronRight,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
@@ -103,6 +105,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     : 'U';
 
   const [firstName] = (user?.name ?? 'Trader').split(' ');
+  const [adminOpen, setAdminOpen] = useState(false);
 
   return (
     <>
@@ -259,32 +262,54 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
 
           {isAdmin && (
             <>
-              <div className="mm-kicker" style={{ padding: '14px 16px 6px', fontSize: 10 }}>
-                Admin
-              </div>
-              {ADMIN_NAV_ITEMS.map(({ label, href, icon: Icon }) => {
-                const active = isActive(href);
-                return (
-                  <Link
-                    key={href}
-                    href={href}
-                    onClick={onClose}
-                    aria-current={active ? 'page' : undefined}
-                    className={cn('mm-nav', active && 'mm-nav-active')}
-                  >
-                    <span
-                      style={{
-                        display: 'inline-flex',
-                        width: 18,
-                        color: active ? 'var(--mm-mint)' : 'var(--mm-ink-2)',
-                      }}
+              <button
+                type="button"
+                onClick={() => setAdminOpen((o) => !o)}
+                className="mm-nav"
+                style={{ width: '100%', textAlign: 'left' }}
+                aria-expanded={adminOpen}
+              >
+                <span style={{ display: 'inline-flex', width: 18, color: 'var(--mm-ink-2)' }}>
+                  <ShieldCheck size={18} strokeWidth={1.6} />
+                </span>
+                <span>Admin</span>
+                <span
+                  style={{
+                    marginLeft: 'auto',
+                    display: 'inline-flex',
+                    color: 'var(--mm-ink-3)',
+                    transition: 'transform 160ms',
+                    transform: adminOpen ? 'rotate(90deg)' : 'none',
+                  }}
+                >
+                  <ChevronRight size={14} strokeWidth={1.75} />
+                </span>
+              </button>
+              {adminOpen &&
+                ADMIN_NAV_ITEMS.map(({ label, href, icon: Icon }) => {
+                  const active = isActive(href);
+                  return (
+                    <Link
+                      key={href}
+                      href={href}
+                      onClick={onClose}
+                      aria-current={active ? 'page' : undefined}
+                      className={cn('mm-nav', active && 'mm-nav-active')}
+                      style={{ paddingLeft: 36 }}
                     >
-                      <Icon size={18} strokeWidth={1.6} />
-                    </span>
-                    <span>{label}</span>
-                  </Link>
-                );
-              })}
+                      <span
+                        style={{
+                          display: 'inline-flex',
+                          width: 18,
+                          color: active ? 'var(--mm-mint)' : 'var(--mm-ink-2)',
+                        }}
+                      >
+                        <Icon size={16} strokeWidth={1.6} />
+                      </span>
+                      <span>{label}</span>
+                    </Link>
+                  );
+                })}
             </>
           )}
         </nav>

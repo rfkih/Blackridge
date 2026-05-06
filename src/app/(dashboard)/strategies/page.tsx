@@ -103,7 +103,7 @@ function StrategyCard({
       className={cn(
         'group relative flex flex-col justify-between gap-4 rounded-lg border bg-[var(--bg-surface)] p-4 shadow-panel transition-colors',
         isLive
-          ? 'border-[var(--accent-primary)]/60 shadow-[0_0_0_1px_var(--accent-primary),0_4px_18px_rgba(31,200,150,0.12)]'
+          ? 'border-[var(--color-profit)]/60 shadow-[0_0_0_1px_var(--color-profit),0_4px_18px_rgba(10,122,88,0.12)]'
           : 'border-[var(--border-subtle)] hover:border-[var(--border-default)] hover:bg-[var(--bg-elevated)]',
         isDragging && 'cursor-grabbing opacity-40',
         isDragOver && 'ring-[var(--accent-primary)]/60 border-[var(--accent-primary)] ring-2',
@@ -131,9 +131,9 @@ function StrategyCard({
               <span
                 className="truncate rounded-md border px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.14em]"
                 style={{
-                  borderColor: isLive ? 'var(--accent-primary)' : 'var(--border-default)',
-                  color: isLive ? 'var(--accent-primary)' : 'var(--text-secondary)',
-                  backgroundColor: isLive ? 'var(--accent-glow)' : 'transparent',
+                  borderColor: isLive ? 'var(--color-profit)' : 'var(--border-default)',
+                  color: isLive ? 'var(--color-profit)' : 'var(--text-secondary)',
+                  backgroundColor: isLive ? 'var(--tint-profit)' : 'transparent',
                 }}
                 title={strategy.presetName}
               >

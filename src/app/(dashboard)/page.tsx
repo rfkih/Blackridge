@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Zap } from 'lucide-react';
 import { useOpenTrades, usePnlSummary } from '@/hooks/useTrades';
 import { useStrategies } from '@/hooks/useStrategies';
@@ -131,6 +131,8 @@ function HeroCard({
     () => new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }),
     [],
   );
+  const lastUpdatedAt = usePositionStore((s) => s.lastUpdatedAt);
+  const updatedLabel = useUpdatedAgo(lastUpdatedAt);
 
   const greeting = timeGreeting();
 
@@ -165,6 +167,9 @@ function HeroCard({
           >
             <span className="mm-dot" />
             Live · <span suppressHydrationWarning>{now}</span>
+            {updatedLabel && (
+              <span style={{ color: 'var(--mm-ink-3)', marginLeft: 4 }}>· {updatedLabel}</span>
+            )}
           </span>
           {scopeLabel && (
             <>
@@ -277,6 +282,23 @@ function HeroCard({
       </div>
     </section>
   );
+}
+
+function useUpdatedAgo(ts: number | null): string {
+  const [label, setLabel] = useState('');
+  useEffect(() => {
+    if (ts == null) { setLabel(''); return; }
+    const tick = () => {
+      const s = Math.floor((Date.now() - ts) / 1000);
+      if (s < 5) setLabel('just now');
+      else if (s < 60) setLabel(`${s}s ago`);
+      else setLabel(`${Math.floor(s / 60)}m ago`);
+    };
+    tick();
+    const id = setInterval(tick, 5000);
+    return () => clearInterval(id);
+  }, [ts]);
+  return label;
 }
 
 function timeGreeting() {

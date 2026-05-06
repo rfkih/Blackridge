@@ -6,7 +6,7 @@
 /* eslint-disable react/no-unstable-nested-components */
 
 import Link from 'next/link';
-import { Suspense, useCallback, useMemo, useState } from 'react';
+import { Suspense, useCallback, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { format } from 'date-fns';
 import {
@@ -42,6 +42,7 @@ type SourceFilter = 'USER' | 'RESEARCHER';
 
 interface Filters {
   status: '' | BacktestStatus;
+  source: SourceFilter;
   strategyCode: string;
   symbol: string;
   interval: string;
@@ -70,6 +71,8 @@ function readFilters(params: URLSearchParams): Filters {
   const status = ['RUNNING', 'COMPLETED', 'FAILED'].includes(rawStatus)
     ? (rawStatus as BacktestStatus)
     : '';
+  const rawSource = (params.get('source') ?? 'USER').toUpperCase();
+  const source: SourceFilter = rawSource === 'RESEARCHER' ? 'RESEARCHER' : 'USER';
   const rawSortBy = (params.get('sortBy') ?? 'createdAt') as BacktestSortKey;
   const sortBy = SORTABLE_KEYS.includes(rawSortBy) ? rawSortBy : 'createdAt';
   const rawSortDir = (params.get('sortDir') ?? 'DESC').toUpperCase();
@@ -78,6 +81,7 @@ function readFilters(params: URLSearchParams): Filters {
   const sizeRaw = Number(params.get('size'));
   return {
     status,
+    source,
     strategyCode: params.get('strategyCode') ?? '',
     symbol: params.get('symbol') ?? '',
     interval: params.get('interval') ?? '',
@@ -105,7 +109,6 @@ function BacktestListContent() {
     () => readFilters(new URLSearchParams(searchParams.toString())),
     [searchParams],
   );
-  const [source, setSource] = useState<SourceFilter>('USER');
 
   const patchFilters = useCallback(
     (patch: Partial<Filters>, opts: { resetPage?: boolean } = {}) => {
@@ -118,6 +121,9 @@ function BacktestListContent() {
         else next.set(key, String(value));
       };
       apply('status', merged.status);
+      // source defaults to USER — omit from URL when default to keep links clean
+      if (merged.source === 'RESEARCHER') next.set('source', 'RESEARCHER');
+      else next.delete('source');
       apply('strategyCode', merged.strategyCode);
       apply('symbol', merged.symbol);
       apply('interval', merged.interval);
@@ -140,7 +146,7 @@ function BacktestListContent() {
 
   const runsQuery = useBacktestRuns({
     status: filters.status || undefined,
-    triggeredBy: source,
+    triggeredBy: filters.source,
     strategyCode: filters.strategyCode || undefined,
     symbol: filters.symbol || undefined,
     interval: filters.interval || undefined,
@@ -157,7 +163,7 @@ function BacktestListContent() {
   const totalPages = Math.max(1, Math.ceil(total / filters.size));
   const hasActiveFilters =
     Boolean(filters.status) ||
-    source === 'RESEARCHER' ||
+    filters.source === 'RESEARCHER' ||
     Boolean(filters.strategyCode) ||
     Boolean(filters.symbol) ||
     Boolean(filters.interval) ||
@@ -403,19 +409,19 @@ function BacktestListContent() {
 
         <button
           type="button"
-          onClick={() => setSource(source === 'RESEARCHER' ? 'USER' : 'RESEARCHER')}
+          onClick={() =>
+            patchFilters({ source: filters.source === 'RESEARCHER' ? 'USER' : 'RESEARCHER' })
+          }
           className={cn(
             'rounded-sm px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider transition-colors',
-            source === 'RESEARCHER'
-              ? 'bg-[#a855f7]/15 text-[#a855f7]'
+            filters.source === 'RESEARCHER'
+              ? 'bg-[var(--color-bot)]/15 text-[var(--color-bot)]'
               : 'text-text-muted hover:bg-bg-elevated hover:text-text-secondary',
           )}
-          aria-pressed={source === 'RESEARCHER'}
+          aria-pressed={filters.source === 'RESEARCHER'}
         >
           Researcher
         </button>
-
-        <div className="h-5 w-px bg-bd-subtle" aria-hidden="true" />
 
         <div className="flex items-center gap-2 text-[11px] text-text-muted">
           <span>Strategy</span>
@@ -498,8 +504,8 @@ function BacktestListContent() {
             <button
               type="button"
               onClick={() => {
-                setSource('USER');
                 patchFilters({
+                  source: 'USER',
                   status: '',
                   strategyCode: '',
                   symbol: '',
