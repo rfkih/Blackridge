@@ -46,7 +46,7 @@ export default function SpecTracePage() {
         </p>
       </header>
 
-      <div className="flex flex-wrap items-end gap-3 rounded-md border border-bd-subtle bg-bg-surface px-3 py-3">
+      <div className="flex flex-wrap items-end gap-3 rounded-xl border border-bd-subtle bg-bg-surface px-3 py-3">
         <div className="flex flex-col gap-1">
           <span className="text-[10px] uppercase tracking-widest text-text-muted">
             Scope

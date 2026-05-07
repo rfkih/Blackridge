@@ -36,10 +36,10 @@ export function KillSwitchBanner() {
   return (
     <Link
       href="/strategies"
-      className="flex items-center gap-3 rounded-lg border px-4 py-3 transition-colors"
+      className="flex items-center gap-3 rounded-xl border px-4 py-3 transition-all hover:-translate-y-px hover:shadow-glow-loss"
       style={{
-        borderColor: 'rgba(255,77,106,0.32)',
-        background: 'rgba(255,77,106,0.08)',
+        borderColor: 'rgba(229,72,77,0.32)',
+        background: 'rgba(229,72,77,0.08)',
         textDecoration: 'none',
         color: 'inherit',
       }}
@@ -47,9 +47,9 @@ export function KillSwitchBanner() {
     >
       <span
         aria-hidden="true"
-        className="inline-flex size-8 shrink-0 items-center justify-center rounded-md"
+        className="inline-flex size-9 shrink-0 items-center justify-center rounded-xl"
         style={{
-          background: 'rgba(255,77,106,0.16)',
+          background: 'rgba(229,72,77,0.16)',
           color: 'var(--color-loss)',
         }}
       >

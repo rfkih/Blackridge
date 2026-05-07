@@ -234,7 +234,7 @@ export default function ResearchPage() {
         </div>
       </header>
 
-      <section className="space-y-4 rounded-md border border-bd-subtle bg-bg-surface p-5">
+      <section className="space-y-4 rounded-xl border border-bd-subtle bg-bg-surface p-5">
         <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
           <Field label="Asset">
             <input
@@ -425,7 +425,7 @@ export default function ResearchPage() {
                   <button
                     type="button"
                     onClick={() => setRanges((prev) => prev.filter((_, i) => i !== idx))}
-                    className="inline-flex items-center gap-1 rounded-sm border border-bd-subtle bg-bg-elevated px-2 py-1 text-[12px] text-text-secondary hover:bg-bg-hover"
+                    className="inline-flex items-center gap-1 rounded-sm border border-bd-subtle bg-bg-base px-2 py-1 text-[12px] text-text-secondary hover:bg-bg-hover"
                   >
                     <X size={12} />
                   </button>
@@ -439,7 +439,7 @@ export default function ResearchPage() {
             onClick={() =>
               setRanges((prev) => [...prev, { key: '', min: '', max: '', step: '' }])
             }
-            className="mt-2 inline-flex items-center gap-1.5 rounded-sm border border-bd-subtle bg-bg-elevated px-3 py-1 text-[11px] text-text-secondary hover:bg-bg-hover disabled:opacity-50"
+            className="mt-2 inline-flex items-center gap-1.5 rounded-sm border border-bd-subtle bg-bg-base px-3 py-1 text-[11px] text-text-secondary hover:bg-bg-hover disabled:opacity-50"
           >
             <Plus size={12} /> Add param
           </button>
@@ -460,7 +460,7 @@ export default function ResearchPage() {
             type="button"
             onClick={() => setPinOpen((v) => !v)}
             disabled={!selectedCode}
-            className="group flex w-full items-center justify-between gap-3 rounded-sm border border-bd-subtle bg-bg-elevated px-3 py-2 text-left transition-colors hover:bg-bg-hover disabled:cursor-not-allowed disabled:opacity-60"
+            className="group flex w-full items-center justify-between gap-3 rounded-sm border border-bd-subtle bg-bg-base px-3 py-2 text-left transition-colors hover:bg-bg-hover disabled:cursor-not-allowed disabled:opacity-60"
           >
             <div className="flex items-center gap-2">
               {pinOpen ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
@@ -556,7 +556,7 @@ export default function ResearchPage() {
                 return (
                   <div
                     key={k}
-                    className="grid grid-cols-[1fr_auto_auto] items-center gap-2 rounded-sm border border-bd-subtle bg-bg-elevated px-2 py-1.5"
+                    className="grid grid-cols-[1fr_auto_auto] items-center gap-2 rounded-sm border border-bd-subtle bg-bg-base px-2 py-1.5"
                   >
                     <div className="flex items-center gap-1.5 truncate">
                       {dirty && (

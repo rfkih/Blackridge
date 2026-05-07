@@ -362,7 +362,7 @@ export function NewStrategyDialog({
           )}
 
           {error && (
-            <p className="col-span-2 rounded border border-[rgba(255,77,106,0.3)] bg-[rgba(255,77,106,0.08)] px-3 py-2 text-xs text-[var(--color-loss)]">
+            <p className="col-span-2 rounded border border-[rgba(229,72,77,0.3)] bg-[rgba(229,72,77,0.08)] px-3 py-2 text-xs text-[var(--color-loss)]">
               {error}
             </p>
           )}

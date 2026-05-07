@@ -177,7 +177,7 @@ export default function HelpPage() {
       </header>
 
       {/* Filter */}
-      <div className="flex items-center gap-2 rounded-md border border-bd-subtle bg-bg-surface px-3 py-2">
+      <div className="flex items-center gap-2 rounded-xl border border-bd-subtle bg-bg-surface px-3 py-2">
         <Search size={14} strokeWidth={1.75} className="shrink-0 text-text-muted" />
         <input
           type="search"
@@ -212,7 +212,7 @@ export default function HelpPage() {
               <h2 className="font-mono text-[10px] uppercase tracking-widest text-text-muted">
                 {cat}
               </h2>
-              <ul className="divide-y divide-bd-subtle overflow-hidden rounded-md border border-bd-subtle bg-bg-surface">
+              <ul className="divide-y divide-bd-subtle overflow-hidden rounded-xl border border-bd-subtle bg-bg-surface">
                 {inCat.map((e) => {
                   const open = openIds.has(e.id);
                   return (

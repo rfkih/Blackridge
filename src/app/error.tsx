@@ -1,7 +1,7 @@
 'use client';
 
 // SLICE: Route error boundary — in development, show full stack (Spring-Boot-style trace) + reset.
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { reportException } from '@/lib/observability/errorReporter';
 
 export default function RouteErrorBoundary({
@@ -13,9 +13,16 @@ export default function RouteErrorBoundary({
 }) {
   const isDev = process.env.NODE_ENV === 'development';
 
+  // Boundary-level dedup. React passes a fresh `error` reference on each
+  // render, so the effect re-fires on remount/reset even for the same
+  // underlying crash. The reporter's 60s latch covers most of that, but
+  // tracking the last reported instance here means we don't spam the latch
+  // on rapid reset → re-throw cycles.
+  const reportedRef = useRef<Error | null>(null);
+
   useEffect(() => {
-    // Always ship to error_log — this boundary catches the most user-visible
-    // crashes, exactly the events we want triaged.
+    if (reportedRef.current === error) return;
+    reportedRef.current = error;
     reportException(error, {
       loggerName: 'frontend.boundary.route',
       mdc: error.digest ? { digest: error.digest } : undefined,
@@ -34,7 +41,7 @@ export default function RouteErrorBoundary({
       className="flex min-h-screen flex-col items-center justify-center gap-6 px-6 py-12"
       style={{ backgroundColor: 'var(--bg-base)' }}
     >
-      <div className="w-full max-w-3xl rounded-md border border-bd-subtle bg-bg-surface p-8 shadow-panel">
+      <div className="w-full max-w-3xl rounded-xl border border-bd-subtle bg-bg-surface p-8 shadow-panel">
         <h1 className="font-display text-lg font-semibold tracking-wide text-loss">
           Something went wrong
         </h1>

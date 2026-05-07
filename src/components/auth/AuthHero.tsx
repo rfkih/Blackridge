@@ -28,10 +28,10 @@ interface AuthHeroProps {
  * routes; no other surface in the app uses this composition.
  */
 export function AuthHero({
-  kicker = 'MERIDIAN · EDGE',
-  heading = 'The desk behind your algorithms.',
-  subcopy = 'Meridian Edge is a research and execution environment for systematic traders. Backtest, simulate, deploy. One account. One ledger.',
-  tag = 'v 4.2.0 · SOC-2 TYPE II · FINRA CAT-REPORTING READY',
+  kicker = 'MACHIAVELLI · TECHNOLOGY',
+  heading = 'Algorithms that play the long game.',
+  subcopy = 'Machiavelli Technology is a research and execution environment for systematic crypto traders. Backtest, simulate, deploy. One account. One ledger.',
+  tag = 'v 4.2.0 · SOC-2 TYPE II · NON-CUSTODIAL',
   stats = DEFAULT_STATS,
 }: AuthHeroProps) {
   return (

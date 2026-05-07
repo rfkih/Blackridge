@@ -83,7 +83,7 @@ export function RunningNowStrip() {
 
   return (
     <section
-      className="rounded-md border border-bd-subtle bg-bg-surface p-4"
+      className="rounded-xl border border-bd-subtle bg-bg-surface p-4"
       style={{ borderLeft: `3px solid ${accent}` }}
       aria-label="Research running now"
     >
@@ -132,7 +132,7 @@ export function RunningNowStrip() {
             <li key={sweep.sweepId}>
               <Link
                 href={`/research/sweeps/${sweep.sweepId}`}
-                className="block rounded-sm border border-bd-subtle bg-bg-elevated px-2.5 py-2 transition-colors hover:bg-bg-hover"
+                className="block rounded-sm border border-bd-subtle bg-bg-base px-2.5 py-2 transition-colors hover:bg-bg-hover"
               >
                 <div className="flex items-center justify-between gap-3 text-[11px]">
                   <span className="truncate font-mono text-text-primary">

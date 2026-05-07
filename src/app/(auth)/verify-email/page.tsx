@@ -67,7 +67,7 @@ function VerifyEmailContent() {
             </p>
           </div>
 
-          <div className="rounded-md border border-bd-subtle bg-bg-surface p-4">
+          <div className="rounded-xl border border-bd-subtle bg-bg-surface p-4">
             {phase === 'verifying' && (
               <div className="flex items-center gap-2 text-text-secondary">
                 <Loader2 size={14} className="animate-spin" />
@@ -80,7 +80,7 @@ function VerifyEmailContent() {
                   <span
                     className="flex h-7 w-7 items-center justify-center rounded-sm"
                     style={{
-                      background: 'rgba(0,200,150,0.15)',
+                      background: 'rgba(22,179,100,0.15)',
                       color: 'var(--color-profit)',
                     }}
                   >
@@ -107,7 +107,7 @@ function VerifyEmailContent() {
                   <span
                     className="flex h-7 w-7 items-center justify-center rounded-sm"
                     style={{
-                      background: 'rgba(255,77,106,0.12)',
+                      background: 'rgba(229,72,77,0.12)',
                       color: 'var(--color-loss)',
                     }}
                   >

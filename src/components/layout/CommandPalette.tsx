@@ -140,7 +140,7 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
         <DialogPrimitive.Content
           className={cn(
             'fixed left-1/2 top-[20%] z-50 w-full max-w-lg -translate-x-1/2',
-            'rounded-lg border border-[var(--border-default)] bg-[var(--bg-elevated)] shadow-panel',
+            'rounded-2xl border border-[var(--border-default)] bg-[var(--bg-surface)] shadow-float',
             'data-[state=open]:animate-in data-[state=closed]:animate-out',
             'data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0',
             'data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95',

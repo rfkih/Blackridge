@@ -313,7 +313,7 @@ export function BacktestAnnotatedChart({
         // both TRAILING_STOP and RUNNER_CLOSE exit reasons, since both close
         // the trade on the trail in a runner-only structure.
         if (trade.exitPrice != null && Number.isFinite(trade.exitPrice)) {
-          add(trade.exitPrice, '#4E9EFF', 'TRAIL EXIT', 'RUNNER');
+          add(trade.exitPrice, '#3B82F6', 'TRAIL EXIT', 'RUNNER');
         }
       } else if (hitLine === 'RUNNER') {
         // Multi-leg trades (TP1+RUNNER): only show the trail anchor when the
@@ -322,10 +322,10 @@ export function BacktestAnnotatedChart({
           (p) => p.type === 'RUNNER' && p.exitReason === 'RUNNER_CLOSE',
         );
         if (runnerLeg?.exitPrice != null && Number.isFinite(runnerLeg.exitPrice)) {
-          add(runnerLeg.exitPrice, '#4E9EFF', 'TRAIL', 'RUNNER');
+          add(runnerLeg.exitPrice, '#3B82F6', 'TRAIL', 'RUNNER');
         }
       }
-      add(trade.entryPrice, '#4E9EFF', 'ENTRY', null);
+      add(trade.entryPrice, '#3B82F6', 'ENTRY', null);
     })();
   }, [ready, selectedTradeId, tradeById]);
 
@@ -533,7 +533,7 @@ function TradeMarkerTooltip({ trade, x, y }: { trade: BacktestTrade; x: number; 
           className="rounded-sm px-1.5 py-0.5 text-[10px] font-semibold tracking-wider"
           style={{
             background:
-              trade.direction === 'LONG' ? 'rgba(0,200,150,0.15)' : 'rgba(255,77,106,0.15)',
+              trade.direction === 'LONG' ? 'rgba(22,179,100,0.15)' : 'rgba(229,72,77,0.15)',
             color: trade.direction === 'LONG' ? 'var(--color-profit)' : 'var(--color-loss)',
           }}
         >
@@ -596,7 +596,7 @@ function TradeDetailCard({ trade, onClose }: { trade: BacktestTrade; onClose: ()
           <span
             className="rounded-sm px-1.5 py-0.5 font-mono text-[10px] font-semibold tracking-wider"
             style={{
-              background: isLong ? 'rgba(0,200,150,0.15)' : 'rgba(255,77,106,0.15)',
+              background: isLong ? 'rgba(22,179,100,0.15)' : 'rgba(229,72,77,0.15)',
               color: isLong ? 'var(--color-profit)' : 'var(--color-loss)',
             }}
           >
@@ -870,13 +870,13 @@ function makeCandleTimeSnapper(sortedTimes: number[]): (t: number) => number {
 function tooltipOutcomeColors(tone: OutcomeTone): { bg: string; fg: string } {
   switch (tone) {
     case 'profit':
-      return { bg: 'rgba(0,200,150,0.15)', fg: 'var(--color-profit)' };
+      return { bg: 'rgba(22,179,100,0.15)', fg: 'var(--color-profit)' };
     case 'loss':
-      return { bg: 'rgba(255,77,106,0.15)', fg: 'var(--color-loss)' };
+      return { bg: 'rgba(229,72,77,0.15)', fg: 'var(--color-loss)' };
     case 'warning':
       return { bg: 'rgba(245,166,35,0.15)', fg: 'var(--color-warning)' };
     case 'info':
-      return { bg: 'rgba(78,158,255,0.15)', fg: 'var(--color-info)' };
+      return { bg: 'rgba(59,130,246,0.15)', fg: 'var(--color-info)' };
     default:
       return { bg: 'var(--bg-surface)', fg: 'var(--text-muted)' };
   }

@@ -59,7 +59,7 @@ export function StrategyParamPresetsPanel({ accountStrategyId }: Props) {
   }, [presets]);
 
   return (
-    <section className="rounded-md border border-bd-subtle bg-bg-surface p-5 shadow-panel">
+    <section className="rounded-xl border border-bd-subtle bg-bg-surface p-5 shadow-panel">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="font-display text-lg text-text-primary">Saved presets</h2>

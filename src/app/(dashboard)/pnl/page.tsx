@@ -16,6 +16,7 @@ import {
 import { StatCard } from '@/components/shared/StatCard';
 import { PnlCell } from '@/components/shared/PnlCell';
 import { ErrorBoundary } from '@/components/shared/ErrorBoundary';
+import { PageHeader } from '@/components/shared/PageHeader';
 import { StrategyBadge } from '@/components/trading/StrategyBadge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { DatePicker } from '@/components/ui/date-picker';
@@ -102,23 +103,17 @@ function PnlPageContent() {
 
   return (
     <div className="space-y-6">
-      <header className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <p className="label-caps">P&amp;L Analytics</p>
-          <h1 className="mt-1 font-display text-[24px] font-semibold tracking-tighter text-text-primary">
-            Performance
-          </h1>
-          <p className="mt-1 text-[13px] text-text-secondary">
-            Realized daily P&amp;L, cumulative trajectory, per-strategy breakdown.
-          </p>
-        </div>
-      </header>
+      <PageHeader
+        eyebrow="P&L Analytics"
+        title="Performance"
+        description="Realized daily P&L, cumulative trajectory, per-strategy breakdown."
+      />
 
       <FilterBar filters={filters} onChange={updateFilters} />
 
       <SummaryRow stats={stats} isLoading={dailyQ.isLoading} />
 
-      <section className="overflow-hidden rounded-md border border-bd-subtle bg-bg-surface">
+      <section className="overflow-hidden rounded-xl border border-bd-subtle bg-bg-surface">
         <div className="flex items-center justify-between border-b border-bd-subtle px-4 py-3">
           <h3 className="font-display text-[13px] font-semibold text-text-primary">
             Daily P&amp;L
@@ -143,7 +138,7 @@ function PnlPageContent() {
       </section>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-5">
-        <section className="overflow-hidden rounded-md border border-bd-subtle bg-bg-surface lg:col-span-3">
+        <section className="overflow-hidden rounded-xl border border-bd-subtle bg-bg-surface lg:col-span-3">
           <div className="flex items-center justify-between border-b border-bd-subtle px-4 py-3">
             <h3 className="font-display text-[13px] font-semibold text-text-primary">
               Cumulative P&amp;L
@@ -171,7 +166,7 @@ function PnlPageContent() {
           </div>
         </section>
 
-        <section className="overflow-hidden rounded-md border border-bd-subtle bg-bg-surface lg:col-span-2">
+        <section className="overflow-hidden rounded-xl border border-bd-subtle bg-bg-surface lg:col-span-2">
           <div className="flex items-center justify-between border-b border-bd-subtle px-4 py-3">
             <h3 className="font-display text-[13px] font-semibold text-text-primary">
               Per-Strategy
@@ -224,7 +219,7 @@ function FilterBar({
   }, [strategies]);
 
   return (
-    <div className="flex flex-wrap items-end gap-3 rounded-md border border-bd-subtle bg-bg-surface px-4 py-3">
+    <div className="flex flex-wrap items-end gap-3 rounded-xl border border-bd-subtle bg-bg-surface px-4 py-3">
       <DateInput
         label="From"
         value={filters.from}
@@ -265,7 +260,7 @@ function FilterBar({
             symbol: '',
           })
         }
-        className="ml-auto inline-flex items-center gap-1.5 rounded-sm border border-bd-subtle bg-bg-elevated px-3 py-1.5 text-[11px] text-text-secondary transition-colors hover:bg-bg-hover hover:text-text-primary"
+        className="ml-auto inline-flex items-center gap-1.5 rounded-sm border border-bd-subtle bg-bg-base px-3 py-1.5 text-[11px] text-text-secondary transition-colors hover:bg-bg-hover hover:text-text-primary"
       >
         <RefreshCw size={11} strokeWidth={1.75} /> Reset
       </button>
@@ -436,7 +431,7 @@ function StrategyTable({ rows }: { rows: StrategyPnl[] }) {
             return (
               <tr
                 key={r.strategyCode}
-                className="border-b border-bd-subtle last:border-b-0 hover:bg-bg-elevated"
+                className="border-b border-bd-subtle last:border-b-0 hover:bg-bg-hover"
               >
                 <td className="whitespace-nowrap px-3 py-2">
                   <StrategyBadge code={r.strategyCode} size="sm" />
@@ -486,7 +481,7 @@ function ChartError({ onRetry }: { onRetry: () => void }) {
       <button
         type="button"
         onClick={onRetry}
-        className="inline-flex items-center gap-1 rounded-sm border border-bd-subtle bg-bg-elevated px-2 py-1 text-[11px] text-text-primary hover:bg-bg-hover"
+        className="inline-flex items-center gap-1 rounded-sm border border-bd-subtle bg-bg-base px-2 py-1 text-[11px] text-text-primary hover:bg-bg-hover"
       >
         <RefreshCw size={11} /> Retry
       </button>

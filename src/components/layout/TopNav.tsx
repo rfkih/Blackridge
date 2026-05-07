@@ -39,7 +39,9 @@ export function TopNav({ onMenuClick, onCommandOpen }: TopNavProps) {
       className="sticky top-0 z-20 flex shrink-0 items-center gap-3"
       style={{
         padding: '20px 0 8px',
-        background: 'var(--mm-bg)',
+        // Match the dashboard page surface (--mm-bg-2) so sticky-scrolled
+        // content slides cleanly underneath without a color seam.
+        background: 'var(--mm-bg-2)',
       }}
     >
       <button

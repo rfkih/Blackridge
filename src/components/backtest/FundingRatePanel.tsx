@@ -32,7 +32,7 @@ export function FundingRatePanel({
   });
 
   return (
-    <section className="overflow-hidden rounded-md border border-bd-subtle bg-bg-surface">
+    <section className="overflow-hidden rounded-xl border border-bd-subtle bg-bg-surface">
       <div className="flex items-center justify-between border-b border-bd-subtle px-4 py-3">
         <h3 className="font-display text-[13px] font-semibold text-text-primary">
           Funding rate

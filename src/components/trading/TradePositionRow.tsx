@@ -111,9 +111,9 @@ export const TradePositionRow = memo(function TradePositionRow({
   return (
     <div
       className={cn(
-        'group relative grid items-center gap-3 rounded-md border border-bd-subtle bg-bg-surface',
+        'group relative grid items-center gap-3 rounded-xl border border-bd-subtle bg-bg-surface',
         'grid-cols-[44px_minmax(120px,1.1fr)_minmax(100px,0.9fr)_minmax(100px,0.9fr)_minmax(110px,1fr)_minmax(90px,0.7fr)_minmax(110px,1fr)_minmax(130px,1.1fr)_minmax(130px,1.1fr)]',
-        'px-3 py-2.5 transition-colors hover:bg-bg-elevated',
+        'px-3 py-2.5 transition-colors hover:bg-bg-hover',
         className,
       )}
       style={{ boxShadow: `inset 3px 0 0 0 ${accent}` }}

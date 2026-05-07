@@ -103,7 +103,7 @@ export function SpecParamsForm({
                       const n = Number(txt);
                       if (Number.isFinite(n)) onChange(key, n);
                     }}
-                    className="num w-28 rounded-sm border border-bd-subtle bg-bg-elevated px-2 py-1 text-right text-[12px] text-text-primary focus:border-bd-strong focus:outline-none"
+                    className="num w-28 rounded-sm border border-bd-subtle bg-bg-base px-2 py-1 text-right text-[12px] text-text-primary focus:border-bd-strong focus:outline-none"
                   />
                 )}
               </div>

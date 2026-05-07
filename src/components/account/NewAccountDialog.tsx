@@ -142,8 +142,8 @@ export function NewAccountDialog({ open, onOpenChange }: NewAccountDialogProps) 
             <DialogTitle className="font-display text-lg">Connect exchange account</DialogTitle>
           </div>
           <DialogDescription className="text-[var(--text-secondary)]">
-            Paste a Binance API key and secret to let Meridian Edge place and monitor trades on your
-            behalf.
+            Paste a Binance API key and secret to let Machiavelli Technology place and monitor
+            trades on your behalf.
           </DialogDescription>
         </DialogHeader>
 
@@ -235,7 +235,7 @@ export function NewAccountDialog({ open, onOpenChange }: NewAccountDialogProps) 
 
           {/* Safety acknowledgement */}
           {/* eslint-disable-next-line jsx-a11y/label-has-associated-control -- checkbox is nested inside */}
-          <label className="col-span-2 flex cursor-pointer items-start gap-2.5 rounded-md border border-bd-subtle bg-bg-elevated p-3 transition-colors hover:bg-bg-hover">
+          <label className="col-span-2 flex cursor-pointer items-start gap-2.5 rounded-md border border-bd-subtle bg-bg-base p-3 transition-colors hover:bg-bg-hover">
             <input
               type="checkbox"
               checked={form.acknowledgedSafety}
@@ -255,8 +255,8 @@ export function NewAccountDialog({ open, onOpenChange }: NewAccountDialogProps) 
               role="alert"
               className="col-span-2 flex items-start gap-2 rounded-sm border px-3 py-2 text-xs"
               style={{
-                borderColor: 'rgba(255,77,106,0.4)',
-                backgroundColor: 'rgba(255,77,106,0.08)',
+                borderColor: 'rgba(229,72,77,0.4)',
+                backgroundColor: 'rgba(229,72,77,0.08)',
                 color: 'var(--color-loss)',
               }}
             >
@@ -326,8 +326,8 @@ function FieldRow({ label, error, hint, className, children }: FieldRowProps) {
 function SafetyBanner() {
   return (
     <div
-      className="flex items-start gap-2.5 rounded-md border border-bd-subtle bg-bg-elevated p-3"
-      style={{ borderColor: 'rgba(78,158,255,0.35)' }}
+      className="flex items-start gap-2.5 rounded-md border border-bd-subtle bg-bg-base p-3"
+      style={{ borderColor: 'rgba(59,130,246,0.35)' }}
     >
       <Info
         size={14}

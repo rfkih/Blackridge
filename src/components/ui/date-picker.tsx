@@ -132,7 +132,7 @@ export function DatePicker({
       </PopoverTrigger>
       <PopoverContent
         align="start"
-        className="w-auto rounded-md border-bd-default bg-bg-elevated p-3 shadow-panel"
+        className="w-auto rounded-md border-bd-default bg-bg-base p-3 shadow-panel"
       >
         <div className="flex items-center justify-between gap-2 pb-2">
           <button

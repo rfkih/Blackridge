@@ -89,7 +89,7 @@ export default function WalkForwardPage() {
         </button>
       </header>
 
-      <div className="flex flex-wrap items-center gap-3 rounded-md border border-bd-subtle bg-bg-surface px-3 py-2">
+      <div className="flex flex-wrap items-center gap-3 rounded-xl border border-bd-subtle bg-bg-surface px-3 py-2">
         <span className="text-[11px] uppercase tracking-widest text-text-muted">
           Verdict
         </span>
@@ -141,11 +141,11 @@ export default function WalkForwardPage() {
           <Loader2 size={18} className="animate-spin" />
         </div>
       ) : rows.length === 0 ? (
-        <div className="rounded-md border border-bd-subtle bg-bg-surface px-6 py-12 text-center text-text-secondary">
+        <div className="rounded-xl border border-bd-subtle bg-bg-surface px-6 py-12 text-center text-text-secondary">
           No walk-forward runs match the current filters.
         </div>
       ) : (
-        <ul className="divide-y divide-bd-subtle rounded-md border border-bd-subtle bg-bg-surface">
+        <ul className="divide-y divide-bd-subtle rounded-xl border border-bd-subtle bg-bg-surface">
           {rows.map((r) => (
             <WalkForwardRow key={r.walkForwardId} run={r} />
           ))}
@@ -278,7 +278,7 @@ function ReadyToPromoteBadge({ strategyCode }: { strategyCode: string }) {
       href={`/research#promote-${encodeURIComponent(strategyCode)}`}
       title="Walk-forward ROBUST. Opens the /research promotion panel pre-targeted at this strategy."
       className="inline-flex items-center gap-1 rounded-sm px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-widest transition-opacity hover:opacity-80"
-      style={{ background: 'rgba(0,200,150,0.15)', color: 'var(--color-profit)' }}
+      style={{ background: 'rgba(22,179,100,0.15)', color: 'var(--color-profit)' }}
     >
       <Sparkles size={10} strokeWidth={2} />
       Ready to promote
@@ -309,7 +309,7 @@ function verdictMeta(v: StabilityVerdict): {
       return {
         icon: CheckCircle2,
         fg: 'var(--color-profit)',
-        bg: 'rgba(0,200,150,0.15)',
+        bg: 'rgba(22,179,100,0.15)',
       };
     case 'INCONSISTENT':
       return {
@@ -321,7 +321,7 @@ function verdictMeta(v: StabilityVerdict): {
       return {
         icon: ShieldX,
         fg: 'var(--color-loss)',
-        bg: 'rgba(255,77,106,0.15)',
+        bg: 'rgba(229,72,77,0.15)',
       };
     case 'NO_EDGE':
       return {
@@ -334,7 +334,7 @@ function verdictMeta(v: StabilityVerdict): {
       return {
         icon: HelpCircle,
         fg: 'var(--color-info)',
-        bg: 'rgba(78,158,255,0.12)',
+        bg: 'rgba(59,130,246,0.12)',
       };
   }
 }

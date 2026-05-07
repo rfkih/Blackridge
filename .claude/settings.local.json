@@ -103,7 +103,10 @@
       "Bash(bash /tmp/check_unused_exports.sh)",
       "Bash(bash /tmp/compile_unused.sh)",
       "Bash(bash /tmp/final_check.sh)",
-      "Bash(bash /tmp/verify_all_unused.sh)"
+      "Bash(bash /tmp/verify_all_unused.sh)",
+      "Bash(tar -xzf \"C:/Users/rfkih/.claude/projects/C--MyFiles-blackheart-front-end/92a80b88-fd57-4578-a888-756466c7afed/tool-results/webfetch-1778116305751-wzbuuu.bin\" -C /tmp/design-pkg)",
+      "Bash(cp \"/c/Users/rfkih/.claude/projects/C--MyFiles-blackheart-front-end/92a80b88-fd57-4578-a888-756466c7afed/tool-results/webfetch-1778116305751-wzbuuu.bin\" /tmp/design-pkg/pkg.tar.gz)",
+      "Bash(tar -xzf pkg.tar.gz)"
     ]
   }
 }

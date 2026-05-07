@@ -146,7 +146,7 @@ export function BacktestParamPresetBar({
   return (
     <div
       className={cn(
-        'flex flex-wrap items-center gap-2 rounded-md border border-bd-subtle bg-bg-surface px-3 py-2',
+        'flex flex-wrap items-center gap-2 rounded-xl border border-bd-subtle bg-bg-surface px-3 py-2',
         className,
       )}
     >
@@ -158,7 +158,7 @@ export function BacktestParamPresetBar({
             className={cn(
               'inline-flex h-7 items-center gap-1.5 rounded-sm border border-bd-subtle px-2 text-[11px]',
               'bg-bg-base text-text-primary transition-colors duration-fast',
-              'hover:border-bd hover:bg-bg-elevated',
+              'hover:border-bd hover:bg-bg-hover',
               'focus:outline-none focus-visible:ring-2 focus-visible:ring-ring',
             )}
           >
@@ -199,7 +199,7 @@ export function BacktestParamPresetBar({
             className={cn(
               'inline-flex h-7 items-center gap-1.5 rounded-sm border border-bd-subtle px-2 text-[11px]',
               'bg-bg-base text-text-secondary transition-colors duration-fast',
-              'hover:border-bd hover:bg-bg-elevated hover:text-text-primary',
+              'hover:border-bd hover:bg-bg-hover hover:text-text-primary',
               'focus:outline-none focus-visible:ring-2 focus-visible:ring-ring',
               'disabled:cursor-not-allowed disabled:opacity-50',
             )}
@@ -234,7 +234,7 @@ export function BacktestParamPresetBar({
               <button
                 type="button"
                 onClick={() => setSaveOpen(false)}
-                className="rounded-sm border border-bd-subtle bg-bg-elevated px-2 py-1 text-[11px] text-text-secondary transition-colors duration-fast hover:bg-bg-hover"
+                className="rounded-sm border border-bd-subtle bg-bg-base px-2 py-1 text-[11px] text-text-secondary transition-colors duration-fast hover:bg-bg-hover"
               >
                 Cancel
               </button>
@@ -261,7 +261,7 @@ export function BacktestParamPresetBar({
             className={cn(
               'inline-flex h-7 items-center gap-1.5 rounded-sm border border-bd-subtle px-2 text-[11px]',
               'bg-bg-base text-text-secondary transition-colors duration-fast',
-              'hover:border-bd hover:bg-bg-elevated hover:text-text-primary',
+              'hover:border-bd hover:bg-bg-hover hover:text-text-primary',
               'focus:outline-none focus-visible:ring-2 focus-visible:ring-ring',
               'disabled:cursor-not-allowed disabled:opacity-50',
             )}
@@ -305,7 +305,7 @@ export function BacktestParamPresetBar({
                 type="button"
                 onClick={() => setLibraryOpen(false)}
                 disabled={librarySaving}
-                className="rounded-sm border border-bd-subtle bg-bg-elevated px-2 py-1 text-[11px] text-text-secondary transition-colors duration-fast hover:bg-bg-hover disabled:opacity-60"
+                className="rounded-sm border border-bd-subtle bg-bg-base px-2 py-1 text-[11px] text-text-secondary transition-colors duration-fast hover:bg-bg-hover disabled:opacity-60"
               >
                 Cancel
               </button>
@@ -331,7 +331,7 @@ export function BacktestParamPresetBar({
         className={cn(
           'inline-flex h-7 items-center gap-1.5 rounded-sm border border-bd-subtle px-2 text-[11px]',
           'bg-bg-base text-text-secondary transition-colors duration-fast',
-          'hover:border-bd hover:bg-bg-elevated hover:text-loss',
+          'hover:border-bd hover:bg-bg-hover hover:text-loss',
           'focus:outline-none focus-visible:ring-2 focus-visible:ring-ring',
           'disabled:cursor-not-allowed disabled:opacity-50',
         )}
@@ -354,7 +354,7 @@ export function BacktestParamPresetBar({
             <button
               type="button"
               onClick={() => setResetOpen(false)}
-              className="rounded-sm border border-bd-subtle bg-bg-elevated px-3 py-1.5 text-[11px] text-text-primary transition-colors duration-fast hover:bg-bg-hover"
+              className="rounded-sm border border-bd-subtle bg-bg-base px-3 py-1.5 text-[11px] text-text-primary transition-colors duration-fast hover:bg-bg-hover"
             >
               Cancel
             </button>
@@ -394,7 +394,7 @@ function PresetRow({
         e.preventDefault();
         onLoad();
       }}
-      className={cn('flex items-center gap-2.5 px-2 py-2', isActive && 'bg-bg-elevated')}
+      className={cn('flex items-center gap-2.5 px-2 py-2', isActive && 'bg-bg-base')}
     >
       <span
         aria-hidden="true"

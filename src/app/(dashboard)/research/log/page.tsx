@@ -87,7 +87,7 @@ export default function ResearchLogPage() {
             placeholder="Search strategy or asset…"
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
-            className="num h-7 w-52 rounded-sm border border-bd-subtle bg-bg-elevated pl-6 pr-2 text-[12px] text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-1 focus:ring-[var(--accent-primary)]"
+            className="num h-7 w-52 rounded-sm border border-bd-subtle bg-bg-base pl-6 pr-2 text-[12px] text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-1 focus:ring-[var(--accent-primary)]"
           />
         </div>
 
@@ -111,7 +111,7 @@ export default function ResearchLogPage() {
             setAssetFilter(e.target.value);
             setPage(0);
           }}
-          className="num h-7 w-28 rounded-sm border border-bd-subtle bg-bg-elevated px-2 text-[12px] text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-1 focus:ring-[var(--accent-primary)]"
+          className="num h-7 w-28 rounded-sm border border-bd-subtle bg-bg-base px-2 text-[12px] text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-1 focus:ring-[var(--accent-primary)]"
         />
 
         <FilterSelect
@@ -136,15 +136,15 @@ export default function ResearchLogPage() {
       {isLoading ? (
         <Skeleton className="h-80 w-full" />
       ) : rows.length === 0 ? (
-        <div className="rounded-md border border-bd-subtle bg-bg-surface p-8 text-center text-sm text-text-muted">
+        <div className="rounded-xl border border-bd-subtle bg-bg-surface p-8 text-center text-sm text-text-muted">
           No completed runs match the current filters.
         </div>
       ) : (
-        <div className="overflow-hidden rounded-md border border-bd-subtle bg-bg-surface">
+        <div className="overflow-hidden rounded-xl border border-bd-subtle bg-bg-surface">
           <div className="overflow-x-auto">
             <table className="w-full min-w-[900px] text-[12px]">
               <thead>
-                <tr className="border-b border-bd-subtle bg-bg-elevated">
+                <tr className="border-b border-bd-subtle bg-bg-base">
                   <SortTh
                     label="Version"
                     sortKey="strategyVersion"
@@ -323,7 +323,7 @@ function FilterSelect({
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="num h-7 rounded-sm border border-bd-subtle bg-bg-elevated px-2 text-[12px] text-text-primary"
+        className="num h-7 rounded-sm border border-bd-subtle bg-bg-base px-2 text-[12px] text-text-primary"
       >
         {options.map((o) => (
           <option key={o.value} value={o.value}>

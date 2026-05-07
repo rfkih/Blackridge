@@ -76,7 +76,7 @@ export function EmailVerificationBanner() {
         type="button"
         onClick={handleResend}
         disabled={pending}
-        className="inline-flex shrink-0 items-center gap-1.5 rounded-sm border border-bd-subtle bg-bg-elevated px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.14em] text-text-primary transition-colors hover:bg-bg-hover disabled:cursor-not-allowed disabled:opacity-50"
+        className="inline-flex shrink-0 items-center gap-1.5 rounded-sm border border-bd-subtle bg-bg-base px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.14em] text-text-primary transition-colors hover:bg-bg-hover disabled:cursor-not-allowed disabled:opacity-50"
       >
         {pending ? <Loader2 size={11} className="animate-spin" /> : <Mail size={11} strokeWidth={2} />}
         Resend

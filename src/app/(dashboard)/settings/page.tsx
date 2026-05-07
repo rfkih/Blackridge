@@ -143,13 +143,11 @@ export default function SettingsPage() {
                         width: '100%',
                         textAlign: 'left',
                         padding: '9px 10px',
-                        borderRadius: 8,
+                        borderRadius: 10,
                         fontSize: 13,
                         color: isActive ? 'var(--mm-ink-0)' : 'var(--mm-ink-1)',
                         background: isActive ? 'var(--mm-surface-2)' : 'transparent',
-                        borderLeft: isActive
-                          ? '2px solid var(--mm-mint)'
-                          : '2px solid transparent',
+                        borderLeft: isActive ? '2px solid var(--mm-mint)' : '2px solid transparent',
                         cursor: 'pointer',
                         fontFamily: 'var(--font-body)',
                         transition: 'background 120ms, color 120ms',
@@ -330,23 +328,21 @@ function RecentActivitySection() {
           Recent activity
         </h2>
         <p style={{ marginTop: 4, fontSize: 13, color: 'var(--mm-ink-2)' }}>
-          Every security-sensitive change to your strategies, accounts, and risk config —
-          newest first. Scoped to your own actions.
+          Every security-sensitive change to your strategies, accounts, and risk config — newest
+          first. Scoped to your own actions.
         </p>
       </div>
 
       {query.isLoading && events.length === 0 ? (
-        <div style={{ padding: 16, fontSize: 12, color: 'var(--mm-ink-2)' }}>
-          Loading activity…
-        </div>
+        <div style={{ padding: 16, fontSize: 12, color: 'var(--mm-ink-2)' }}>Loading activity…</div>
       ) : query.isError ? (
         <div
           role="alert"
           style={{
             padding: 12,
-            borderRadius: 8,
-            border: '1px solid rgba(255,77,106,0.40)',
-            background: 'rgba(255,77,106,0.08)',
+            borderRadius: 12,
+            border: '1px solid rgba(229,72,77,0.40)',
+            background: 'rgba(229,72,77,0.08)',
             fontSize: 12,
             color: 'var(--color-loss)',
           }}
@@ -358,14 +354,14 @@ function RecentActivitySection() {
           style={{
             padding: '20px 16px',
             textAlign: 'center',
-            border: '1px dashed var(--mm-border)',
-            borderRadius: 8,
+            border: '1px dashed var(--mm-hair-2)',
+            borderRadius: 12,
             fontSize: 12,
             color: 'var(--mm-ink-2)',
           }}
         >
-          No activity yet. Strategy creations, kill-switch rearms, and risk-config changes
-          show up here once you start using the app.
+          No activity yet. Strategy creations, kill-switch rearms, and risk-config changes show up
+          here once you start using the app.
         </div>
       ) : (
         <>
@@ -377,8 +373,8 @@ function RecentActivitySection() {
               display: 'flex',
               flexDirection: 'column',
               gap: 1,
-              background: 'var(--mm-border)',
-              borderRadius: 8,
+              background: 'var(--mm-hair)',
+              borderRadius: 12,
               overflow: 'hidden',
             }}
           >
@@ -504,10 +500,9 @@ function humanAction(action: string): string {
   if (parts.length === 0) return action;
   const first = parts[0];
   const rest = parts.slice(1);
-  return [
-    first.charAt(0) + first.slice(1).toLowerCase(),
-    ...rest.map((p) => p.toLowerCase()),
-  ].join(' ');
+  return [first.charAt(0) + first.slice(1).toLowerCase(), ...rest.map((p) => p.toLowerCase())].join(
+    ' ',
+  );
 }
 
 // Posts to POST /api/v1/support; admins read it on /admin/inbox. The
@@ -571,9 +566,9 @@ function SupportSection() {
           Help &amp; support
         </h2>
         <p style={{ marginTop: 4, fontSize: 13, color: 'var(--mm-ink-2)' }}>
-          Hit a bug or have a question? Send us a message — it lands in the team inbox and we
-          reply by email. The diagnostic snapshot helps us reproduce issues without you needing
-          to dig for the version or page.
+          Hit a bug or have a question? Send us a message — it lands in the team inbox and we reply
+          by email. The diagnostic snapshot helps us reproduce issues without you needing to dig for
+          the version or page.
         </p>
       </div>
 
@@ -583,8 +578,8 @@ function SupportSection() {
           style={{
             padding: '10px 14px',
             borderRadius: 10,
-            border: '1px solid rgba(0,200,150,0.32)',
-            background: 'rgba(0,200,150,0.08)',
+            border: '1px solid rgba(22,179,100,0.32)',
+            background: 'rgba(22,179,100,0.08)',
             fontSize: 12,
             color: 'var(--mm-ink-1)',
             display: 'flex',
@@ -683,7 +678,12 @@ function SupportSection() {
           <details className="mm-card" style={{ padding: 12 }}>
             <summary
               className="mm-kicker"
-              style={{ cursor: 'pointer', fontSize: 9, letterSpacing: '0.18em', color: 'var(--mm-ink-3)' }}
+              style={{
+                cursor: 'pointer',
+                fontSize: 9,
+                letterSpacing: '0.18em',
+                color: 'var(--mm-ink-3)',
+              }}
             >
               PREVIEW DIAGNOSTIC
             </summary>
@@ -1217,10 +1217,7 @@ function RiskGuardrailsSection() {
   return (
     <section className="mm-card" style={{ padding: '22px 26px' }}>
       <div className="mm-kicker">RISK POLICY</div>
-      <h2
-        className="font-display"
-        style={{ fontSize: 20, marginTop: 4, letterSpacing: '-0.02em' }}
-      >
+      <h2 className="font-display" style={{ fontSize: 20, marginTop: 4, letterSpacing: '-0.02em' }}>
         Risk guardrails
       </h2>
       <p
@@ -1230,9 +1227,9 @@ function RiskGuardrailsSection() {
           color: 'var(--mm-ink-2, var(--text-secondary))',
         }}
       >
-        Per-account safeties applied before every entry: concurrency caps
-        block correlated double-ups; vol-targeting scales position size so
-        realized strategy volatility hits the target.
+        Per-account safeties applied before every entry: concurrency caps block correlated
+        double-ups; vol-targeting scales position size so realized strategy volatility hits the
+        target.
       </p>
       {accounts.length === 0 ? (
         <p
@@ -1288,12 +1285,22 @@ function RiskPolicyCard({ account }: { account: AccountSummary }) {
         background: 'var(--mm-surface-2, var(--bg-elevated))',
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
+      <div
+        style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}
+      >
         <div>
           <div className="font-mono" style={{ fontSize: 13, color: 'var(--text-primary)' }}>
             {account.label}
           </div>
-          <div className="font-mono" style={{ fontSize: 10, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.16em' }}>
+          <div
+            className="font-mono"
+            style={{
+              fontSize: 10,
+              color: 'var(--text-muted)',
+              textTransform: 'uppercase',
+              letterSpacing: '0.16em',
+            }}
+          >
             {account.exchange}
           </div>
         </div>

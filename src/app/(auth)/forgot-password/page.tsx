@@ -63,12 +63,12 @@ export default function ForgotPasswordPage() {
           </div>
 
           {submitted ? (
-            <div className="space-y-3 rounded-md border border-bd-subtle bg-bg-surface p-4">
+            <div className="space-y-3 rounded-xl border border-bd-subtle bg-bg-surface p-4">
               <div className="flex items-center gap-2">
                 <span
                   className="flex h-7 w-7 items-center justify-center rounded-sm"
                   style={{
-                    background: 'rgba(0,200,150,0.12)',
+                    background: 'rgba(22,179,100,0.12)',
                     color: 'var(--color-profit)',
                   }}
                 >

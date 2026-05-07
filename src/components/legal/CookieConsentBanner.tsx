@@ -62,7 +62,7 @@ export function CookieConsentBanner() {
           padding: '14px 18px',
           borderRadius: 12,
           background: 'var(--mm-surface-2)',
-          border: '1px solid var(--mm-border)',
+          border: '1px solid var(--mm-hair-2)',
           boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
           display: 'flex',
           alignItems: 'center',
@@ -71,12 +71,8 @@ export function CookieConsentBanner() {
         }}
       >
         <div style={{ flex: '1 1 280px', fontSize: 12, color: 'var(--mm-ink-1)', lineHeight: 1.5 }}>
-          We use a session signal cookie + a few localStorage entries for sign-in and
-          preferences.{' '}
-          <Link
-            href="/cookies"
-            style={{ color: 'var(--mm-mint)', textDecoration: 'underline' }}
-          >
+          We use a session signal cookie + a few localStorage entries for sign-in and preferences.{' '}
+          <Link href="/cookies" style={{ color: 'var(--mm-mint)', textDecoration: 'underline' }}>
             Read what we use
           </Link>
           . No advertising or analytics trackers.

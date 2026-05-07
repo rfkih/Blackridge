@@ -134,7 +134,7 @@ export default function BacktestResultPage({ params }: { params: { id: string } 
   if (!idIsValid) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
-        <div className="w-full max-w-md rounded-md border border-bd-subtle bg-bg-surface p-8 text-center shadow-panel">
+        <div className="w-full max-w-md rounded-xl border border-bd-subtle bg-bg-surface p-8 text-center shadow-panel">
           <p className="font-mono text-xs uppercase tracking-widest text-text-muted">
             Invalid run id
           </p>
@@ -146,7 +146,7 @@ export default function BacktestResultPage({ params }: { params: { id: string } 
           </p>
           <Link
             href="/backtest"
-            className="mt-4 inline-flex items-center gap-1.5 rounded-sm border border-bd-subtle bg-bg-elevated px-3 py-2 text-[12px] text-text-primary transition-colors duration-fast hover:bg-bg-hover"
+            className="mt-4 inline-flex items-center gap-1.5 rounded-sm border border-bd-subtle bg-bg-base px-3 py-2 text-[12px] text-text-primary transition-colors duration-fast hover:bg-bg-hover"
           >
             <ArrowLeft size={12} strokeWidth={1.75} /> Back to runs
           </Link>
@@ -196,7 +196,7 @@ export default function BacktestResultPage({ params }: { params: { id: string } 
         />
       </ErrorBoundary>
 
-      <section className="overflow-hidden rounded-md border border-bd-subtle bg-bg-surface">
+      <section className="overflow-hidden rounded-xl border border-bd-subtle bg-bg-surface shadow-panel">
         <div className="flex items-center justify-between border-b border-bd-subtle px-4 py-3">
           <h3 className="font-display text-[13px] font-semibold text-text-primary">
             Trade Execution
@@ -338,12 +338,8 @@ function ResultHeader({ run, isLoading, onRerun }: ResultHeaderProps) {
         type="button"
         onClick={onRerun}
         disabled={!run}
-        className={cn(
-          'inline-flex items-center gap-1.5 rounded-sm border border-bd-subtle bg-bg-surface px-3 py-2 text-[12px] font-semibold text-text-primary',
-          'transition-colors duration-fast hover:bg-bg-hover',
-          'focus:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-          'disabled:cursor-not-allowed disabled:opacity-60',
-        )}
+        className={cn('mm-btn', 'disabled:cursor-not-allowed disabled:opacity-60')}
+        style={{ borderRadius: 9999, padding: '9px 16px', fontSize: 13 }}
       >
         <PlayCircle size={14} strokeWidth={2} />
         Re-run with these params
@@ -368,7 +364,7 @@ function RunStatusPill({ status }: { status: string | undefined }) {
   })();
   return (
     <span
-      className="inline-flex items-center gap-1.5 rounded-sm px-1.5 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wider"
+      className="inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wider"
       style={{ backgroundColor: style.bg, color: style.fg }}
     >
       <span
@@ -400,7 +396,7 @@ function ChartSkeleton() {
 
 function TableSkeleton() {
   return (
-    <div className="space-y-0 rounded-md border border-bd-subtle bg-bg-surface p-4">
+    <div className="space-y-0 rounded-xl border border-bd-subtle bg-bg-surface p-4 shadow-panel">
       {Array.from({ length: 8 }).map((_, i) => (
         <div
           key={i}
@@ -419,13 +415,13 @@ function TableSkeleton() {
 
 function ErrorState({ message, onRetry }: { message: string; onRetry: () => void }) {
   return (
-    <div className="flex flex-col items-center justify-center gap-3 rounded-md border border-bd-subtle bg-bg-surface px-6 py-10 text-center">
+    <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-bd-subtle bg-bg-surface px-6 py-10 text-center shadow-panel">
       <AlertCircle size={20} className="text-text-muted" />
       <p className="text-sm text-text-secondary">{message}</p>
       <button
         type="button"
         onClick={onRetry}
-        className="inline-flex items-center gap-1.5 rounded-sm border border-bd-subtle bg-bg-elevated px-3 py-1.5 text-[11px] text-text-primary transition-colors hover:bg-bg-hover"
+        className="inline-flex items-center gap-1.5 rounded-sm border border-bd-subtle bg-bg-base px-3 py-1.5 text-[11px] text-text-primary transition-colors hover:bg-bg-hover"
       >
         <RefreshCw size={12} /> Retry
       </button>
@@ -446,24 +442,19 @@ function ReproducibilityPanel({ run }: { run: BacktestRun }) {
   const shortSha = sha !== '—' && sha !== 'unknown' ? sha.slice(0, 12) : sha;
   const version = run.appVersion ?? '—';
   const snapshotEntries = run.paramSnapshot
-    ? Object.entries(run.paramSnapshot).filter(
-        ([, kv]) => kv && Object.keys(kv).length > 0,
-      )
+    ? Object.entries(run.paramSnapshot).filter(([, kv]) => kv && Object.keys(kv).length > 0)
     : [];
-  const overrideCount = snapshotEntries.reduce(
-    (acc, [, kv]) => acc + Object.keys(kv).length,
-    0,
-  );
+  const overrideCount = snapshotEntries.reduce((acc, [, kv]) => acc + Object.keys(kv).length, 0);
 
   return (
-    <section className="rounded-md border border-bd-subtle bg-bg-surface">
+    <section className="rounded-xl border border-bd-subtle bg-bg-surface shadow-panel">
       <div className="border-b border-bd-subtle px-4 py-3">
         <h3 className="font-display text-[13px] font-semibold text-text-primary">
           Reproducibility
         </h3>
         <p className="mt-0.5 text-[11px] text-text-muted">
-          Manifest captured at submission. With these values + the strategy
-          code, this run can be replayed identically.
+          Manifest captured at submission. With these values + the strategy code, this run can be
+          replayed identically.
         </p>
       </div>
       <dl className="grid grid-cols-2 gap-x-6 gap-y-3 px-4 py-3 text-[12px] sm:grid-cols-4">
@@ -492,15 +483,13 @@ function ReproducibilityPanel({ run }: { run: BacktestRun }) {
           <div className="space-y-3">
             {snapshotEntries.map(([code, kv]) => (
               <div key={code}>
-                <p className="font-mono text-[11px] font-semibold text-text-primary">
-                  {code}
-                </p>
+                <p className="font-mono text-[11px] font-semibold text-text-primary">{code}</p>
                 <table className="mt-1 w-full font-mono text-[11px]">
                   <tbody>
                     {Object.entries(kv).map(([k, v]) => (
-                      <tr key={k} className="border-t border-bd-subtle/60">
+                      <tr key={k} className="border-bd-subtle/60 border-t">
                         <td className="py-1 pr-3 text-text-secondary">{k}</td>
-                        <td className="py-1 text-text-primary tabular-nums">
+                        <td className="py-1 tabular-nums text-text-primary">
                           {formatOverrideValue(v)}
                         </td>
                       </tr>
@@ -541,13 +530,8 @@ function ManifestField({
 }) {
   return (
     <div className="flex flex-col gap-1">
-      <dt className="font-mono text-[9px] uppercase tracking-wider text-text-muted">
-        {label}
-      </dt>
-      <dd
-        className={cn('text-text-primary', mono && 'font-mono')}
-        title={title}
-      >
+      <dt className="font-mono text-[9px] uppercase tracking-wider text-text-muted">{label}</dt>
+      <dd className={cn('text-text-primary', mono && 'font-mono')} title={title}>
         {children}
       </dd>
     </div>

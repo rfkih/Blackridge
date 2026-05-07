@@ -1,15 +1,15 @@
 import type { Metadata } from 'next';
-import { Inter, JetBrains_Mono, Fraunces } from 'next/font/google';
+import { Plus_Jakarta_Sans, JetBrains_Mono } from 'next/font/google';
 import { Providers } from './providers';
 import { ThemeScript } from '@/components/theme/ThemeScript';
 import { ThemeProvider } from '@/components/theme/ThemeProvider';
 import './globals.css';
 
-const inter = Inter({
+const jakarta = Plus_Jakarta_Sans({
   subsets: ['latin'],
   display: 'swap',
-  variable: '--font-inter',
-  weight: ['400', '500', '600', '700'],
+  variable: '--font-jakarta',
+  weight: ['400', '500', '600', '700', '800'],
 });
 
 const jetbrainsMono = JetBrains_Mono({
@@ -19,20 +19,13 @@ const jetbrainsMono = JetBrains_Mono({
   weight: ['400', '500', '600', '700'],
 });
 
-const fraunces = Fraunces({
-  subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-fraunces',
-  weight: ['400', '500', '600'],
-});
-
 export const metadata: Metadata = {
   title: {
-    default: 'Meridian Edge',
-    template: '%s · Meridian Edge',
+    default: 'Machiavelli Technology',
+    template: '%s · Machiavelli Technology',
   },
-  description: 'Algorithmic trading dashboard — Meridian Edge.',
-  applicationName: 'Meridian Edge',
+  description: 'Algorithmic & automated crypto trading — Machiavelli Technology.',
+  applicationName: 'Machiavelli Technology',
 };
 
 export default function RootLayout({
@@ -43,7 +36,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${jetbrainsMono.variable} ${fraunces.variable}`}
+      className={`${jakarta.variable} ${jetbrainsMono.variable}`}
       suppressHydrationWarning
     >
       <head>

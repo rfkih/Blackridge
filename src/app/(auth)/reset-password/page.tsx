@@ -78,7 +78,7 @@ function ResetPasswordContent() {
           </div>
 
           {submitted ? (
-            <div className="space-y-3 rounded-md border border-bd-subtle bg-bg-surface p-4">
+            <div className="space-y-3 rounded-xl border border-bd-subtle bg-bg-surface p-4">
               <h2 className="font-display text-sm font-semibold text-text-primary">
                 Password updated
               </h2>

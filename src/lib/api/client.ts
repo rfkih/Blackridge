@@ -71,12 +71,22 @@ function reportApiFailure(error: AxiosError) {
   const path = cfg?.url ?? '(unknown url)';
   const fullUrl = cfg?.baseURL ? `${cfg.baseURL}${path}` : path;
 
+  // Pin the fingerprint when the failure is a connectivity outage so all
+  // failing endpoints during one outage collapse to ONE error_log row
+  // (URL stays in mdc for triage). 5xx keeps server-side fingerprinting
+  // because two endpoints crashing the JVM in different ways are two bugs.
+  const fingerprint = isNetwork
+    ? // 64 hex chars to fit the column shape — value is fixed, not a hash.
+      'frontendnetworkerror'.padEnd(64, '0')
+    : undefined;
+
   reportError({
     loggerName: 'frontend.api',
     level: 'ERROR',
     message: `${method} ${path} → ${isNetwork ? 'network error' : status}: ${error.message}`,
     exceptionClass: isNetwork ? 'AxiosNetworkError' : `AxiosHttp${status}`,
     stackTrace: error.stack,
+    fingerprint,
     mdc: {
       method,
       url: fullUrl,

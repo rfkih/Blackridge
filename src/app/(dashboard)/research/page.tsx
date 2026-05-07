@@ -109,7 +109,7 @@ export default function ResearchDashboardPage() {
 
   if (!isAdmin) {
     return (
-      <div className="space-y-3 rounded-md border border-bd-subtle bg-bg-surface p-8 text-center">
+      <div className="space-y-3 rounded-xl border border-bd-subtle bg-bg-surface p-8 text-center">
         <ShieldCheck size={28} className="mx-auto text-text-muted" />
         <h1 className="font-display text-[20px] font-semibold tracking-tight text-text-primary">
           Admin only
@@ -158,7 +158,7 @@ export default function ResearchDashboardPage() {
           <button
             type="button"
             onClick={() => setEnqueueOpen(true)}
-            className="border-bd-default inline-flex items-center gap-1.5 rounded-sm border bg-bg-surface px-3 py-2 text-[12px] font-semibold text-text-secondary transition-colors hover:bg-bg-elevated"
+            className="border-bd-default inline-flex items-center gap-1.5 rounded-sm border bg-bg-surface px-3 py-2 text-[12px] font-semibold text-text-secondary transition-colors hover:bg-bg-hover"
             title="Enqueue a research sweep on the orchestrator"
           >
             <Plus size={12} /> Enqueue
@@ -176,19 +176,19 @@ export default function ResearchDashboardPage() {
           <button
             type="button"
             onClick={refreshAll}
-            className="inline-flex items-center gap-1.5 rounded-sm border border-bd-subtle bg-bg-surface px-3 py-2 text-[12px] font-semibold text-text-secondary transition-colors hover:bg-bg-elevated"
+            className="inline-flex items-center gap-1.5 rounded-sm border border-bd-subtle bg-bg-surface px-3 py-2 text-[12px] font-semibold text-text-secondary transition-colors hover:bg-bg-hover"
           >
             <RefreshCw size={12} /> Refresh
           </button>
           <Link
             href="/research/sweeps"
-            className="inline-flex items-center gap-1.5 rounded-sm border border-bd-subtle bg-bg-surface px-3 py-2 text-[12px] font-semibold text-text-secondary transition-colors hover:bg-bg-elevated"
+            className="inline-flex items-center gap-1.5 rounded-sm border border-bd-subtle bg-bg-surface px-3 py-2 text-[12px] font-semibold text-text-secondary transition-colors hover:bg-bg-hover"
           >
             Sweeps <ChevronRight size={12} />
           </Link>
           <Link
             href="/research/log"
-            className="inline-flex items-center gap-1.5 rounded-sm border border-bd-subtle bg-bg-surface px-3 py-2 text-[12px] font-semibold text-text-secondary transition-colors hover:bg-bg-elevated"
+            className="inline-flex items-center gap-1.5 rounded-sm border border-bd-subtle bg-bg-surface px-3 py-2 text-[12px] font-semibold text-text-secondary transition-colors hover:bg-bg-hover"
           >
             Log <ChevronRight size={12} />
           </Link>
@@ -253,7 +253,7 @@ function HealthCard({ jvm, port, health }: { jvm: Jvm; port: number; health: Ser
         ? 'loss'
         : 'warning';
   return (
-    <div className="rounded-md border border-bd-subtle bg-bg-elevated p-3">
+    <div className="rounded-md border border-bd-subtle bg-bg-base p-3">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Dot tone={tone} />
@@ -392,7 +392,7 @@ function ResearchAutomationPanel() {
         </div>
       ) : (
         <div className="space-y-3">
-          <div className="flex flex-wrap items-center gap-3 rounded-md border border-bd-subtle bg-bg-elevated px-3 py-2.5">
+          <div className="flex flex-wrap items-center gap-3 rounded-md border border-bd-subtle bg-bg-base px-3 py-2.5">
             <div className="flex items-center gap-2">
               <Dot tone={paused ? 'warning' : 'profit'} />
               <span
@@ -426,7 +426,7 @@ function ResearchAutomationPanel() {
               type="button"
               onClick={handlePause}
               disabled={busy || paused}
-              className="border-bd-default inline-flex items-center gap-1.5 rounded-sm border bg-bg-surface px-3 py-1.5 font-mono text-[11px] uppercase tracking-wider text-text-secondary hover:bg-bg-elevated disabled:cursor-not-allowed disabled:opacity-40"
+              className="border-bd-default inline-flex items-center gap-1.5 rounded-sm border bg-bg-surface px-3 py-1.5 font-mono text-[11px] uppercase tracking-wider text-text-secondary hover:bg-bg-hover disabled:cursor-not-allowed disabled:opacity-40"
               title={paused ? 'Already paused' : 'Set pause flag — next cron tick will skip'}
             >
               {pause.isPending ? (
@@ -440,7 +440,7 @@ function ResearchAutomationPanel() {
               type="button"
               onClick={handleResume}
               disabled={busy || !paused}
-              className="border-bd-default inline-flex items-center gap-1.5 rounded-sm border bg-bg-surface px-3 py-1.5 font-mono text-[11px] uppercase tracking-wider text-text-secondary hover:bg-bg-elevated disabled:cursor-not-allowed disabled:opacity-40"
+              className="border-bd-default inline-flex items-center gap-1.5 rounded-sm border bg-bg-surface px-3 py-1.5 font-mono text-[11px] uppercase tracking-wider text-text-secondary hover:bg-bg-hover disabled:cursor-not-allowed disabled:opacity-40"
               title={
                 paused ? 'Clear pause flag — next cron tick will claim work' : 'Already running'
               }
@@ -508,8 +508,8 @@ function KillSwitchRow({ strategy }: { strategy: AccountStrategy }) {
     <li
       className="flex flex-wrap items-center gap-3 rounded-md border px-3 py-2.5"
       style={{
-        borderColor: 'rgba(255,77,106,0.32)',
-        background: 'rgba(255,77,106,0.06)',
+        borderColor: 'rgba(229,72,77,0.32)',
+        background: 'rgba(229,72,77,0.06)',
       }}
     >
       <Dot tone="loss" />
@@ -537,7 +537,7 @@ function KillSwitchRow({ strategy }: { strategy: AccountStrategy }) {
         type="button"
         onClick={handleRearm}
         disabled={rearm.isPending}
-        className="border-bd-default inline-flex items-center gap-1.5 rounded-sm border bg-bg-surface px-3 py-1.5 font-mono text-[11px] uppercase tracking-wider text-text-secondary hover:bg-bg-elevated disabled:cursor-not-allowed disabled:opacity-40"
+        className="border-bd-default inline-flex items-center gap-1.5 rounded-sm border bg-bg-surface px-3 py-1.5 font-mono text-[11px] uppercase tracking-wider text-text-secondary hover:bg-bg-hover disabled:cursor-not-allowed disabled:opacity-40"
         title="Clear the trip flag — strategy resumes on the next signal"
       >
         {rearm.isPending && rearm.variables === strategy.id ? (
@@ -624,7 +624,7 @@ function StuckTradeRow({ anomaly }: { anomaly: TradeAnomaly }) {
       </div>
       <Link
         href={`/trades/${anomaly.tradeId}`}
-        className="border-bd-default inline-flex items-center gap-1 rounded-sm border bg-bg-surface px-3 py-1.5 font-mono text-[11px] uppercase tracking-wider text-text-secondary hover:bg-bg-elevated"
+        className="border-bd-default inline-flex items-center gap-1 rounded-sm border bg-bg-surface px-3 py-1.5 font-mono text-[11px] uppercase tracking-wider text-text-secondary hover:bg-bg-hover"
         title="Open trade detail to triage"
       >
         Inspect <ChevronRight size={11} />
@@ -670,7 +670,7 @@ function WsHeartbeatPanel() {
           WS status endpoint unreachable.
         </div>
       ) : (
-        <div className="rounded-md border border-bd-subtle bg-bg-elevated p-3">
+        <div className="rounded-md border border-bd-subtle bg-bg-base p-3">
           <div className="flex flex-wrap items-center gap-3">
             <Dot tone={tone} />
             <span
@@ -905,7 +905,7 @@ function SchedulerPanel() {
         <div className="overflow-hidden rounded-md border border-bd-subtle">
           <table className="w-full text-[11px]">
             <thead>
-              <tr className="border-b border-bd-subtle bg-bg-elevated">
+              <tr className="border-b border-bd-subtle bg-bg-base">
                 <Th>Job</Th>
                 <Th>Type</Th>
                 <Th>Cron</Th>
@@ -942,7 +942,7 @@ function SchedulerPanel() {
                         onClick={() => handleRun(j)}
                         disabled={runOnce.isPending}
                         title="Run now"
-                        className="rounded-sm border border-bd-subtle bg-bg-base px-1.5 py-1 text-text-secondary hover:bg-bg-elevated disabled:cursor-not-allowed disabled:opacity-50"
+                        className="rounded-sm border border-bd-subtle bg-bg-base px-1.5 py-1 text-text-secondary hover:bg-bg-hover disabled:cursor-not-allowed disabled:opacity-50"
                       >
                         <Play size={11} />
                       </button>
@@ -950,7 +950,7 @@ function SchedulerPanel() {
                         type="button"
                         onClick={() => setEditing(j)}
                         title="Edit cron / status"
-                        className="rounded-sm border border-bd-subtle bg-bg-base px-1.5 py-1 text-text-secondary hover:bg-bg-elevated"
+                        className="rounded-sm border border-bd-subtle bg-bg-base px-1.5 py-1 text-text-secondary hover:bg-bg-hover"
                       >
                         <Pencil size={11} />
                       </button>
@@ -1054,7 +1054,7 @@ function SchedulerEditDialog({ job, onClose }: { job: SchedulerJobStatus; onClos
                     className="rounded-sm border px-2.5 py-1 font-mono text-[11px] uppercase tracking-wider transition-colors"
                     style={{
                       borderColor: selected ? 'var(--accent-primary)' : 'var(--border-subtle)',
-                      background: selected ? 'rgba(78,158,255,0.12)' : 'transparent',
+                      background: selected ? 'rgba(59,130,246,0.12)' : 'transparent',
                       color: selected ? 'var(--accent-primary)' : 'var(--text-secondary)',
                     }}
                   >
@@ -1069,7 +1069,7 @@ function SchedulerEditDialog({ job, onClose }: { job: SchedulerJobStatus; onClos
           <button
             type="button"
             onClick={onClose}
-            className="rounded-sm border border-bd-subtle bg-bg-surface px-3 py-1.5 text-[12px] text-text-secondary hover:bg-bg-elevated"
+            className="rounded-sm border border-bd-subtle bg-bg-surface px-3 py-1.5 text-[12px] text-text-secondary hover:bg-bg-hover"
           >
             Cancel
           </button>
@@ -1212,7 +1212,7 @@ function SweepActivityPanel() {
               <li key={s.sweepId}>
                 <Link
                   href={`/research/sweeps/${s.sweepId}`}
-                  className="block rounded-sm border border-bd-subtle bg-bg-elevated px-2.5 py-2 transition-colors hover:bg-bg-hover"
+                  className="block rounded-sm border border-bd-subtle bg-bg-base px-2.5 py-2 transition-colors hover:bg-bg-hover"
                 >
                   <div className="flex items-center justify-between gap-2 text-[11px]">
                     <span className="font-mono text-text-secondary">
@@ -1246,7 +1246,7 @@ function SweepActivityPanel() {
             type="button"
             onClick={() => setPage((p) => Math.max(0, p - 1))}
             disabled={page <= 0}
-            className="rounded-sm border border-bd-subtle bg-bg-surface px-2 py-1 text-[11px] text-text-secondary hover:bg-bg-elevated disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-sm border border-bd-subtle bg-bg-surface px-2 py-1 text-[11px] text-text-secondary hover:bg-bg-hover disabled:cursor-not-allowed disabled:opacity-50"
           >
             Prev
           </button>
@@ -1257,7 +1257,7 @@ function SweepActivityPanel() {
             type="button"
             onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
             disabled={page >= totalPages - 1}
-            className="rounded-sm border border-bd-subtle bg-bg-surface px-2 py-1 text-[11px] text-text-secondary hover:bg-bg-elevated disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-sm border border-bd-subtle bg-bg-surface px-2 py-1 text-[11px] text-text-secondary hover:bg-bg-hover disabled:cursor-not-allowed disabled:opacity-50"
           >
             Next
           </button>
@@ -1392,7 +1392,7 @@ function RecentPromotionsPanel() {
               <button
                 type="button"
                 onClick={() => setSelected(r)}
-                className="block w-full rounded-sm border border-bd-subtle bg-bg-elevated px-2.5 py-1.5 text-left text-[11px] transition-colors hover:bg-bg-hover focus:outline-none focus:ring-1 focus:ring-[var(--accent-primary)]"
+                className="block w-full rounded-sm border border-bd-subtle bg-bg-base px-2.5 py-1.5 text-left text-[11px] transition-colors hover:bg-bg-hover focus:outline-none focus:ring-1 focus:ring-[var(--accent-primary)]"
               >
                 <div className="flex items-center justify-between">
                   <span className="font-mono text-text-secondary">{r.strategyCode}</span>
@@ -1417,7 +1417,7 @@ function RecentPromotionsPanel() {
             type="button"
             onClick={() => setPage((p) => Math.max(0, p - 1))}
             disabled={page <= 0}
-            className="rounded-sm border border-bd-subtle bg-bg-surface px-2 py-1 text-[11px] text-text-secondary hover:bg-bg-elevated disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-sm border border-bd-subtle bg-bg-surface px-2 py-1 text-[11px] text-text-secondary hover:bg-bg-hover disabled:cursor-not-allowed disabled:opacity-50"
           >
             Prev
           </button>
@@ -1428,7 +1428,7 @@ function RecentPromotionsPanel() {
             type="button"
             onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
             disabled={page >= totalPages - 1}
-            className="rounded-sm border border-bd-subtle bg-bg-surface px-2 py-1 text-[11px] text-text-secondary hover:bg-bg-elevated disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-sm border border-bd-subtle bg-bg-surface px-2 py-1 text-[11px] text-text-secondary hover:bg-bg-hover disabled:cursor-not-allowed disabled:opacity-50"
           >
             Next
           </button>
@@ -1509,7 +1509,7 @@ function PromotionDetailDialog({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-sm border border-bd-subtle bg-bg-surface px-3 py-1.5 text-[12px] text-text-secondary hover:bg-bg-elevated"
+            className="rounded-sm border border-bd-subtle bg-bg-surface px-3 py-1.5 text-[12px] text-text-secondary hover:bg-bg-hover"
           >
             Close
           </button>
@@ -1702,7 +1702,7 @@ function PromotionCandidatesPanel() {
         <div className="overflow-hidden rounded-md border border-bd-subtle">
           <table className="w-full text-[11px]">
             <thead>
-              <tr className="border-b border-bd-subtle bg-bg-elevated">
+              <tr className="border-b border-bd-subtle bg-bg-base">
                 {PROMOTION_SORT_FIELDS.map((f) => (
                   <SortableTh
                     key={f.key}
@@ -1723,7 +1723,7 @@ function PromotionCandidatesPanel() {
                 return (
                   <tr
                     key={d.id}
-                    className="border-b border-bd-subtle bg-bg-surface last:border-b-0 hover:bg-bg-elevated"
+                    className="border-b border-bd-subtle bg-bg-surface last:border-b-0 hover:bg-bg-hover"
                   >
                     <Td className="font-mono">
                       <div className="flex flex-col">
@@ -1754,7 +1754,7 @@ function PromotionCandidatesPanel() {
                           setTargetIsDeepLinked(false);
                         }}
                         aria-label={`Manage promotion for ${d.strategyCode}`}
-                        className="inline-flex items-center gap-1 rounded-sm border border-bd-subtle px-2 py-1 font-mono text-[10px] uppercase tracking-wider text-[var(--accent-primary)] transition-colors hover:border-[var(--accent-primary)] hover:bg-[rgba(78,158,255,0.08)] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--accent-primary)]"
+                        className="inline-flex items-center gap-1 rounded-sm border border-bd-subtle px-2 py-1 font-mono text-[10px] uppercase tracking-wider text-[var(--accent-primary)] transition-colors hover:border-[var(--accent-primary)] hover:bg-[rgba(59,130,246,0.08)] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--accent-primary)]"
                       >
                         Manage →
                       </button>
@@ -1772,7 +1772,7 @@ function PromotionCandidatesPanel() {
             type="button"
             onClick={() => setPage((p) => Math.max(0, p - 1))}
             disabled={page <= 0}
-            className="rounded-sm border border-bd-subtle bg-bg-surface px-2 py-1 text-[11px] text-text-secondary hover:bg-bg-elevated disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-sm border border-bd-subtle bg-bg-surface px-2 py-1 text-[11px] text-text-secondary hover:bg-bg-hover disabled:cursor-not-allowed disabled:opacity-50"
           >
             Prev
           </button>
@@ -1783,7 +1783,7 @@ function PromotionCandidatesPanel() {
             type="button"
             onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
             disabled={page >= totalPages - 1}
-            className="rounded-sm border border-bd-subtle bg-bg-surface px-2 py-1 text-[11px] text-text-secondary hover:bg-bg-elevated disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-sm border border-bd-subtle bg-bg-surface px-2 py-1 text-[11px] text-text-secondary hover:bg-bg-hover disabled:cursor-not-allowed disabled:opacity-50"
           >
             Next
           </button>
@@ -1957,8 +1957,8 @@ function PromoteDialog({ target, onClose }: { target: StrategyDefinition; onClos
                   ? 'var(--accent-primary)'
                   : legal
                     ? 'var(--border-subtle)'
-                    : 'rgba(255,77,106,0.32)';
-                const background = selected ? 'rgba(78,158,255,0.12)' : 'transparent';
+                    : 'rgba(229,72,77,0.32)';
+                const background = selected ? 'rgba(59,130,246,0.12)' : 'transparent';
                 const color = selected
                   ? 'var(--accent-primary)'
                   : legal
@@ -2024,7 +2024,7 @@ function PromoteDialog({ target, onClose }: { target: StrategyDefinition; onClos
                 className="w-full rounded-sm border bg-bg-base px-2.5 py-1.5 font-mono text-[11px] text-text-primary placeholder:text-text-muted focus:outline-none"
                 style={{
                   borderColor: evidenceParse.error
-                    ? 'rgba(255,77,106,0.5)'
+                    ? 'rgba(229,72,77,0.5)'
                     : 'var(--border-subtle)',
                 }}
               />
@@ -2061,7 +2061,7 @@ function PromoteDialog({ target, onClose }: { target: StrategyDefinition; onClos
           <button
             type="button"
             onClick={onClose}
-            className="rounded-sm border border-bd-subtle bg-bg-surface px-3 py-1.5 text-[12px] text-text-secondary hover:bg-bg-elevated"
+            className="rounded-sm border border-bd-subtle bg-bg-surface px-3 py-1.5 text-[12px] text-text-secondary hover:bg-bg-hover"
           >
             Cancel
           </button>
@@ -2216,7 +2216,7 @@ function ResearchLogPanel() {
       ) : (
         <div className="max-h-[280px] overflow-y-auto rounded-md border border-bd-subtle">
           <table className="w-full min-w-[720px] text-[11px]">
-            <thead className="sticky top-0 bg-bg-elevated">
+            <thead className="sticky top-0 bg-bg-base">
               <tr className="border-b border-bd-subtle">
                 <Th>When</Th>
                 <Th>Strategy</Th>
@@ -2283,7 +2283,7 @@ function ResearchLogPanel() {
             type="button"
             onClick={() => setPage((p) => Math.max(0, p - 1))}
             disabled={page <= 0}
-            className="rounded-sm border border-bd-subtle bg-bg-surface px-2 py-1 text-[11px] text-text-secondary hover:bg-bg-elevated disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-sm border border-bd-subtle bg-bg-surface px-2 py-1 text-[11px] text-text-secondary hover:bg-bg-hover disabled:cursor-not-allowed disabled:opacity-50"
           >
             Prev
           </button>
@@ -2294,7 +2294,7 @@ function ResearchLogPanel() {
             type="button"
             onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
             disabled={page >= totalPages - 1}
-            className="rounded-sm border border-bd-subtle bg-bg-surface px-2 py-1 text-[11px] text-text-secondary hover:bg-bg-elevated disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-sm border border-bd-subtle bg-bg-surface px-2 py-1 text-[11px] text-text-secondary hover:bg-bg-hover disabled:cursor-not-allowed disabled:opacity-50"
           >
             Next
           </button>
@@ -2590,7 +2590,7 @@ function RecentIterationsPanel() {
             return (
               <li
                 key={r.iteration_id}
-                className="rounded-sm border border-bd-subtle bg-bg-elevated px-2.5 py-2"
+                className="rounded-sm border border-bd-subtle bg-bg-base px-2.5 py-2"
               >
                 <div className="flex items-center justify-between gap-2 text-[11px]">
                   <span className="font-mono text-text-secondary">
@@ -2623,7 +2623,7 @@ function RecentIterationsPanel() {
             type="button"
             onClick={onPrev}
             disabled={cursorStack.length <= 1}
-            className="rounded-sm border border-bd-subtle bg-bg-surface px-2 py-1 text-[11px] text-text-secondary hover:bg-bg-elevated disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-sm border border-bd-subtle bg-bg-surface px-2 py-1 text-[11px] text-text-secondary hover:bg-bg-hover disabled:cursor-not-allowed disabled:opacity-50"
           >
             Prev
           </button>
@@ -2632,7 +2632,7 @@ function RecentIterationsPanel() {
             type="button"
             onClick={onNext}
             disabled={!nextCursor}
-            className="rounded-sm border border-bd-subtle bg-bg-surface px-2 py-1 text-[11px] text-text-secondary hover:bg-bg-elevated disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-sm border border-bd-subtle bg-bg-surface px-2 py-1 text-[11px] text-text-secondary hover:bg-bg-hover disabled:cursor-not-allowed disabled:opacity-50"
           >
             Next
           </button>
@@ -2665,7 +2665,7 @@ function WalkForwardCandidatesPanel() {
           {rows.map((r) => (
             <li
               key={r.queue_id}
-              className="rounded-sm border border-bd-subtle bg-bg-elevated px-2.5 py-2"
+              className="rounded-sm border border-bd-subtle bg-bg-base px-2.5 py-2"
             >
               <div className="flex items-center justify-between gap-2 text-[11px]">
                 <span className="font-mono text-text-secondary">
@@ -2732,7 +2732,7 @@ function QueuePanel() {
               className={`rounded-sm px-2 py-1 font-mono text-[10px] uppercase tracking-wider transition-colors ${
                 filter === f
                   ? 'bg-accent-primary/15 text-accent-primary'
-                  : 'text-text-muted hover:bg-bg-elevated hover:text-text-secondary'
+                  : 'text-text-muted hover:bg-bg-hover hover:text-text-secondary'
               }`}
             >
               {f}
@@ -2894,7 +2894,7 @@ function JournalPanel() {
               className={`rounded-sm px-2 py-1 font-mono text-[10px] uppercase tracking-wider transition-colors ${
                 typeFilter === t
                   ? 'bg-accent-primary/15 text-accent-primary'
-                  : 'text-text-muted hover:bg-bg-elevated hover:text-text-secondary'
+                  : 'text-text-muted hover:bg-bg-hover hover:text-text-secondary'
               }`}
             >
               {t === 'ALL' ? 'ALL' : t.replace('_', ' ')}
@@ -2914,7 +2914,7 @@ function JournalPanel() {
               className={`rounded-sm px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider transition-colors ${
                 statusFilter === s
                   ? 'bg-accent-secondary/15 text-accent-secondary'
-                  : 'text-text-muted hover:bg-bg-elevated hover:text-text-secondary'
+                  : 'text-text-muted hover:bg-bg-hover hover:text-text-secondary'
               }`}
             >
               {s}
@@ -2962,7 +2962,7 @@ function JournalPanel() {
               return (
                 <li
                   key={r.journal_id}
-                  className="rounded-sm border border-bd-subtle bg-bg-elevated px-3 py-2"
+                  className="rounded-sm border border-bd-subtle bg-bg-base px-3 py-2"
                 >
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2">
@@ -2996,7 +2996,7 @@ function JournalPanel() {
               type="button"
               onClick={() => fetchNextPage()}
               disabled={isFetchingNextPage}
-              className="mt-2 w-full rounded-sm border border-bd-subtle py-1 font-mono text-[10px] text-text-muted transition-colors hover:bg-bg-elevated hover:text-text-secondary disabled:opacity-50"
+              className="mt-2 w-full rounded-sm border border-bd-subtle py-1 font-mono text-[10px] text-text-muted transition-colors hover:bg-bg-hover hover:text-text-secondary disabled:opacity-50"
             >
               {isFetchingNextPage ? 'Loading…' : `Load more · ${rows.length} shown`}
             </button>
@@ -3175,7 +3175,7 @@ function EnqueueSweepDialog({ open, onClose }: { open: boolean; onClose: () => v
               <button
                 type="button"
                 onClick={() => setParams((p) => [...p, { name: '', values: '' }])}
-                className="inline-flex items-center gap-1 rounded-sm border border-bd-subtle px-2 py-1 font-mono text-[10px] text-text-muted hover:bg-bg-elevated"
+                className="inline-flex items-center gap-1 rounded-sm border border-bd-subtle px-2 py-1 font-mono text-[10px] text-text-muted hover:bg-bg-hover"
               >
                 <Plus size={10} /> Add row
               </button>
@@ -3208,7 +3208,7 @@ function EnqueueSweepDialog({ open, onClose }: { open: boolean; onClose: () => v
                   type="button"
                   onClick={() => setParams((p) => (p.length > 1 ? p.filter((_, j) => j !== i) : p))}
                   disabled={params.length === 1}
-                  className="rounded-sm border border-bd-subtle p-1 text-text-muted hover:bg-bg-elevated disabled:cursor-not-allowed disabled:opacity-40"
+                  className="rounded-sm border border-bd-subtle p-1 text-text-muted hover:bg-bg-hover disabled:cursor-not-allowed disabled:opacity-40"
                   title="Remove row"
                 >
                   <X size={12} />
@@ -3281,7 +3281,7 @@ function EnqueueSweepDialog({ open, onClose }: { open: boolean; onClose: () => v
             type="button"
             onClick={handleClose}
             disabled={enqueue.isPending}
-            className="rounded-sm border border-bd-subtle bg-bg-surface px-3 py-2 text-[12px] font-semibold text-text-secondary hover:bg-bg-elevated disabled:opacity-60"
+            className="rounded-sm border border-bd-subtle bg-bg-surface px-3 py-2 text-[12px] font-semibold text-text-secondary hover:bg-bg-hover disabled:opacity-60"
           >
             Cancel
           </button>
@@ -3318,7 +3318,7 @@ function PanelShell({
   children: React.ReactNode;
 }) {
   return (
-    <section className="rounded-md border border-bd-subtle bg-bg-surface p-4">
+    <section className="rounded-xl border border-bd-subtle bg-bg-surface p-4">
       <header className="mb-3 flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <span className="text-text-muted">{icon}</span>
@@ -3350,7 +3350,7 @@ function Metric({
   tone?: Tone;
 }) {
   return (
-    <div className="rounded-sm border border-bd-subtle bg-bg-elevated px-2.5 py-2">
+    <div className="rounded-sm border border-bd-subtle bg-bg-base px-2.5 py-2">
       <div className="flex items-center gap-1 text-[10px] uppercase tracking-wider text-text-muted">
         {icon}
         {label}

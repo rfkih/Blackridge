@@ -99,6 +99,16 @@ const config: Config = {
           DEFAULT: 'var(--accent-primary)',
           subtle: 'var(--accent-subtle)',
           glow: 'var(--accent-glow)',
+          50: '#E8F8EE',
+          100: '#C8EED5',
+          200: '#97DEB1',
+          300: '#5FCB8B',
+          400: '#2EBC72',
+          500: '#16B364',
+          600: '#0E9F50',
+          700: '#0A7E3F',
+          800: '#075E2F',
+          900: '#054020',
         },
       },
       fontFamily: {
@@ -136,7 +146,13 @@ const config: Config = {
         DEFAULT: 'var(--radius-md)',
         md: 'var(--radius-md)',
         lg: 'var(--radius-lg)',
-        // Intentionally no xl / 2xl / full — terminal aesthetic rejects pill UI.
+        // Machiavelli adds soft 20px+ radii for cards / hero surfaces and a
+        // pill radius for CTAs and tags. Kept in addition to sm/md/lg so any
+        // existing terminal-tight surfaces keep their resting radius.
+        xl: '20px',
+        '2xl': '28px',
+        pill: '9999px',
+        full: '9999px',
       },
       borderWidth: {
         hairline: '1px',

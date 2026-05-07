@@ -196,7 +196,7 @@ export default function SweepDetailPage({ params }: PageProps) {
       </div>
 
       {s.status === 'COMPLETED' && winner && (
-        <div className="rounded-md border border-[rgba(0,200,150,0.3)] bg-[rgba(0,200,150,0.06)] px-4 py-3">
+        <div className="rounded-md border border-[rgba(22,179,100,0.3)] bg-[rgba(22,179,100,0.06)] px-4 py-3">
           <div className="label-caps text-[var(--color-profit)]">WINNER</div>
           <div className="mt-1 font-mono text-[12px] text-text-primary">
             {Object.entries(winner.paramSet).map(([k, v]) => (
@@ -211,7 +211,7 @@ export default function SweepDetailPage({ params }: PageProps) {
       <DsrThresholdPanel state={s} />
       <HoldoutPanel state={s} winner={winner} />
 
-      <section className="overflow-hidden rounded-md border border-bd-subtle bg-bg-surface">
+      <section className="overflow-hidden rounded-xl border border-bd-subtle bg-bg-surface">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-bd-subtle px-4 py-3">
           <div className="font-display text-[13px] font-semibold text-text-primary">
             Leaderboard
@@ -237,7 +237,7 @@ export default function SweepDetailPage({ params }: PageProps) {
           )}
         </div>
 
-        <div className="flex flex-wrap items-center gap-3 border-b border-bd-subtle bg-bg-elevated px-4 py-2.5">
+        <div className="flex flex-wrap items-center gap-3 border-b border-bd-subtle bg-bg-base px-4 py-2.5">
           <FilterGroup label="Status">
             {(['PENDING', 'RUNNING', 'COMPLETED', 'FAILED'] as const).map((st) => (
               <FilterPill
@@ -267,7 +267,7 @@ export default function SweepDetailPage({ params }: PageProps) {
         <div className="overflow-x-auto">
           <table className="w-full min-w-[900px] text-[12px]">
             <thead>
-              <tr className="border-b border-bd-subtle bg-bg-elevated">
+              <tr className="border-b border-bd-subtle bg-bg-base">
                 <Th>#</Th>
                 {isResearchMode && <Th>R</Th>}
                 {paramKeys.map((k) => (
@@ -458,7 +458,7 @@ function FilterPill({
       className="rounded-sm border px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider transition-colors"
       style={{
         borderColor: active ? 'var(--accent-primary)' : 'var(--border-subtle)',
-        background: active ? 'rgba(78,158,255,0.10)' : 'transparent',
+        background: active ? 'rgba(59,130,246,0.10)' : 'transparent',
         color: active ? 'var(--accent-primary)' : 'var(--text-secondary)',
       }}
     >
@@ -606,7 +606,7 @@ function ResultRow({
         ? 'var(--color-loss)'
         : 'var(--text-muted)';
 
-  const rowBg = rank === 1 ? 'rgba(0,200,150,0.06)' : undefined;
+  const rowBg = rank === 1 ? 'rgba(22,179,100,0.06)' : undefined;
 
   return (
     <tr
@@ -762,9 +762,9 @@ function HoldoutPanel({
       className="rounded-md border px-4 py-3"
       style={{
         borderColor: alreadyEvaluated
-          ? 'rgba(78,158,255,0.3)'
+          ? 'rgba(59,130,246,0.3)'
           : 'var(--border-subtle)',
-        background: alreadyEvaluated ? 'rgba(78,158,255,0.06)' : undefined,
+        background: alreadyEvaluated ? 'rgba(59,130,246,0.06)' : undefined,
       }}
     >
       <div
@@ -827,7 +827,7 @@ function HoldoutPanel({
               disabled={
                 !sweepCompleted || !winner || evalMutation.isPending
               }
-              className="self-start rounded-sm border border-bd-subtle bg-bg-elevated px-3 py-1.5 font-mono text-[10px] uppercase tracking-wider text-text-primary transition-colors duration-fast hover:bg-bg-hover disabled:cursor-not-allowed disabled:opacity-50"
+              className="self-start rounded-sm border border-bd-subtle bg-bg-base px-3 py-1.5 font-mono text-[10px] uppercase tracking-wider text-text-primary transition-colors duration-fast hover:bg-bg-hover disabled:cursor-not-allowed disabled:opacity-50"
             >
               {evalMutation.isPending
                 ? 'Submitting…'
@@ -895,7 +895,7 @@ function DsrThresholdPanel({ state }: { state: SweepState }) {
   const passes = topSharpe != null && topSharpe > threshold;
 
   return (
-    <div className="rounded-md border border-bd-subtle bg-bg-surface px-4 py-3">
+    <div className="rounded-xl border border-bd-subtle bg-bg-surface px-4 py-3">
       <div className="label-caps text-text-secondary">
         Multiple-comparison context
       </div>
@@ -955,7 +955,7 @@ function DsrThresholdPanel({ state }: { state: SweepState }) {
 
 function Stat({ label, value }: { label: string; value: string | number }) {
   return (
-    <div className="rounded-sm border border-bd-subtle bg-bg-elevated px-3 py-2">
+    <div className="rounded-sm border border-bd-subtle bg-bg-base px-3 py-2">
       <div className="label-caps !text-[9px]">{label}</div>
       <div className="num mt-0.5 truncate text-[14px] font-semibold text-text-primary">
         {value}

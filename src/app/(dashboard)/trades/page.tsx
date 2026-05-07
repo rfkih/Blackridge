@@ -539,7 +539,7 @@ function TradesPageContent() {
               type="button"
               onClick={() => patchFilters({ page: Math.max(0, filters.page - 1) })}
               disabled={filters.page === 0}
-              className="rounded-md border border-bd-subtle bg-bg-surface px-3 py-1.5 text-[11px] text-text-secondary transition-colors hover:bg-bg-elevated disabled:opacity-40"
+              className="rounded-xl border border-bd-subtle bg-bg-surface px-3 py-1.5 text-[11px] text-text-secondary transition-colors hover:bg-bg-hover disabled:opacity-40"
             >
               Previous
             </button>
@@ -547,7 +547,7 @@ function TradesPageContent() {
               type="button"
               onClick={() => patchFilters({ page: filters.page + 1 })}
               disabled={filters.page + 1 >= totalPages}
-              className="rounded-md border border-bd-subtle bg-bg-surface px-3 py-1.5 text-[11px] text-text-secondary transition-colors hover:bg-bg-elevated disabled:opacity-40"
+              className="rounded-xl border border-bd-subtle bg-bg-surface px-3 py-1.5 text-[11px] text-text-secondary transition-colors hover:bg-bg-hover disabled:opacity-40"
             >
               Next
             </button>
@@ -601,7 +601,7 @@ function StatusPill({ status }: { status: TradeStatus }) {
     );
   }
   return (
-    <span className="inline-flex items-center rounded-sm bg-bg-elevated px-1.5 py-0.5 text-[10px] font-semibold tracking-wider text-text-secondary">
+    <span className="inline-flex items-center rounded-sm bg-bg-base px-1.5 py-0.5 text-[10px] font-semibold tracking-wider text-text-secondary">
       CLOSED
     </span>
   );

@@ -33,7 +33,7 @@ export function BacktestProgressBar({ run, className }: BacktestProgressBarProps
       aria-busy={isPending || isRunning}
       className={cn(
         'rounded-lg border bg-[var(--bg-surface)] p-4 shadow-panel',
-        isFailed ? 'border-[rgba(255,77,106,0.4)]' : 'border-[var(--border-subtle)]',
+        isFailed ? 'border-[rgba(229,72,77,0.4)]' : 'border-[var(--border-subtle)]',
         className,
       )}
     >
@@ -69,10 +69,10 @@ export function BacktestProgressBar({ run, className }: BacktestProgressBarProps
             width: `${displayPercent}%`,
             background: isFailed
               ? 'var(--color-loss)'
-              : 'linear-gradient(90deg, var(--color-profit) 0%, rgba(31, 200, 150, 0.6) 100%)',
+              : 'linear-gradient(90deg, var(--color-profit) 0%, rgba(22,179,100, 0.6) 100%)',
             boxShadow: isFailed
               ? 'none'
-              : '0 0 12px rgba(31, 200, 150, 0.35)',
+              : '0 0 12px rgba(22,179,100, 0.35)',
           }}
         />
       </div>

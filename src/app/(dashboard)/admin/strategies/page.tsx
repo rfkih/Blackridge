@@ -201,7 +201,7 @@ function StrategyTable({
   hideDeprecateAction,
 }: StrategyTableProps) {
   return (
-    <section className="overflow-hidden rounded-md border border-bd-subtle bg-bg-surface">
+    <section className="overflow-hidden rounded-xl border border-bd-subtle bg-bg-surface">
       <div className="flex items-center justify-between border-b border-bd-subtle px-4 py-3">
         <h3 className="font-display text-[13px] font-semibold text-text-primary">
           {label}
@@ -226,7 +226,7 @@ function StrategyTable({
             {rows.map((row) => (
               <tr
                 key={row.id}
-                className="group border-b border-bd-subtle last:border-b-0 hover:bg-bg-elevated"
+                className="group border-b border-bd-subtle last:border-b-0 hover:bg-bg-hover"
               >
                 <td className="num whitespace-nowrap px-4 py-3">
                   <span className="font-mono text-[12px] font-semibold text-text-primary">
@@ -237,7 +237,7 @@ function StrategyTable({
                   {row.strategyName}
                 </td>
                 <td className="whitespace-nowrap px-4 py-3">
-                  <span className="rounded-sm bg-bg-elevated px-1.5 py-0.5 font-mono text-[10px] text-text-secondary">
+                  <span className="rounded-sm bg-bg-base px-1.5 py-0.5 font-mono text-[10px] text-text-secondary">
                     {row.strategyType}
                   </span>
                 </td>
@@ -252,7 +252,7 @@ function StrategyTable({
                     <button
                       type="button"
                       onClick={() => onEdit(row)}
-                      className="inline-flex items-center gap-1 rounded-sm border border-bd-subtle bg-bg-elevated px-2 py-1 text-[11px] text-text-primary transition-colors hover:bg-bg-hover"
+                      className="inline-flex items-center gap-1 rounded-sm border border-bd-subtle bg-bg-base px-2 py-1 text-[11px] text-text-primary transition-colors hover:bg-bg-hover"
                       aria-label={`Edit ${row.strategyCode}`}
                     >
                       <Edit3 size={11} strokeWidth={1.75} /> Edit
@@ -261,7 +261,7 @@ function StrategyTable({
                       <button
                         type="button"
                         onClick={() => onDeprecate(row)}
-                        className="inline-flex items-center gap-1 rounded-sm border border-bd-subtle bg-bg-elevated px-2 py-1 text-[11px] text-[var(--color-loss)] transition-colors hover:bg-[rgba(255,77,106,0.12)]"
+                        className="inline-flex items-center gap-1 rounded-sm border border-bd-subtle bg-bg-base px-2 py-1 text-[11px] text-[var(--color-loss)] transition-colors hover:bg-[rgba(229,72,77,0.12)]"
                         aria-label={`Deprecate ${row.strategyCode}`}
                       >
                         <Archive size={11} strokeWidth={1.75} /> Deprecate
@@ -319,7 +319,7 @@ function AdminNotice() {
     <div
       className="flex items-start gap-2.5 rounded-md border px-3 py-2.5"
       style={{
-        borderColor: 'rgba(78,158,255,0.35)',
+        borderColor: 'rgba(59,130,246,0.35)',
         backgroundColor: 'var(--bg-surface)',
       }}
     >
@@ -340,7 +340,7 @@ function AdminNotice() {
 
 function TableSkeleton() {
   return (
-    <div className="rounded-md border border-bd-subtle bg-bg-surface p-4">
+    <div className="rounded-xl border border-bd-subtle bg-bg-surface p-4">
       {Array.from({ length: 5 }).map((_, i) => (
         <div
           key={i}

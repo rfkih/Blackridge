@@ -46,7 +46,7 @@ export default function TradeDetailPage({ params }: { params: { id: string } }) 
     return (
       <div className="flex flex-col gap-5">
         <BackLink />
-        <div className="rounded-md border border-bd-subtle bg-bg-surface p-8">
+        <div className="rounded-xl border border-bd-subtle bg-bg-surface p-8">
           <EmptyState
             title="Trade not found"
             description="The trade may have been deleted, or the id is wrong."
@@ -66,7 +66,7 @@ export default function TradeDetailPage({ params }: { params: { id: string } }) 
       <BackLink />
 
       {/* Header */}
-      <section className="rounded-md border border-bd-subtle bg-bg-surface p-6">
+      <section className="rounded-xl border border-bd-subtle bg-bg-surface p-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="flex items-center gap-4">
             <SymbolAvatar symbol={trade.symbol} direction={trade.direction} />
@@ -169,7 +169,7 @@ export default function TradeDetailPage({ params }: { params: { id: string } }) 
         </div>
 
         {positions.length === 0 ? (
-          <div className="rounded-md border border-bd-subtle bg-bg-surface p-8">
+          <div className="rounded-xl border border-bd-subtle bg-bg-surface p-8">
             <EmptyState
               icon={TrendingUp}
               title="No legs recorded"
@@ -230,7 +230,7 @@ function EntryPlanPanel({ trade }: { trade: Trades }) {
     : `${trade.strategyCode} SHORT entries gate on a bearish regime — this trade implies that gate passed at entry.`;
 
   return (
-    <section className="rounded-md border border-bd-subtle bg-bg-surface p-5">
+    <section className="rounded-xl border border-bd-subtle bg-bg-surface p-5">
       <header className="flex items-baseline justify-between">
         <div>
           <p className="font-mono text-[10px] uppercase tracking-wider text-text-muted">
@@ -253,7 +253,7 @@ function EntryPlanPanel({ trade }: { trade: Trades }) {
       </p>
 
       <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
-        <div className="flex flex-col gap-1 rounded-sm border border-bd-subtle bg-bg-elevated px-3 py-2.5">
+        <div className="flex flex-col gap-1 rounded-sm border border-bd-subtle bg-bg-base px-3 py-2.5">
           <span className="font-mono text-[9px] uppercase tracking-wider text-text-muted">
             Risk distance (1 R)
           </span>
@@ -264,7 +264,7 @@ function EntryPlanPanel({ trade }: { trade: Trades }) {
             Entry to stop. All R-multiples below scale to this.
           </span>
         </div>
-        <div className="flex flex-col gap-1 rounded-sm border border-bd-subtle bg-bg-elevated px-3 py-2.5">
+        <div className="flex flex-col gap-1 rounded-sm border border-bd-subtle bg-bg-base px-3 py-2.5">
           <span className="font-mono text-[9px] uppercase tracking-wider text-text-muted">
             TP1 reward
           </span>
@@ -278,7 +278,7 @@ function EntryPlanPanel({ trade }: { trade: Trades }) {
             Move from entry to TP1, in units of risk.
           </span>
         </div>
-        <div className="flex flex-col gap-1 rounded-sm border border-bd-subtle bg-bg-elevated px-3 py-2.5">
+        <div className="flex flex-col gap-1 rounded-sm border border-bd-subtle bg-bg-base px-3 py-2.5">
           <span className="font-mono text-[9px] uppercase tracking-wider text-text-muted">
             TP2 reward
           </span>
@@ -312,7 +312,7 @@ function TradeAttributionPanel({ tradeId }: { tradeId: string }) {
 
   if (isLoading) {
     return (
-      <section className="rounded-md border border-bd-subtle bg-bg-surface p-5">
+      <section className="rounded-xl border border-bd-subtle bg-bg-surface p-5">
         <Skeleton className="h-4 w-40" />
         <Skeleton className="mt-3 h-16 w-full" />
       </section>
@@ -339,7 +339,7 @@ function TradeAttributionPanel({ tradeId }: { tradeId: string }) {
   ];
 
   return (
-    <section className="rounded-md border border-bd-subtle bg-bg-surface p-5">
+    <section className="rounded-xl border border-bd-subtle bg-bg-surface p-5">
       <header className="flex items-baseline justify-between">
         <div>
           <p className="font-mono text-[10px] uppercase tracking-wider text-text-muted">
@@ -358,7 +358,7 @@ function TradeAttributionPanel({ tradeId }: { tradeId: string }) {
         {legs.map((leg) => (
           <div
             key={leg.label}
-            className="flex flex-col gap-1 rounded-sm border border-bd-subtle bg-bg-elevated px-3 py-2.5"
+            className="flex flex-col gap-1 rounded-sm border border-bd-subtle bg-bg-base px-3 py-2.5"
           >
             <span className="font-mono text-[9px] uppercase tracking-wider text-text-muted">
               {leg.label}
@@ -463,7 +463,7 @@ function StatusBadge({ status }: { status: TradeStatus }) {
     );
   }
   return (
-    <span className="inline-flex items-center rounded-sm bg-bg-elevated px-2 py-0.5 text-[11px] font-semibold tracking-wider text-text-secondary">
+    <span className="inline-flex items-center rounded-sm bg-bg-base px-2 py-0.5 text-[11px] font-semibold tracking-wider text-text-secondary">
       Closed
     </span>
   );
@@ -488,7 +488,7 @@ function MetaTile({
   children: React.ReactNode;
 }) {
   return (
-    <div className="rounded-md border border-bd-subtle bg-bg-surface p-3">
+    <div className="rounded-xl border border-bd-subtle bg-bg-surface p-3">
       <div className="flex items-center gap-1.5">
         {Icon && <Icon size={11} strokeWidth={1.75} className="text-text-muted" />}
         <span className="label-caps">{label}</span>

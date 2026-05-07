@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useId, useMemo, useState } from 'react';
+import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   AlertTriangle,
@@ -18,7 +18,7 @@ import {
   X,
   XCircle,
 } from 'lucide-react';
-import { format, formatDistanceToNowStrict, subDays, subYears } from 'date-fns';
+import { format, formatDistanceToNowStrict, parseISO, subDays, subYears } from 'date-fns';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -474,7 +474,7 @@ function ScopeCard(props: ScopeCardProps) {
   const canSubmit = symbol.trim().length >= 3 && interval.length > 0 && !rangeError;
 
   return (
-    <section className="overflow-hidden rounded-md border border-bd-subtle bg-bg-surface">
+    <section className="overflow-hidden rounded-xl border border-bd-subtle bg-bg-surface">
       <header className="flex items-center gap-2.5 border-b border-bd-subtle px-4 py-3">
         <span
           aria-hidden="true"
@@ -611,7 +611,7 @@ interface CoverageCardProps {
 function CoverageCard({ query }: CoverageCardProps) {
   if (query.isLoading) {
     return (
-      <section className="rounded-md border border-bd-subtle bg-bg-surface p-4">
+      <section className="rounded-xl border border-bd-subtle bg-bg-surface p-4">
         <p className="inline-flex items-center gap-1.5 text-[12px] text-text-secondary">
           <Loader2 size={12} className="animate-spin" /> Inspecting coverage…
         </p>
@@ -620,7 +620,7 @@ function CoverageCard({ query }: CoverageCardProps) {
   }
   if (query.isError) {
     return (
-      <section className="rounded-md border border-bd-subtle bg-bg-surface p-4">
+      <section className="rounded-xl border border-bd-subtle bg-bg-surface p-4">
         <p className="inline-flex items-center gap-1.5 text-[12px] text-[var(--color-loss)]">
           <AlertTriangle size={12} /> Coverage failed: {normalizeError(query.error)}
         </p>
@@ -631,7 +631,7 @@ function CoverageCard({ query }: CoverageCardProps) {
 
   const r = query.data;
   return (
-    <section className="overflow-hidden rounded-md border border-bd-subtle bg-bg-surface">
+    <section className="overflow-hidden rounded-xl border border-bd-subtle bg-bg-surface">
       <header className="flex items-center justify-between border-b border-bd-subtle px-4 py-3">
         <div className="flex items-center gap-2.5">
           <span
@@ -850,7 +850,7 @@ function RepairActionsCard(props: RepairActionsCardProps) {
     return a && !a.disabled;
   });
   return (
-    <section className="overflow-hidden rounded-md border border-bd-subtle bg-bg-surface">
+    <section className="overflow-hidden rounded-xl border border-bd-subtle bg-bg-surface">
       <header className="flex items-center gap-2.5 border-b border-bd-subtle px-4 py-3">
         <span
           aria-hidden="true"
@@ -942,7 +942,7 @@ function RepairActionsCard(props: RepairActionsCardProps) {
 
 function ActiveJobsPanel({ jobIds, onDismiss }: { jobIds: string[]; onDismiss: () => void }) {
   return (
-    <section className="overflow-hidden rounded-md border border-bd-subtle bg-bg-surface">
+    <section className="overflow-hidden rounded-xl border border-bd-subtle bg-bg-surface">
       <header className="flex items-center justify-between border-b border-bd-subtle px-4 py-3">
         <div className="flex items-center gap-2.5">
           <span
@@ -1062,7 +1062,7 @@ function ProgressBar({ done, total }: { done: number; total: number }) {
 
 function StatusBadge({ status }: { status: JobStatus }) {
   const map: Record<JobStatus, { color: string; bg: string; label: string }> = {
-    PENDING: { color: 'var(--color-info)', bg: 'rgba(78,158,255,0.12)', label: 'PENDING' },
+    PENDING: { color: 'var(--color-info)', bg: 'rgba(59,130,246,0.12)', label: 'PENDING' },
     RUNNING: { color: 'var(--accent-primary)', bg: 'var(--accent-glow)', label: 'RUNNING' },
     SUCCESS: { color: 'var(--color-profit)', bg: 'rgba(46,196,138,0.12)', label: 'SUCCESS' },
     FAILED: { color: 'var(--color-loss)', bg: 'rgba(255,90,90,0.12)', label: 'FAILED' },
@@ -1086,7 +1086,7 @@ function RecentJobsPanel() {
   const list = useListJobs({ limit: 20 });
 
   return (
-    <section className="overflow-hidden rounded-md border border-bd-subtle bg-bg-surface">
+    <section className="overflow-hidden rounded-xl border border-bd-subtle bg-bg-surface">
       <button
         type="button"
         aria-expanded={expanded}
@@ -1213,6 +1213,12 @@ function BackfillCandleRangeCard({ onJobsSubmitted }: { onJobsSubmitted: (ids: s
   // mutateAsync settles — not after all parallel calls complete.
   const [isSubmitting, setIsSubmitting] = useState(false);
   const submit = useSubmitJob();
+  const mountedRef = useRef(true);
+  useEffect(() => {
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
 
   const rangeError = useMemo(() => {
     if (!from || !to) return 'Pick both start and end.';
@@ -1259,12 +1265,12 @@ function BackfillCandleRangeCard({ onJobsSubmitted }: { onJobsSubmitted: (ids: s
         });
       }
     } finally {
-      setIsSubmitting(false);
+      if (mountedRef.current) setIsSubmitting(false);
     }
   };
 
   return (
-    <section className="overflow-hidden rounded-md border border-bd-subtle bg-bg-surface">
+    <section className="overflow-hidden rounded-xl border border-bd-subtle bg-bg-surface">
       <header className="flex items-center gap-2.5 border-b border-bd-subtle px-4 py-3">
         <span
           aria-hidden="true"
@@ -1371,7 +1377,7 @@ function AdminNotice() {
     <div
       className="flex items-start gap-2.5 rounded-md border px-3 py-2.5"
       style={{
-        borderColor: 'rgba(78,158,255,0.35)',
+        borderColor: 'rgba(59,130,246,0.35)',
         backgroundColor: 'var(--bg-surface)',
       }}
     >

@@ -34,16 +34,16 @@ export function WizardBreadcrumb({ current, onStepClick, className }: WizardBrea
               disabled={!clickable}
               onClick={clickable ? () => onStepClick?.(step.id) : undefined}
               className={cn(
-                'group inline-flex items-center gap-1.5 rounded-sm px-1.5 py-1 transition-colors duration-fast',
+                'group inline-flex items-center gap-1.5 rounded-full px-2 py-1 transition-colors duration-fast',
                 'focus:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-                clickable ? 'cursor-pointer hover:bg-bg-elevated' : 'cursor-default',
+                clickable ? 'cursor-pointer hover:bg-bg-hover' : 'cursor-default',
               )}
               aria-current={isCurrent ? 'step' : undefined}
             >
               <span
                 aria-hidden="true"
                 className={cn(
-                  'flex h-[18px] w-[18px] items-center justify-center rounded-sm border font-mono text-[10px] font-semibold',
+                  'flex h-5 w-5 items-center justify-center rounded-full border font-mono text-[10px] font-semibold',
                   isCurrent && 'border-profit bg-tint-profit text-profit',
                   isDone && 'border-profit bg-profit text-text-inverse',
                   isFuture && 'border-bd text-text-muted',

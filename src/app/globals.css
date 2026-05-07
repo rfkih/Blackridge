@@ -1,8 +1,8 @@
 /* ─────────────────────────────────────────────────────────────────────
-   Meridian Edge — Dark Terminal Luxury × Paper Terminal
+   Machiavelli Technology — Algo / automated crypto trading
    Tokens for [data-theme="dark"] (default) and [data-theme="light"]
    Fonts are loaded via next/font in app/layout.tsx and exposed as
-   CSS vars: --font-geist-sans, --font-geist-mono, --font-jetbrains-mono
+   CSS vars: --font-jakarta, --font-jetbrains-mono
    ───────────────────────────────────────────────────────────────────── */
 
 @tailwind base;
@@ -11,26 +11,25 @@
 
 /* ── Shared tokens — radius, typography, motion ─────────────────────── */
 :root {
-  /* Radius — terminal-tight. No "pill" anything. */
-  --radius-sm: 3px;
-  --radius-md: 6px;
-  --radius-lg: 8px;
+  /* Radius — Machiavelli soft scale. Cards land at 20px, buttons/inputs at
+     12px, chips at 6px. Pill (9999px) used for CTAs and status tags. */
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+  --radius-pill: 9999px;
   --radius: var(--radius-md); /* shadcn default */
 
-  /* Typography families — next/font provides --font-inter, --font-jetbrains-mono,
-     and --font-fraunces.
-     Display = Fraunces serif: per the MONO-MINT design pack the hero serif is
-     the one thing pulling this out of generic-dark-dashboard territory.
-     Body = Inter. Numerics = Fraunces for big hero numerals (P&L, account
-     value), JetBrains Mono for dense tabular data.
-     Keep JetBrains Mono on --font-mono for the grid-like cells. */
-  --font-display: var(--font-fraunces), 'Instrument Serif', 'Fraunces', Georgia, serif;
-  --font-body: var(--font-inter), system-ui, -apple-system, Segoe UI, sans-serif;
-  --font-mono: var(--font-jetbrains-mono), ui-monospace, SFMono-Regular, Menlo, Consolas,
-    monospace;
-  /* Numeric hero face — distinct token so bottom-chrome can keep monospaced
-     tabular data while the top-of-page hero numbers pick up the serif. */
-  --font-num: var(--font-fraunces), var(--font-inter), 'Inter', sans-serif;
+  /* Typography families — next/font provides --font-jakarta and
+     --font-jetbrains-mono. Plus Jakarta Sans is geometric humanist; same
+     family powers display + body so the marketing chrome and the dashboard
+     read as one product. JetBrains Mono on every numeric cell. */
+  --font-display: var(--font-jakarta), system-ui, -apple-system, Segoe UI, sans-serif;
+  --font-body: var(--font-jakarta), system-ui, -apple-system, Segoe UI, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  /* Numeric hero face — kept as a distinct token so any callsite can opt
+     into a heavier display weight for big numerals. */
+  --font-num: var(--font-jakarta), system-ui, sans-serif;
 
   /* Motion */
   --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
@@ -45,196 +44,193 @@
 }
 
 /* ── DARK THEME (default) ────────────────────────────────────────────
-   Deeper blacks than v1. Near-black base with a single hairline layer
-   above it. Accent used surgically — one razor-thin line at a time. */
+   Machiavelli dark — warmer near-black base than the previous mono-mint
+   pass, emerald accent (#16B364) replacing the deep forest mint. Profit
+   and brand share the same hue: profit IS the brand. */
 :root,
 [data-theme='dark'] {
   color-scheme: dark;
 
-  /* Surfaces — MONO-MINT neutral scale, warm near-black base */
-  --bg-base: #0f1111;
-  --bg-surface: #191e20;
-  --bg-elevated: #222729;
-  --bg-overlay: #2c3134;
-  --bg-hover: #2c3134;
+  /* Surfaces — softer than pure black to keep dashboards comfortable
+     for long sessions. */
+  --bg-base: #0e1116;
+  --bg-surface: #14181f;
+  --bg-elevated: #171b22;
+  --bg-overlay: #1e232c;
+  --bg-hover: #1e232c;
 
-  /* Borders — barely-there → tangible (alpha for depth-independence) */
+  /* Borders */
   --border-subtle: rgba(255, 255, 255, 0.07);
   --border-default: rgba(255, 255, 255, 0.14);
   --border-strong: rgba(255, 255, 255, 0.24);
 
-  /* Text — MONO-MINT ink scale */
-  --text-primary: #f1f3f2;
-  --text-secondary: #c5c8c7;
-  --text-muted: #898d8c;
-  --text-inverse: #0f1111;
+  /* Text */
+  --text-primary: #f2f5f8;
+  --text-secondary: #c5ccd5;
+  --text-muted: #8c95a2;
+  --text-inverse: #0e1116;
 
-  /* Semantic — MONO-MINT design pack: deep forest profit + warm-coral loss.
-     Pack-final mint at L ≈ 26% — the design explicitly wants a near-black
-     green that reads institutional rather than the earlier neon teal.
-     Every rgba() that used to key off (52,232,181) / (31,200,150) now uses
-     (10,122,88) so glows and tints stay coherent with the new base. */
-  --color-profit: #0a7a58;
-  --color-loss: #ff7a7a;
-  --color-warning: #f3c95e;
-  --color-info: #5a9eff;
-  --color-neutral: #898d8c;
+  /* Semantic — Machiavelli emerald + warm coral. Brand and profit are
+     literally the same hue: when the user sees green, they see "win". */
+  --color-profit: #16b364;
+  --color-loss: #e5484d;
+  --color-warning: #f5a623;
+  --color-info: #3b82f6;
+  --color-neutral: #8c95a2;
 
-  /* Profit / loss soft tints for backgrounds (cell flash, pill bg) */
-  --tint-profit: rgba(10, 122, 88, 0.18);
-  --tint-loss: rgba(255, 122, 122, 0.12);
-  --tint-warning: rgba(243, 201, 94, 0.14);
-  --tint-info: rgba(90, 158, 255, 0.12);
+  /* Soft tints for backgrounds (cell flash, pill bg) */
+  --tint-profit: rgba(22, 179, 100, 0.16);
+  --tint-loss: rgba(229, 72, 77, 0.14);
+  --tint-warning: rgba(245, 166, 35, 0.16);
+  --tint-info: rgba(59, 130, 246, 0.14);
 
   /* Flash for PnlCell tick animation */
-  --flash-profit: rgba(10, 122, 88, 0.24);
-  --flash-loss: rgba(255, 122, 122, 0.18);
+  --flash-profit: rgba(22, 179, 100, 0.28);
+  --flash-loss: rgba(229, 72, 77, 0.22);
 
-  /* Interactive blue — buttons, focus rings, links. Separate from profit so
-     clicking something doesn't read as "this number went up". */
-  --color-interactive: #4a8fff;
+  /* Interactive — emerald. Brand-led product, not a generic blue CTA. */
+  --color-interactive: #16b364;
   --color-bot: #a855f7;
 
-  /* Accent = interactive blue. Profit/loss keep their own semantic tokens. */
   --accent-primary: var(--color-interactive);
-  --accent-subtle: rgba(74, 143, 255, 0.22);
-  --accent-glow: rgba(74, 143, 255, 0.14);
+  --accent-subtle: rgba(22, 179, 100, 0.22);
+  --accent-glow: rgba(22, 179, 100, 0.14);
 
   --shadow-panel: 0 0 0 1px var(--border-subtle), 0 1px 2px rgba(0, 0, 0, 0.4);
   --shadow-float: 0 0 0 1px var(--border-default), 0 8px 32px rgba(0, 0, 0, 0.48);
-  --shadow-glow-profit: 0 0 16px rgba(10, 122, 88, 0.32);
-  --shadow-glow-loss: 0 0 16px rgba(255, 122, 122, 0.22);
+  --shadow-glow-profit: 0 0 18px rgba(22, 179, 100, 0.34);
+  --shadow-glow-loss: 0 0 16px rgba(229, 72, 77, 0.22);
 
-  --ring: 217 100% 64%;
+  --ring: 152 78% 40%;
 
-  /* ── shadcn/ui HSL vars ─────────── */
-  --background: 180 8% 7%;
-  --foreground: 150 3% 95%;
-  --card: 195 7% 12%;
-  --card-foreground: 150 3% 95%;
-  --popover: 195 7% 14%;
-  --popover-foreground: 150 3% 95%;
-  --primary: 217 100% 64%;
+  /* ── shadcn/ui HSL vars — emerald-led ─────────── */
+  --background: 218 23% 7%;
+  --foreground: 215 18% 96%;
+  --card: 217 19% 11%;
+  --card-foreground: 215 18% 96%;
+  --popover: 217 19% 13%;
+  --popover-foreground: 215 18% 96%;
+  --primary: 152 78% 40%;
   --primary-foreground: 0 0% 100%;
-  --secondary: 195 6% 17%;
-  --secondary-foreground: 150 3% 95%;
-  --muted: 195 6% 15%;
-  --muted-foreground: 180 3% 55%;
-  --accent: 195 6% 19%;
-  --accent-foreground: 150 3% 95%;
-  --destructive: 0 100% 74%;
+  --secondary: 217 14% 17%;
+  --secondary-foreground: 215 18% 96%;
+  --muted: 217 14% 15%;
+  --muted-foreground: 217 11% 60%;
+  --accent: 152 78% 40%;
+  --accent-foreground: 0 0% 100%;
+  --destructive: 358 75% 59%;
   --destructive-foreground: 0 0% 100%;
-  --border: 180 3% 20%;
-  --input: 180 3% 20%;
+  --border: 217 12% 20%;
+  --input: 217 12% 20%;
 
-  /* Charts — Recharts/TV series colors paired to the MONO-MINT palette. */
-  --chart-1: 162 78% 56%; /* profit · mint */
-  --chart-2: 0 100% 74%;  /* loss  · coral */
-  --chart-3: 217 100% 64%; /* interactive · blue */
-  --chart-4: 44 86% 66%;  /* warning · amber */
-  --chart-5: 180 3% 55%;  /* neutral */
+  /* Charts — Recharts/TV series colors paired to the Machiavelli palette. */
+  --chart-1: 152 78% 40%; /* profit · emerald */
+  --chart-2: 358 75% 59%; /* loss · coral */
+  --chart-3: 217 91% 60%; /* info · blue */
+  --chart-4: 36 91% 55%; /* warning · amber */
+  --chart-5: 217 11% 60%; /* neutral */
 
-  --sidebar: 180 8% 7%;
-  --sidebar-foreground: 150 3% 95%;
-  --sidebar-primary: 217 100% 64%;
+  --sidebar: 218 23% 7%;
+  --sidebar-foreground: 215 18% 96%;
+  --sidebar-primary: 152 78% 40%;
   --sidebar-primary-foreground: 0 0% 100%;
-  --sidebar-accent: 195 6% 15%;
-  --sidebar-accent-foreground: 150 3% 95%;
-  --sidebar-border: 180 3% 16%;
-  --sidebar-ring: 217 100% 64%;
+  --sidebar-accent: 217 14% 15%;
+  --sidebar-accent-foreground: 215 18% 96%;
+  --sidebar-border: 217 12% 17%;
+  --sidebar-ring: 152 78% 40%;
 }
 
-/* ── LIGHT THEME — "Platinum Terminal" ──────────────────────────────
-   Warm-neutral stone (NOT cream/yellow). Think Swiss private bank,
-   Hermès boutique card stock, not a legal pad. Hue pulled toward
-   neutral-warm-grey (~hue 36, sat 8–14%); ink-black type remains.
-   Profit/loss deepened for WCAG AA on the brighter paper. */
+/* ── LIGHT THEME — Machiavelli daylight ──────────────────────────────
+   Bright, friendly, optimistic — Gotrade-influenced. White base with a
+   hair of green-tinted surface. Emerald is the single brand accent;
+   profit/loss share the brand vs coral pairing from the dark theme. */
 [data-theme='light'] {
   color-scheme: light;
 
-  /* Surfaces — MONO-MINT cool-neutral paper */
-  --bg-base: #f4f5f4;
+  /* Surfaces — slightly green-tinted page bg (`--bg-base`), pure white
+     cards (`--bg-surface`) so panels lift visibly above the page. The
+     legacy "surface = tinted, elevated = white" semantic was inverted in
+     the dark→light port: in light themes the page IS the tinted layer and
+     cards are the elevated white. */
+  --bg-base: #f7faf8;
   --bg-surface: #ffffff;
-  --bg-elevated: #f8f9f8;
-  --bg-overlay: #eeefee;
-  --bg-hover: #eeefee;
+  --bg-elevated: #ffffff;
+  --bg-overlay: #f2f5f4;
+  --bg-hover: #f2f5f4;
 
-  /* Borders — warm-neutral hairlines */
-  --border-subtle: rgba(15, 17, 17, 0.08);
-  --border-default: rgba(15, 17, 17, 0.16);
-  --border-strong: rgba(15, 17, 17, 0.32);
+  /* Borders — soft slate hairlines */
+  --border-subtle: rgba(14, 17, 22, 0.06);
+  --border-default: rgba(14, 17, 22, 0.1);
+  --border-strong: rgba(14, 17, 22, 0.22);
 
-  /* Text — deep ink scale */
-  --text-primary: #0f1111;
-  --text-secondary: #2b2e2e;
-  --text-muted: #6b6f6e;
+  /* Text — ink scale from the design pack */
+  --text-primary: #0e1116;
+  --text-secondary: #384151;
+  --text-muted: #6b7280;
   --text-inverse: #ffffff;
 
-  /* Semantic — MONO-MINT design pack light variant. Even deeper than the
-     dark theme's mint because on pale paper, `#0A7A58` reads too bright —
-     #044D39 gives the institutional-quiet feel the design asks for while
-     keeping AA contrast for body-size profit numbers. */
-  --color-profit: #044d39;
-  --color-loss: #cb4c4c;
-  --color-warning: #b78620;
-  --color-info: #1b56bc;
-  --color-neutral: #6b6f6e;
+  /* Semantic — emerald + coral, deepened slightly for WCAG AA on white */
+  --color-profit: #0e9f50;
+  --color-loss: #e5484d;
+  --color-warning: #d68910;
+  --color-info: #2563eb;
+  --color-neutral: #6b7280;
 
-  --tint-profit: rgba(4, 77, 57, 0.14);
-  --tint-loss: rgba(203, 76, 76, 0.10);
-  --tint-warning: rgba(183, 134, 32, 0.12);
-  --tint-info: rgba(27, 86, 188, 0.10);
+  --tint-profit: rgba(22, 179, 100, 0.12);
+  --tint-loss: rgba(229, 72, 77, 0.1);
+  --tint-warning: rgba(245, 166, 35, 0.14);
+  --tint-info: rgba(59, 130, 246, 0.1);
 
-  --flash-profit: rgba(4, 77, 57, 0.22);
-  --flash-loss: rgba(203, 76, 76, 0.16);
+  --flash-profit: rgba(22, 179, 100, 0.22);
+  --flash-loss: rgba(229, 72, 77, 0.16);
 
-  --color-interactive: #1b56bc;
+  --color-interactive: #16b364;
   --color-bot: #7c3aed;
 
   --accent-primary: var(--color-interactive);
-  --accent-subtle: rgba(27, 86, 188, 0.20);
-  --accent-glow: rgba(27, 86, 188, 0.10);
+  --accent-subtle: rgba(22, 179, 100, 0.16);
+  --accent-glow: rgba(22, 179, 100, 0.1);
 
-  --shadow-panel: 0 0 0 1px var(--border-subtle), 0 1px 2px rgba(15, 17, 17, 0.04);
-  --shadow-float: 0 0 0 1px var(--border-default), 0 12px 32px rgba(15, 17, 17, 0.08);
-  --shadow-glow-profit: 0 0 12px rgba(4, 77, 57, 0.22);
-  --shadow-glow-loss: 0 0 12px rgba(203, 76, 76, 0.14);
+  --shadow-panel: 0 1px 2px rgba(15, 23, 42, 0.04), 0 1px 1px rgba(15, 23, 42, 0.03);
+  --shadow-float: 0 12px 32px rgba(15, 23, 42, 0.08), 0 2px 8px rgba(15, 23, 42, 0.04);
+  --shadow-glow-profit: 0 8px 28px rgba(22, 179, 100, 0.18);
+  --shadow-glow-loss: 0 8px 28px rgba(229, 72, 77, 0.18);
 
-  --ring: 219 74% 43%;
+  --ring: 152 78% 40%;
 
-  --background: 120 6% 96%;
-  --foreground: 180 8% 7%;
+  --background: 0 0% 100%;
+  --foreground: 220 16% 8%;
   --card: 0 0% 100%;
-  --card-foreground: 180 8% 7%;
+  --card-foreground: 220 16% 8%;
   --popover: 0 0% 100%;
-  --popover-foreground: 180 8% 7%;
-  --primary: 219 74% 43%;
+  --popover-foreground: 220 16% 8%;
+  --primary: 152 78% 40%;
   --primary-foreground: 0 0% 100%;
-  --secondary: 120 4% 94%;
-  --secondary-foreground: 180 8% 7%;
-  --muted: 120 4% 93%;
-  --muted-foreground: 180 2% 43%;
-  --accent: 120 4% 94%;
-  --accent-foreground: 180 8% 7%;
-  --destructive: 0 56% 54%;
+  --secondary: 150 18% 97%;
+  --secondary-foreground: 220 16% 8%;
+  --muted: 150 14% 95%;
+  --muted-foreground: 220 9% 45%;
+  --accent: 152 78% 40%;
+  --accent-foreground: 0 0% 100%;
+  --destructive: 358 75% 59%;
   --destructive-foreground: 0 0% 100%;
-  --border: 180 4% 90%;
-  --input: 180 4% 90%;
+  --border: 220 12% 92%;
+  --input: 220 12% 92%;
 
-  --chart-1: 164 85% 34%;
-  --chart-2: 0 56% 54%;
-  --chart-3: 219 74% 43%;
-  --chart-4: 36 70% 42%;
-  --chart-5: 180 2% 43%;
+  --chart-1: 152 78% 40%;
+  --chart-2: 358 75% 59%;
+  --chart-3: 217 91% 50%;
+  --chart-4: 36 91% 48%;
+  --chart-5: 220 9% 45%;
 
-  --sidebar: 120 6% 96%;
-  --sidebar-foreground: 180 8% 7%;
-  --sidebar-primary: 219 74% 43%;
+  --sidebar: 220 16% 8%;
+  --sidebar-foreground: 215 18% 96%;
+  --sidebar-primary: 152 78% 40%;
   --sidebar-primary-foreground: 0 0% 100%;
-  --sidebar-accent: 120 4% 94%;
-  --sidebar-accent-foreground: 180 8% 7%;
-  --sidebar-border: 180 4% 90%;
-  --sidebar-ring: 219 74% 43%;
+  --sidebar-accent: 217 14% 15%;
+  --sidebar-accent-foreground: 215 18% 96%;
+  --sidebar-border: 217 12% 17%;
+  --sidebar-ring: 152 78% 40%;
 }
 
 /* First-paint respect for OS preference when the user hasn't explicitly
@@ -479,84 +475,127 @@ pre {
 }
 
 /* ─────────────────────────────────────────────────────────────────────
-   MONO-MINT — neutral grayscale scale + single mint accent.
-   Dark primary, light alt. Consumer-friendly aesthetic with softer
-   radii (20–24px), rounded pills, and a Fraunces display serif for
-   hero numbers. Coexists with the base tokens above; components opt
-   in via the `.mm` namespace and `mm-*` utility classes.
+   Machiavelli — emerald accent + Plus Jakarta Sans display/body.
+   The `mm-*` utility namespace persists from the prior MONO-MINT pass
+   so the app's existing components still pick up the right tokens; the
+   variable values are retuned to the Machiavelli palette + typography.
+   `mm-mint` keeps its name to avoid a churn rename across the codebase.
    ───────────────────────────────────────────────────────────────────── */
-.mm,
-[data-theme='dark'] .mm,
-[data-theme='dark'].mm {
-  /* Type */
-  --mm-display: var(--font-fraunces), 'Instrument Serif', Georgia, serif;
-  --mm-sans: var(--font-inter), 'Söhne', system-ui, sans-serif;
-  --mm-num: var(--font-fraunces), var(--font-inter), sans-serif;
+/* Default `.mm` scope — typography (theme-agnostic) plus the dark
+   token scale. Light-theme override block follows; an explicit dark
+   override block follows that, so `[data-theme='dark'].mm` wins over
+   `[data-theme='light'] .mm` at equal specificity (CSS source order
+   tiebreak). This is what allows the sidebar to be pinned dark while
+   the rest of the app runs in light mode. */
+.mm {
+  /* Type — single sans for display + body, mono for numerics */
+  --mm-display: var(--font-jakarta), system-ui, sans-serif;
+  --mm-sans: var(--font-jakarta), system-ui, sans-serif;
+  --mm-num: var(--font-jakarta), system-ui, sans-serif;
   --mm-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
 
-  /* Dark neutral scale */
-  --mm-bg: #0f1111;
-  --mm-bg-2: #14181a;
-  --mm-surface: #191e20;
-  --mm-surface-2: #222729;
-  --mm-surface-3: #2c3134;
+  /* Dark neutral scale (default values; overridden below for light) */
+  --mm-bg: #0e1116;
+  --mm-bg-2: #14181f;
+  --mm-surface: #171b22;
+  --mm-surface-2: #1e232c;
+  --mm-surface-3: #262d38;
   --mm-hair: rgba(255, 255, 255, 0.07);
   --mm-hair-2: rgba(255, 255, 255, 0.14);
 
-  --mm-ink-0: #f1f3f2;
-  --mm-ink-1: #c5c8c7;
-  --mm-ink-2: #898d8c;
-  --mm-ink-3: #5a5e5d;
+  --mm-ink-0: #f2f5f8;
+  --mm-ink-1: #c5ccd5;
+  --mm-ink-2: #8c95a2;
+  --mm-ink-3: #5a6371;
 
-  --mm-mint: #0a7a58;
-  --mm-mint-2: #065b40;
-  --mm-mint-soft: rgba(10, 122, 88, 0.18);
-  --mm-mint-edge: rgba(10, 122, 88, 0.42);
+  --mm-mint: #16b364;
+  --mm-mint-2: #0e9f50;
+  --mm-mint-soft: rgba(22, 179, 100, 0.16);
+  --mm-mint-edge: rgba(22, 179, 100, 0.45);
+  --mm-mint-on: #ffffff;
 
-  --mm-up: #0a7a58;
-  --mm-up-soft: rgba(10, 122, 88, 0.18);
-  --mm-dn: #ff7a7a;
-  --mm-dn-soft: rgba(255, 122, 122, 0.12);
-  --mm-warn: #f3c95e;
-  --mm-warn-soft: rgba(243, 201, 94, 0.14);
+  --mm-up: #16b364;
+  --mm-up-soft: rgba(22, 179, 100, 0.16);
+  --mm-dn: #e5484d;
+  --mm-dn-soft: rgba(229, 72, 77, 0.14);
+  --mm-warn: #f5a623;
+  --mm-warn-soft: rgba(245, 166, 35, 0.16);
 
-  --mm-interactive: #4a8fff;
-  --mm-interactive-soft: rgba(74, 143, 255, 0.18);
+  --mm-interactive: #16b364;
+  --mm-interactive-soft: rgba(22, 179, 100, 0.18);
   --mm-bot: #a855f7;
   --mm-bot-soft: rgba(168, 85, 247, 0.15);
 }
 
 [data-theme='light'] .mm,
 [data-theme='light'].mm {
-  --mm-bg: #f4f5f4;
-  --mm-bg-2: #ecedec;
+  --mm-bg: #ffffff;
+  --mm-bg-2: #f7faf8;
   --mm-surface: #ffffff;
-  --mm-surface-2: #f8f9f8;
-  --mm-surface-3: #eeefee;
-  --mm-hair: rgba(15, 17, 17, 0.08);
-  --mm-hair-2: rgba(15, 17, 17, 0.16);
+  --mm-surface-2: #f7faf8;
+  --mm-surface-3: #f2f5f4;
+  --mm-hair: rgba(14, 17, 22, 0.06);
+  --mm-hair-2: rgba(14, 17, 22, 0.1);
 
-  --mm-ink-0: #0f1111;
-  --mm-ink-1: #2b2e2e;
-  --mm-ink-2: #6b6f6e;
-  --mm-ink-3: #9a9e9d;
+  --mm-ink-0: #0e1116;
+  --mm-ink-1: #384151;
+  --mm-ink-2: #6b7280;
+  --mm-ink-3: #a8b0bc;
 
-  --mm-mint: #044d39;
-  --mm-mint-2: #023424;
-  --mm-mint-soft: rgba(4, 77, 57, 0.14);
-  --mm-mint-edge: rgba(4, 77, 57, 0.42);
+  --mm-mint: #0e9f50;
+  --mm-mint-2: #0a7e3f;
+  --mm-mint-soft: rgba(22, 179, 100, 0.12);
+  --mm-mint-edge: rgba(22, 179, 100, 0.45);
+  --mm-mint-on: #ffffff;
 
-  --mm-up: #044d39;
-  --mm-up-soft: rgba(4, 77, 57, 0.14);
-  --mm-dn: #cb4c4c;
-  --mm-dn-soft: rgba(203, 76, 76, 0.1);
-  --mm-warn: #b78620;
-  --mm-warn-soft: rgba(183, 134, 32, 0.12);
+  --mm-up: #0e9f50;
+  --mm-up-soft: rgba(22, 179, 100, 0.12);
+  --mm-dn: #e5484d;
+  --mm-dn-soft: rgba(229, 72, 77, 0.1);
+  --mm-warn: #d68910;
+  --mm-warn-soft: rgba(245, 166, 35, 0.14);
 
-  --mm-interactive: #1b56bc;
-  --mm-interactive-soft: rgba(27, 86, 188, 0.14);
+  --mm-interactive: #16b364;
+  --mm-interactive-soft: rgba(22, 179, 100, 0.12);
   --mm-bot: #7c3aed;
-  --mm-bot-soft: rgba(124, 58, 237, 0.12);
+  --mm-bot-soft: rgba(124, 58, 237, 0.1);
+}
+
+/* Explicit dark override — wins over the light block above by source
+   order. Used by elements that pin themselves dark regardless of root
+   theme (sidebar, auth pages, marketing hero). */
+[data-theme='dark'] .mm,
+[data-theme='dark'].mm {
+  --mm-bg: #0e1116;
+  --mm-bg-2: #14181f;
+  --mm-surface: #171b22;
+  --mm-surface-2: #1e232c;
+  --mm-surface-3: #262d38;
+  --mm-hair: rgba(255, 255, 255, 0.07);
+  --mm-hair-2: rgba(255, 255, 255, 0.14);
+
+  --mm-ink-0: #f2f5f8;
+  --mm-ink-1: #c5ccd5;
+  --mm-ink-2: #8c95a2;
+  --mm-ink-3: #5a6371;
+
+  --mm-mint: #16b364;
+  --mm-mint-2: #0e9f50;
+  --mm-mint-soft: rgba(22, 179, 100, 0.16);
+  --mm-mint-edge: rgba(22, 179, 100, 0.45);
+  --mm-mint-on: #ffffff;
+
+  --mm-up: #16b364;
+  --mm-up-soft: rgba(22, 179, 100, 0.16);
+  --mm-dn: #e5484d;
+  --mm-dn-soft: rgba(229, 72, 77, 0.14);
+  --mm-warn: #f5a623;
+  --mm-warn-soft: rgba(245, 166, 35, 0.16);
+
+  --mm-interactive: #16b364;
+  --mm-interactive-soft: rgba(22, 179, 100, 0.18);
+  --mm-bot: #a855f7;
+  --mm-bot-soft: rgba(168, 85, 247, 0.15);
 }
 
 .mm {
@@ -566,15 +605,15 @@ pre {
 
 .mm-display {
   font-family: var(--mm-display);
-  font-weight: 400;
-  letter-spacing: -0.03em;
+  font-weight: 700;
+  letter-spacing: -0.02em;
 }
 
 .mm-num {
   font-family: var(--mm-num);
   font-variant-numeric: tabular-nums;
-  font-weight: 500;
-  letter-spacing: -0.02em;
+  font-weight: 700;
+  letter-spacing: -0.015em;
 }
 
 .mm-mono {
@@ -593,7 +632,9 @@ pre {
   border-radius: 20px;
 }
 .mm-card-lift {
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 8px 24px -8px rgba(0, 0, 0, 0.06);
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.04),
+    0 8px 24px -8px rgba(0, 0, 0, 0.06);
 }
 
 .mm-eyebrow {
@@ -623,7 +664,10 @@ pre {
   cursor: pointer;
   font-family: var(--mm-sans);
   white-space: nowrap;
-  transition: background 120ms, color 120ms, border-color 120ms;
+  transition:
+    background 120ms,
+    color 120ms,
+    border-color 120ms;
 }
 .mm-pill:hover {
   background: var(--mm-surface-2);
@@ -640,9 +684,9 @@ pre {
 }
 .mm-pill-mint {
   background: var(--mm-mint);
-  color: var(--mm-bg);
+  color: var(--mm-mint-on);
   border-color: var(--mm-mint);
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .mm-chip {
@@ -742,12 +786,15 @@ pre {
   background: var(--mm-surface-2);
 }
 .mm-nav-active {
-  background: var(--mm-surface-2);
+  background: rgba(22, 179, 100, 0.16);
   color: var(--mm-ink-0);
-  font-weight: 500;
+  font-weight: 600;
+}
+.mm-nav-active:hover {
+  background: rgba(22, 179, 100, 0.2);
 }
 [data-theme='light'] .mm-nav-active {
-  background: var(--mm-bg-2);
+  background: rgba(22, 179, 100, 0.14);
 }
 
 .mm-btn {
@@ -761,19 +808,22 @@ pre {
   background: transparent;
   color: var(--mm-ink-0);
   white-space: nowrap;
-  transition: background 120ms, color 120ms;
+  transition:
+    background 120ms,
+    color 120ms;
 }
 .mm-btn:hover {
   background: var(--mm-surface-2);
 }
 .mm-btn-mint {
   background: var(--mm-mint);
-  color: var(--mm-bg);
+  color: var(--mm-mint-on);
   border-color: var(--mm-mint);
 }
 .mm-btn-mint:hover {
   background: var(--mm-mint-2);
-  color: var(--mm-bg);
+  color: var(--mm-mint-on);
+  box-shadow: 0 8px 28px rgba(22, 179, 100, 0.22);
 }
 .mm-btn-ghost {
   background: transparent;
@@ -810,7 +860,9 @@ pre {
   font-family: var(--mm-sans);
   font-size: 14px;
   outline: none;
-  transition: border-color 120ms, background 120ms;
+  transition:
+    border-color 120ms,
+    background 120ms;
 }
 .mm-input::placeholder {
   color: var(--mm-ink-3);
@@ -858,7 +910,7 @@ pre {
 
 .mm-callout {
   background: var(--mm-mint);
-  color: var(--mm-bg);
+  color: var(--mm-mint-on);
   padding: 4px 10px;
   border-radius: 8px;
   font-family: var(--mm-num);
@@ -888,6 +940,32 @@ input[type='number'].no-native-spinners {
    column at narrow widths. Added as overrides rather than refactoring
    each inline style so we can ship the mobile pass without churning
    every page. */
+
+/* Dashboard position row hover — subtle row tint to match the design's
+   bot-row hover state. Selector is namespaced (`.position-row`) to avoid
+   colliding with shadcn list items. */
+.position-row:hover {
+  background: var(--mm-bg-2);
+}
+
+/* Dashboard hero row: balance + 2 stat cards (1.5fr 1fr 1fr). Collapses
+   to a 1+2 stack at the laptop breakpoint, then full stack on phones. */
+@media (max-width: 1100px) {
+  .dashboard-hero-row {
+    grid-template-columns: 1fr 1fr !important;
+  }
+  .dashboard-hero-row > :first-child {
+    grid-column: 1 / -1;
+  }
+}
+@media (max-width: 640px) {
+  .dashboard-hero-row {
+    grid-template-columns: 1fr !important;
+  }
+  .dashboard-hero-row > :first-child {
+    grid-column: auto;
+  }
+}
 
 @media (max-width: 720px) {
   /* Settings page: 260px nav + content → stack the nav on top. */

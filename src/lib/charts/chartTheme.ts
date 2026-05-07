@@ -1,35 +1,36 @@
 // Shared TradingView chart theme constants.
-// TV/Recharts need raw hex values (canvas-based, can't resolve CSS vars at paint
-// time). Keep these in lockstep with the MONO-MINT tokens in globals.css — if
-// you edit `--color-profit` or `--bg-surface`, mirror the change here.
+// TV charts are canvas-based and can't resolve CSS vars at paint time, so
+// we keep a resolved hex copy here. Values mirror the Machiavelli dark
+// scale in globals.css — if you change `--color-profit` or `--bg-surface`
+// for the dark theme, mirror it here.
 
 export const TV = {
-  BG: '#0F1111',
-  SURFACE: '#191E20',
-  TEXT: '#C5C8C7',
-  TEXT_MUTED: '#898D8C',
-  GRID: '#222729',
-  BORDER: '#2C3134',
-  CROSSHAIR: '#898D8C',
-  LABEL_BG: '#222729',
-  PROFIT: '#0A7A58',
-  LOSS: '#FF7A7A',
-  INFO: '#5A9EFF',
-  WARNING: '#F3C95E',
-  NEUTRAL: '#898D8C',
+  BG: '#0E1116',
+  SURFACE: '#171B22',
+  TEXT: '#C5CCD5',
+  TEXT_MUTED: '#8C95A2',
+  GRID: '#1E232C',
+  BORDER: '#262D38',
+  CROSSHAIR: '#8C95A2',
+  LABEL_BG: '#1E232C',
+  PROFIT: '#16B364',
+  LOSS: '#E5484D',
+  INFO: '#3B82F6',
+  WARNING: '#F5A623',
+  NEUTRAL: '#8C95A2',
 } as const;
 
 export const INDICATOR_COLORS = {
-  ema20: '#5A9EFF',
-  ema50: '#F3C95E',
+  ema20: '#3B82F6',
+  ema50: '#F5A623',
   ema200: '#A855F7',
-  bb: '#898D8C',
-  kc: '#065B40',
+  bb: '#8C95A2',
+  kc: '#0A7E3F',
   rsi: '#EC4899',
-  macdLine: '#5A9EFF',
-  macdSignal: '#F3C95E',
-  macdUp: 'rgba(10, 122, 88, 0.75)',
-  macdDown: 'rgba(255, 122, 122, 0.7)',
+  macdLine: '#3B82F6',
+  macdSignal: '#F5A623',
+  macdUp: 'rgba(22,179,100, 0.75)',
+  macdDown: 'rgba(229,72,77, 0.7)',
 } as const;
 
 export const REFETCH_INTERVALS: Record<string, number> = {

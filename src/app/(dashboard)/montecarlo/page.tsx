@@ -476,7 +476,7 @@ function PercentileLedger({ result }: { result: MonteCarloResult }) {
               gap: 10,
               alignItems: 'center',
               padding: '10px 12px',
-              borderRadius: 8,
+              borderRadius: 12,
               background: r.highlight ? 'var(--mm-surface-2)' : 'transparent',
             }}
           >

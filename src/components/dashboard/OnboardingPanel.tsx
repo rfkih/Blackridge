@@ -132,7 +132,7 @@ export function OnboardingPanel() {
 
   return (
     <section
-      className="rounded-md border border-bd-subtle bg-bg-surface p-4"
+      className="rounded-xl border border-bd-subtle bg-bg-surface p-4"
       aria-labelledby="onboarding-heading"
     >
       <header className="mb-3 flex items-center justify-between">
@@ -141,7 +141,7 @@ export function OnboardingPanel() {
             aria-hidden="true"
             className="flex h-7 w-7 items-center justify-center rounded-sm"
             style={{
-              background: 'rgba(78,158,255,0.12)',
+              background: 'rgba(59,130,246,0.12)',
               color: 'var(--color-info)',
             }}
           >
@@ -198,7 +198,7 @@ function OnboardingStep({ step, isFocus }: { step: Step; isFocus: boolean }) {
     <li
       className={`flex items-start gap-3 rounded-sm border px-3 py-2.5 transition-colors ${
         step.done
-          ? 'border-[var(--color-profit)]/30 bg-[rgba(0,200,150,0.06)]'
+          ? 'border-[var(--color-profit)]/30 bg-[rgba(22,179,100,0.06)]'
           : isFocus
             ? 'border-[var(--accent-primary)] bg-[var(--bg-elevated)]'
             : 'border-bd-subtle bg-bg-surface'
@@ -210,7 +210,7 @@ function OnboardingStep({ step, isFocus }: { step: Step; isFocus: boolean }) {
         className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-sm"
         style={{
           background: step.done
-            ? 'rgba(0,200,150,0.15)'
+            ? 'rgba(22,179,100,0.15)'
             : isFocus
               ? 'var(--accent-glow)'
               : 'var(--bg-elevated)',
@@ -241,7 +241,7 @@ function OnboardingStep({ step, isFocus }: { step: Step; isFocus: boolean }) {
           className={`inline-flex shrink-0 items-center gap-1 rounded-sm border px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.14em] transition-colors ${
             isFocus
               ? 'border-[var(--accent-primary)] bg-[var(--accent-primary)] text-[var(--text-inverse)] hover:opacity-90'
-              : 'border-bd-subtle bg-bg-elevated text-text-primary hover:bg-bg-hover'
+              : 'border-bd-subtle bg-bg-base text-text-primary hover:bg-bg-hover'
           }`}
         >
           {step.cta.label}

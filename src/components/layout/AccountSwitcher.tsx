@@ -94,7 +94,7 @@ export function AccountSwitcher() {
             className={cn(
               'inline-flex h-7 max-w-[220px] items-center gap-2 rounded-sm border px-2 transition-colors duration-fast',
               'border-bd-subtle bg-bg-surface text-text-primary',
-              'hover:border-bd hover:bg-bg-elevated',
+              'hover:border-bd hover:bg-bg-hover',
               'focus:outline-none focus-visible:ring-2 focus-visible:ring-ring',
             )}
           >
@@ -173,21 +173,24 @@ export function AccountSwitcher() {
 }
 
 function AccountAvatar({ account, isAll }: { account: AccountSummary | null; isAll: boolean }) {
+  // bg-bg-base resolves to white in light mode → would be invisible
+  // against the white popover/card. Use bg-tint-profit (for "all") or
+  // bg-bg-hover (for the inactive avatar) so the tile is always visible.
   if (isAll) {
     return (
-      <span className="flex size-5 shrink-0 items-center justify-center rounded-sm bg-bg-elevated text-profit">
+      <span className="flex size-5 shrink-0 items-center justify-center rounded-sm bg-tint-profit text-profit">
         <Layers size={11} strokeWidth={1.75} />
       </span>
     );
   }
   if (!account) {
-    return <span className="size-5 shrink-0 rounded-sm bg-bg-elevated" aria-hidden="true" />;
+    return <span className="size-5 shrink-0 rounded-sm bg-bg-hover" aria-hidden="true" />;
   }
   return (
     <span
       className={cn(
         'flex size-5 shrink-0 items-center justify-center rounded-sm font-mono text-[9px] font-semibold',
-        account.active ? 'bg-tint-profit text-profit' : 'bg-bg-elevated text-text-muted',
+        account.active ? 'bg-tint-profit text-profit' : 'bg-bg-hover text-text-muted',
       )}
       aria-hidden="true"
     >
@@ -218,7 +221,7 @@ function AccountOption({
       onSelect={onSelect}
       className={cn(
         'flex cursor-pointer items-center gap-2.5 px-2 py-1.5 text-[12px]',
-        selected ? 'bg-bg-elevated' : '',
+        selected ? 'bg-bg-hover' : '',
       )}
     >
       {icon}

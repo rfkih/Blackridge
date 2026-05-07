@@ -30,8 +30,10 @@ import {
   Binary,
   GitBranch,
   ChevronRight,
+  Bot,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { LogoMark } from '@/components/brand/Logo';
 import { useAuth } from '@/hooks/useAuth';
 import { useIsAdmin } from '@/hooks/useIsAdmin';
 import { usePnlSummary } from '@/hooks/useTrades';
@@ -71,6 +73,7 @@ const ADMIN_NAV_ITEMS: NavItem[] = [
   { label: 'Spec Trace', href: '/admin/spec-trace', icon: Binary },
   { label: 'Spec History', href: '/admin/strategy-history', icon: GitBranch },
   { label: 'Research Log', href: '/research/log', icon: Microscope },
+  { label: 'Research Activity', href: '/admin/research-activity', icon: Bot },
 ];
 
 interface SidebarProps {
@@ -118,15 +121,22 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       )}
 
       <aside
+        data-theme="dark"
         className={cn(
-          'fixed left-0 top-0 z-40 flex h-full w-[240px] flex-col',
+          'mm fixed left-0 top-0 z-40 flex h-full w-[240px] flex-col',
           'transition-transform duration-base ease-out-quart',
           isOpen ? 'translate-x-0' : '-translate-x-full',
           'lg:static lg:z-auto lg:translate-x-0',
         )}
         style={{
           padding: '24px 18px 20px',
-          background: 'var(--mm-bg)',
+          // Sidebar is always dark — page body switches with theme, but the
+          // chrome stays consistent so the emerald active state reads
+          // identically in both modes. data-theme="dark" + .mm pin the
+          // sidebar's mm-* tokens to the dark scale regardless of root theme.
+          background: '#0E1116',
+          color: '#F2F5F8',
+          borderRight: '1px solid rgba(255,255,255,0.06)',
           gap: 4,
         }}
         aria-label="Navigation"
@@ -137,32 +147,34 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             href="/"
             onClick={onClose}
             className="flex items-center gap-2.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            aria-label="Meridian Edge — home"
+            aria-label="Machiavelli Technology — home"
           >
-            <div
-              style={{
-                width: 34,
-                height: 34,
-                borderRadius: 10,
-                background: 'var(--mm-mint)',
-                color: 'var(--mm-bg)',
-                display: 'grid',
-                placeItems: 'center',
-                fontFamily: 'var(--mm-display)',
-                fontSize: 17,
-                fontWeight: 600,
-              }}
-            >
-              M
-            </div>
+            <LogoMark size={34} />
             <div>
               <div
                 className="mm-display"
-                style={{ fontSize: 19, lineHeight: 1, color: 'var(--mm-ink-0)' }}
+                style={{
+                  fontSize: 17,
+                  lineHeight: 1,
+                  color: 'var(--mm-ink-0)',
+                  letterSpacing: '-0.01em',
+                  fontWeight: 800,
+                }}
               >
-                Meridian
+                Machiavelli
               </div>
-              <div style={{ fontSize: 11, color: 'var(--mm-ink-2)', marginTop: 2 }}>Edge</div>
+              <div
+                style={{
+                  fontSize: 9,
+                  color: 'var(--mm-ink-2)',
+                  marginTop: 3,
+                  letterSpacing: '0.2em',
+                  textTransform: 'uppercase',
+                  fontWeight: 600,
+                }}
+              >
+                Technology
+              </div>
             </div>
           </Link>
           <button

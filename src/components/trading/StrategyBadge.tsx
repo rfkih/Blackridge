@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils';
  * Strategy-code color map. Values are CSS vars where possible so the badge
  * retints with the active theme; bespoke codes that don't have a token fall
  * back to a hand-tuned hex. Every hex here is tuned for MONO-MINT — do not
- * paste the old `#4E9EFF` / `#00C896` values back.
+ * paste the old `#3B82F6` / `#00C896` values back.
  */
 interface StrategyColor {
   fg: string;
@@ -67,8 +67,8 @@ export const StrategyBadge = memo(function StrategyBadge({
   return (
     <span
       className={cn(
-        'inline-flex items-center rounded-sm font-mono font-semibold tracking-wider',
-        size === 'sm' ? 'px-1.5 py-0.5 text-[10px]' : 'px-2 py-[3px] text-[11px]',
+        'inline-flex items-center rounded-full font-mono font-semibold tracking-wider',
+        size === 'sm' ? 'px-2 py-0.5 text-[10px]' : 'px-2.5 py-[3px] text-[11px]',
         className,
       )}
       style={{ color: c.fg, backgroundColor: c.bg, border: `1px solid ${c.border}` }}

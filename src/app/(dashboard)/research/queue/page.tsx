@@ -61,7 +61,7 @@ export default function ResearchQueuePage() {
 
   if (!isAdmin) {
     return (
-      <div className="space-y-3 rounded-md border border-bd-subtle bg-bg-surface p-8 text-center">
+      <div className="space-y-3 rounded-xl border border-bd-subtle bg-bg-surface p-8 text-center">
         <ShieldCheck size={28} className="mx-auto text-text-muted" />
         <h1 className="font-display text-[20px] font-semibold tracking-tight text-text-primary">
           Admin only
@@ -90,7 +90,7 @@ export default function ResearchQueuePage() {
         <div className="flex items-center gap-2">
           <Link
             href="/research"
-            className="inline-flex items-center gap-1.5 rounded-sm border border-bd-subtle bg-bg-surface px-3 py-2 text-[12px] font-semibold text-text-secondary transition-colors hover:bg-bg-elevated"
+            className="inline-flex items-center gap-1.5 rounded-sm border border-bd-subtle bg-bg-surface px-3 py-2 text-[12px] font-semibold text-text-secondary transition-colors hover:bg-bg-hover"
           >
             Ops <ChevronRight size={12} />
           </Link>
@@ -115,7 +115,7 @@ export default function ResearchQueuePage() {
               className="rounded-sm border px-2.5 py-1 font-mono text-[11px] uppercase tracking-wider transition-colors"
               style={{
                 borderColor: selected ? 'var(--accent-primary)' : 'var(--border-subtle)',
-                background: selected ? 'rgba(78,158,255,0.12)' : 'transparent',
+                background: selected ? 'rgba(59,130,246,0.12)' : 'transparent',
                 color: selected ? 'var(--accent-primary)' : 'var(--text-secondary)',
               }}
             >
@@ -149,7 +149,7 @@ function QueueTable({ rows }: { rows: ResearchQueueItem[] }) {
     <div className="overflow-hidden rounded-md border border-bd-subtle">
       <table className="w-full min-w-[820px] text-[11px]">
         <thead>
-          <tr className="border-b border-bd-subtle bg-bg-elevated">
+          <tr className="border-b border-bd-subtle bg-bg-base">
             <Th align="right">Pri</Th>
             <Th>Status</Th>
             <Th>Strategy</Th>
@@ -227,7 +227,7 @@ function QueueRow({ row }: { row: ResearchQueueItem }) {
   };
 
   return (
-    <tr className="border-b border-bd-subtle bg-bg-surface last:border-b-0 hover:bg-bg-elevated">
+    <tr className="border-b border-bd-subtle bg-bg-surface last:border-b-0 hover:bg-bg-hover">
       <Td align="right" className="num">
         {editing ? (
           <div className="flex items-center justify-end gap-1">
@@ -294,7 +294,7 @@ function QueueRow({ row }: { row: ResearchQueueItem }) {
           type="button"
           onClick={handleCancel}
           disabled={cancel.isPending || isTerminal}
-          className="rounded-sm border border-bd-default bg-bg-surface px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-text-secondary hover:bg-bg-elevated disabled:cursor-not-allowed disabled:opacity-40"
+          className="rounded-sm border border-bd-default bg-bg-surface px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-text-secondary hover:bg-bg-hover disabled:cursor-not-allowed disabled:opacity-40"
           title={isTerminal ? 'Already terminal' : 'Soft-cancel — preserves audit trail'}
         >
           {cancel.isPending && cancel.variables === row.queueId ? (
@@ -340,7 +340,7 @@ function StatusBadge({
 
 function EmptyState({ onCreate }: { onCreate: () => void }) {
   return (
-    <div className="space-y-3 rounded-md border border-bd-subtle bg-bg-surface p-10 text-center">
+    <div className="space-y-3 rounded-xl border border-bd-subtle bg-bg-surface p-10 text-center">
       <Inbox size={28} className="mx-auto text-text-muted" />
       <p className="text-[13px] text-text-muted">
         No queue items in this view. Create one to schedule the next sweep.
@@ -533,7 +533,7 @@ function NewQueueItemDialog({ onClose }: { onClose: () => void }) {
           <button
             type="button"
             onClick={onClose}
-            className="rounded-sm border border-bd-subtle bg-bg-surface px-3 py-1.5 text-[12px] text-text-secondary hover:bg-bg-elevated"
+            className="rounded-sm border border-bd-subtle bg-bg-surface px-3 py-1.5 text-[12px] text-text-secondary hover:bg-bg-hover"
           >
             Cancel
           </button>

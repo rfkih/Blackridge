@@ -34,7 +34,7 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
   return (
     <div
       className="mm flex h-screen overflow-hidden"
-      style={{ background: 'var(--mm-bg)', color: 'var(--mm-ink-0)' }}
+      style={{ background: 'var(--mm-bg-2)', color: 'var(--mm-ink-0)' }}
     >
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
@@ -49,11 +49,10 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
           key={pathname}
           className="page-enter dashboard-main flex-1 overflow-y-auto"
           style={{
-            // Phone screens get symmetric padding via the .dashboard-main
-            // class in globals.css; desktop keeps the original asymmetric
-            // padding (no left padding because the sidebar already provides
-            // visual margin).
-            padding: '24px 28px 24px 0',
+            // Symmetric padding — the design pack uses 24px / 32px around
+            // the dashboard content. Phone screens get a tighter padding
+            // via the .dashboard-main override in globals.css.
+            padding: '24px 32px 32px 32px',
             color: 'var(--mm-ink-0)',
             // Hint the compositor — cheaper opacity/transform transitions on
             // the top-level main during route animation.

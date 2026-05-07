@@ -76,7 +76,7 @@ export function PnlBarChart({ data, height = 260 }: PnlBarChartProps) {
           }
         />
         <Tooltip
-          cursor={{ fill: 'rgba(78,158,255,0.06)' }}
+          cursor={{ fill: 'rgba(59,130,246,0.06)' }}
           contentStyle={TOOLTIP_CONTENT_STYLE}
           content={<PnlBarTooltip />}
         />

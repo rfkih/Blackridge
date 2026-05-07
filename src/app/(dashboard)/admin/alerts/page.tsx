@@ -82,7 +82,7 @@ export default function AdminAlertsPage() {
       </header>
 
       {/* Filter bar */}
-      <div className="flex flex-col gap-2 rounded-md border border-bd-subtle bg-bg-surface px-3 py-2.5">
+      <div className="flex flex-col gap-2 rounded-xl border border-bd-subtle bg-bg-surface px-3 py-2.5">
         {/* Search */}
         <div className="flex items-center gap-2">
           <span className="w-20 shrink-0 text-[11px] uppercase tracking-widest text-text-muted">
@@ -98,7 +98,7 @@ export default function AdminAlertsPage() {
               placeholder="message or kind…"
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
-              className="h-7 w-64 rounded-sm border border-bd-subtle bg-bg-elevated pl-6 pr-2 font-mono text-[12px] text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-1 focus:ring-[var(--accent-primary)]"
+              className="h-7 w-64 rounded-sm border border-bd-subtle bg-bg-base pl-6 pr-2 font-mono text-[12px] text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-1 focus:ring-[var(--accent-primary)]"
             />
           </div>
         </div>
@@ -145,7 +145,7 @@ export default function AdminAlertsPage() {
               setSort(e.target.value);
               setPage(0);
             }}
-            className="h-7 rounded-sm border border-bd-subtle bg-bg-elevated px-2 font-mono text-[12px] text-text-primary"
+            className="h-7 rounded-sm border border-bd-subtle bg-bg-base px-2 font-mono text-[12px] text-text-primary"
           >
             {SORT_OPTIONS.map((o) => (
               <option key={o.value} value={o.value}>
@@ -180,11 +180,11 @@ export default function AdminAlertsPage() {
           <Loader2 size={18} className="animate-spin" />
         </div>
       ) : rows.length === 0 ? (
-        <div className="rounded-md border border-bd-subtle bg-bg-surface px-6 py-12 text-center text-text-secondary">
+        <div className="rounded-xl border border-bd-subtle bg-bg-surface px-6 py-12 text-center text-text-secondary">
           No alerts match the current filters.
         </div>
       ) : (
-        <ul className="divide-y divide-bd-subtle rounded-md border border-bd-subtle bg-bg-surface">
+        <ul className="divide-y divide-bd-subtle rounded-xl border border-bd-subtle bg-bg-surface">
           {rows.map((r) => (
             <AlertRow key={r.alertEventId} alert={r} />
           ))}
@@ -277,11 +277,11 @@ function severityMeta(s: AlertSeverity): {
 } {
   switch (s) {
     case 'CRITICAL':
-      return { icon: ShieldAlert, fg: 'var(--color-loss)', bg: 'rgba(255,77,106,0.15)' };
+      return { icon: ShieldAlert, fg: 'var(--color-loss)', bg: 'rgba(229,72,77,0.15)' };
     case 'WARN':
       return { icon: AlertTriangle, fg: 'var(--color-warning)', bg: 'rgba(245,166,35,0.15)' };
     case 'INFO':
     default:
-      return { icon: Info, fg: 'var(--color-info)', bg: 'rgba(78,158,255,0.15)' };
+      return { icon: Info, fg: 'var(--color-info)', bg: 'rgba(59,130,246,0.15)' };
   }
 }

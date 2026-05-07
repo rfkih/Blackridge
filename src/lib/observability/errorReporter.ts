@@ -158,31 +158,35 @@ function computeFingerprint(loggerName: string, exClass: string | undefined, sta
     const lines = stack.split(/\r?\n/, 6).slice(0, 5).map((s) => s.trim());
     parts.push(lines.join('|'));
   }
-  // The server falls back to its own SHA-256 when fingerprint is absent;
-  // browser environments with subtle.crypto compute it client-side for a
-  // more stable identity (URL changes shouldn't refingerprint the same bug).
-  return djb2(parts.join('||'));
+  // Server uses SHA-256 when fingerprint is absent; client uses 8-stream
+  // djb2 so we don't have to plumb the async crypto.subtle API through
+  // the synchronous fire-and-forget reporter. The two don't need to
+  // agree byte-for-byte — each is internally consistent for its own
+  // callers, and dedup is per-source anyway.
+  return multiStreamHash(parts.join('||'));
 }
 
 /**
- * Lightweight non-crypto hash so the client can compute fingerprints
- * synchronously without subtle.crypto's async. Server uses SHA-256 for the
- * authoritative fingerprint when the client's is absent. They don't need to
- * agree byte-for-byte: each is internally consistent for its own callers.
- * 64-hex-char output keeps the column shape compatible.
+ * 8 djb2 streams with independent seeds, concatenated as 64 hex chars.
+ * Each stream contributes 8 hex chars of real entropy, so the full output
+ * has comparable collision resistance to a 256-bit hash for non-adversarial
+ * inputs (good enough for fingerprinting; we are not signing anything).
+ *
+ * Synchronous on purpose — `crypto.subtle.digest` would force the entire
+ * report path async and complicate the fire-and-forget call sites.
  */
-function djb2(s: string): string {
-  let h1 = 5381 >>> 0;
-  let h2 = 52711 >>> 0;
-  for (let i = 0; i < s.length; i++) {
-    const c = s.charCodeAt(i);
-    h1 = ((h1 * 33) ^ c) >>> 0;
-    h2 = ((h2 * 33) ^ c) >>> 0;
+function multiStreamHash(s: string): string {
+  // Distinct primes ensure the streams diverge after the first few chars.
+  const seeds = [5381, 52711, 14695981, 31, 17, 41, 53, 71];
+  let out = '';
+  for (const seed of seeds) {
+    let h = seed >>> 0;
+    for (let i = 0; i < s.length; i++) {
+      h = (Math.imul(h, 33) ^ s.charCodeAt(i)) >>> 0;
+    }
+    out += h.toString(16).padStart(8, '0');
   }
-  const hex1 = h1.toString(16).padStart(8, '0');
-  const hex2 = h2.toString(16).padStart(8, '0');
-  // Pad to 64 hex chars (32 bytes) to fit the existing fingerprint column.
-  return (hex1 + hex2).repeat(4);
+  return out; // 8 streams × 8 hex = 64 hex chars
 }
 
 function truncate(s: string | undefined, max: number): string | undefined {

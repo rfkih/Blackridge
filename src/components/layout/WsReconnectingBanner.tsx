@@ -39,8 +39,8 @@ export function WsReconnectingBanner() {
   if (!show || connected) return null;
 
   const tone = permanent ? 'var(--color-loss)' : 'var(--color-warning)';
-  const bg = permanent ? 'rgba(255,77,106,0.08)' : 'rgba(245,166,35,0.08)';
-  const border = permanent ? 'rgba(255,77,106,0.32)' : 'rgba(245,166,35,0.32)';
+  const bg = permanent ? 'rgba(229,72,77,0.08)' : 'rgba(245,166,35,0.08)';
+  const border = permanent ? 'rgba(229,72,77,0.32)' : 'rgba(245,166,35,0.32)';
 
   return (
     <div
@@ -48,13 +48,13 @@ export function WsReconnectingBanner() {
       aria-live="polite"
       style={{
         margin: '0 0 12px',
-        padding: '10px 14px',
-        borderRadius: 10,
+        padding: '12px 16px',
+        borderRadius: 14,
         border: `1px solid ${border}`,
         background: bg,
         display: 'flex',
         alignItems: 'center',
-        gap: 10,
+        gap: 12,
         fontSize: 12,
         color: 'var(--mm-ink-1)',
       }}

@@ -30,21 +30,21 @@ const VERDICT_META: Record<string, VerdictMeta> = {
     label: 'Robust',
     Icon: ShieldCheck,
     fg: 'var(--color-profit)',
-    bg: 'rgba(0,200,150,0.12)',
+    bg: 'rgba(22,179,100,0.12)',
     blurb: 'Edge held across regime-stratified windows.',
   },
   INCONSISTENT: {
     label: 'Inconsistent',
     Icon: ShieldAlert,
     fg: 'var(--color-loss)',
-    bg: 'rgba(255,77,106,0.12)',
+    bg: 'rgba(229,72,77,0.12)',
     blurb: 'Edge varies sharply across windows — likely regime-dependent.',
   },
   NO_EDGE: {
     label: 'No edge',
     Icon: ShieldX,
     fg: 'var(--color-loss)',
-    bg: 'rgba(255,77,106,0.12)',
+    bg: 'rgba(229,72,77,0.12)',
     blurb: 'No statistically meaningful edge across windows.',
   },
   INSUFFICIENT_DATA: {
@@ -84,7 +84,7 @@ export function CrossWindowPanel({
 
   if (query.isLoading) {
     return (
-      <div className="flex items-center gap-2 rounded-md border border-bd-subtle bg-bg-surface px-3 py-3 text-text-secondary">
+      <div className="flex items-center gap-2 rounded-xl border border-bd-subtle bg-bg-surface px-3 py-3 text-text-secondary">
         <Loader2 size={14} className="animate-spin" />
         <span className="text-[12px]">Loading cross-window verdict…</span>
       </div>
@@ -93,7 +93,7 @@ export function CrossWindowPanel({
 
   if (query.isError || !query.data) {
     return (
-      <div className="rounded-md border border-bd-subtle bg-bg-surface px-3 py-3 text-[12px] text-text-secondary">
+      <div className="rounded-xl border border-bd-subtle bg-bg-surface px-3 py-3 text-[12px] text-text-secondary">
         Cross-window verdict unavailable.
       </div>
     );
@@ -103,7 +103,7 @@ export function CrossWindowPanel({
 
   if (!latest) {
     return (
-      <div className="rounded-md border border-bd-subtle bg-bg-surface px-3 py-3 text-[12px] text-text-secondary">
+      <div className="rounded-xl border border-bd-subtle bg-bg-surface px-3 py-3 text-[12px] text-text-secondary">
         No cross-window run yet for {strategyCode} · {intervalName} · {instrument}.
         <div className="mt-1 text-[11px] text-text-muted">
           Orchestrator will populate this after a SIGNIFICANT_EDGE iteration goes
@@ -117,7 +117,7 @@ export function CrossWindowPanel({
   const Icon = meta.Icon;
 
   return (
-    <div className="rounded-md border border-bd-subtle bg-bg-surface">
+    <div className="rounded-xl border border-bd-subtle bg-bg-surface">
       <div className="flex flex-col gap-3 px-4 py-3">
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-2">

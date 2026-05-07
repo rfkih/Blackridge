@@ -84,7 +84,15 @@ function LoginPageContent() {
         className="flex items-center justify-center"
         style={{ padding: 40, background: 'var(--mm-bg, var(--bg-base))' }}
       >
-        <div style={{ width: '100%', maxWidth: 380, display: 'flex', flexDirection: 'column', gap: 22 }}>
+        <div
+          style={{
+            width: '100%',
+            maxWidth: 380,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 22,
+          }}
+        >
           <div>
             <div
               className="font-mono"
@@ -133,7 +141,7 @@ function LoginPageContent() {
               id="email"
               type="email"
               autoComplete="email"
-              placeholder="trader@meridian.edge"
+              placeholder="trader@machiavelli.tech"
               className="mm-input"
               disabled={isSubmitting}
               onKeyDown={onEnter}
@@ -149,7 +157,9 @@ function LoginPageContent() {
 
           {/* Password */}
           <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+            <div
+              style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}
+            >
               <label htmlFor="password" className="mm-label">
                 Password
               </label>

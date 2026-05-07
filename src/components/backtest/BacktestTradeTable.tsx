@@ -275,7 +275,7 @@ export function BacktestTradeTable({
 
   if (!trades.length) {
     return (
-      <div className="rounded-md border border-bd-subtle bg-bg-surface px-6 py-12 text-center text-sm text-text-muted">
+      <div className="rounded-xl border border-bd-subtle bg-bg-surface px-6 py-12 text-center text-sm text-text-muted">
         No trades were produced by this backtest.
       </div>
     );
@@ -295,7 +295,7 @@ export function BacktestTradeTable({
         visibleCount={ordered.length}
       />
       {ordered.length === 0 ? (
-        <div className="rounded-md border border-bd-subtle bg-bg-surface px-6 py-12 text-center text-sm text-text-muted">
+        <div className="rounded-xl border border-bd-subtle bg-bg-surface px-6 py-12 text-center text-sm text-text-muted">
           {filtersActive
             ? 'No trades match the active filters.'
             : 'No trades were produced by this backtest.'}
@@ -304,7 +304,7 @@ export function BacktestTradeTable({
     <div
       role="table"
       aria-rowcount={ordered.length + 1}
-      className="overflow-hidden rounded-md border border-bd-subtle bg-bg-surface"
+      className="overflow-hidden rounded-xl border border-bd-subtle bg-bg-surface"
     >
       {/* Horizontal scroll wrapper so narrow viewports don't squash columns. */}
       <div className="overflow-x-auto">
@@ -430,7 +430,7 @@ function BacktestTradeFilters({
   const hasMultiOutcome = options.outcomes.length > 1;
 
   return (
-    <div className="rounded-md border border-bd-subtle bg-bg-surface p-3">
+    <div className="rounded-xl border border-bd-subtle bg-bg-surface p-3">
       <div className="flex flex-wrap items-start gap-x-4 gap-y-2">
         {hasMultiStrategy && (
           <FilterDimension label="Strategy">
@@ -522,7 +522,7 @@ function BacktestTradeFilters({
             <button
               type="button"
               onClick={reset}
-              className="inline-flex items-center gap-1 rounded-sm border border-bd-subtle bg-bg-elevated px-2 py-1 font-mono text-[10px] uppercase tracking-wider text-text-secondary transition-colors hover:bg-bg-hover hover:text-text-primary"
+              className="inline-flex items-center gap-1 rounded-sm border border-bd-subtle bg-bg-base px-2 py-1 font-mono text-[10px] uppercase tracking-wider text-text-secondary transition-colors hover:bg-bg-hover hover:text-text-primary"
             >
               <X size={10} strokeWidth={2} /> Reset
             </button>
@@ -563,9 +563,9 @@ function FilterPill({
 }) {
   const activeBg =
     tone === 'profit'
-      ? 'rgba(0,200,150,0.15)'
+      ? 'rgba(22,179,100,0.15)'
       : tone === 'loss'
-        ? 'rgba(255,77,106,0.15)'
+        ? 'rgba(229,72,77,0.15)'
         : 'var(--accent-glow)';
   const activeFg =
     tone === 'profit'
@@ -647,7 +647,7 @@ function VirtualRow({ trade, index, isSelected, top, onClick }: VirtualRowProps)
       tabIndex={0}
       className={cn(
         'cursor-pointer border-b border-bd-subtle transition-colors duration-fast',
-        'hover:bg-bg-elevated',
+        'hover:bg-bg-hover',
         isSelected && 'border-l-2 border-l-[var(--accent-primary)] bg-[var(--bg-hover)]',
       )}
       style={{
@@ -666,7 +666,7 @@ function VirtualRow({ trade, index, isSelected, top, onClick }: VirtualRowProps)
       <Cell>
         {trade.strategyCode || trade.strategyName ? (
           <span
-            className="rounded-sm border border-bd-subtle bg-bg-elevated px-1.5 py-0.5 font-mono text-[10px] font-semibold tracking-wider text-text-primary"
+            className="rounded-sm border border-bd-subtle bg-bg-base px-1.5 py-0.5 font-mono text-[10px] font-semibold tracking-wider text-text-primary"
             title={trade.strategyName ?? trade.strategyCode ?? ''}
           >
             {trade.strategyCode ?? trade.strategyName}
@@ -680,7 +680,7 @@ function VirtualRow({ trade, index, isSelected, top, onClick }: VirtualRowProps)
         <span
           className="rounded-sm px-1.5 py-0.5 font-mono text-[10px] font-semibold tracking-wider"
           style={{
-            background: isLong ? 'rgba(0,200,150,0.15)' : 'rgba(255,77,106,0.15)',
+            background: isLong ? 'rgba(22,179,100,0.15)' : 'rgba(229,72,77,0.15)',
             color: isLong ? 'var(--color-profit)' : 'var(--color-loss)',
           }}
         >
@@ -810,13 +810,13 @@ function OutcomePill({ outcome }: { outcome: TradeOutcome }) {
 function outcomePillColors(tone: OutcomeTone): { bg: string; fg: string } {
   switch (tone) {
     case 'profit':
-      return { bg: 'rgba(0,200,150,0.15)', fg: 'var(--color-profit)' };
+      return { bg: 'rgba(22,179,100,0.15)', fg: 'var(--color-profit)' };
     case 'loss':
-      return { bg: 'rgba(255,77,106,0.15)', fg: 'var(--color-loss)' };
+      return { bg: 'rgba(229,72,77,0.15)', fg: 'var(--color-loss)' };
     case 'warning':
       return { bg: 'rgba(245,166,35,0.15)', fg: 'var(--color-warning)' };
     case 'info':
-      return { bg: 'rgba(78,158,255,0.15)', fg: 'var(--color-info)' };
+      return { bg: 'rgba(59,130,246,0.15)', fg: 'var(--color-info)' };
     default:
       return { bg: 'var(--bg-elevated)', fg: 'var(--text-muted)' };
   }

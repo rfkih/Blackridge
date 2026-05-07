@@ -174,7 +174,7 @@ export function DataTable<TData>({
                 onChange={(e) => tableInstance.setGlobalFilter(e.target.value)}
                 placeholder={searchPlaceholder}
                 className={cn(
-                  'h-9 w-full rounded-md border border-bd-subtle bg-bg-surface pl-8 pr-3',
+                  'h-9 w-full rounded-xl border border-bd-subtle bg-bg-surface pl-8 pr-3',
                   'text-[13px] text-text-primary placeholder:text-[var(--text-muted)]',
                   'transition-colors focus:border-[var(--accent-primary)] focus:outline-none',
                 )}
@@ -191,8 +191,8 @@ export function DataTable<TData>({
                 <button
                   type="button"
                   className={cn(
-                    'inline-flex h-9 items-center gap-1.5 rounded-md border border-bd-subtle bg-bg-surface px-3',
-                    'text-[12px] text-text-secondary transition-colors hover:border-bd hover:bg-bg-elevated hover:text-text-primary',
+                    'inline-flex h-9 items-center gap-1.5 rounded-xl border border-bd-subtle bg-bg-surface px-3',
+                    'text-[12px] text-text-secondary transition-colors hover:border-bd hover:bg-bg-hover hover:text-text-primary',
                   )}
                   aria-label="Toggle columns"
                 >
@@ -228,7 +228,7 @@ export function DataTable<TData>({
       <div
         ref={tableRef}
         className={cn(
-          'relative overflow-auto rounded-md border border-bd-subtle bg-bg-surface',
+          'relative overflow-auto rounded-xl border border-bd-subtle bg-bg-surface',
           shouldVirtualize && 'max-h-[640px]',
         )}
       >
@@ -341,7 +341,7 @@ export function DataTable<TData>({
             <select
               value={tableInstance.getState().pagination.pageSize}
               onChange={(e) => tableInstance.setPageSize(Number(e.target.value))}
-              className="h-8 rounded-md border border-bd-subtle bg-bg-surface px-2 text-[11px] text-text-secondary focus:outline-none"
+              className="h-8 rounded-xl border border-bd-subtle bg-bg-surface px-2 text-[11px] text-text-secondary focus:outline-none"
               aria-label="Rows per page"
             >
               {DEFAULT_PAGE_SIZES.map((n) => (
@@ -356,7 +356,7 @@ export function DataTable<TData>({
                 type="button"
                 onClick={() => tableInstance.previousPage()}
                 disabled={!tableInstance.getCanPreviousPage()}
-                className="flex size-8 items-center justify-center rounded-md border border-bd-subtle bg-bg-surface text-text-secondary transition-colors hover:bg-bg-elevated disabled:cursor-not-allowed disabled:opacity-40"
+                className="flex size-8 items-center justify-center rounded-xl border border-bd-subtle bg-bg-surface text-text-secondary transition-colors hover:bg-bg-hover disabled:cursor-not-allowed disabled:opacity-40"
                 aria-label="Previous page"
               >
                 <ChevronLeft size={13} strokeWidth={1.75} />
@@ -365,7 +365,7 @@ export function DataTable<TData>({
                 type="button"
                 onClick={() => tableInstance.nextPage()}
                 disabled={!tableInstance.getCanNextPage()}
-                className="flex size-8 items-center justify-center rounded-md border border-bd-subtle bg-bg-surface text-text-secondary transition-colors hover:bg-bg-elevated disabled:cursor-not-allowed disabled:opacity-40"
+                className="flex size-8 items-center justify-center rounded-xl border border-bd-subtle bg-bg-surface text-text-secondary transition-colors hover:bg-bg-hover disabled:cursor-not-allowed disabled:opacity-40"
                 aria-label="Next page"
               >
                 <ChevronRight size={13} strokeWidth={1.75} />
@@ -391,7 +391,9 @@ function BodyRow<TData>({ row, isSelected, onRowClick }: BodyRowProps<TData>) {
       onClick={handleClick}
       className={cn(
         'border-b border-bd-subtle transition-colors last:border-b-0',
-        onRowClick && 'cursor-pointer hover:bg-bg-elevated',
+        // hover:bg-bg-hover was white-on-white in light mode (both
+        // resolve to #ffffff). bg-bg-hover gives a visible #f2f5f4 tint.
+        onRowClick && 'cursor-pointer hover:bg-bg-hover',
         isSelected && 'bg-bg-hover',
       )}
       style={isSelected ? { boxShadow: 'inset 2px 0 0 0 var(--accent-primary)' } : undefined}

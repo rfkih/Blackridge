@@ -172,14 +172,10 @@ export default function PortfolioPage() {
             />
           </div>
         </div>
-
       </section>
 
       {/* ─── Middle row — Allocation / Risk / Performance ─── */}
-      <section
-        className="grid gap-5"
-        style={{ gridTemplateColumns: 'repeat(3, minmax(0, 1fr))' }}
-      >
+      <section className="grid gap-5" style={{ gridTemplateColumns: 'repeat(3, minmax(0, 1fr))' }}>
         <AllocationCard slices={allocation} isLoading={isLoading} />
         <RiskCard totalUsdt={totalUsdt} rows={rows} lockedUsdt={lockedUsdt} />
         <PerformanceCard />
@@ -255,9 +251,7 @@ export default function PortfolioPage() {
         </div>
 
         {isLoading ? (
-          <div
-            style={{ padding: '18px 8px', display: 'flex', flexDirection: 'column', gap: 10 }}
-          >
+          <div style={{ padding: '18px 8px', display: 'flex', flexDirection: 'column', gap: 10 }}>
             {Array.from({ length: 4 }).map((_, i) => (
               <Skeleton key={i} className="h-[44px] w-full" />
             ))}
@@ -613,7 +607,7 @@ function HoldingRow({ row, last }: { row: EnrichedAsset; last: boolean }) {
         style={{
           width: 30,
           height: 30,
-          borderRadius: 8,
+          borderRadius: 10,
           background: 'var(--mm-surface-2)',
           color: 'var(--mm-ink-1)',
           display: 'grid',
@@ -699,15 +693,7 @@ function HoldingRow({ row, last }: { row: EnrichedAsset; last: boolean }) {
   );
 }
 
-function NumCell({
-  value,
-  decimals,
-  muted,
-}: {
-  value: number;
-  decimals: number;
-  muted?: boolean;
-}) {
+function NumCell({ value, decimals, muted }: { value: number; decimals: number; muted?: boolean }) {
   return (
     <div
       style={{

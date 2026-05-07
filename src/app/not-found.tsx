@@ -33,7 +33,7 @@ export default function NotFound() {
 
       <Link
         href="/"
-        className="inline-flex items-center gap-1.5 rounded-sm border border-bd-subtle bg-bg-elevated px-3 py-2 text-[12px] text-text-primary transition-colors hover:bg-bg-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-primary)]"
+        className="inline-flex items-center gap-1.5 rounded-sm border border-bd-subtle bg-bg-base px-3 py-2 text-[12px] text-text-primary transition-colors hover:bg-bg-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-primary)]"
       >
         <ArrowLeft size={12} strokeWidth={1.75} aria-hidden="true" />
         Back to dashboard

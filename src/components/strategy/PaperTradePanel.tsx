@@ -41,7 +41,7 @@ export function PaperTradePanel({
   if (!isAdmin) return null;
 
   return (
-    <section className="overflow-hidden rounded-md border border-bd-subtle bg-bg-surface">
+    <section className="overflow-hidden rounded-xl border border-bd-subtle bg-bg-surface">
       <div className="flex items-center justify-between border-b border-bd-subtle px-4 py-3">
         <h3 className="flex items-center gap-2 font-display text-[13px] font-semibold text-text-primary">
           <TestTube size={13} strokeWidth={1.75} className="text-text-secondary" />
@@ -276,7 +276,7 @@ function SideBadge({ side }: { side: 'LONG' | 'SHORT' | null }) {
     <span
       className="inline-flex items-center gap-1 rounded-sm px-1.5 py-px font-mono text-[10px] uppercase tracking-widest"
       style={{
-        background: isLong ? 'rgba(0,200,150,0.12)' : 'rgba(255,77,106,0.12)',
+        background: isLong ? 'rgba(22,179,100,0.12)' : 'rgba(229,72,77,0.12)',
         color: isLong ? 'var(--color-profit)' : 'var(--color-loss)',
       }}
     >

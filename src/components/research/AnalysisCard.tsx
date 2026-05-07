@@ -29,7 +29,7 @@ export function AnalysisCard({ runId }: AnalysisCardProps) {
 
   if (isLoading) {
     return (
-      <section className="overflow-hidden rounded-md border border-bd-subtle bg-bg-surface">
+      <section className="overflow-hidden rounded-xl border border-bd-subtle bg-bg-surface">
         <CardHeader />
         <div className="p-6">
           <Skeleton className="h-48 w-full" />
@@ -40,7 +40,7 @@ export function AnalysisCard({ runId }: AnalysisCardProps) {
 
   if (isError || !data) {
     return (
-      <section className="overflow-hidden rounded-md border border-bd-subtle bg-bg-surface">
+      <section className="overflow-hidden rounded-xl border border-bd-subtle bg-bg-surface">
         <CardHeader />
         <div className="flex items-center gap-2 p-6 text-sm text-text-muted">
           <AlertCircle size={14} />
@@ -61,7 +61,7 @@ export function AnalysisCard({ runId }: AnalysisCardProps) {
 
   if (!headline || (data.tradeCount ?? 0) === 0) {
     return (
-      <section className="overflow-hidden rounded-md border border-bd-subtle bg-bg-surface">
+      <section className="overflow-hidden rounded-xl border border-bd-subtle bg-bg-surface">
         <CardHeader version={data.strategyVersion} asset={data.asset} interval={data.interval} />
         <div className="p-6 text-sm text-text-muted">
           No trades produced — nothing to diagnose. Widen entry filters or the backtest
@@ -72,7 +72,7 @@ export function AnalysisCard({ runId }: AnalysisCardProps) {
   }
 
   return (
-    <section className="overflow-hidden rounded-md border border-bd-subtle bg-bg-surface">
+    <section className="overflow-hidden rounded-xl border border-bd-subtle bg-bg-surface">
       <CardHeader version={data.strategyVersion} asset={data.asset} interval={data.interval} />
 
       <div className="space-y-5 p-4 md:p-5">
@@ -183,7 +183,7 @@ function Stat({
         : 'var(--text-primary)';
   return (
     <div
-      className="rounded-sm border border-bd-subtle bg-bg-elevated px-3 py-2"
+      className="rounded-sm border border-bd-subtle bg-bg-base px-3 py-2"
       style={{ minWidth: 0 }}
     >
       <div className="label-caps !text-[9px]">{label}</div>
@@ -210,7 +210,7 @@ const BUCKET_LABELS: Record<string, string> = {
 function BucketTable({ bucketKey, rows }: { bucketKey: string; rows: BucketRow[] }) {
   if (rows.length === 0) return null;
   return (
-    <div className="rounded-sm border border-bd-subtle bg-bg-elevated">
+    <div className="rounded-sm border border-bd-subtle bg-bg-base">
       <div className="border-b border-bd-subtle px-3 py-2 font-mono text-[10px] uppercase tracking-wider text-text-secondary">
         {BUCKET_LABELS[bucketKey] ?? bucketKey}
       </div>
@@ -284,7 +284,7 @@ function MfeBlock({ mfe }: { mfe: MfeCapture }) {
 
 function MfeStat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-sm border border-bd-subtle bg-bg-elevated px-3 py-2">
+    <div className="rounded-sm border border-bd-subtle bg-bg-base px-3 py-2">
       <div className="label-caps !text-[9px]">{label}</div>
       <div className="num mt-0.5 text-[13px] font-semibold tabular-nums text-text-primary">
         {value}
@@ -307,7 +307,7 @@ function TradesList({
   if (!trades.length) return null;
   const headerColor = tone === 'profit' ? 'var(--color-profit)' : 'var(--color-loss)';
   return (
-    <div className="rounded-sm border border-bd-subtle bg-bg-elevated">
+    <div className="rounded-sm border border-bd-subtle bg-bg-base">
       <div
         className="border-b border-bd-subtle px-3 py-2 font-mono text-[10px] uppercase tracking-wider"
         style={{ color: headerColor }}

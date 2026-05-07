@@ -289,3 +289,42 @@ export interface SweepsQuery {
   page?: number;
   size?: number;
 }
+
+// ── Agent activity types ─────────────────────────────────────────────────────
+
+/**
+ * One discrete event emitted by the quant-researcher agent during a session.
+ * `details` is an open JSON blob — keys vary by activityType (e.g.
+ * `statistical_verdict`, `profit_factor` on ITERATION_COMPLETED).
+ */
+export interface AgentActivity {
+  activityId: string;
+  sessionId: string;
+  agentName: string;
+  activityType: string;
+  strategyCode: string | null;
+  title: string;
+  details: Record<string, unknown> | null;
+  relatedId: string | null;
+  relatedType: string | null;
+  status: string;
+  createdAt: string;
+}
+
+/**
+ * Rolled-up summary of one quant-researcher agent session. Counts are
+ * pre-aggregated by the backend; never recompute them client-side.
+ */
+export interface AgentSessionSummary {
+  sessionId: string;
+  agentName: string;
+  startedAt: string;
+  lastActivityAt: string;
+  activityCount: number;
+  strategyCodes: string[];
+  iterationsCompleted: number;
+  significantEdgeCount: number;
+  noEdgeCount: number;
+  discardCount: number;
+  goalHit: boolean;
+}

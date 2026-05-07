@@ -59,7 +59,7 @@ export function StatCard({
   return (
     <div
       className={cn(
-        'group relative flex flex-col gap-3 overflow-hidden rounded-md border border-bd-subtle bg-bg-surface px-4 py-4',
+        'group relative flex flex-col gap-3 overflow-hidden rounded-xl border border-bd-subtle bg-bg-surface px-4 py-4',
         'transition-colors duration-base ease-out-quart hover:border-bd',
         className,
       )}
@@ -166,7 +166,7 @@ function HelpfulLabel({ label, help }: { label: string; help: React.ReactNode })
           side="top"
           align="start"
           collisionPadding={8}
-          className="max-w-xs bg-bg-elevated text-[11px] leading-relaxed text-text-primary"
+          className="max-w-xs bg-bg-base text-[11px] leading-relaxed text-text-primary"
         >
           {help}
         </TooltipContent>

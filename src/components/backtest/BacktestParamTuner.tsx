@@ -295,7 +295,7 @@ export function BacktestParamTuner() {
           <button
             type="button"
             onClick={handleBackToConfig}
-            className="mt-[3px] inline-flex items-center gap-1 rounded-sm border border-bd-subtle bg-bg-elevated px-2 py-1 text-[11px] text-text-secondary transition-colors duration-fast hover:bg-bg-hover hover:text-text-primary"
+            className="mt-[3px] inline-flex items-center gap-1 rounded-sm border border-bd-subtle bg-bg-base px-2 py-1 text-[11px] text-text-secondary transition-colors duration-fast hover:bg-bg-hover hover:text-text-primary"
           >
             <ArrowLeft size={12} strokeWidth={1.75} />
             Back to Config
@@ -325,7 +325,7 @@ export function BacktestParamTuner() {
               onClick={() => setActiveTab(code)}
               className={cn(
                 'group relative flex items-center gap-2 px-3 pb-2 pt-2 font-mono text-[12px] font-semibold transition-colors duration-fast',
-                'focus:outline-none focus-visible:bg-bg-elevated',
+                'focus:outline-none focus-visible:bg-bg-base',
                 isActive ? 'text-text-primary' : 'text-text-muted hover:text-text-secondary',
               )}
               aria-selected={isActive}
@@ -345,7 +345,7 @@ export function BacktestParamTuner() {
       </div>
 
       {/* Active tab body */}
-      <div className="rounded-md border border-bd-subtle bg-bg-surface">
+      <div className="rounded-xl border border-bd-subtle bg-bg-surface">
         {/* Preset bar */}
         <div className="border-b border-bd-subtle px-4 py-3">
           <BacktestParamPresetBar
@@ -397,7 +397,7 @@ export function BacktestParamTuner() {
           dedicated tooltip trigger (separate from the label so clicking
           the label still toggles the checkbox via htmlFor); 2-second
           hover delay keeps casual readers from being pelted with docs. */}
-      <div className="rounded-md border border-bd-subtle bg-bg-surface px-4 py-3">
+      <div className="rounded-xl border border-bd-subtle bg-bg-surface px-4 py-3">
         <div className="flex items-start gap-3">
           <input
             id="useCalibratedSlippage"
@@ -426,7 +426,7 @@ export function BacktestParamTuner() {
       </div>
 
       {/* Footer — Run submit */}
-      <footer className="flex items-center justify-between gap-3 rounded-md border border-bd-subtle bg-bg-surface px-4 py-3">
+      <footer className="flex items-center justify-between gap-3 rounded-xl border border-bd-subtle bg-bg-surface px-4 py-3">
         <div className="flex items-center gap-2 text-[11px] text-text-muted">
           <span className="label-caps">Total</span>
           <span className="num text-text-primary">
@@ -434,7 +434,7 @@ export function BacktestParamTuner() {
           </span>
           <span className="text-text-muted">across {strategyCodes.length} strategy</span>
           <span className="label-caps ml-4">Shortcut</span>
-          <kbd className="rounded-sm border border-bd-subtle bg-bg-elevated px-1.5 py-px font-mono text-[9px]">
+          <kbd className="rounded-sm border border-bd-subtle bg-bg-base px-1.5 py-px font-mono text-[9px]">
             ⌘/Ctrl + ↵
           </kbd>
         </div>
@@ -710,7 +710,7 @@ function SlippageHelpHint() {
           side="top"
           align="start"
           collisionPadding={8}
-          className="max-w-sm bg-bg-elevated text-[11px] leading-relaxed text-text-primary"
+          className="max-w-sm bg-bg-base text-[11px] leading-relaxed text-text-primary"
         >
           <p>
             Replaces the platform&apos;s default 0.05% slippage assumption

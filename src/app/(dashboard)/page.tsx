@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
-import { Zap } from 'lucide-react';
+import { ArrowUpRight, TrendingUp, Zap } from 'lucide-react';
 import { useOpenTrades, usePnlSummary } from '@/hooks/useTrades';
 import { useStrategies } from '@/hooks/useStrategies';
 import { useActiveAccount } from '@/hooks/useAccounts';
@@ -45,6 +45,11 @@ export default function DashboardPage() {
     : strategies;
 
   const profitableCount = openTrades.filter((t) => (t.unrealizedPnl ?? 0) >= 0).length;
+  const activeBots = visibleStrategies.filter((s) => s.status === 'LIVE').length;
+  const totalBots = visibleStrategies.length;
+  const bestOpen = pickBestOpen(openTrades);
+  const winRate = pnlSummary?.winRate ?? 0;
+  const scopeLabel = isAll ? 'All accounts' : (activeAccount?.label ?? '');
 
   return (
     <div className="flex flex-col gap-5">
@@ -57,32 +62,51 @@ export default function DashboardPage() {
       {/* Onboarding ladder — auto-hides when the user is fully set up. */}
       <OnboardingPanel />
 
-      {/* Hero */}
-      <HeroCard
-        firstName={firstName}
-        balance={balance}
-        changeToday={changeToday}
-        changePct={changePct}
-        scopeLabel={isAll ? 'All accounts' : (activeAccount?.label ?? '')}
-        points={equityCurve.points}
-        period={equityCurve.period}
-        setPeriod={equityCurve.setPeriod}
-      />
+      {/* Hero row — emerald balance card + two stat cards. Mirrors the
+          design pack's dashboard.html `.hero-row` (1.5fr 1fr 1fr). */}
+      <section
+        className="dashboard-hero-row grid gap-4"
+        style={{
+          gridTemplateColumns: 'minmax(0, 1.5fr) minmax(0, 1fr) minmax(0, 1fr)',
+        }}
+      >
+        <BalanceHero
+          firstName={firstName}
+          balance={balance}
+          changeToday={changeToday}
+          changePct={changePct}
+          scopeLabel={scopeLabel}
+          points={equityCurve.points}
+          period={equityCurve.period}
+          setPeriod={equityCurve.setPeriod}
+        />
+        <StatCard
+          label="Open positions"
+          value={String(openTrades.length)}
+          sub={
+            bestOpen
+              ? `${bestOpen.symbol.replace(/USDT$/, '')} +${bestOpen.pct.toFixed(2)}%`
+              : `${profitableCount} in profit`
+          }
+          tone="profit"
+          icon={<TrendingUp size={16} strokeWidth={2} />}
+        />
+        <StatCard
+          label="Active strategies"
+          value={`${activeBots}`}
+          sub={`of ${totalBots} · ${winRate.toFixed(0)}% win rate`}
+          tone="neutral"
+          icon={<Zap size={16} strokeWidth={2} />}
+        />
+      </section>
 
-      {/* Positions + Insights column */}
+      {/* Positions + Top performer */}
       <section
         className="dashboard-two-col grid gap-5"
         style={{ gridTemplateColumns: 'minmax(0, 1.55fr) minmax(0, 1fr)' }}
       >
         <PositionsPanel trades={openTrades} profitableCount={profitableCount} />
         <div className="flex min-h-0 flex-col gap-4">
-          <AtAGlance
-            balance={balance}
-            activeBots={visibleStrategies.filter((s) => s.status === 'LIVE').length}
-            totalBots={visibleStrategies.length}
-            winRate={pnlSummary?.winRate ?? 0}
-            bestOpen={pickBestOpen(openTrades)}
-          />
           <TopPerformerCard strategies={visibleStrategies} realizedToday={realizedToday} />
         </div>
       </section>
@@ -101,9 +125,13 @@ function pickBestOpen(trades: LivePosition[]): { symbol: string; pct: number } |
   );
 }
 
-// ─────────────────────── Hero ───────────────────────
+// ─────────────────────── BalanceHero ───────────────────────
+// Emerald-gradient balance card. Mirrors the design pack's `.balance` —
+// a small, punchy, white-on-green card with eyebrow, big balance number,
+// translucent delta chip, white-tinted period filter, and a thin equity
+// curve in the bottom band.
 
-interface HeroCardProps {
+interface BalanceHeroProps {
   firstName: string;
   balance: number;
   changeToday: number;
@@ -114,7 +142,7 @@ interface HeroCardProps {
   setPeriod: ReturnType<typeof useEquityCurve>['setPeriod'];
 }
 
-function HeroCard({
+function BalanceHero({
   firstName,
   balance,
   changeToday,
@@ -123,171 +151,294 @@ function HeroCard({
   points,
   period,
   setPeriod,
-}: HeroCardProps) {
+}: BalanceHeroProps) {
   const formatCurrency = useCurrencyFormatter();
   const isUp = changeToday >= 0;
   const chartData = useMemo(() => points.map((p) => p.equity), [points]);
-  const now = useMemo(
-    () => new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }),
-    [],
-  );
   const lastUpdatedAt = usePositionStore((s) => s.lastUpdatedAt);
   const updatedLabel = useUpdatedAgo(lastUpdatedAt);
-
   const greeting = timeGreeting();
+
+  const balanceText = formatCurrency(balance);
+  const balanceLen = balanceText.length;
+  const [minPx, maxPx] =
+    balanceLen <= 8
+      ? [40, 56]
+      : balanceLen <= 11
+        ? [34, 46]
+        : balanceLen <= 14
+          ? [28, 38]
+          : [24, 32];
 
   return (
     <section
-      className="mm-card mm-card-lift dashboard-two-col"
       style={{
-        padding: '36px 40px 32px',
         position: 'relative',
         overflow: 'hidden',
-        display: 'grid',
-        gridTemplateColumns: 'minmax(0, 1.2fr) minmax(0, 1fr)',
-        gap: 32,
-        alignItems: 'start',
+        borderRadius: 20,
+        padding: '24px 28px 22px',
+        color: '#fff',
+        background: 'linear-gradient(135deg, #0A7E3F 0%, #16B364 100%)',
+        boxShadow: '0 8px 28px rgba(22,179,100, 0.22)',
+        minHeight: 240,
+        display: 'flex',
+        flexDirection: 'column',
       }}
     >
-      <div style={{ position: 'relative', minWidth: 0 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
-          <span className="mm-eyebrow" suppressHydrationWarning>
-            {greeting}, {firstName}
-          </span>
-          <span style={{ color: 'var(--mm-ink-3)' }}>·</span>
-          <span
-            className="mm-mono"
-            style={{
-              fontSize: 11,
-              color: 'var(--mm-ink-2)',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 7,
-            }}
-          >
-            <span className="mm-dot" />
-            Live · <span suppressHydrationWarning>{now}</span>
-            {updatedLabel && (
-              <span style={{ color: 'var(--mm-ink-3)', marginLeft: 4 }}>· {updatedLabel}</span>
-            )}
-          </span>
-          {scopeLabel && (
-            <>
-              <span style={{ color: 'var(--mm-ink-3)' }}>·</span>
-              <span style={{ fontSize: 12, color: 'var(--mm-ink-2)' }}>{scopeLabel}</span>
-            </>
-          )}
-        </div>
+      {/* Grid backdrop with radial mask — fades out toward bottom-left */}
+      <div
+        aria-hidden="true"
+        style={{
+          position: 'absolute',
+          inset: 0,
+          backgroundImage:
+            'linear-gradient(rgba(255,255,255,0.07) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.07) 1px, transparent 1px)',
+          backgroundSize: '32px 32px',
+          maskImage: 'radial-gradient(ellipse at 100% 0%, #000 30%, transparent 75%)',
+          WebkitMaskImage: 'radial-gradient(ellipse at 100% 0%, #000 30%, transparent 75%)',
+          pointerEvents: 'none',
+        }}
+      />
 
-        {(() => {
-          const balanceText = formatCurrency(balance);
-          // Step the clamp range down with string length — 8-decimal BTC
-          // values overflow the hero column at the original 104px ceiling.
-          // Both ends of the clamp shrink so the responsive viewport-scaling
-          // still works at the smaller size.
-          const len = balanceText.length;
-          const [minPx, maxPx] =
-            len <= 8 ? [64, 104]
-            : len <= 11 ? [52, 80]
-            : len <= 14 ? [44, 64]
-            : len <= 17 ? [36, 52]
-            : [30, 44];
-          return (
-            <div
-              className="mm-display"
-              title={balanceText}
-              style={{
-                fontSize: `clamp(${minPx}px, 7vw, ${maxPx}px)`,
-                lineHeight: 0.92,
-                letterSpacing: '-0.04em',
-                color: 'var(--mm-ink-0)',
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-              }}
-            >
-              {balanceText}
-            </div>
-          );
-        })()}
-
-        <div
+      <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 10 }}>
+        <span
+          suppressHydrationWarning
           style={{
-            marginTop: 14,
-            display: 'flex',
-            alignItems: 'center',
-            gap: 14,
-            flexWrap: 'wrap',
+            fontSize: 11,
+            letterSpacing: '0.08em',
+            textTransform: 'uppercase',
+            fontWeight: 600,
+            color: 'rgba(255,255,255,0.78)',
           }}
         >
-          <div
-            className="mm-chip"
-            style={{
-              background: isUp ? 'var(--mm-mint-soft)' : 'var(--mm-dn-soft)',
-              color: isUp ? 'var(--mm-mint)' : 'var(--mm-dn)',
-              fontFamily: 'var(--mm-sans)',
-              fontSize: 13,
-              fontWeight: 500,
-              padding: '6px 12px',
-            }}
-          >
-            <svg
-              width="12"
-              height="12"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              style={{ transform: isUp ? undefined : 'rotate(180deg)' }}
-            >
-              <path d="M7 17l5-5 5 5" />
-            </svg>
-            {isUp ? 'Up' : 'Down'} {formatCurrency(Math.abs(changeToday))}
-          </div>
-          <span style={{ fontSize: 14, color: 'var(--mm-ink-2)' }}>
-            {isUp ? '+' : '−'}
-            {Math.abs(changePct).toFixed(2)}% today · since this morning
-          </span>
-        </div>
-
-        <div
-          style={{ display: 'flex', gap: 8, marginTop: 26, alignItems: 'center', flexWrap: 'wrap' }}
+          {greeting}, {firstName}
+        </span>
+        <span style={{ color: 'rgba(255,255,255,0.4)' }}>·</span>
+        <span
+          className="font-mono"
+          style={{
+            fontSize: 11,
+            color: 'rgba(255,255,255,0.7)',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 7,
+          }}
         >
-          {(['1D', '1W', '1M', '3M', 'YTD', '1Y', 'ALL'] as const).map((p) => {
-            const mapped = mapPeriod(p);
-            const active = period === mapped;
-            return (
-              <button
-                key={p}
-                type="button"
-                onClick={() => setPeriod(mapped)}
-                className={active ? 'mm-pill mm-pill-active' : 'mm-pill'}
-                style={{ padding: '6px 14px', fontSize: 12 }}
-              >
-                {p}
-              </button>
-            );
-          })}
-        </div>
+          <span
+            aria-hidden="true"
+            style={{
+              width: 6,
+              height: 6,
+              borderRadius: 999,
+              background: '#fff',
+              boxShadow: '0 0 8px rgba(255,255,255,0.8)',
+            }}
+            className="pulse-dot"
+          />
+          Live{updatedLabel ? ` · ${updatedLabel}` : ''}
+        </span>
       </div>
 
-      <div style={{ position: 'relative', minWidth: 0 }}>
-        <BigMintChart
-          data={chartData.length ? chartData : fallbackCurve()}
-          height={220}
-          tag={formatCurrency(balance)}
-        />
+      <div
+        className="mm-display"
+        title={balanceText}
+        style={{
+          position: 'relative',
+          marginTop: 10,
+          fontSize: `clamp(${minPx}px, 4vw, ${maxPx}px)`,
+          lineHeight: 0.95,
+          letterSpacing: '-0.03em',
+          fontWeight: 800,
+          color: '#fff',
+          fontVariantNumeric: 'tabular-nums',
+          whiteSpace: 'nowrap',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+        }}
+      >
+        {balanceText}
+      </div>
+
+      <div
+        style={{
+          position: 'relative',
+          marginTop: 10,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 12,
+          flexWrap: 'wrap',
+        }}
+      >
+        <span
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 6,
+            padding: '4px 10px',
+            borderRadius: 999,
+            background: 'rgba(255,255,255,0.18)',
+            backdropFilter: 'blur(4px)',
+            fontSize: 12,
+            fontWeight: 600,
+            color: '#fff',
+          }}
+        >
+          <ArrowUpRight
+            size={12}
+            strokeWidth={2.5}
+            style={{ transform: isUp ? undefined : 'rotate(90deg)' }}
+          />
+          {isUp ? '+' : '−'}
+          {formatCurrency(Math.abs(changeToday))} ({Math.abs(changePct).toFixed(2)}%)
+        </span>
+        {scopeLabel && (
+          <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.7)' }}>{scopeLabel}</span>
+        )}
+      </div>
+
+      {/* Period filter — pills tinted white over the green */}
+      <div
+        style={{
+          position: 'relative',
+          marginTop: 14,
+          display: 'inline-flex',
+          gap: 4,
+          padding: 4,
+          background: 'rgba(255,255,255,0.14)',
+          borderRadius: 999,
+          backdropFilter: 'blur(4px)',
+          alignSelf: 'flex-start',
+        }}
+      >
+        {(['1D', '1W', '1M', '3M', 'YTD', '1Y', 'ALL'] as const).map((p) => {
+          const mapped = mapPeriod(p);
+          const active = period === mapped;
+          return (
+            <button
+              key={p}
+              type="button"
+              onClick={() => setPeriod(mapped)}
+              style={{
+                background: active ? 'rgba(255,255,255,0.22)' : 'transparent',
+                color: active ? '#fff' : 'rgba(255,255,255,0.7)',
+                padding: '5px 12px',
+                borderRadius: 999,
+                border: 'none',
+                cursor: 'pointer',
+                fontFamily: 'inherit',
+                fontSize: 11,
+                fontWeight: 600,
+                letterSpacing: '0.02em',
+                transition: 'all 120ms',
+              }}
+            >
+              {p}
+            </button>
+          );
+        })}
+      </div>
+
+      <div style={{ position: 'relative', marginTop: 'auto', paddingTop: 14, height: 80 }}>
+        <MiniEquityChart data={chartData.length ? chartData : fallbackCurve()} height={80} />
       </div>
     </section>
+  );
+}
+
+// ─────────────────────── StatCard ───────────────────────
+// White (or theme-elevated) stat card with eyebrow, big value, and a
+// muted sub-line. Used as the right two cards in the hero row.
+
+interface StatCardProps {
+  label: string;
+  value: string;
+  sub?: string;
+  tone?: 'profit' | 'loss' | 'neutral';
+  icon?: React.ReactNode;
+}
+
+function StatCard({ label, value, sub, tone = 'neutral', icon }: StatCardProps) {
+  const valueColor =
+    tone === 'profit' ? 'var(--mm-mint)' : tone === 'loss' ? 'var(--mm-dn)' : 'var(--mm-ink-0)';
+  const iconBg =
+    tone === 'profit'
+      ? 'var(--mm-mint-soft)'
+      : tone === 'loss'
+        ? 'var(--mm-dn-soft)'
+        : 'var(--mm-surface-3)';
+  const iconColor =
+    tone === 'profit' ? 'var(--mm-mint)' : tone === 'loss' ? 'var(--mm-dn)' : 'var(--mm-ink-1)';
+
+  return (
+    <div
+      className="mm-card"
+      style={{
+        padding: '20px 22px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 6,
+        minHeight: 240,
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div
+          style={{
+            fontSize: 11,
+            letterSpacing: '0.08em',
+            textTransform: 'uppercase',
+            fontWeight: 600,
+            color: 'var(--mm-ink-2)',
+          }}
+        >
+          {label}
+        </div>
+        {icon && (
+          <span
+            aria-hidden="true"
+            style={{
+              width: 30,
+              height: 30,
+              borderRadius: 10,
+              background: iconBg,
+              color: iconColor,
+              display: 'grid',
+              placeItems: 'center',
+            }}
+          >
+            {icon}
+          </span>
+        )}
+      </div>
+      <div
+        className="mm-display"
+        style={{
+          fontSize: 36,
+          fontWeight: 800,
+          letterSpacing: '-0.025em',
+          marginTop: 4,
+          color: valueColor,
+          fontVariantNumeric: 'tabular-nums',
+          lineHeight: 1.05,
+        }}
+      >
+        {value}
+      </div>
+      {sub && (
+        <div className="font-mono" style={{ fontSize: 12, color: 'var(--mm-ink-2)', marginTop: 2 }}>
+          {sub}
+        </div>
+      )}
+    </div>
   );
 }
 
 function useUpdatedAgo(ts: number | null): string {
   const [label, setLabel] = useState('');
   useEffect(() => {
-    if (ts == null) { setLabel(''); return; }
+    if (ts == null) {
+      setLabel('');
+      return;
+    }
     const tick = () => {
       const s = Math.floor((Date.now() - ts) / 1000);
       if (s < 5) setLabel('just now');
@@ -352,14 +503,17 @@ function fallbackCurve(): number[] {
 }
 
 // ─────────────────────── Chart ───────────────────────
+// Compact equity sparkline rendered as a white line over the emerald
+// balance card. No tag or terminator dot — the surrounding card carries
+// the value, the chart just shows the trajectory.
 
-function BigMintChart({ data, height, tag }: { data: number[]; height: number; tag: string }) {
-  const width = 560;
+function MiniEquityChart({ data, height }: { data: number[]; height: number }) {
+  const width = 480;
   if (!data.length) return null;
   const { min, max } = minMax(data);
   const pts = data.map((v, i) => [
     (i / (data.length - 1)) * width,
-    height - ((v - min) / (max - min + 1e-6)) * (height - 20) - 10,
+    height - ((v - min) / (max - min + 1e-6)) * (height - 8) - 4,
   ]);
   let d = `M ${pts[0][0].toFixed(1)} ${pts[0][1].toFixed(1)}`;
   for (let i = 1; i < pts.length; i++) {
@@ -369,72 +523,22 @@ function BigMintChart({ data, height, tag }: { data: number[]; height: number; t
   }
   d += ` T ${pts[pts.length - 1][0].toFixed(1)} ${pts[pts.length - 1][1].toFixed(1)}`;
   const area = `${d} L ${width} ${height} L 0 ${height} Z`;
-  const [lx, ly] = pts[pts.length - 1];
 
   return (
-    <div style={{ position: 'relative', width: '100%' }}>
-      <svg
-        viewBox={`0 0 ${width} ${height}`}
-        preserveAspectRatio="none"
-        style={{ display: 'block', width: '100%', height }}
-      >
-        <defs>
-          <linearGradient id="mm-hero-area" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stopColor="var(--mm-mint)" stopOpacity="0.28" />
-            <stop offset="1" stopColor="var(--mm-mint)" stopOpacity="0" />
-          </linearGradient>
-          <filter id="mm-hero-glow">
-            <feGaussianBlur stdDeviation="4" />
-          </filter>
-        </defs>
-        <path d={area} fill="url(#mm-hero-area)" />
-        <path
-          d={d}
-          stroke="var(--mm-mint)"
-          strokeWidth="5"
-          fill="none"
-          opacity="0.25"
-          filter="url(#mm-hero-glow)"
-          strokeLinecap="round"
-        />
-        <path d={d} stroke="var(--mm-mint)" strokeWidth="2.4" fill="none" strokeLinecap="round" />
-        <circle
-          cx={lx}
-          cy={ly}
-          r="6"
-          fill="var(--mm-bg)"
-          stroke="var(--mm-mint)"
-          strokeWidth="2.5"
-        />
-        <line
-          x1="0"
-          x2={width}
-          y1={height - 10}
-          y2={height - 10}
-          stroke="var(--mm-hair)"
-          strokeWidth="1"
-          strokeDasharray="3 4"
-        />
-      </svg>
-      <div
-        style={{
-          position: 'absolute',
-          left: `${((lx / width) * 100).toFixed(1)}%`,
-          top: ly - 16,
-          transform: 'translate(12px, -100%)',
-          background: 'var(--mm-mint)',
-          color: 'var(--mm-bg)',
-          padding: '4px 10px',
-          borderRadius: 8,
-          fontFamily: 'var(--mm-num)',
-          fontSize: 12,
-          fontWeight: 600,
-          whiteSpace: 'nowrap',
-        }}
-      >
-        {tag}
-      </div>
-    </div>
+    <svg
+      viewBox={`0 0 ${width} ${height}`}
+      preserveAspectRatio="none"
+      style={{ display: 'block', width: '100%', height }}
+    >
+      <defs>
+        <linearGradient id="mm-mini-area" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#fff" stopOpacity="0.28" />
+          <stop offset="1" stopColor="#fff" stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      <path d={area} fill="url(#mm-mini-area)" />
+      <path d={d} stroke="#fff" strokeWidth="2" fill="none" strokeLinecap="round" />
+    </svg>
   );
 }
 
@@ -502,9 +606,9 @@ function PositionsPanel({
       {rows.length === 0 ? (
         <EmptyPositions />
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          {rows.map((t) => (
-            <PositionRow key={t.tradeId} trade={t} />
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
+          {rows.map((t, idx) => (
+            <PositionRow key={t.tradeId} trade={t} isLast={idx === rows.length - 1} />
           ))}
         </div>
       )}
@@ -539,7 +643,7 @@ function EmptyPositions() {
   );
 }
 
-function PositionRow({ trade }: { trade: LivePosition }) {
+function PositionRow({ trade, isLast }: { trade: LivePosition; isLast?: boolean }) {
   // Live WS frames update pnlMap + markMap in the store. Prefer those over
   // the REST snapshot so the row doesn't lag the ticker by ~15s.
   const livePnl = usePositionStore((s) => s.pnlMap[trade.tradeId]);
@@ -564,32 +668,34 @@ function PositionRow({ trade }: { trade: LivePosition }) {
   return (
     <Link
       href={`/trades/${trade.tradeId}`}
+      // Borderless row matching the design pack's `.bot-row` — flush cells
+      // with a hairline separator between rows. Hover bg lifts subtly.
+      className="position-row"
       style={{
         display: 'grid',
-        gridTemplateColumns: '44px minmax(0, 1.3fr) 120px minmax(0, 1fr) minmax(0, 1fr)',
+        gridTemplateColumns: '36px minmax(0, 1.3fr) 120px minmax(0, 1fr) minmax(0, 1fr)',
         gap: 16,
         alignItems: 'center',
-        padding: '12px 16px',
-        borderRadius: 16,
-        background: 'var(--mm-surface-2)',
-        border: '1px solid var(--mm-hair)',
+        padding: '14px 4px',
+        borderBottom: isLast ? 'none' : '1px solid var(--mm-hair)',
         textDecoration: 'none',
         color: 'inherit',
+        transition: 'background 120ms',
       }}
     >
       <div
         aria-hidden="true"
         style={{
-          width: 44,
-          height: 44,
-          borderRadius: 999,
+          width: 36,
+          height: 36,
+          borderRadius: 10,
           background: softBg,
           color,
           display: 'grid',
           placeItems: 'center',
           fontFamily: 'var(--mm-display)',
-          fontSize: 18,
-          fontWeight: 600,
+          fontSize: 16,
+          fontWeight: 700,
         }}
       >
         {logo}
@@ -682,87 +788,6 @@ function buildSpark(seed: string): number[] {
   return out;
 }
 
-// ─────────────────────── At a glance ───────────────────────
-
-function AtAGlance({
-  balance,
-  activeBots,
-  totalBots,
-  winRate,
-  bestOpen,
-}: {
-  balance: number;
-  activeBots: number;
-  totalBots: number;
-  winRate: number;
-  bestOpen: { symbol: string; pct: number } | null;
-}) {
-  const formatCurrency = useCurrencyFormatter();
-  const stats: Array<{
-    label: string;
-    value: string;
-    sub?: string;
-    tone?: 'mint' | 'warn' | 'neutral';
-  }> = [
-    { label: 'Buying power', value: formatCurrency(balance) },
-    bestOpen
-      ? {
-          label: 'Best today',
-          value: bestOpen.symbol.replace(/USDT$/, ''),
-          sub: `${bestOpen.pct >= 0 ? '+' : ''}${bestOpen.pct.toFixed(2)}%`,
-          tone: 'mint',
-        }
-      : { label: 'Best today', value: '—' },
-    { label: 'Active bots', value: String(activeBots), sub: `of ${totalBots}` },
-    {
-      label: 'Win rate · 30d',
-      value: `${winRate.toFixed(0)}%`,
-      sub: winRate >= 50 ? 'above 50%' : 'below 50%',
-      tone: winRate >= 50 ? 'mint' : 'warn',
-    },
-  ];
-
-  const toneColor = (t?: 'mint' | 'warn' | 'neutral') => {
-    if (t === 'mint') return 'var(--mm-mint)';
-    if (t === 'warn') return 'var(--mm-warn)';
-    return 'var(--mm-ink-0)';
-  };
-
-  return (
-    <div className="mm-card" style={{ padding: '22px 24px' }}>
-      <div
-        className="mm-display"
-        style={{ fontSize: 22, marginBottom: 16, color: 'var(--mm-ink-0)' }}
-      >
-        At a glance
-      </div>
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: '1fr 1fr',
-          rowGap: 18,
-          columnGap: 14,
-        }}
-      >
-        {stats.map((s) => (
-          <div key={s.label}>
-            <div style={{ fontSize: 12, color: 'var(--mm-ink-2)' }}>{s.label}</div>
-            <div
-              className="mm-num"
-              style={{ fontSize: 22, marginTop: 4, color: toneColor(s.tone) }}
-            >
-              {s.value}
-            </div>
-            {s.sub && (
-              <div style={{ fontSize: 11, color: 'var(--mm-ink-3)', marginTop: 2 }}>{s.sub}</div>
-            )}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 // ─────────────────────── Top Performer ───────────────────────
 
 function TopPerformerCard({
@@ -778,10 +803,13 @@ function TopPerformerCard({
   if (!top) {
     return (
       <div
-        className="mm-card"
+        data-theme="dark"
+        className="mm"
         style={{
           padding: '22px 24px',
-          background: 'linear-gradient(135deg, var(--mm-surface) 0%, var(--mm-surface-2) 100%)',
+          background: 'linear-gradient(180deg, #171B22 0%, #11151B 100%)',
+          border: '1px solid rgba(255,255,255,0.08)',
+          borderRadius: 20,
           flex: 1,
           display: 'flex',
           flexDirection: 'column',
@@ -791,8 +819,8 @@ function TopPerformerCard({
         <div
           className="mm-chip"
           style={{
-            background: 'var(--mm-mint-soft)',
-            color: 'var(--mm-mint)',
+            background: 'rgba(22,179,100,0.18)',
+            color: '#5FCB8B',
             marginBottom: 4,
             fontWeight: 500,
             alignSelf: 'flex-start',
@@ -822,12 +850,18 @@ function TopPerformerCard({
 
   return (
     <div
-      className="mm-card"
+      data-theme="dark"
+      className="mm"
       style={{
         padding: '22px 24px',
         position: 'relative',
         overflow: 'hidden',
-        background: 'linear-gradient(135deg, var(--mm-surface) 0%, var(--mm-surface-2) 100%)',
+        // Pinned dark gradient — the "Top performer" card stays a premium
+        // dark panel even in light mode, matching the design pack's
+        // perf-card. Children inherit dark mm-* tokens via data-theme="dark".
+        background: 'linear-gradient(180deg, #171B22 0%, #11151B 100%)',
+        border: '1px solid rgba(255,255,255,0.08)',
+        borderRadius: 20,
         flex: 1,
         display: 'flex',
         flexDirection: 'column',

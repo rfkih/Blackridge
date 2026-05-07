@@ -50,7 +50,7 @@ export default function AuditLogPage() {
           <Loader2 size={18} className="animate-spin" />
         </div>
       ) : rows.length === 0 ? (
-        <div className="rounded-md border border-bd-subtle bg-bg-surface px-6 py-12 text-center text-text-secondary">
+        <div className="rounded-xl border border-bd-subtle bg-bg-surface px-6 py-12 text-center text-text-secondary">
           <ScrollText
             size={20}
             strokeWidth={1.5}
@@ -59,7 +59,7 @@ export default function AuditLogPage() {
           No actions logged yet.
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-md border border-bd-subtle bg-bg-surface">
+        <div className="overflow-x-auto rounded-xl border border-bd-subtle bg-bg-surface">
           <table className="w-full text-[12px]">
             <thead>
               <tr

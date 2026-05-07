@@ -22,7 +22,7 @@ function PanelShell({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex flex-col overflow-hidden rounded-md border border-bd-subtle bg-bg-surface">
+    <div className="flex flex-col overflow-hidden rounded-xl border border-bd-subtle bg-bg-surface">
       <div className="flex items-baseline justify-between border-b border-bd-subtle px-4 py-3">
         <h3 className="font-display text-[13px] font-semibold text-text-primary">{title}</h3>
         {subtitle && (

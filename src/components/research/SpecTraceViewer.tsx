@@ -61,7 +61,7 @@ export function SpecTraceViewer({
 
   if (!backtestRunId && !accountStrategyId) {
     return (
-      <div className="rounded-md border border-bd-subtle bg-bg-surface px-6 py-8 text-center text-sm text-text-secondary">
+      <div className="rounded-xl border border-bd-subtle bg-bg-surface px-6 py-8 text-center text-sm text-text-secondary">
         Provide a backtest run or account strategy to load engine traces.
       </div>
     );
@@ -69,7 +69,7 @@ export function SpecTraceViewer({
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex flex-wrap items-center gap-3 rounded-md border border-bd-subtle bg-bg-surface px-3 py-2">
+      <div className="flex flex-wrap items-center gap-3 rounded-xl border border-bd-subtle bg-bg-surface px-3 py-2">
         <label className="flex items-center gap-1.5 text-[12px] text-text-secondary">
           <span className="text-[11px] uppercase tracking-widest text-text-muted">
             Decision
@@ -111,11 +111,11 @@ export function SpecTraceViewer({
           <Loader2 size={16} className="animate-spin" />
         </div>
       ) : rows.length === 0 ? (
-        <div className="rounded-md border border-bd-subtle bg-bg-surface px-6 py-8 text-center text-sm text-text-secondary">
+        <div className="rounded-xl border border-bd-subtle bg-bg-surface px-6 py-8 text-center text-sm text-text-secondary">
           No traces match the current filters.
         </div>
       ) : (
-        <ul className="divide-y divide-bd-subtle rounded-md border border-bd-subtle bg-bg-surface">
+        <ul className="divide-y divide-bd-subtle rounded-xl border border-bd-subtle bg-bg-surface">
           {rows.map((r) => (
             <SpecTraceRowItem key={r.traceId} row={r} />
           ))}
@@ -231,7 +231,7 @@ function SpecTraceDetailPanel({ traceId }: { traceId: string }) {
   return (
     <div className="flex flex-col gap-3 border-t border-bd-subtle bg-bg-base px-4 py-3">
       {errorClass && (
-        <div className="rounded-sm border border-[var(--color-loss)] bg-[rgba(255,77,106,0.08)] px-3 py-2 font-mono text-[11px]">
+        <div className="rounded-sm border border-[var(--color-loss)] bg-[rgba(229,72,77,0.08)] px-3 py-2 font-mono text-[11px]">
           <div className="text-[var(--color-loss)]">{errorClass}</div>
           {errorMessage && (
             <div className="mt-1 whitespace-pre-wrap text-text-secondary">{errorMessage}</div>
@@ -313,14 +313,14 @@ function decisionMeta(
     return {
       icon: CheckCircle2,
       fg: 'var(--color-profit)',
-      bg: 'rgba(0,200,150,0.15)',
+      bg: 'rgba(22,179,100,0.15)',
     };
   }
   if (decision === 'CLOSE') {
     return {
       icon: CheckCircle2,
       fg: 'var(--color-info)',
-      bg: 'rgba(78,158,255,0.12)',
+      bg: 'rgba(59,130,246,0.12)',
     };
   }
   return {

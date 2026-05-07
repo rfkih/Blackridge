@@ -227,7 +227,7 @@ function RiskGuardPanel({ strategy }: { strategy: AccountStrategy }) {
           type="button"
           onClick={onRearm}
           disabled={rearmMut.isPending}
-          className="inline-flex shrink-0 items-center gap-1.5 rounded-sm border border-bd-subtle bg-bg-elevated px-3 py-1.5 font-mono text-[10px] uppercase tracking-wider text-text-primary transition-colors duration-fast hover:bg-bg-hover disabled:cursor-not-allowed disabled:opacity-50"
+          className="inline-flex shrink-0 items-center gap-1.5 rounded-sm border border-bd-subtle bg-bg-base px-3 py-1.5 font-mono text-[10px] uppercase tracking-wider text-text-primary transition-colors duration-fast hover:bg-bg-hover disabled:cursor-not-allowed disabled:opacity-50"
         >
           <ShieldCheck size={11} strokeWidth={1.75} />
           {rearmMut.isPending ? 'Re-arming…' : 'Re-arm kill-switch'}
@@ -366,7 +366,7 @@ function KellySizingPanel({ strategy }: { strategy: AccountStrategy }) {
             step={1}
             value={maxFraction}
             onChange={(e) => setMaxFraction(e.target.value)}
-            className="w-16 rounded border border-bd-subtle bg-bg-elevated px-2 py-0.5 font-mono text-[11px] text-text-primary focus:outline-none"
+            className="w-16 rounded border border-bd-subtle bg-bg-base px-2 py-0.5 font-mono text-[11px] text-text-primary focus:outline-none"
             aria-label="Kelly max fraction percent"
           />
           <span className="font-mono text-[11px] text-text-muted">%</span>
@@ -374,7 +374,7 @@ function KellySizingPanel({ strategy }: { strategy: AccountStrategy }) {
             type="button"
             onClick={onSaveCap}
             disabled={updateMut.isPending}
-            className="rounded-sm border border-bd-subtle bg-bg-elevated px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-text-primary hover:bg-bg-hover disabled:opacity-50"
+            className="rounded-sm border border-bd-subtle bg-bg-base px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-text-primary hover:bg-bg-hover disabled:opacity-50"
           >
             Save
           </button>
@@ -393,7 +393,7 @@ function KellySizingPanel({ strategy }: { strategy: AccountStrategy }) {
           <button
             type="button"
             onClick={onEdit}
-            className="inline-flex items-center rounded-sm border border-bd-subtle bg-bg-elevated px-2.5 py-1 font-mono text-[10px] uppercase tracking-wider text-text-primary hover:bg-bg-hover"
+            className="inline-flex items-center rounded-sm border border-bd-subtle bg-bg-base px-2.5 py-1 font-mono text-[10px] uppercase tracking-wider text-text-primary hover:bg-bg-hover"
           >
             Edit cap
           </button>
@@ -402,7 +402,7 @@ function KellySizingPanel({ strategy }: { strategy: AccountStrategy }) {
           type="button"
           onClick={onToggle}
           disabled={updateMut.isPending}
-          className="inline-flex items-center rounded-sm border border-bd-subtle bg-bg-elevated px-2.5 py-1 font-mono text-[10px] uppercase tracking-wider text-text-primary hover:bg-bg-hover disabled:opacity-50"
+          className="inline-flex items-center rounded-sm border border-bd-subtle bg-bg-base px-2.5 py-1 font-mono text-[10px] uppercase tracking-wider text-text-primary hover:bg-bg-hover disabled:opacity-50"
         >
           {updateMut.isPending
             ? '…'

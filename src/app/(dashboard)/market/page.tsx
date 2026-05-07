@@ -8,6 +8,7 @@ import { SymbolPicker } from '@/components/charts/SymbolPicker';
 import { IntervalTabs } from '@/components/charts/IntervalTabs';
 import { OhlcvReadout } from '@/components/charts/OhlcvReadout';
 import { ErrorBoundary } from '@/components/shared/ErrorBoundary';
+import { PageHeader } from '@/components/shared/PageHeader';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useQuery } from '@tanstack/react-query';
 import { fetchCandles, fetchIndicators } from '@/lib/api/market';
@@ -146,19 +147,13 @@ function MarketPageContent() {
 
   return (
     <div className="space-y-6">
-      <header className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <p className="label-caps">Market</p>
-          <h1 className="mt-1 font-display text-[24px] font-semibold tracking-tighter text-text-primary">
-            Candlestick Viewer
-          </h1>
-          <p className="mt-1 text-[13px] text-text-secondary">
-            Browse any symbol/interval with optional EMA, Bollinger, Keltner, and RSI overlays.
-          </p>
-        </div>
-      </header>
+      <PageHeader
+        eyebrow="Market"
+        title="Candlestick viewer"
+        description="Browse any symbol/interval with optional EMA, Bollinger, Keltner, and RSI overlays."
+      />
 
-      <section className="overflow-hidden rounded-md border border-bd-subtle bg-bg-surface">
+      <section className="overflow-hidden rounded-xl border border-bd-subtle bg-bg-surface">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-bd-subtle px-4 py-3">
           <div className="flex items-center gap-3">
             <SymbolPicker value={filters.symbol} onChange={(s) => setFilters({ symbol: s })} />
@@ -222,7 +217,7 @@ function IndicatorBar({ indicators, onToggle }: IndicatorBarProps) {
               'rounded-sm border px-2 py-1 font-mono text-[10px] uppercase tracking-wider transition-colors',
               active
                 ? 'border-[var(--accent-primary)] bg-[var(--accent-glow)] text-[var(--accent-primary)]'
-                : 'border-bd-subtle bg-bg-elevated text-text-muted hover:bg-bg-hover hover:text-text-secondary',
+                : 'border-bd-subtle bg-bg-base text-text-muted hover:bg-bg-hover hover:text-text-secondary',
             )}
             aria-pressed={active}
           >
@@ -277,7 +272,7 @@ function ChartError({ onRetry }: { onRetry: () => void }) {
       <button
         type="button"
         onClick={onRetry}
-        className="inline-flex items-center gap-1 rounded-sm border border-bd-subtle bg-bg-elevated px-3 py-1.5 text-[11px] text-text-primary hover:bg-bg-hover"
+        className="inline-flex items-center gap-1 rounded-sm border border-bd-subtle bg-bg-base px-3 py-1.5 text-[11px] text-text-primary hover:bg-bg-hover"
       >
         <RefreshCw size={11} /> Retry
       </button>

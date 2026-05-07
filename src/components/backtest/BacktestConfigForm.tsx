@@ -413,18 +413,39 @@ export function BacktestConfigForm() {
     <div className="space-y-6">
       <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="label-caps">New backtest</p>
-          <h1 className="mt-1 font-display text-[24px] font-semibold tracking-tighter text-text-primary">
-            Configure Run
+          <div
+            style={{
+              fontSize: 11,
+              fontWeight: 600,
+              letterSpacing: '0.12em',
+              textTransform: 'uppercase',
+              color: 'var(--mm-mint)',
+              fontFamily: 'var(--mm-mono)',
+            }}
+          >
+            New backtest
+          </div>
+          <h1
+            className="mm-display"
+            style={{
+              marginTop: 6,
+              fontSize: 28,
+              lineHeight: 1.15,
+              letterSpacing: '-0.02em',
+              fontWeight: 800,
+              color: 'var(--mm-ink-0)',
+            }}
+          >
+            Configure run
           </h1>
-          <p className="mt-1 text-[13px] text-text-secondary">
+          <p style={{ marginTop: 6, fontSize: 14, color: 'var(--mm-ink-2)' }}>
             Step 1 of 2. Review parameters on the next screen before submitting.
           </p>
         </div>
         <WizardBreadcrumb current="config" />
       </header>
 
-      <section className="rounded-md border border-bd-subtle bg-bg-surface">
+      <section className="rounded-xl border border-bd-subtle bg-bg-surface">
         <SectionHeader title="Market & Range" />
         <div className="grid grid-cols-1 gap-4 p-5 sm:grid-cols-2 lg:grid-cols-4">
           <Field label="Symbol" error={errors.symbol}>
@@ -486,7 +507,7 @@ export function BacktestConfigForm() {
         </div>
       </section>
 
-      <section className="rounded-md border border-bd-subtle bg-bg-surface">
+      <section className="rounded-xl border border-bd-subtle bg-bg-surface">
         <SectionHeader
           title="Direction"
           hint={
@@ -521,7 +542,7 @@ export function BacktestConfigForm() {
         </div>
       </section>
 
-      <section className="rounded-md border border-bd-subtle bg-bg-surface">
+      <section className="rounded-xl border border-bd-subtle bg-bg-surface">
         <SectionHeader
           title="Strategies"
           hint={
@@ -582,7 +603,7 @@ export function BacktestConfigForm() {
                     'flex flex-1 cursor-pointer items-start gap-2 rounded-sm border px-3 py-2 transition-colors',
                     evaluationMode === 'single'
                       ? 'border-profit bg-tint-profit'
-                      : 'border-bd-subtle bg-bg-base hover:border-bd hover:bg-bg-elevated',
+                      : 'border-bd-subtle bg-bg-base hover:border-bd hover:bg-bg-hover',
                   )}
                 >
                   <input
@@ -606,7 +627,7 @@ export function BacktestConfigForm() {
                     'flex flex-1 cursor-pointer items-start gap-2 rounded-sm border px-3 py-2 transition-colors',
                     evaluationMode === 'multi'
                       ? 'border-profit bg-tint-profit'
-                      : 'border-bd-subtle bg-bg-base hover:border-bd hover:bg-bg-elevated',
+                      : 'border-bd-subtle bg-bg-base hover:border-bd hover:bg-bg-hover',
                   )}
                 >
                   <input
@@ -833,7 +854,7 @@ export function BacktestConfigForm() {
                               [m.code]: m.registered,
                             }))
                           }
-                          className="rounded-sm border border-bd-subtle bg-bg-elevated px-2 py-0.5 font-mono text-[10px] text-text-primary transition-colors duration-fast hover:bg-bg-hover"
+                          className="rounded-sm border border-bd-subtle bg-bg-base px-2 py-0.5 font-mono text-[10px] text-text-primary transition-colors duration-fast hover:bg-bg-hover"
                         >
                           Run {m.code} on {m.registered}
                         </button>
@@ -844,7 +865,7 @@ export function BacktestConfigForm() {
                     <button
                       type="button"
                       onClick={() => setInterval(sharedRegisteredInterval)}
-                      className="self-start rounded-sm border border-bd-subtle bg-bg-elevated px-2 py-1 font-mono text-[10px] text-text-primary transition-colors duration-fast hover:bg-bg-hover"
+                      className="self-start rounded-sm border border-bd-subtle bg-bg-base px-2 py-1 font-mono text-[10px] text-text-primary transition-colors duration-fast hover:bg-bg-hover"
                     >
                       Or set the primary interval to {sharedRegisteredInterval}
                     </button>
@@ -860,7 +881,7 @@ export function BacktestConfigForm() {
         <button
           type="button"
           onClick={() => router.push('/backtest')}
-          className="rounded-sm border border-bd-subtle bg-bg-elevated px-3 py-2 text-[12px] text-text-primary transition-colors duration-fast hover:bg-bg-hover"
+          className="rounded-sm border border-bd-subtle bg-bg-base px-3 py-2 text-[12px] text-text-primary transition-colors duration-fast hover:bg-bg-hover"
         >
           Cancel
         </button>
@@ -941,7 +962,7 @@ function StrategyChip({
         'focus:outline-none focus-visible:ring-2 focus-visible:ring-ring',
         selected
           ? 'border-profit bg-tint-profit text-text-primary'
-          : 'border-bd-subtle bg-bg-base text-text-secondary hover:border-bd hover:bg-bg-elevated hover:text-text-primary',
+          : 'border-bd-subtle bg-bg-base text-text-secondary hover:border-bd hover:bg-bg-hover hover:text-text-primary',
         disabled && 'cursor-not-allowed opacity-50 hover:border-bd-subtle hover:bg-bg-base',
       )}
     >

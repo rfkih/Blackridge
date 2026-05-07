@@ -67,7 +67,7 @@ export default function StrategyHistoryPage() {
         </p>
       </header>
 
-      <div className="flex flex-wrap items-end gap-3 rounded-md border border-bd-subtle bg-bg-surface px-3 py-3">
+      <div className="flex flex-wrap items-end gap-3 rounded-xl border border-bd-subtle bg-bg-surface px-3 py-3">
         <label className="flex flex-col gap-1">
           <span className="text-[10px] uppercase tracking-widest text-text-muted">
             strategy_code
@@ -99,7 +99,7 @@ export default function StrategyHistoryPage() {
       </div>
 
       {!appliedCode ? (
-        <div className="rounded-md border border-bd-subtle bg-bg-surface px-6 py-12 text-center text-text-secondary">
+        <div className="rounded-xl border border-bd-subtle bg-bg-surface px-6 py-12 text-center text-text-secondary">
           Enter a strategy code to load its revision history.
         </div>
       ) : query.isLoading ? (
@@ -107,11 +107,11 @@ export default function StrategyHistoryPage() {
           <Loader2 size={18} className="animate-spin" />
         </div>
       ) : rows.length === 0 ? (
-        <div className="rounded-md border border-bd-subtle bg-bg-surface px-6 py-12 text-center text-text-secondary">
+        <div className="rounded-xl border border-bd-subtle bg-bg-surface px-6 py-12 text-center text-text-secondary">
           No revisions found for <span className="font-mono">{appliedCode}</span>.
         </div>
       ) : (
-        <ul className="divide-y divide-bd-subtle rounded-md border border-bd-subtle bg-bg-surface">
+        <ul className="divide-y divide-bd-subtle rounded-xl border border-bd-subtle bg-bg-surface">
           {rows.map((r) => (
             <RevisionRow
               key={r.historyId}
@@ -477,7 +477,7 @@ function operationMeta(op: SpecOperation): {
       return {
         icon: Plus,
         fg: 'var(--color-profit)',
-        bg: 'rgba(0,200,150,0.15)',
+        bg: 'rgba(22,179,100,0.15)',
       };
     case 'UPDATE':
       return {
@@ -489,13 +489,13 @@ function operationMeta(op: SpecOperation): {
       return {
         icon: Trash2,
         fg: 'var(--color-loss)',
-        bg: 'rgba(255,77,106,0.15)',
+        bg: 'rgba(229,72,77,0.15)',
       };
     case 'UPGRADE':
       return {
         icon: ArrowUpCircle,
         fg: 'var(--color-info)',
-        bg: 'rgba(78,158,255,0.12)',
+        bg: 'rgba(59,130,246,0.12)',
       };
     default:
       return {

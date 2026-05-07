@@ -331,13 +331,13 @@ function alertSeverity(a: AlertEvent): Notification['severity'] {
 function colourFor(s: Notification['severity']): { bg: string; fg: string } {
   switch (s) {
     case 'critical':
-      return { bg: 'rgba(255,77,106,0.15)', fg: 'var(--color-loss)' };
+      return { bg: 'rgba(229,72,77,0.15)', fg: 'var(--color-loss)' };
     case 'warning':
       return { bg: 'rgba(245,166,35,0.15)', fg: 'var(--color-warning)' };
     case 'success':
-      return { bg: 'rgba(0,200,150,0.15)', fg: 'var(--color-profit)' };
+      return { bg: 'rgba(22,179,100,0.15)', fg: 'var(--color-profit)' };
     case 'info':
     default:
-      return { bg: 'rgba(78,158,255,0.15)', fg: 'var(--color-info)' };
+      return { bg: 'rgba(59,130,246,0.15)', fg: 'var(--color-info)' };
   }
 }

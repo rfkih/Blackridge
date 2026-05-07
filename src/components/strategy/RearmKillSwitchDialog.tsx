@@ -97,7 +97,7 @@ export function RearmKillSwitchDialog({
           </p>
         </div>
 
-        <p className="rounded border border-[rgba(255,77,106,0.32)] bg-[rgba(255,77,106,0.08)] px-3 py-2 text-xs text-[var(--color-loss)]">
+        <p className="rounded border border-[rgba(229,72,77,0.32)] bg-[rgba(229,72,77,0.08)] px-3 py-2 text-xs text-[var(--color-loss)]">
           Open positions are unaffected — they continue to be managed by their stops. Re-arming
           only clears the block on opening new positions.
         </p>

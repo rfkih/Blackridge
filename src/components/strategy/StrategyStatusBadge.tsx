@@ -15,7 +15,7 @@ const STATUS_CONFIG: Record<
     label: 'LIVE',
     dot: 'var(--color-profit)',
     text: 'var(--color-profit)',
-    bg: 'rgba(0,200,150,0.12)',
+    bg: 'rgba(22,179,100,0.12)',
   },
   PAUSED: {
     label: 'PAUSED',
@@ -27,7 +27,7 @@ const STATUS_CONFIG: Record<
     label: 'STOPPED',
     dot: 'var(--color-loss)',
     text: 'var(--color-loss)',
-    bg: 'rgba(255,77,106,0.12)',
+    bg: 'rgba(229,72,77,0.12)',
   },
 };
 
@@ -40,7 +40,7 @@ export function StrategyStatusBadge({ status, size = 'sm', className }: Strategy
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-1.5 rounded font-semibold uppercase tracking-wider',
+        'inline-flex items-center gap-1.5 rounded-full font-semibold uppercase tracking-wider',
         padX,
         padY,
         textSize,

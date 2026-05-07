@@ -144,8 +144,8 @@ export default function AdminInboxPage() {
           style={{
             padding: 12,
             borderRadius: 8,
-            border: '1px solid rgba(255,77,106,0.40)',
-            background: 'rgba(255,77,106,0.08)',
+            border: '1px solid rgba(229,72,77,0.40)',
+            background: 'rgba(229,72,77,0.08)',
             fontSize: 12,
             color: 'var(--color-loss)',
           }}
@@ -157,8 +157,8 @@ export default function AdminInboxPage() {
           style={{
             padding: '32px 16px',
             textAlign: 'center',
-            border: '1px dashed var(--mm-border)',
-            borderRadius: 8,
+            border: '1px dashed var(--mm-hair-2)',
+            borderRadius: 12,
             fontSize: 13,
             color: 'var(--mm-ink-2)',
           }}
@@ -166,22 +166,27 @@ export default function AdminInboxPage() {
           No messages match this filter.
         </div>
       ) : (
-        <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <ul
+          style={{
+            listStyle: 'none',
+            padding: 0,
+            margin: 0,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 8,
+          }}
+        >
           {messages.map((m) => (
             <MessageRow
               key={m.supportMessageId}
               message={m}
               expanded={expanded === m.supportMessageId}
-              onToggle={() => setExpanded((cur) => (cur === m.supportMessageId ? null : m.supportMessageId))}
-              onMarkRead={() =>
-                mutation.mutate({ id: m.supportMessageId, status: 'READ' })
+              onToggle={() =>
+                setExpanded((cur) => (cur === m.supportMessageId ? null : m.supportMessageId))
               }
-              onMarkResolved={() =>
-                mutation.mutate({ id: m.supportMessageId, status: 'RESOLVED' })
-              }
-              onReopen={() =>
-                mutation.mutate({ id: m.supportMessageId, status: 'NEW' })
-              }
+              onMarkRead={() => mutation.mutate({ id: m.supportMessageId, status: 'READ' })}
+              onMarkResolved={() => mutation.mutate({ id: m.supportMessageId, status: 'RESOLVED' })}
+              onReopen={() => mutation.mutate({ id: m.supportMessageId, status: 'NEW' })}
               busy={mutation.isPending}
             />
           ))}
@@ -444,6 +449,6 @@ function MessageRow({
 
 const STATUS_TONE: Record<SupportMessageStatus, { bg: string; fg: string }> = {
   NEW: { bg: 'rgba(245,166,35,0.16)', fg: 'var(--color-warning)' },
-  READ: { bg: 'rgba(78,158,255,0.14)', fg: 'var(--color-info)' },
-  RESOLVED: { bg: 'rgba(0,200,150,0.14)', fg: 'var(--color-profit)' },
+  READ: { bg: 'rgba(59,130,246,0.14)', fg: 'var(--color-info)' },
+  RESOLVED: { bg: 'rgba(22,179,100,0.14)', fg: 'var(--color-profit)' },
 };

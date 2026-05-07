@@ -20,6 +20,7 @@ import { DataTable } from '@/components/shared/DataTable';
 import { StrategyBadge } from '@/components/trading/StrategyBadge';
 import { RunSourceBadge } from '@/components/backtest/RunSourceBadge';
 import { EmptyState } from '@/components/shared/EmptyState';
+import { PageHeader } from '@/components/shared/PageHeader';
 import { Skeleton } from '@/components/ui/skeleton';
 import { DatePicker } from '@/components/ui/date-picker';
 import { useBacktestRuns } from '@/hooks/useBacktest';
@@ -341,48 +342,41 @@ function BacktestListContent() {
 
   return (
     <div className="space-y-5">
-      <header className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <p className="label-caps">Backtests</p>
-          <h1 className="mt-1 font-display text-[24px] font-semibold tracking-tighter text-text-primary">
-            Run History
-          </h1>
-          <p className="mt-1 text-[13px] text-text-secondary">
-            Simulate strategies against historical data. Filter, sort, and re-run with tweaked
-            params any time.
-          </p>
-        </div>
-        <div className="flex items-center gap-3">
-          <span className="text-[11px] text-text-muted">
-            {total} run{total === 1 ? '' : 's'} · page {filters.page + 1} of {totalPages}
-          </span>
-          <Link
-            href="/backtest/research"
-            className={cn(
-              'inline-flex items-center gap-1.5 rounded-sm border border-bd-subtle bg-bg-surface px-3 py-2 text-[12px] font-semibold text-text-primary',
-              'transition-colors duration-fast hover:bg-bg-hover',
-              'focus:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-            )}
-            title="Iterative multi-round parameter search"
-          >
-            Research mode →
-          </Link>
-          <Link
-            href="/backtest/new"
-            className={cn(
-              'inline-flex items-center gap-1.5 rounded-sm bg-profit px-3 py-2 text-[12px] font-semibold text-text-inverse',
-              'transition-opacity duration-fast hover:opacity-90',
-              'focus:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-            )}
-          >
-            <Plus size={14} strokeWidth={2} />
-            New Backtest
-          </Link>
-        </div>
-      </header>
+      <PageHeader
+        eyebrow="Backtests"
+        title="Run history"
+        description="Simulate strategies against historical data. Filter, sort, and re-run with tweaked params any time."
+        actions={
+          <>
+            <span className="text-[11px] text-text-muted">
+              {total} run{total === 1 ? '' : 's'} · page {filters.page + 1} of {totalPages}
+            </span>
+            <Link
+              href="/backtest/research"
+              className="mm-btn"
+              style={{ borderRadius: 9999, padding: '9px 16px', fontSize: 13 }}
+              title="Iterative multi-round parameter search"
+            >
+              Research mode →
+            </Link>
+            <Link
+              href="/backtest/new"
+              className="mm-btn mm-btn-mint"
+              style={{ borderRadius: 9999, padding: '9px 16px', fontSize: 13 }}
+            >
+              <Plus size={14} strokeWidth={2.2} />
+              New Backtest
+            </Link>
+          </>
+        }
+      />
 
-      {/* Filter bar */}
-      <section className="flex flex-wrap items-center gap-3 rounded-md border border-bd-subtle bg-bg-surface p-3">
+      {/* Filter bar — design pack toolbar pattern: 20px radius card with
+          pill-shaped status chips, hairline divider, then input fields. */}
+      <section
+        className="mm-card flex flex-wrap items-center gap-3"
+        style={{ padding: '14px 18px' }}
+      >
         <div className="flex items-center gap-1">
           {STATUSES.map((s) => {
             const active = filters.status === s.value;
@@ -392,10 +386,10 @@ function BacktestListContent() {
                 type="button"
                 onClick={() => patchFilters({ status: s.value })}
                 className={cn(
-                  'rounded-sm px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider transition-colors',
+                  'rounded-full px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider transition-colors',
                   active
                     ? 'bg-[var(--accent-subtle)] text-[var(--accent-primary)]'
-                    : 'text-text-muted hover:bg-bg-elevated hover:text-text-secondary',
+                    : 'text-text-muted hover:bg-bg-hover hover:text-text-secondary',
                 )}
                 aria-pressed={active}
               >
@@ -413,10 +407,10 @@ function BacktestListContent() {
             patchFilters({ source: filters.source === 'RESEARCHER' ? 'USER' : 'RESEARCHER' })
           }
           className={cn(
-            'rounded-sm px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider transition-colors',
+            'rounded-full px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider transition-colors',
             filters.source === 'RESEARCHER'
               ? 'bg-[var(--color-bot)]/15 text-[var(--color-bot)]'
-              : 'text-text-muted hover:bg-bg-elevated hover:text-text-secondary',
+              : 'text-text-muted hover:bg-bg-hover hover:text-text-secondary',
           )}
           aria-pressed={filters.source === 'RESEARCHER'}
         >
@@ -533,7 +527,7 @@ function BacktestListContent() {
             <button
               type="button"
               onClick={() => runsQuery.refetch()}
-              className="rounded-sm border border-bd-subtle bg-bg-elevated px-3 py-1.5 text-[12px] text-text-primary transition-colors duration-fast hover:bg-bg-hover"
+              className="rounded-sm border border-bd-subtle bg-bg-base px-3 py-1.5 text-[12px] text-text-primary transition-colors duration-fast hover:bg-bg-hover"
             >
               Retry
             </button>
@@ -585,7 +579,7 @@ function BacktestListContent() {
                 patchFilters({ page: Math.max(0, filters.page - 1) }, { resetPage: false })
               }
               disabled={filters.page === 0}
-              className="rounded-md border border-bd-subtle bg-bg-surface px-3 py-1.5 text-[11px] text-text-secondary transition-colors hover:bg-bg-elevated disabled:opacity-40"
+              className="rounded-xl border border-bd-subtle bg-bg-surface px-3 py-1.5 text-[11px] text-text-secondary transition-colors hover:bg-bg-hover disabled:opacity-40"
             >
               Previous
             </button>
@@ -593,7 +587,7 @@ function BacktestListContent() {
               type="button"
               onClick={() => patchFilters({ page: filters.page + 1 }, { resetPage: false })}
               disabled={filters.page + 1 >= totalPages}
-              className="rounded-md border border-bd-subtle bg-bg-surface px-3 py-1.5 text-[11px] text-text-secondary transition-colors hover:bg-bg-elevated disabled:opacity-40"
+              className="rounded-xl border border-bd-subtle bg-bg-surface px-3 py-1.5 text-[11px] text-text-secondary transition-colors hover:bg-bg-hover disabled:opacity-40"
             >
               Next
             </button>
@@ -688,7 +682,7 @@ function ReturnCell({ value }: { value: number | undefined | null }) {
 
 function BacktestTableSkeleton() {
   return (
-    <div className="rounded-md border border-bd-subtle bg-bg-surface">
+    <div className="rounded-xl border border-bd-subtle bg-bg-surface">
       <div className="space-y-0 p-4">
         {Array.from({ length: 6 }).map((_, i) => (
           <div

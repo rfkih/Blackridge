@@ -281,8 +281,8 @@ export function StrategyDefinitionDialog({
               role="alert"
               className="col-span-2 flex items-start gap-2 rounded-sm border px-3 py-2 text-xs"
               style={{
-                borderColor: 'rgba(255,77,106,0.4)',
-                backgroundColor: 'rgba(255,77,106,0.08)',
+                borderColor: 'rgba(229,72,77,0.4)',
+                backgroundColor: 'rgba(229,72,77,0.08)',
                 color: 'var(--color-loss)',
               }}
             >

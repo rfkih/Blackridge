@@ -212,7 +212,7 @@ export function CandlestickChart({
       if (showIndicators?.ema20) {
         if (!ema20Ref.current) {
           ema20Ref.current = chart.addSeries(tv.LineSeries, {
-            color: '#4E9EFF',
+            color: '#3B82F6',
             lineWidth: 1,
             priceLineVisible: false,
             lastValueVisible: false,

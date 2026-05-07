@@ -62,14 +62,14 @@ export default function ResearchSweepsPage() {
       {sweeps.isLoading ? (
         <Skeleton className="h-60 w-full" />
       ) : !sweeps.data || sweeps.data.length === 0 ? (
-        <div className="rounded-md border border-bd-subtle bg-bg-surface p-8 text-center text-sm text-text-muted">
+        <div className="rounded-xl border border-bd-subtle bg-bg-surface p-8 text-center text-sm text-text-muted">
           No sweeps yet. Click “New sweep” to start one.
         </div>
       ) : (
-        <div className="overflow-hidden rounded-md border border-bd-subtle bg-bg-surface">
+        <div className="overflow-hidden rounded-xl border border-bd-subtle bg-bg-surface">
           <table className="w-full min-w-[800px] text-[12px]">
             <thead>
-              <tr className="border-b border-bd-subtle bg-bg-elevated">
+              <tr className="border-b border-bd-subtle bg-bg-base">
                 <Th>Created</Th>
                 <Th>Strategy</Th>
                 <Th>Symbol · Int</Th>
@@ -123,9 +123,9 @@ export default function ResearchSweepsPage() {
 function StatusPill({ status }: { status: string }) {
   const cfg: Record<string, { bg: string; fg: string }> = {
     PENDING: { bg: 'var(--bg-elevated)', fg: 'var(--text-muted)' },
-    RUNNING: { bg: 'rgba(78,158,255,0.15)', fg: 'var(--color-info)' },
-    COMPLETED: { bg: 'rgba(0,200,150,0.15)', fg: 'var(--color-profit)' },
-    FAILED: { bg: 'rgba(255,77,106,0.15)', fg: 'var(--color-loss)' },
+    RUNNING: { bg: 'rgba(59,130,246,0.15)', fg: 'var(--color-info)' },
+    COMPLETED: { bg: 'rgba(22,179,100,0.15)', fg: 'var(--color-profit)' },
+    FAILED: { bg: 'rgba(229,72,77,0.15)', fg: 'var(--color-loss)' },
     CANCELLED: { bg: 'var(--bg-elevated)', fg: 'var(--text-muted)' },
   };
   const c = cfg[status] ?? cfg.PENDING;
@@ -330,7 +330,7 @@ function NewSweepForm({ onSubmitted }: { onSubmitted: (sweepId: string) => void 
   };
 
   return (
-    <section className="space-y-4 rounded-md border border-bd-subtle bg-bg-surface p-5">
+    <section className="space-y-4 rounded-xl border border-bd-subtle bg-bg-surface p-5">
       <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
         <Field label="Asset">
           <input
@@ -546,7 +546,7 @@ function NewSweepForm({ onSubmitted }: { onSubmitted: (sweepId: string) => void 
                 <button
                   type="button"
                   onClick={() => setGrid((prev) => prev.filter((_, i) => i !== idx))}
-                  className="inline-flex items-center gap-1 rounded-sm border border-bd-subtle bg-bg-elevated px-2 py-1 text-[12px] text-text-secondary hover:bg-bg-hover"
+                  className="inline-flex items-center gap-1 rounded-sm border border-bd-subtle bg-bg-base px-2 py-1 text-[12px] text-text-secondary hover:bg-bg-hover"
                 >
                   <X size={12} />
                 </button>
@@ -558,7 +558,7 @@ function NewSweepForm({ onSubmitted }: { onSubmitted: (sweepId: string) => void 
           type="button"
           disabled={!selectedCode || defaultsQ.isLoading}
           onClick={() => setGrid((prev) => [...prev, { key: '', values: '' }])}
-          className="mt-2 inline-flex items-center gap-1.5 rounded-sm border border-bd-subtle bg-bg-elevated px-3 py-1 text-[11px] text-text-secondary hover:bg-bg-hover disabled:opacity-50"
+          className="mt-2 inline-flex items-center gap-1.5 rounded-sm border border-bd-subtle bg-bg-base px-3 py-1 text-[11px] text-text-secondary hover:bg-bg-hover disabled:opacity-50"
         >
           <Plus size={12} /> Add param
         </button>
