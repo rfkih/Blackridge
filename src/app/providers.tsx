@@ -2,11 +2,17 @@
 
 // Client-side providers (TanStack Query, top-level navigation progress, toasts).
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { Suspense, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { Toaster } from '@/components/ui/toaster';
 import { NavigationProgressBar } from '@/components/layout/NavigationProgressBar';
+import { installGlobalErrorHandlers } from '@/lib/observability/installGlobalHandlers';
 
 export function Providers({ children }: { children: React.ReactNode }) {
+  // Install once on the client. Idempotent — repeated calls are no-ops.
+  useEffect(() => {
+    installGlobalErrorHandlers();
+  }, []);
+
   const [queryClient] = useState(
     () =>
       new QueryClient({

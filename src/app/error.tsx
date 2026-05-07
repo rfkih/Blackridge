@@ -2,6 +2,7 @@
 
 // SLICE: Route error boundary — in development, show full stack (Spring-Boot-style trace) + reset.
 import { useEffect } from 'react';
+import { reportException } from '@/lib/observability/errorReporter';
 
 export default function RouteErrorBoundary({
   error,
@@ -13,6 +14,12 @@ export default function RouteErrorBoundary({
   const isDev = process.env.NODE_ENV === 'development';
 
   useEffect(() => {
+    // Always ship to error_log — this boundary catches the most user-visible
+    // crashes, exactly the events we want triaged.
+    reportException(error, {
+      loggerName: 'frontend.boundary.route',
+      mdc: error.digest ? { digest: error.digest } : undefined,
+    });
     if (!isDev) return;
     // eslint-disable-next-line no-console -- dev-only: mirror UI stack in console
     console.error('[app error]', error.message, error);

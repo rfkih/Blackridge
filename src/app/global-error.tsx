@@ -2,6 +2,8 @@
 
 // SLICE: Root error boundary — must define html/body; shows stack in development when the root layout fails.
 import './globals.css';
+import { useEffect } from 'react';
+import { reportException } from '@/lib/observability/errorReporter';
 
 export default function GlobalErrorBoundary({
   error,
@@ -11,6 +13,16 @@ export default function GlobalErrorBoundary({
   reset: () => void;
 }) {
   const isDev = process.env.NODE_ENV === 'development';
+
+  // Root-layout crashes are the highest-severity browser events we can
+  // capture — always ship them. Boundary fires before any provider tree
+  // is mounted, but the reporter only needs `window`, not React context.
+  useEffect(() => {
+    reportException(error, {
+      loggerName: 'frontend.boundary.global',
+      mdc: error.digest ? { digest: error.digest } : undefined,
+    });
+  }, [error]);
 
   return (
     <html lang="en" className="dark">
