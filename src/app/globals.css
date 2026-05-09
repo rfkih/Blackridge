@@ -41,6 +41,39 @@
      dark↔light swap reads as a deliberate transition, not a pop. Used by the
      html/body fallback transition and the view-transitions keyframes. */
   --dur-theme: 1500ms;
+
+  /* ── Brand: emerald / kelly green ────────────────────────────────────
+     Theme-agnostic brand scale from the design pack's `colors_and_type.css`.
+     Used by the auth flow chrome (signin/register/forgot/reset/verify) and
+     anywhere a brand-tinted surface, edge, or text colour is needed.
+     Profit shares `--brand-500`; the semantic tokens above remain the
+     correct hook for P&L cells (so dark/light WCAG tuning still applies). */
+  --brand-50: #e8f8ee;
+  --brand-100: #c8eed5;
+  --brand-200: #97deb1;
+  --brand-300: #5fcb8b;
+  --brand-400: #2ebc72;
+  --brand-500: #16b364; /* primary */
+  --brand-600: #0e9f50; /* hover */
+  --brand-700: #0a7e3f; /* press */
+  --brand-800: #075e2f;
+  --brand-900: #054020;
+
+  /* Ink scale — neutral text + borders for light surfaces. The auth cards
+     sit on a cream stage and these are the values they expect; the dark
+     dashboard continues to read off `--text-*` / `--border-*`. */
+  --ink-900: #0e1116;
+  --ink-800: #1c2027;
+  --ink-700: #384151;
+  --ink-500: #6b7280;
+  --ink-400: #8a93a0;
+  --ink-300: #a8b0bc;
+  --ink-200: #cdd2da;
+  --ink-100: #e5e8ec;
+  --ink-50: #f2f5f7;
+
+  /* Auth-stage focus halo — soft brand glow used by inputs on focus. */
+  --shadow-focus-ring: 0 0 0 3px rgba(22, 179, 100, 0.25);
 }
 
 /* ── DARK THEME (default) ────────────────────────────────────────────

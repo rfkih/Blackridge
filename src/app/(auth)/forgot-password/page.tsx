@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { AuthHero } from '@/components/auth/AuthHero';
+import { AuthCard, AuthMark, AuthShell } from '@/components/auth/AuthShell';
 import { requestPasswordReset } from '@/lib/api/passwordReset';
 import { normalizeError } from '@/lib/api/client';
 
@@ -16,10 +16,33 @@ const schema = z.object({
 
 type Values = z.infer<typeof schema>;
 
+const FIELD_LABEL_STYLE: React.CSSProperties = {
+  display: 'block',
+  fontSize: 11,
+  fontWeight: 600,
+  color: 'var(--mm-ink-1, #384151)',
+  marginBottom: 6,
+  textTransform: 'uppercase',
+  letterSpacing: '0.04em',
+};
+
+const FIELD_INPUT_STYLE: React.CSSProperties = {
+  width: '100%',
+  padding: '12px 14px',
+  border: '1px solid var(--mm-hair-2, rgba(14,17,22,0.1))',
+  borderRadius: 10,
+  fontSize: 14,
+  fontFamily: 'inherit',
+  boxSizing: 'border-box',
+  background: '#FFFFFF',
+  color: 'var(--mm-ink-0, #0E1116)',
+  outline: 'none',
+};
+
 export default function ForgotPasswordPage() {
   const [submitError, setSubmitError] = useState<string | null>(null);
-  // Once the request fires we always show the same generic confirmation
-  // — the API is no-leak so we don't reveal whether the email exists.
+  // Always show the same generic confirmation — the API is no-leak, so
+  // we never reveal whether the email exists.
   const [submitted, setSubmitted] = useState(false);
 
   const {
@@ -43,108 +66,207 @@ export default function ForgotPasswordPage() {
   });
 
   return (
-    <div className="grid min-h-screen grid-cols-1 lg:grid-cols-2">
-      <AuthHero />
-      <div className="flex items-center justify-center bg-bg-base p-8">
-        <div className="w-full max-w-md space-y-6">
-          <div>
-            <Link
-              href="/login"
-              className="mb-4 inline-flex items-center gap-1.5 text-[11px] text-text-muted transition-colors hover:text-text-primary"
-            >
-              <ArrowLeft size={12} strokeWidth={1.75} />
-              Back to sign in
-            </Link>
-            <h1 className="font-display text-2xl text-text-primary">Reset your password</h1>
-            <p className="mt-1 text-sm text-text-secondary">
-              Enter the email tied to your account. If it matches, we&apos;ll issue a single-use
-              reset link valid for 30 minutes.
-            </p>
-          </div>
+    <AuthShell topRight={{ label: 'Remember it?', cta: 'Sign in →', href: '/login' }}>
+      <AuthCard>
+        <AuthMark />
 
-          {submitted ? (
-            <div className="space-y-3 rounded-xl border border-bd-subtle bg-bg-surface p-4">
-              <div className="flex items-center gap-2">
-                <span
-                  className="flex h-7 w-7 items-center justify-center rounded-sm"
+        <h1
+          className="font-display"
+          style={{
+            fontSize: 28,
+            fontWeight: 800,
+            letterSpacing: '-0.025em',
+            lineHeight: 1.1,
+            margin: '0 0 6px',
+            color: 'var(--mm-ink-0, #0E1116)',
+          }}
+        >
+          Reset your password
+        </h1>
+        <p
+          style={{
+            fontSize: 14,
+            color: 'var(--mm-ink-1, #384151)',
+            margin: '0 0 24px',
+            lineHeight: 1.5,
+          }}
+        >
+          Enter the email tied to your account. If it matches, we&apos;ll issue a single-use reset
+          link valid for 30 minutes.
+        </p>
+
+        {submitted ? (
+          <div>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 12,
+                padding: '14px 16px',
+                borderRadius: 12,
+                background: 'rgba(22,179,100,0.08)',
+                border: '1px solid rgba(22,179,100,0.25)',
+                marginBottom: 16,
+              }}
+            >
+              <span
+                style={{
+                  width: 32,
+                  height: 32,
+                  flexShrink: 0,
+                  borderRadius: 8,
+                  background: 'rgba(22,179,100,0.18)',
+                  color: 'var(--brand-700, #0A7E3F)',
+                  display: 'grid',
+                  placeItems: 'center',
+                }}
+              >
+                <Mail size={16} strokeWidth={2} />
+              </span>
+              <div>
+                <div
+                  className="font-display"
                   style={{
-                    background: 'rgba(22,179,100,0.12)',
-                    color: 'var(--color-profit)',
+                    fontSize: 14,
+                    fontWeight: 700,
+                    color: 'var(--mm-ink-0, #0E1116)',
                   }}
                 >
-                  <Mail size={14} strokeWidth={1.75} />
-                </span>
-                <h2 className="font-display text-sm font-semibold text-text-primary">
                   Check your email
-                </h2>
-              </div>
-              <p className="text-[12px] text-text-secondary">
-                If an account exists with that address, we&apos;ve issued reset instructions. The
-                link expires in 30 minutes; only the most recent request remains valid.
-              </p>
-              <p className="text-[11px] text-text-muted">
-                Didn&apos;t receive anything? Email delivery is in progress — until then your
-                administrator can retrieve the reset URL from the application log
-                (look for <span className="font-mono">PASSWORD RESET TOKEN ISSUED</span>).
-              </p>
-              <Link
-                href="/login"
-                className="mt-2 inline-flex items-center gap-1.5 text-[11px] font-semibold text-[var(--accent-primary)]"
-              >
-                Return to sign in →
-              </Link>
-            </div>
-          ) : (
-            <form onSubmit={submit} className="space-y-4" noValidate>
-              <div>
-                <label htmlFor="email" className="mm-label">
-                  Email
-                </label>
-                <input
-                  id="email"
-                  type="email"
-                  autoComplete="email"
-                  className="mm-input"
-                  placeholder="trader@example.com"
-                  aria-invalid={errors.email ? 'true' : 'false'}
-                  {...register('email')}
-                />
-                {errors.email && (
-                  <p className="mt-1 text-[11px] text-loss">{errors.email.message}</p>
-                )}
-              </div>
-
-              {submitError && (
-                <div className="rounded-md border border-bd-subtle bg-tint-loss px-3 py-2 text-[11px] text-loss">
-                  {submitError}
                 </div>
-              )}
-
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="mm-btn mm-btn-mint w-full justify-center"
-              >
-                {isSubmitting ? (
-                  <Loader2 size={14} className="animate-spin" />
-                ) : (
-                  'Send reset link'
-                )}
-              </button>
-
-              <p className="text-center text-[11px] text-text-muted">
-                Remember it after all?{' '}
-                <Link
-                  href="/login"
-                  className="font-semibold text-[var(--accent-primary)] hover:underline"
+                <div
+                  style={{
+                    fontSize: 12,
+                    color: 'var(--mm-ink-1, #384151)',
+                    marginTop: 2,
+                  }}
                 >
-                  Sign in
-                </Link>
+                  Reset instructions are on their way.
+                </div>
+              </div>
+            </div>
+
+            <p style={{ fontSize: 12, color: 'var(--mm-ink-1, #384151)', lineHeight: 1.5 }}>
+              If an account exists with that address, we&apos;ve issued reset instructions. The link
+              expires in 30 minutes; only the most recent request remains valid.
+            </p>
+            <p
+              style={{
+                marginTop: 12,
+                fontSize: 11,
+                color: 'var(--mm-ink-2, #6B7280)',
+                lineHeight: 1.5,
+              }}
+            >
+              Didn&apos;t receive anything? Email delivery is in progress — until then your
+              administrator can retrieve the reset URL from the application log (look for{' '}
+              <span style={{ fontFamily: 'var(--font-mono)' }}>PASSWORD RESET TOKEN ISSUED</span>
+              ).
+            </p>
+            <Link
+              href="/login"
+              style={{
+                marginTop: 16,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                fontSize: 12,
+                fontWeight: 700,
+                color: 'var(--brand-700, #0A7E3F)',
+                textDecoration: 'none',
+              }}
+            >
+              <ArrowLeft size={12} /> Return to sign in
+            </Link>
+          </div>
+        ) : (
+          <form onSubmit={submit} noValidate>
+            <div style={{ marginBottom: 16 }}>
+              <label htmlFor="email" style={FIELD_LABEL_STYLE}>
+                Email
+              </label>
+              <input
+                id="email"
+                type="email"
+                autoComplete="email"
+                placeholder="you@example.com"
+                aria-invalid={errors.email ? 'true' : 'false'}
+                disabled={isSubmitting}
+                {...register('email')}
+                style={FIELD_INPUT_STYLE}
+              />
+              {errors.email && (
+                <p role="alert" style={{ marginTop: 6, fontSize: 11, color: 'var(--color-loss)' }}>
+                  {errors.email.message}
+                </p>
+              )}
+            </div>
+
+            {submitError && (
+              <p
+                role="alert"
+                style={{
+                  padding: '10px 12px',
+                  fontSize: 12,
+                  borderRadius: 10,
+                  border: '1px solid rgba(229,72,77,0.4)',
+                  background: 'rgba(229,72,77,0.08)',
+                  color: 'var(--color-loss)',
+                  margin: '0 0 12px',
+                }}
+              >
+                {submitError}
               </p>
-            </form>
-          )}
-        </div>
-      </div>
-    </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              style={{
+                width: '100%',
+                padding: '14px',
+                background: 'var(--mm-ink-0, #0E1116)',
+                color: '#FFFFFF',
+                border: 'none',
+                borderRadius: 12,
+                fontSize: 14,
+                fontWeight: 700,
+                cursor: isSubmitting ? 'not-allowed' : 'pointer',
+                fontFamily: 'inherit',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 8,
+                opacity: isSubmitting ? 0.7 : 1,
+              }}
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 size={14} className="animate-spin" /> Sending
+                </>
+              ) : (
+                'Send reset link'
+              )}
+            </button>
+
+            <Link
+              href="/login"
+              style={{
+                marginTop: 14,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                fontSize: 12,
+                fontWeight: 600,
+                color: 'var(--mm-ink-2, #6B7280)',
+                textDecoration: 'none',
+              }}
+            >
+              <ArrowLeft size={12} /> Back to sign in
+            </Link>
+          </form>
+        )}
+      </AuthCard>
+    </AuthShell>
   );
 }

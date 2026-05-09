@@ -1,0 +1,36 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  body { margin: 0; padding: 20px; background: var(--bg-base); }
+  .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 14px; }
+  .badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: var(--radius-pill); font-size: 12px; font-weight: 600; font-family: var(--font-body); }
+  .badge .dot { width: 6px; height: 6px; border-radius: 50%; }
+  .b-long { background: var(--tint-profit); color: #0A7E3F; }
+  .b-short { background: var(--tint-loss); color: #B91D24; }
+  .b-open { background: var(--tint-info); color: #1E40AF; }
+  .b-warn { background: var(--tint-warning); color: #8A5A0E; }
+  .b-closed { background: var(--ink-50); color: var(--text-muted); }
+  .b-live { background: var(--tint-profit); color: #0A7E3F; }
+  .b-paused { background: var(--ink-50); color: var(--text-secondary); }
+  .b-sim { background: #EEE3FB; color: #5B2A9D; }
+  .lbl { font-size: 11px; letter-spacing: 0.04em; text-transform: uppercase; font-weight: 700; color: var(--text-muted); margin: 0 0 8px; }
+</style></head>
+<body>
+  <div class="lbl">Trade direction</div>
+  <div class="row">
+    <span class="badge b-long"><span class="dot" style="background: var(--color-profit)"></span>LONG</span>
+    <span class="badge b-short"><span class="dot" style="background: var(--color-loss)"></span>SHORT</span>
+  </div>
+  <div class="lbl">Trade status</div>
+  <div class="row">
+    <span class="badge b-open">Open</span>
+    <span class="badge b-warn">Partially closed</span>
+    <span class="badge b-closed">Closed</span>
+  </div>
+  <div class="lbl">Strategy + run</div>
+  <div class="row">
+    <span class="badge b-live"><span class="dot" style="background: var(--color-profit)"></span>Live</span>
+    <span class="badge b-paused"><span class="dot" style="background: var(--ink-300)"></span>Paused</span>
+    <span class="badge b-sim">SIM · Backtest</span>
+  </div>
+</body></html>

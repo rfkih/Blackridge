@@ -1,13 +1,13 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Check, Eye, EyeOff, Loader2, ShieldCheck } from 'lucide-react';
+import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { AuthHero } from '@/components/auth/AuthHero';
+import { AuthCard, AuthMark, AuthShell } from '@/components/auth/AuthShell';
 import { useAuth } from '@/hooks/useAuth';
 import { consumeSessionExpiredFlag } from '@/lib/api/client';
 import { safeRedirectPath } from '@/lib/utils';
@@ -18,6 +18,29 @@ const loginSchema = z.object({
 });
 
 type LoginValues = z.infer<typeof loginSchema>;
+
+const FIELD_LABEL_STYLE: React.CSSProperties = {
+  display: 'block',
+  fontSize: 11,
+  fontWeight: 600,
+  color: 'var(--mm-ink-1, #384151)',
+  marginBottom: 6,
+  textTransform: 'uppercase',
+  letterSpacing: '0.04em',
+};
+
+const FIELD_INPUT_STYLE: React.CSSProperties = {
+  width: '100%',
+  padding: '12px 14px',
+  border: '1px solid var(--mm-hair-2, rgba(14,17,22,0.1))',
+  borderRadius: 10,
+  fontSize: 14,
+  fontFamily: 'inherit',
+  boxSizing: 'border-box',
+  background: '#FFFFFF',
+  color: 'var(--mm-ink-0, #0E1116)',
+  outline: 'none',
+};
 
 function LoginPageContent() {
   const search = useSearchParams();
@@ -30,8 +53,7 @@ function LoginPageContent() {
   const [keepSignedIn, setKeepSignedIn] = useState(true);
 
   // If the axios interceptor redirected us here on a 401, surface a clear
-  // "your session expired" banner so the user understands why they're back
-  // on /login. The flag is one-shot — consumed here on first read.
+  // "your session expired" banner. Flag is one-shot.
   useEffect(() => {
     if (consumeSessionExpiredFlag()) setSessionExpired(true);
   }, []);
@@ -52,7 +74,6 @@ function LoginPageContent() {
     setSubmitError(null);
     try {
       await login(values.email, values.password);
-      // Hard redirect — guarantees the cookie is present in the middleware request.
       window.location.assign(next);
     } catch (err) {
       setSubmitError(err instanceof Error ? err.message : 'Sign-in failed');
@@ -70,83 +91,50 @@ function LoginPageContent() {
   const registerHref = `/register${currentEmail ? `?email=${encodeURIComponent(currentEmail)}` : ''}`;
 
   return (
-    <div
-      className="grid min-h-screen grid-cols-1 lg:grid-cols-2"
-      role="form"
-      aria-label="Sign in"
-      aria-busy={isSubmitting}
-    >
-      {/* Left — shared editorial hero */}
-      <AuthHero />
+    <AuthShell topRight={{ label: 'New here?', cta: 'Create account →', href: registerHref }}>
+      <div role="form" aria-label="Sign in" aria-busy={isSubmitting}>
+        <AuthCard>
+          <AuthMark />
 
-      {/* Right — the actual form */}
-      <div
-        className="flex items-center justify-center"
-        style={{ padding: 40, background: 'var(--mm-bg, var(--bg-base))' }}
-      >
-        <div
-          style={{
-            width: '100%',
-            maxWidth: 380,
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 22,
-          }}
-        >
-          <div>
-            <div
-              className="font-mono"
-              style={{
-                fontSize: 10,
-                letterSpacing: '0.18em',
-                textTransform: 'uppercase',
-                color: 'var(--mm-mint, var(--color-profit))',
-              }}
-            >
-              SIGN IN
-            </div>
-            <h2
-              className="font-display"
-              style={{ marginTop: 8, fontSize: 36, letterSpacing: '-0.03em', lineHeight: 1.05 }}
-            >
-              Welcome back.
-            </h2>
-            <p
-              style={{
-                marginTop: 6,
-                fontSize: 14,
-                color: 'var(--mm-ink-2, var(--text-secondary))',
-              }}
-            >
-              Don&apos;t have an account?{' '}
-              <Link
-                href={registerHref}
-                style={{
-                  color: 'var(--mm-ink-0, var(--text-primary))',
-                  textDecoration: 'underline',
-                  textUnderlineOffset: 3,
-                }}
-              >
-                Request access →
-              </Link>
-            </p>
-          </div>
+          <h1
+            className="font-display"
+            style={{
+              fontSize: 28,
+              fontWeight: 800,
+              letterSpacing: '-0.025em',
+              lineHeight: 1.1,
+              margin: '0 0 6px',
+              color: 'var(--mm-ink-0, #0E1116)',
+            }}
+          >
+            Sign in to Machiavelli
+          </h1>
+          <p
+            style={{
+              fontSize: 14,
+              color: 'var(--mm-ink-1, #384151)',
+              margin: '0 0 24px',
+              lineHeight: 1.5,
+            }}
+          >
+            Pick up where you left off. Your bots have been running.
+          </p>
 
           {/* Email */}
-          <div>
-            <label htmlFor="email" className="mm-label">
+          <div style={{ marginBottom: 12 }}>
+            <label htmlFor="email" style={FIELD_LABEL_STYLE}>
               Email
             </label>
             <input
               id="email"
               type="email"
               autoComplete="email"
-              placeholder="trader@machiavelli.tech"
-              className="mm-input"
+              placeholder="you@example.com"
               disabled={isSubmitting}
               onKeyDown={onEnter}
               aria-invalid={Boolean(errors.email)}
               {...register('email', { onBlur: () => trigger('email') })}
+              style={FIELD_INPUT_STYLE}
             />
             {errors.email && (
               <p role="alert" style={{ marginTop: 6, fontSize: 11, color: 'var(--color-loss)' }}>
@@ -156,18 +144,27 @@ function LoginPageContent() {
           </div>
 
           {/* Password */}
-          <div>
+          <div style={{ marginBottom: 12 }}>
             <div
-              style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'baseline',
+                marginBottom: 6,
+              }}
             >
-              <label htmlFor="password" className="mm-label">
+              <label htmlFor="password" style={{ ...FIELD_LABEL_STYLE, marginBottom: 0 }}>
                 Password
               </label>
               <Link
                 href="/forgot-password"
                 tabIndex={-1}
-                className="mm-label"
-                style={{ color: 'var(--mm-mint, var(--color-profit))', cursor: 'pointer' }}
+                style={{
+                  fontSize: 11,
+                  color: 'var(--brand-700, #0A7E3F)',
+                  fontWeight: 600,
+                  textDecoration: 'none',
+                }}
               >
                 Forgot?
               </Link>
@@ -177,13 +174,12 @@ function LoginPageContent() {
                 id="password"
                 type={showPassword ? 'text' : 'password'}
                 autoComplete="current-password"
-                placeholder="••••••••"
-                className="mm-input"
+                placeholder="••••••••••••"
                 disabled={isSubmitting}
                 onKeyDown={onEnter}
                 aria-invalid={Boolean(errors.password)}
-                style={{ paddingRight: 56 }}
                 {...register('password', { onBlur: () => trigger('password') })}
+                style={{ ...FIELD_INPUT_STYLE, paddingRight: 56 }}
               />
               <button
                 type="button"
@@ -196,7 +192,9 @@ function LoginPageContent() {
                   top: '50%',
                   transform: 'translateY(-50%)',
                   fontSize: 12,
-                  color: 'var(--mm-ink-3, var(--text-muted))',
+                  background: 'transparent',
+                  border: 'none',
+                  color: 'var(--mm-ink-2, #6B7280)',
                   cursor: 'pointer',
                   display: 'inline-flex',
                   alignItems: 'center',
@@ -220,8 +218,9 @@ function LoginPageContent() {
               display: 'flex',
               alignItems: 'center',
               gap: 10,
-              fontSize: 13,
-              color: 'var(--mm-ink-2, var(--text-secondary))',
+              fontSize: 12,
+              color: 'var(--mm-ink-1, #384151)',
+              margin: '12px 0 18px',
               cursor: 'pointer',
             }}
           >
@@ -229,33 +228,18 @@ function LoginPageContent() {
               type="checkbox"
               checked={keepSignedIn}
               onChange={(e) => setKeepSignedIn(e.target.checked)}
-              style={{ position: 'absolute', opacity: 0, pointerEvents: 'none' }}
-              aria-label="Keep me signed in on this device"
-            />
-            <span
-              aria-hidden="true"
+              aria-label="Keep me signed in for 30 days"
               style={{
-                width: 16,
-                height: 16,
-                borderRadius: 4,
-                display: 'grid',
-                placeItems: 'center',
-                background: keepSignedIn
-                  ? 'var(--mm-mint, var(--color-profit))'
-                  : 'var(--mm-surface-2, var(--bg-elevated))',
-                color: keepSignedIn ? 'var(--mm-bg, var(--bg-base))' : 'transparent',
-                border: keepSignedIn ? 'none' : '1px solid var(--mm-hair-2, var(--border-default))',
-                transition: 'background 120ms, border-color 120ms',
+                width: 15,
+                height: 15,
+                accentColor: 'var(--brand-500, #16B364)',
+                margin: 0,
+                cursor: 'pointer',
               }}
-            >
-              {keepSignedIn && <Check size={10} strokeWidth={3} />}
-            </span>
-            Keep me signed in on this device
+            />
+            <span>Keep me signed in for 30 days</span>
           </label>
 
-          {/* Session-expired banner — shown when the axios 401 interceptor
-              kicked us back here. Distinct from a credential error so the
-              user knows it isn't their fault. */}
           {sessionExpired && !submitError && (
             <p
               role="status"
@@ -266,13 +250,13 @@ function LoginPageContent() {
                 border: '1px solid rgba(245,166,35,0.45)',
                 background: 'rgba(245,166,35,0.10)',
                 color: 'var(--color-warning)',
+                margin: '0 0 12px',
               }}
             >
               Your session expired. Please sign in again to continue where you left off.
             </p>
           )}
 
-          {/* Submit error */}
           {submitError && (
             <p
               role="alert"
@@ -280,9 +264,10 @@ function LoginPageContent() {
                 padding: '10px 12px',
                 fontSize: 12,
                 borderRadius: 10,
-                border: '1px solid rgba(255,122,122,0.4)',
-                background: 'rgba(255,122,122,0.08)',
+                border: '1px solid rgba(229,72,77,0.4)',
+                background: 'rgba(229,72,77,0.08)',
                 color: 'var(--color-loss)',
+                margin: '0 0 12px',
               }}
             >
               {submitError}
@@ -291,19 +276,24 @@ function LoginPageContent() {
 
           <button
             type="button"
-            className="mm-btn mm-btn-mint"
             disabled={isSubmitting}
             onClick={() => void submit()}
             style={{
-              padding: '14px 16px',
+              width: '100%',
+              padding: '14px',
+              background: 'var(--mm-ink-0, #0E1116)',
+              color: '#FFFFFF',
+              border: 'none',
+              borderRadius: 12,
               fontSize: 14,
-              marginTop: 4,
+              fontWeight: 700,
+              cursor: isSubmitting ? 'not-allowed' : 'pointer',
+              fontFamily: 'inherit',
               display: 'inline-flex',
               alignItems: 'center',
               justifyContent: 'center',
               gap: 8,
-              cursor: isSubmitting ? 'not-allowed' : 'pointer',
-              opacity: isSubmitting ? 0.65 : 1,
+              opacity: isSubmitting ? 0.7 : 1,
             }}
           >
             {isSubmitting ? (
@@ -311,33 +301,61 @@ function LoginPageContent() {
                 <Loader2 size={14} className="animate-spin" /> Signing in
               </>
             ) : (
-              <>Sign in →</>
+              <>
+                Sign in
+                <svg
+                  width="13"
+                  height="13"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                >
+                  <path d="M5 12h14M12 5l7 7-7 7" />
+                </svg>
+              </>
             )}
           </button>
 
-          {/* Security notice — matches the pack's bottom chip */}
           <div
             style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 10,
-              padding: '12px 14px',
-              borderRadius: 10,
-              background: 'var(--mm-surface-2, var(--bg-elevated))',
-              fontSize: 12,
-              color: 'var(--mm-ink-2, var(--text-secondary))',
+              textAlign: 'center',
+              fontSize: 11,
+              color: 'var(--mm-ink-2, #6B7280)',
+              marginTop: 16,
+              lineHeight: 1.5,
             }}
           >
-            <ShieldCheck
-              size={14}
-              strokeWidth={1.75}
-              style={{ color: 'var(--mm-mint, var(--color-profit))' }}
-            />
-            Protected by HttpOnly session cookies · rate-limited at the edge
+            Protected by 2FA. We never custody funds.
+            <br />
+            By continuing you agree to our{' '}
+            <Link
+              href="/terms"
+              style={{
+                color: 'var(--mm-ink-1, #384151)',
+                textDecoration: 'underline',
+                textDecorationColor: 'var(--mm-hair-2, rgba(14,17,22,0.1))',
+              }}
+            >
+              Terms
+            </Link>{' '}
+            and{' '}
+            <Link
+              href="/privacy"
+              style={{
+                color: 'var(--mm-ink-1, #384151)',
+                textDecoration: 'underline',
+                textDecorationColor: 'var(--mm-hair-2, rgba(14,17,22,0.1))',
+              }}
+            >
+              Privacy Policy
+            </Link>
+            .
           </div>
-        </div>
+        </AuthCard>
       </div>
-    </div>
+    </AuthShell>
   );
 }
 

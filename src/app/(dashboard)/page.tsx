@@ -15,6 +15,7 @@ import { useCurrencyFormatter } from '@/hooks/useCurrency';
 import { OnboardingPanel } from '@/components/dashboard/OnboardingPanel';
 import { EmailVerificationBanner } from '@/components/dashboard/EmailVerificationBanner';
 import { KillSwitchBanner } from '@/components/dashboard/KillSwitchBanner';
+import { RecentActivityFeed } from '@/components/dashboard/RecentActivityFeed';
 import type { LivePosition } from '@/types/trading';
 import type { AccountStrategy } from '@/types/strategy';
 import type { EquityPoint } from '@/types/market';
@@ -108,6 +109,7 @@ export default function DashboardPage() {
         <PositionsPanel trades={openTrades} profitableCount={profitableCount} />
         <div className="flex min-h-0 flex-col gap-4">
           <TopPerformerCard strategies={visibleStrategies} realizedToday={realizedToday} />
+          <RecentActivityFeed />
         </div>
       </section>
     </div>

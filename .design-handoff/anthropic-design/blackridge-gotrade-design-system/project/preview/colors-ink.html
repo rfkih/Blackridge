@@ -1,0 +1,24 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  body { margin: 0; padding: 20px; background: var(--bg-base); }
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+  .sw { aspect-ratio: 1; border-radius: var(--radius-md); position: relative; box-shadow: inset 0 0 0 1px rgba(0,0,0,0.06); }
+  .sw .hex { position: absolute; left: 8px; bottom: 6px; font-family: var(--font-mono); font-size: 10px; font-weight: 600; }
+  .sw.dark .hex { color: rgba(255,255,255,0.95); }
+  .sw.light .hex { color: #384151; }
+  .lbl { font-size: 11px; letter-spacing: 0.04em; text-transform: uppercase; font-weight: 700; color: var(--text-muted); margin: 0 0 8px; }
+</style></head>
+<body>
+  <div class="lbl">Ink · text + borders</div>
+  <div class="grid">
+    <div class="sw dark"  style="background:#0E1116"><span class="hex">900 · 0E1116</span></div>
+    <div class="sw dark"  style="background:#384151"><span class="hex">700 · 384151</span></div>
+    <div class="sw light" style="background:#6B7280;color:#fff"><span class="hex" style="color:#fff">500 · 6B7280</span></div>
+    <div class="sw light" style="background:#A8B0BC"><span class="hex">300 · A8B0BC</span></div>
+    <div class="sw light" style="background:#CDD2DA"><span class="hex">200 · CDD2DA</span></div>
+    <div class="sw light" style="background:#E5E8EC"><span class="hex">100 · E5E8EC</span></div>
+    <div class="sw light" style="background:#F2F5F7"><span class="hex">50 · F2F5F7</span></div>
+    <div class="sw light" style="background:#FFFFFF;box-shadow: inset 0 0 0 1px #E5E8EC"><span class="hex">base · FFFFFF</span></div>
+  </div>
+</body></html>

@@ -1,0 +1,46 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  body { margin: 0; padding: 32px; background: var(--bg-base); font-family: var(--font-body); }
+  .grid { display: grid; grid-template-columns: auto 1fr; gap: 36px; align-items: center; }
+  .app-icon { width: 128px; height: 128px; border-radius: 28px; box-shadow: 0 14px 32px rgba(15,23,42,0.20), 0 4px 10px rgba(15,23,42,0.10); overflow: hidden; }
+  .stack { display: flex; flex-direction: column; gap: 10px; }
+  .lbl { font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; font-weight: 700; color: var(--text-muted); }
+  .wordmark img { height: 64px; }
+  .lockups { display: flex; gap: 14px; margin-top: 28px; flex-wrap: wrap; }
+  .tile { display: flex; align-items: center; gap: 12px; padding: 12px 18px 12px 12px; border-radius: 14px; border: 1px solid var(--ink-50); background: #fff; }
+  .tile.dark { background: #0F1417; border-color: #0F1417; color: #fff; }
+  .tile.brand { background: var(--brand-50); border-color: var(--brand-100); }
+  .tile img.mark { width: 36px; height: 36px; border-radius: 9px; }
+  .tile .name { font-weight: 800; font-size: 15px; letter-spacing: -0.01em; font-family: var(--font-display); line-height: 1; }
+  .tile .sub { font-size: 9px; letter-spacing: 0.22em; font-weight: 500; color: var(--text-muted); margin-top: 4px; }
+  .tile.dark .sub { color: rgba(255,255,255,0.55); }
+  .tile.dark .name { color: #fff; }
+  .tile.brand .name { color: var(--brand-700); }
+  .caption { color: var(--text-muted); font-size: 13px; max-width: 540px; line-height: 1.55; margin: 6px 0 0; }
+</style></head>
+<body>
+  <div class="grid">
+    <img class="app-icon" src="../assets/logo-mark.svg" alt="Machiavelli Technology mark">
+    <div class="stack">
+      <span class="lbl">Wordmark</span>
+      <div class="wordmark"><img src="../assets/logo-wordmark.svg" alt="Machiavelli Technology"></div>
+      <p class="caption">Abstract ridge mark — two peaks form an implied <em>M</em>, read as mountains, signal, and forward motion. Yellow + green nodes mark the high points: opportunity, execution. Pairs with a confident, slightly serious wordmark.</p>
+    </div>
+  </div>
+
+  <div class="lockups">
+    <div class="tile">
+      <img class="mark" src="../assets/logo-mark.svg" alt="">
+      <div><div class="name" style="color:#0F1417">Machiavelli</div><div class="sub">TECHNOLOGY</div></div>
+    </div>
+    <div class="tile dark">
+      <img class="mark" src="../assets/logo-mark.svg" alt="">
+      <div><div class="name">Machiavelli</div><div class="sub">TECHNOLOGY</div></div>
+    </div>
+    <div class="tile brand">
+      <img class="mark" src="../assets/logo-mark.svg" alt="">
+      <div><div class="name">Machiavelli</div><div class="sub" style="color: var(--brand-700)">TECHNOLOGY</div></div>
+    </div>
+  </div>
+</body></html>

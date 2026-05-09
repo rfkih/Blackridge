@@ -1,0 +1,36 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  body { margin: 0; padding: 20px; background: var(--bg-base); }
+  .lbl { font-size: 11px; letter-spacing: 0.04em; text-transform: uppercase; font-weight: 700; color: var(--text-muted); margin: 0 0 10px; }
+  .grid-r { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 18px; }
+  .r-card { background: #fff; border: 1px solid var(--ink-100); display: flex; align-items: center; justify-content: center; padding: 16px 8px; font-family: var(--font-mono); font-size: 11px; color: var(--text-secondary); height: 64px; }
+  .r-sm { border-radius: 6px; }
+  .r-md { border-radius: 12px; }
+  .r-lg { border-radius: 20px; }
+  .r-xl { border-radius: 28px; }
+  .r-pill { border-radius: 9999px; }
+  .grid-s { display: flex; gap: 12px; align-items: stretch; }
+  .s-card { background: #fff; border-radius: var(--radius-lg); padding: 16px; flex: 1; font-family: var(--font-mono); font-size: 11px; color: var(--text-secondary); display: flex; flex-direction: column; justify-content: flex-end; min-height: 90px; }
+  .s-sm { box-shadow: var(--shadow-sm); }
+  .s-md { box-shadow: var(--shadow-md); }
+  .s-lg { box-shadow: var(--shadow-lg); }
+  .s-glow { box-shadow: var(--shadow-glow-brand); }
+</style></head>
+<body>
+  <div class="lbl">Radius · 6 / 12 / 20 / 28 / pill</div>
+  <div class="grid-r">
+    <div class="r-card r-sm">sm 6</div>
+    <div class="r-card r-md">md 12</div>
+    <div class="r-card r-lg">lg 20</div>
+    <div class="r-card r-xl">xl 28</div>
+    <div class="r-card r-pill">pill</div>
+  </div>
+  <div class="lbl">Shadow · sm / md / lg / brand-glow</div>
+  <div class="grid-s">
+    <div class="s-card s-sm">shadow-sm</div>
+    <div class="s-card s-md">shadow-md</div>
+    <div class="s-card s-lg">shadow-lg</div>
+    <div class="s-card s-glow">glow-brand</div>
+  </div>
+</body></html>

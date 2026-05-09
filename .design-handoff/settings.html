@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Settings — Machiavelli Technology</title>
+<link rel="stylesheet" href="colors_and_type.css">
+<link rel="stylesheet" href="app.css">
+<style>
+  .settings-grid { display: grid; grid-template-columns: 200px minmax(0, 1fr); gap: 28px; }
+  @media (max-width: 1100px) {
+    .settings-grid { grid-template-columns: 1fr; }
+    .set-nav { position: static; flex-direction: row; flex-wrap: wrap; gap: 4px; padding: 8px; background: #fff; border: 1px solid var(--ink-100); border-radius: 12px; }
+    .set-nav a { padding: 8px 12px; }
+  }
+  @media (max-width: 720px) {
+    .row { grid-template-columns: 1fr; gap: 8px; }
+    .set-section { padding: 20px; }
+    .api-card { flex-wrap: wrap; gap: 12px; }
+    .api-card .meta { width: 100%; order: 4; }
+  }
+
+  .set-nav { display: flex; flex-direction: column; gap: 2px; align-self: flex-start; position: sticky; top: 24px; }
+  .set-nav a { padding: 10px 14px; border-radius: 8px; text-decoration: none; color: var(--text-secondary); font-size: 14px; font-weight: 500; }
+  .set-nav a:hover { background: #fff; color: var(--ink-900); }
+  .set-nav a.on { background: #fff; color: var(--ink-900); border: 1px solid var(--ink-100); box-shadow: var(--shadow-sm); }
+
+  .set-section { background: #fff; border: 1px solid var(--ink-100); border-radius: 16px; padding: 28px; margin-bottom: 16px; }
+  .set-section h2 { font-family: var(--font-display); font-size: 18px; font-weight: 700; letter-spacing: -0.01em; }
+  .set-section .desc { font-size: 13px; color: var(--text-secondary); margin-top: 4px; margin-bottom: 24px; }
+
+  .row { display: grid; grid-template-columns: 220px 1fr; gap: 24px; padding: 16px 0; border-bottom: 1px solid var(--ink-50); align-items: start; }
+  .row:last-child { border-bottom: none; padding-bottom: 0; }
+  .row .lbl { font-size: 13px; font-weight: 600; color: var(--ink-900); }
+  .row .lbl .hint { font-weight: 400; color: var(--text-muted); font-size: 12px; margin-top: 2px; }
+
+  .input { width: 100%; padding: 10px 12px; border: 1px solid var(--ink-100); border-radius: 8px; font-size: 14px; font-family: inherit; box-sizing: border-box; }
+  .input.mono { font-family: var(--font-mono); }
+
+  /* API key cards */
+  .api-card { display: flex; align-items: center; gap: 16px; padding: 16px; background: var(--bg-surface); border-radius: 12px; margin-bottom: 8px; }
+  .api-card .ex-logo { width: 40px; height: 40px; border-radius: 10px; background: var(--ink-900); color: #fff; display: grid; place-items: center; font-weight: 800; font-family: var(--font-display); font-size: 16px; }
+  .api-card .ex-logo.coinbase { background: #0052FF; }
+  .api-card .ex-logo.kraken { background: #5741D9; }
+  .api-card .ex-logo.bybit { background: #F7A600; }
+  .api-card .info { flex: 1; }
+  .api-card .info .name { font-weight: 700; font-size: 14px; }
+  .api-card .info .key { font-family: var(--font-mono); font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+  .api-card .meta { display: flex; gap: 16px; font-size: 12px; color: var(--text-muted); }
+  .api-card .meta .v { font-weight: 600; color: var(--ink-900); font-family: var(--font-mono); }
+  .api-card .status { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; background: var(--brand-50); color: var(--brand-700); border-radius: 999px; font-size: 11px; font-weight: 700; }
+  .api-card .status::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--brand-500); }
+
+  /* Toggle */
+  .toggle { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; }
+  .toggle .sw { display: inline-block; width: 36px; height: 20px; background: var(--ink-100); border-radius: 10px; position: relative; transition: all var(--dur-base); }
+  .toggle .sw::after { content: ""; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; background: #fff; border-radius: 50%; transition: all var(--dur-base); box-shadow: var(--shadow-sm); }
+  .toggle.on .sw { background: var(--brand-500); }
+  .toggle.on .sw::after { transform: translateX(16px); }
+
+  .danger-card { background: #FFF5F5; border: 1px solid #F8B5B7; border-radius: 12px; padding: 20px; }
+  .danger-card h4 { color: #B91C1C; font-weight: 700; margin-bottom: 4px; }
+  .danger-card p { color: #7F1D1D; font-size: 13px; margin-bottom: 16px; }
+  .btn-danger { padding: 8px 14px; background: #fff; border: 1px solid #F8B5B7; color: #B91C1C; border-radius: 8px; font-weight: 600; font-size: 13px; cursor: pointer; }
+  .btn-danger:hover { background: #FFF1F1; }
+
+  .badge-plan { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; background: var(--ink-900); color: #fff; border-radius: 999px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
+</style>
+</head>
+<body data-screen-label="Settings">
+
+<div class="app">
+  <aside class="sidebar">
+    <div class="sb-logo"><img src="assets/logo-mark.svg" alt=""><div><div class="name">Machiavelli</div><div class="tag">Technology</div></div></div>
+    <div class="sb-section">Trading</div>
+    <nav class="sb-nav">
+      <a href="dashboard.html" class="sb-link"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>Dashboard</a>
+      <a href="deploy.html" class="sb-link"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/></svg>Strategies</a>
+      <a href="backtest.html" class="sb-link"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/></svg>Backtests</a>
+    </nav>
+    <div class="sb-section">Account</div>
+    <nav class="sb-nav">
+      <a href="settings.html" class="sb-link on"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/></svg>Settings</a>
+    </nav>
+    <div class="sb-user"><div class="avatar">JD</div><div><div class="name2">Jordan Davies</div><div class="meta">Pro · 4 exchanges</div></div></div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div>
+        <h1>Settings</h1>
+        <div class="ts">Manage your account, exchanges, and notifications</div>
+      </div>
+    </div>
+
+    <div class="settings-grid">
+
+      <nav class="set-nav">
+        <a href="#profile" class="on">Profile</a>
+        <a href="#exchanges">Exchanges &amp; API</a>
+        <a href="#notifications">Notifications</a>
+        <a href="#security">Security</a>
+        <a href="#billing">Billing &amp; plan</a>
+        <a href="#danger">Danger zone</a>
+      </nav>
+
+      <div>
+
+        <!-- Profile -->
+        <div class="set-section" id="profile">
+          <h2>Profile</h2>
+          <div class="desc">Your basic info. Used on receipts and account notifications.</div>
+
+          <div class="row">
+            <div class="lbl">Avatar<div class="hint">PNG · 200×200 minimum</div></div>
+            <div style="display:flex; gap:16px; align-items:center;">
+              <div style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#16B364,#0A7E3F);display:grid;place-items:center;color:#fff;font-weight:800;font-family:var(--font-display);font-size:24px;">JD</div>
+              <button class="btn-sec">Upload new</button>
+              <button class="btn-sec" style="color:var(--color-loss);border-color:var(--ink-100);">Remove</button>
+            </div>
+          </div>
+          <div class="row">
+            <div class="lbl">Full name</div>
+            <input class="input" value="Jordan Davies" style="max-width:340px;">
+          </div>
+          <div class="row">
+            <div class="lbl">Email<div class="hint">Used for account &amp; trade alerts</div></div>
+            <div style="max-width:340px;"><input class="input" value="jordan@davies.io"></div>
+          </div>
+          <div class="row">
+            <div class="lbl">Time zone</div>
+            <select class="input" style="max-width:340px;"><option>(UTC+08:00) Singapore</option><option>(UTC+00:00) London</option><option>(UTC-05:00) New York</option></select>
+          </div>
+          <div class="row">
+            <div class="lbl">Default currency<div class="hint">Display currency for P&amp;L and balances</div></div>
+            <select class="input" style="max-width:340px;"><option>USDT</option><option>USD</option><option>EUR</option><option>GBP</option><option>SGD</option></select>
+          </div>
+        </div>
+
+        <!-- Exchanges -->
+        <div class="set-section" id="exchanges">
+          <div style="display:flex;justify-content:space-between;align-items:flex-end;">
+            <div>
+              <h2>Exchanges &amp; API keys</h2>
+              <div class="desc">Connect exchanges with read &amp; trade permissions. Never enable withdrawals — we don't need them.</div>
+            </div>
+            <button class="btn-prim">+ Add exchange</button>
+          </div>
+
+          <div class="api-card">
+            <div class="ex-logo">B</div>
+            <div class="info">
+              <div class="name">Binance</div>
+              <div class="key">****•••• 4kFq · added Mar 12, 2026</div>
+            </div>
+            <div class="meta">
+              <div><div style="font-size:10px;text-transform:uppercase;letter-spacing:0.06em;">Balance</div><div class="v">$84,217.30</div></div>
+              <div><div style="font-size:10px;text-transform:uppercase;letter-spacing:0.06em;">Bots</div><div class="v">3</div></div>
+            </div>
+            <span class="status">Connected</span>
+            <button class="btn-sec" style="padding:6px 12px;font-size:12px;">Manage</button>
+          </div>
+
+          <div class="api-card">
+            <div class="ex-logo coinbase">C</div>
+            <div class="info">
+              <div class="name">Coinbase</div>
+              <div class="key">****•••• 7nJp · added Feb 4, 2026</div>
+            </div>
+            <div class="meta">
+              <div><div style="font-size:10px;text-transform:uppercase;letter-spacing:0.06em;">Balance</div><div class="v">$48,182.40</div></div>
+              <div><div style="font-size:10px;text-transform:uppercase;letter-spacing:0.06em;">Bots</div><div class="v">2</div></div>
+            </div>
+            <span class="status">Connected</span>
+            <button class="btn-sec" style="padding:6px 12px;font-size:12px;">Manage</button>
+          </div>
+
+          <div class="api-card">
+            <div class="ex-logo kraken">K</div>
+            <div class="info">
+              <div class="name">Kraken</div>
+              <div class="key">****•••• 9pXm · added Jan 18, 2026</div>
+            </div>
+            <div class="meta">
+              <div><div style="font-size:10px;text-transform:uppercase;letter-spacing:0.06em;">Balance</div><div class="v">$92,418.70</div></div>
+              <div><div style="font-size:10px;text-transform:uppercase;letter-spacing:0.06em;">Bots</div><div class="v">2</div></div>
+            </div>
+            <span class="status">Connected</span>
+            <button class="btn-sec" style="padding:6px 12px;font-size:12px;">Manage</button>
+          </div>
+
+          <div class="api-card">
+            <div class="ex-logo bybit">B</div>
+            <div class="info">
+              <div class="name">Bybit</div>
+              <div class="key">****•••• 2kVn · added 4 days ago</div>
+            </div>
+            <div class="meta">
+              <div><div style="font-size:10px;text-transform:uppercase;letter-spacing:0.06em;">Balance</div><div class="v">$59,902.80</div></div>
+              <div><div style="font-size:10px;text-transform:uppercase;letter-spacing:0.06em;">Bots</div><div class="v">1</div></div>
+            </div>
+            <span class="status">Connected</span>
+            <button class="btn-sec" style="padding:6px 12px;font-size:12px;">Manage</button>
+          </div>
+        </div>
+
+        <!-- Notifications -->
+        <div class="set-section" id="notifications">
+          <h2>Notifications</h2>
+          <div class="desc">Pick what you want to hear about and where.</div>
+
+          <div class="row">
+            <div class="lbl">Trade fills</div>
+            <div style="display:flex;gap:24px;">
+              <span class="toggle on"><span class="sw"></span>Email</span>
+              <span class="toggle"><span class="sw"></span>Push</span>
+              <span class="toggle on"><span class="sw"></span>Slack</span>
+              <span class="toggle"><span class="sw"></span>Telegram</span>
+            </div>
+          </div>
+          <div class="row">
+            <div class="lbl">Bot status changes<div class="hint">Pause, resume, error</div></div>
+            <div style="display:flex;gap:24px;">
+              <span class="toggle on"><span class="sw"></span>Email</span>
+              <span class="toggle on"><span class="sw"></span>Push</span>
+              <span class="toggle on"><span class="sw"></span>Slack</span>
+              <span class="toggle on"><span class="sw"></span>Telegram</span>
+            </div>
+          </div>
+          <div class="row">
+            <div class="lbl">Drawdown alerts<div class="hint">When a bot crosses warning thresholds</div></div>
+            <div style="display:flex;gap:24px;">
+              <span class="toggle on"><span class="sw"></span>Email</span>
+              <span class="toggle on"><span class="sw"></span>Push</span>
+              <span class="toggle on"><span class="sw"></span>Slack</span>
+              <span class="toggle on"><span class="sw"></span>Telegram</span>
+            </div>
+          </div>
+          <div class="row">
+            <div class="lbl">Daily P&amp;L digest<div class="hint">9:00 AM in your timezone</div></div>
+            <div style="display:flex;gap:24px;">
+              <span class="toggle on"><span class="sw"></span>Email</span>
+              <span class="toggle"><span class="sw"></span>Push</span>
+              <span class="toggle"><span class="sw"></span>Slack</span>
+              <span class="toggle"><span class="sw"></span>Telegram</span>
+            </div>
+          </div>
+          <div class="row">
+            <div class="lbl">Marketing &amp; product updates</div>
+            <span class="toggle"><span class="sw"></span>Email only</span>
+          </div>
+        </div>
+
+        <!-- Security -->
+        <div class="set-section" id="security">
+          <h2>Security</h2>
+          <div class="desc">Your account, your keys. Don't share. Use 2FA. Withdrawals require 24h confirmation.</div>
+
+          <div class="row">
+            <div class="lbl">Password<div class="hint">Last changed 84 days ago</div></div>
+            <button class="btn-sec">Change password</button>
+          </div>
+          <div class="row">
+            <div class="lbl">Two-factor authentication<div class="hint">Authenticator app · Google Authenticator</div></div>
+            <div style="display:flex;align-items:center;gap:12px;"><span class="status" style="display:inline-flex;align-items:center;gap:6px;padding:4px 10px;background:var(--brand-50);color:var(--brand-700);border-radius:999px;font-size:11px;font-weight:700;">Active</span><button class="btn-sec">Reconfigure</button></div>
+          </div>
+          <div class="row">
+            <div class="lbl">Active sessions<div class="hint">Where you're signed in right now</div></div>
+            <div>
+              <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--ink-50);font-size:13px;">
+                <div><strong>MacBook Pro · Singapore</strong><div style="color:var(--text-muted);font-size:12px;font-family:var(--font-mono);">Chrome 132 · 192.168.1.42 · This device</div></div>
+                <div style="color:var(--brand-700);font-weight:600;">Current</div>
+              </div>
+              <div style="display:flex;justify-content:space-between;padding:8px 0;font-size:13px;">
+                <div><strong>iPhone 16 Pro · Singapore</strong><div style="color:var(--text-muted);font-size:12px;font-family:var(--font-mono);">Mobile · 4 hours ago</div></div>
+                <button class="btn-sec" style="padding:4px 10px;font-size:12px;color:var(--color-loss);">Revoke</button>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="lbl">Withdrawal whitelist<div class="hint">Only these addresses can receive withdrawals (manual)</div></div>
+            <button class="btn-sec">Manage whitelist (3 addresses)</button>
+          </div>
+        </div>
+
+        <!-- Billing -->
+        <div class="set-section" id="billing">
+          <h2>Billing &amp; plan</h2>
+          <div class="desc">Your subscription and performance fees.</div>
+
+          <div class="row">
+            <div class="lbl">Current plan</div>
+            <div>
+              <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
+                <span style="font-family:var(--font-display);font-size:20px;font-weight:800;">Pro</span>
+                <span class="badge-plan">Annual</span>
+              </div>
+              <div style="font-size:13px;color:var(--text-muted);margin-bottom:12px;">$1,431/year · renews Jan 14, 2027</div>
+              <div style="display:flex;gap:8px;">
+                <button class="btn-sec">Change plan</button>
+                <button class="btn-sec">View invoices</button>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="lbl">Performance fees<div class="hint">Charged monthly on net new profits</div></div>
+            <div>
+              <div style="font-family:var(--font-display);font-size:24px;font-weight:800;color:var(--brand-700);">10% · $1,284 this month</div>
+              <div style="font-size:12px;color:var(--text-muted);margin-top:4px;font-family:var(--font-mono);">High-water mark: $284,718 · billed on 1st of next month</div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="lbl">Payment method</div>
+            <div style="display:flex;align-items:center;gap:12px;"><span style="font-family:var(--font-mono);font-size:14px;">•••• •••• •••• 4242</span><span style="font-size:12px;color:var(--text-muted);">Expires 09/28</span><button class="btn-sec" style="padding:6px 12px;font-size:12px;">Update</button></div>
+          </div>
+        </div>
+
+        <!-- Danger -->
+        <div class="set-section" id="danger">
+          <h2 style="color:#B91C1C;">Danger zone</h2>
+          <div class="desc">Permanent actions. Read carefully.</div>
+
+          <div class="danger-card" style="margin-bottom:12px;">
+            <h4>Pause all strategies</h4>
+            <p>Stops every running bot immediately and cancels open orders. You can resume any of them individually later. Funds remain on your exchanges.</p>
+            <button class="btn-danger">Pause all 8 strategies</button>
+          </div>
+
+          <div class="danger-card" style="margin-bottom:12px;">
+            <h4>Export all data</h4>
+            <p>Download every trade, every backtest, every account event as CSV. We'll email you a link within 60 minutes.</p>
+            <button class="btn-danger">Request data export</button>
+          </div>
+
+          <div class="danger-card">
+            <h4>Delete account</h4>
+            <p>Removes your Machiavelli account and disconnects every exchange API key on our side. Your funds and exchange accounts are not touched. This cannot be undone.</p>
+            <button class="btn-danger">Delete account permanently</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </main>
+</div>
+
+</body>
+</html>

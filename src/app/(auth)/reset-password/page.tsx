@@ -1,13 +1,13 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ArrowLeft, Eye, EyeOff, Loader2 } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, Eye, EyeOff, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { Suspense, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { AuthHero } from '@/components/auth/AuthHero';
+import { AuthCard, AuthMark, AuthShell } from '@/components/auth/AuthShell';
 import { confirmPasswordReset } from '@/lib/api/passwordReset';
 import { normalizeError } from '@/lib/api/client';
 
@@ -22,6 +22,29 @@ const schema = z
   });
 
 type Values = z.infer<typeof schema>;
+
+const FIELD_LABEL_STYLE: React.CSSProperties = {
+  display: 'block',
+  fontSize: 11,
+  fontWeight: 600,
+  color: 'var(--mm-ink-1, #384151)',
+  marginBottom: 6,
+  textTransform: 'uppercase',
+  letterSpacing: '0.04em',
+};
+
+const FIELD_INPUT_STYLE: React.CSSProperties = {
+  width: '100%',
+  padding: '12px 14px',
+  border: '1px solid var(--mm-hair-2, rgba(14,17,22,0.1))',
+  borderRadius: 10,
+  fontSize: 14,
+  fontFamily: 'inherit',
+  boxSizing: 'border-box',
+  background: '#FFFFFF',
+  color: 'var(--mm-ink-0, #0E1116)',
+  outline: 'none',
+};
 
 function ResetPasswordContent() {
   const search = useSearchParams();
@@ -54,132 +77,281 @@ function ResetPasswordContent() {
     }
   });
 
-  // Token absent in URL — show a clear error rather than a broken form.
   const tokenMissing = !token;
 
   return (
-    <div className="grid min-h-screen grid-cols-1 lg:grid-cols-2">
-      <AuthHero />
-      <div className="flex items-center justify-center bg-bg-base p-8">
-        <div className="w-full max-w-md space-y-6">
+    <AuthShell topRight={{ label: 'Remembered it?', cta: 'Sign in →', href: '/login' }}>
+      <AuthCard>
+        <AuthMark />
+
+        <h1
+          className="font-display"
+          style={{
+            fontSize: 28,
+            fontWeight: 800,
+            letterSpacing: '-0.025em',
+            lineHeight: 1.1,
+            margin: '0 0 6px',
+            color: 'var(--mm-ink-0, #0E1116)',
+          }}
+        >
+          Choose a new password
+        </h1>
+        <p
+          style={{
+            fontSize: 14,
+            color: 'var(--mm-ink-1, #384151)',
+            margin: '0 0 24px',
+            lineHeight: 1.5,
+          }}
+        >
+          Pick something at least 8 characters. The reset link is one-shot — once you submit this
+          form it can&apos;t be reused.
+        </p>
+
+        {submitted ? (
           <div>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 12,
+                padding: '14px 16px',
+                borderRadius: 12,
+                background: 'rgba(22,179,100,0.08)',
+                border: '1px solid rgba(22,179,100,0.25)',
+                marginBottom: 16,
+              }}
+            >
+              <span
+                style={{
+                  width: 32,
+                  height: 32,
+                  flexShrink: 0,
+                  borderRadius: 8,
+                  background: 'rgba(22,179,100,0.18)',
+                  color: 'var(--brand-700, #0A7E3F)',
+                  display: 'grid',
+                  placeItems: 'center',
+                }}
+              >
+                <CheckCircle2 size={16} strokeWidth={2} />
+              </span>
+              <div>
+                <div
+                  className="font-display"
+                  style={{
+                    fontSize: 14,
+                    fontWeight: 700,
+                    color: 'var(--mm-ink-0, #0E1116)',
+                  }}
+                >
+                  Password updated
+                </div>
+                <div
+                  style={{
+                    fontSize: 12,
+                    color: 'var(--mm-ink-1, #384151)',
+                    marginTop: 2,
+                  }}
+                >
+                  Sign in with your new password.
+                </div>
+              </div>
+            </div>
+
+            <p style={{ fontSize: 12, color: 'var(--mm-ink-1, #384151)', lineHeight: 1.5 }}>
+              The reset link is now spent and cannot be reused.
+            </p>
+
             <Link
               href="/login"
-              className="mb-4 inline-flex items-center gap-1.5 text-[11px] text-text-muted transition-colors hover:text-text-primary"
+              style={{
+                marginTop: 16,
+                width: '100%',
+                padding: '14px',
+                background: 'var(--mm-ink-0, #0E1116)',
+                color: '#FFFFFF',
+                borderRadius: 12,
+                fontSize: 14,
+                fontWeight: 700,
+                textDecoration: 'none',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 8,
+              }}
             >
-              <ArrowLeft size={12} strokeWidth={1.75} />
-              Back to sign in
+              Continue to sign in
             </Link>
-            <h1 className="font-display text-2xl text-text-primary">Choose a new password</h1>
-            <p className="mt-1 text-sm text-text-secondary">
-              Pick something at least 8 characters. The reset link is one-shot — once you submit
-              this form it can&apos;t be reused.
+          </div>
+        ) : tokenMissing ? (
+          <div>
+            <p
+              role="alert"
+              style={{
+                padding: '12px 14px',
+                fontSize: 12,
+                borderRadius: 10,
+                border: '1px solid rgba(229,72,77,0.4)',
+                background: 'rgba(229,72,77,0.08)',
+                color: 'var(--color-loss)',
+                marginBottom: 12,
+                lineHeight: 1.5,
+              }}
+            >
+              <strong>Missing token.</strong> The link you clicked is missing the reset token. Open
+              the original reset URL exactly as it was issued, or{' '}
+              <Link
+                href="/forgot-password"
+                style={{
+                  color: 'var(--brand-700, #0A7E3F)',
+                  fontWeight: 700,
+                  textDecoration: 'none',
+                }}
+              >
+                request a fresh one
+              </Link>
+              .
             </p>
           </div>
-
-          {submitted ? (
-            <div className="space-y-3 rounded-xl border border-bd-subtle bg-bg-surface p-4">
-              <h2 className="font-display text-sm font-semibold text-text-primary">
-                Password updated
-              </h2>
-              <p className="text-[12px] text-text-secondary">
-                Sign in with your new password. The reset link is now spent and cannot be reused.
-              </p>
-              <Link
-                href="/login"
-                className="mm-btn mm-btn-mint inline-flex w-full items-center justify-center"
-              >
-                Continue to sign in
-              </Link>
-            </div>
-          ) : tokenMissing ? (
-            <div className="space-y-3 rounded-md border border-bd-subtle bg-tint-loss p-4">
-              <h2 className="font-display text-sm font-semibold text-loss">Missing token</h2>
-              <p className="text-[12px] text-text-secondary">
-                The link you clicked is missing the reset token. Open the original reset URL
-                exactly as it was issued, or{' '}
-                <Link
-                  href="/forgot-password"
-                  className="font-semibold text-[var(--accent-primary)] hover:underline"
-                >
-                  request a fresh one
-                </Link>
-                .
-              </p>
-            </div>
-          ) : (
-            <form onSubmit={submit} className="space-y-4" noValidate>
-              <div>
-                <label htmlFor="newPassword" className="mm-label">
-                  New password
-                </label>
-                <div className="relative">
-                  <input
-                    id="newPassword"
-                    type={showPassword ? 'text' : 'password'}
-                    autoComplete="new-password"
-                    className="mm-input pr-10"
-                    aria-invalid={errors.newPassword ? 'true' : 'false'}
-                    {...register('newPassword')}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword((v) => !v)}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-text-muted transition-colors hover:text-text-primary"
-                    aria-label={showPassword ? 'Hide password' : 'Show password'}
-                  >
-                    {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
-                  </button>
-                </div>
-                {errors.newPassword && (
-                  <p className="mt-1 text-[11px] text-loss">{errors.newPassword.message}</p>
-                )}
-              </div>
-
-              <div>
-                <label htmlFor="confirmPassword" className="mm-label">
-                  Confirm new password
-                </label>
+        ) : (
+          <form onSubmit={submit} noValidate>
+            <div style={{ marginBottom: 12 }}>
+              <label htmlFor="newPassword" style={FIELD_LABEL_STYLE}>
+                New password
+              </label>
+              <div style={{ position: 'relative' }}>
                 <input
-                  id="confirmPassword"
+                  id="newPassword"
                   type={showPassword ? 'text' : 'password'}
                   autoComplete="new-password"
-                  className="mm-input"
-                  aria-invalid={errors.confirmPassword ? 'true' : 'false'}
-                  {...register('confirmPassword')}
+                  aria-invalid={errors.newPassword ? 'true' : 'false'}
+                  disabled={isSubmitting}
+                  {...register('newPassword')}
+                  style={{ ...FIELD_INPUT_STYLE, paddingRight: 56 }}
                 />
-                {errors.confirmPassword && (
-                  <p className="mt-1 text-[11px] text-loss">{errors.confirmPassword.message}</p>
-                )}
+                <button
+                  type="button"
+                  tabIndex={-1}
+                  onClick={() => setShowPassword((v) => !v)}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  style={{
+                    position: 'absolute',
+                    right: 12,
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    fontSize: 12,
+                    background: 'transparent',
+                    border: 'none',
+                    color: 'var(--mm-ink-2, #6B7280)',
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 4,
+                  }}
+                >
+                  {showPassword ? <EyeOff size={12} /> : <Eye size={12} />}
+                  {showPassword ? 'hide' : 'show'}
+                </button>
               </div>
-
-              {submitError && (
-                <div className="rounded-md border border-bd-subtle bg-tint-loss px-3 py-2 text-[11px] text-loss">
-                  {submitError}
-                </div>
+              {errors.newPassword && (
+                <p role="alert" style={{ marginTop: 6, fontSize: 11, color: 'var(--color-loss)' }}>
+                  {errors.newPassword.message}
+                </p>
               )}
+            </div>
 
-              <button
-                type="submit"
+            <div style={{ marginBottom: 16 }}>
+              <label htmlFor="confirmPassword" style={FIELD_LABEL_STYLE}>
+                Confirm new password
+              </label>
+              <input
+                id="confirmPassword"
+                type={showPassword ? 'text' : 'password'}
+                autoComplete="new-password"
+                aria-invalid={errors.confirmPassword ? 'true' : 'false'}
                 disabled={isSubmitting}
-                className="mm-btn mm-btn-mint w-full justify-center"
+                {...register('confirmPassword')}
+                style={FIELD_INPUT_STYLE}
+              />
+              {errors.confirmPassword && (
+                <p role="alert" style={{ marginTop: 6, fontSize: 11, color: 'var(--color-loss)' }}>
+                  {errors.confirmPassword.message}
+                </p>
+              )}
+            </div>
+
+            {submitError && (
+              <p
+                role="alert"
+                style={{
+                  padding: '10px 12px',
+                  fontSize: 12,
+                  borderRadius: 10,
+                  border: '1px solid rgba(229,72,77,0.4)',
+                  background: 'rgba(229,72,77,0.08)',
+                  color: 'var(--color-loss)',
+                  margin: '0 0 12px',
+                }}
               >
-                {isSubmitting ? (
-                  <Loader2 size={14} className="animate-spin" />
-                ) : (
-                  'Update password'
-                )}
-              </button>
-            </form>
-          )}
-        </div>
-      </div>
-    </div>
+                {submitError}
+              </p>
+            )}
+
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              style={{
+                width: '100%',
+                padding: '14px',
+                background: 'var(--mm-ink-0, #0E1116)',
+                color: '#FFFFFF',
+                border: 'none',
+                borderRadius: 12,
+                fontSize: 14,
+                fontWeight: 700,
+                cursor: isSubmitting ? 'not-allowed' : 'pointer',
+                fontFamily: 'inherit',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 8,
+                opacity: isSubmitting ? 0.7 : 1,
+              }}
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 size={14} className="animate-spin" /> Updating
+                </>
+              ) : (
+                'Update password'
+              )}
+            </button>
+
+            <Link
+              href="/login"
+              style={{
+                marginTop: 14,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                fontSize: 12,
+                fontWeight: 600,
+                color: 'var(--mm-ink-2, #6B7280)',
+                textDecoration: 'none',
+              }}
+            >
+              <ArrowLeft size={12} /> Back to sign in
+            </Link>
+          </form>
+        )}
+      </AuthCard>
+    </AuthShell>
   );
 }
 
 export default function ResetPasswordPage() {
-  // useSearchParams must be inside a Suspense boundary in the App Router.
   return (
     <Suspense fallback={null}>
       <ResetPasswordContent />

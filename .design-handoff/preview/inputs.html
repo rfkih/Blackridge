@@ -1,0 +1,19 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  body { margin: 0; padding: 20px; background: var(--bg-base); }
+  .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; max-width: 360px; }
+  .field label { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+  .field input { font-family: var(--font-body); font-size: 15px; padding: 12px 14px; border-radius: var(--radius-md); border: 1px solid var(--ink-100); background: #fff; outline: none; transition: all var(--dur-fast) var(--ease-out); }
+  .field input:focus { border-color: var(--brand-500); box-shadow: var(--shadow-focus-ring); }
+  .field .help { font-size: 12px; color: var(--text-muted); }
+  .field.error input { border-color: var(--color-loss); }
+  .field.error .help { color: var(--color-loss); }
+  .lbl { font-size: 11px; letter-spacing: 0.04em; text-transform: uppercase; font-weight: 700; color: var(--text-muted); margin: 0 0 8px; }
+</style></head>
+<body>
+  <div class="lbl">Inputs</div>
+  <div class="field"><label>Email</label><input value="rohit@heygotrade.com"><span class="help">We'll send a verification link.</span></div>
+  <div class="field" style="position:relative"><label>Initial capital</label><input value="$10,000.00" style="font-family: var(--font-mono); padding-left:32px"><span style="position:absolute;left:12px;top:33px;color:var(--text-muted);font-family:var(--font-mono)">$</span></div>
+  <div class="field error"><label>Stop loss (ATR)</label><input value="0"><span class="help">Must be greater than 0.</span></div>
+</body></html>

@@ -1,0 +1,27 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  body { margin: 0; padding: 20px; background: var(--bg-base); }
+  .row { display: flex; gap: 12px; margin-bottom: 14px; }
+  .chip { flex: 1; border-radius: var(--radius-md); padding: 12px 14px; font-family: var(--font-mono); font-size: 11px; font-weight: 600; display: flex; flex-direction: column; gap: 2px; min-height: 60px; box-shadow: var(--shadow-sm); }
+  .chip .lbl { font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; opacity: 0.85; }
+  .chip .hex { font-size: 12px; }
+  .lbl-sec { font-size: 11px; letter-spacing: 0.04em; text-transform: uppercase; font-weight: 700; color: var(--text-muted); margin: 0 0 8px; }
+</style></head>
+<body>
+  <div class="lbl-sec">Semantic</div>
+  <div class="row">
+    <div class="chip" style="background:#16B364;color:#fff"><span class="lbl">Profit / Long</span><span class="hex">#16B364</span></div>
+    <div class="chip" style="background:#E5484D;color:#fff"><span class="lbl">Loss / Short</span><span class="hex">#E5484D</span></div>
+    <div class="chip" style="background:#F5A623;color:#0E1116"><span class="lbl">Warning</span><span class="hex">#F5A623</span></div>
+    <div class="chip" style="background:#3B82F6;color:#fff"><span class="lbl">Info</span><span class="hex">#3B82F6</span></div>
+    <div class="chip" style="background:#6B7280;color:#fff"><span class="lbl">Neutral</span><span class="hex">#6B7280</span></div>
+  </div>
+  <div class="lbl-sec">Tints (surface backgrounds)</div>
+  <div class="row">
+    <div class="chip" style="background:#E8F8EE;color:#0A7E3F;border:1px solid #C8EED5"><span class="lbl">Profit tint</span><span class="hex">#E8F8EE</span></div>
+    <div class="chip" style="background:#FCEAEB;color:#B91D24;border:1px solid #F5C8CA"><span class="lbl">Loss tint</span><span class="hex">#FCEAEB</span></div>
+    <div class="chip" style="background:#FEF4E2;color:#8A5A0E;border:1px solid #FAE2B5"><span class="lbl">Warning tint</span><span class="hex">#FEF4E2</span></div>
+    <div class="chip" style="background:#E6EFFE;color:#1E40AF;border:1px solid #C5D8FB"><span class="lbl">Info tint</span><span class="hex">#E6EFFE</span></div>
+  </div>
+</body></html>

@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { AuthHero } from '@/components/auth/AuthHero';
+import { AuthCard, AuthMark, AuthShell } from '@/components/auth/AuthShell';
 import { verifyEmail } from '@/lib/api/emailVerification';
 import { normalizeError } from '@/lib/api/client';
 import { useAuthStore } from '@/store/authStore';
@@ -22,7 +22,9 @@ function VerifyEmailContent() {
   useEffect(() => {
     if (!token) {
       setPhase('error');
-      setErrorMsg('No verification token in the URL. Open the link from your verification email exactly.');
+      setErrorMsg(
+        'No verification token in the URL. Open the link from your verification email exactly.',
+      );
       return;
     }
     let cancelled = false;
@@ -31,14 +33,11 @@ function VerifyEmailContent() {
       .then(() => {
         if (cancelled) return;
         // Reflect the backend's flip in the in-memory user so the dashboard
-        // banner clears as soon as the user returns. Without this, the
-        // banner reads the stale emailVerified=false from the auth store.
+        // banner clears as soon as the user returns.
         const store = useAuthStore.getState();
         if (store.user && !store.user.emailVerified) {
           store.setUser({ ...store.user, emailVerified: true });
         }
-        // Drop the cached /me so any subsequent fetcher pulls fresh state
-        // (covers other tabs reading from React Query rather than the store).
         queryClient.invalidateQueries({ queryKey: ['auth', 'me'] });
         setPhase('ok');
       })
@@ -52,90 +51,222 @@ function VerifyEmailContent() {
     };
   }, [token, queryClient]);
 
-  return (
-    <div className="grid min-h-screen grid-cols-1 lg:grid-cols-2">
-      <AuthHero />
-      <div className="flex items-center justify-center bg-bg-base p-8">
-        <div className="w-full max-w-md space-y-6">
-          <div>
-            <h1 className="font-display text-2xl text-text-primary">Verify your email</h1>
-            <p className="mt-1 text-sm text-text-secondary">
-              {phase === 'verifying' && 'Confirming your verification token…'}
-              {phase === 'ok' && 'Your email is now verified.'}
-              {phase === 'error' && 'We could not verify this token.'}
-              {phase === 'idle' && 'Loading…'}
-            </p>
-          </div>
+  const subtitle =
+    phase === 'verifying'
+      ? 'Confirming your verification token…'
+      : phase === 'ok'
+        ? 'Your email is now verified.'
+        : phase === 'error'
+          ? 'We could not verify this token.'
+          : 'Loading…';
 
-          <div className="rounded-xl border border-bd-subtle bg-bg-surface p-4">
-            {phase === 'verifying' && (
-              <div className="flex items-center gap-2 text-text-secondary">
-                <Loader2 size={14} className="animate-spin" />
-                <span className="text-[12px]">One moment…</span>
-              </div>
-            )}
-            {phase === 'ok' && (
-              <div className="flex flex-col gap-3">
-                <div className="flex items-center gap-2">
-                  <span
-                    className="flex h-7 w-7 items-center justify-center rounded-sm"
-                    style={{
-                      background: 'rgba(22,179,100,0.15)',
-                      color: 'var(--color-profit)',
-                    }}
-                  >
-                    <CheckCircle2 size={14} strokeWidth={1.75} />
-                  </span>
-                  <h2 className="font-display text-sm font-semibold text-text-primary">
-                    Email verified
-                  </h2>
-                </div>
-                <p className="text-[12px] text-text-secondary">
-                  Thanks for confirming. You can return to the dashboard now.
-                </p>
-                <Link
-                  href="/"
-                  className="mm-btn mm-btn-mint inline-flex w-full items-center justify-center"
-                >
-                  Continue to dashboard
-                </Link>
-              </div>
-            )}
-            {phase === 'error' && (
-              <div className="flex flex-col gap-3">
-                <div className="flex items-center gap-2">
-                  <span
-                    className="flex h-7 w-7 items-center justify-center rounded-sm"
-                    style={{
-                      background: 'rgba(229,72,77,0.12)',
-                      color: 'var(--color-loss)',
-                    }}
-                  >
-                    <XCircle size={14} strokeWidth={1.75} />
-                  </span>
-                  <h2 className="font-display text-sm font-semibold text-loss">
-                    Verification failed
-                  </h2>
-                </div>
-                <p className="text-[12px] text-text-secondary">
-                  {errorMsg ?? 'The token is invalid, used, or expired.'}
-                </p>
-                <p className="text-[11px] text-text-muted">
-                  Sign in and use the &quot;Verify your email&quot; banner on the dashboard to
-                  request a fresh verification link.
-                </p>
-                <Link
-                  href="/login"
-                  className="mm-btn inline-flex w-full items-center justify-center"
-                >
-                  Back to sign in
-                </Link>
-              </div>
-            )}
+  return (
+    <AuthShell topRight={{ label: 'Done?', cta: 'Sign in →', href: '/login' }}>
+      <AuthCard>
+        <AuthMark />
+
+        <h1
+          className="font-display"
+          style={{
+            fontSize: 28,
+            fontWeight: 800,
+            letterSpacing: '-0.025em',
+            lineHeight: 1.1,
+            margin: '0 0 6px',
+            color: 'var(--mm-ink-0, #0E1116)',
+          }}
+        >
+          Verify your email
+        </h1>
+        <p
+          style={{
+            fontSize: 14,
+            color: 'var(--mm-ink-1, #384151)',
+            margin: '0 0 24px',
+            lineHeight: 1.5,
+          }}
+        >
+          {subtitle}
+        </p>
+
+        {phase === 'verifying' && (
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+              padding: '14px 16px',
+              borderRadius: 12,
+              background: 'var(--mm-bg-2, #F7FAF8)',
+              border: '1px solid var(--mm-hair-2, rgba(14,17,22,0.1))',
+              color: 'var(--mm-ink-1, #384151)',
+              fontSize: 13,
+            }}
+          >
+            <Loader2 size={14} className="animate-spin" />
+            <span>One moment…</span>
           </div>
-        </div>
-      </div>
-    </div>
+        )}
+
+        {phase === 'ok' && (
+          <div>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 12,
+                padding: '14px 16px',
+                borderRadius: 12,
+                background: 'rgba(22,179,100,0.08)',
+                border: '1px solid rgba(22,179,100,0.25)',
+                marginBottom: 16,
+              }}
+            >
+              <span
+                style={{
+                  width: 32,
+                  height: 32,
+                  flexShrink: 0,
+                  borderRadius: 8,
+                  background: 'rgba(22,179,100,0.18)',
+                  color: 'var(--brand-700, #0A7E3F)',
+                  display: 'grid',
+                  placeItems: 'center',
+                }}
+              >
+                <CheckCircle2 size={16} strokeWidth={2} />
+              </span>
+              <div>
+                <div
+                  className="font-display"
+                  style={{
+                    fontSize: 14,
+                    fontWeight: 700,
+                    color: 'var(--mm-ink-0, #0E1116)',
+                  }}
+                >
+                  Email verified
+                </div>
+                <div
+                  style={{
+                    fontSize: 12,
+                    color: 'var(--mm-ink-1, #384151)',
+                    marginTop: 2,
+                  }}
+                >
+                  Thanks for confirming. You can return to the dashboard now.
+                </div>
+              </div>
+            </div>
+
+            <Link
+              href="/"
+              style={{
+                width: '100%',
+                padding: '14px',
+                background: 'var(--mm-ink-0, #0E1116)',
+                color: '#FFFFFF',
+                borderRadius: 12,
+                fontSize: 14,
+                fontWeight: 700,
+                textDecoration: 'none',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 8,
+              }}
+            >
+              Continue to dashboard
+            </Link>
+          </div>
+        )}
+
+        {phase === 'error' && (
+          <div>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 12,
+                padding: '14px 16px',
+                borderRadius: 12,
+                background: 'rgba(229,72,77,0.08)',
+                border: '1px solid rgba(229,72,77,0.25)',
+                marginBottom: 16,
+              }}
+            >
+              <span
+                style={{
+                  width: 32,
+                  height: 32,
+                  flexShrink: 0,
+                  borderRadius: 8,
+                  background: 'rgba(229,72,77,0.18)',
+                  color: 'var(--color-loss)',
+                  display: 'grid',
+                  placeItems: 'center',
+                }}
+              >
+                <XCircle size={16} strokeWidth={2} />
+              </span>
+              <div>
+                <div
+                  className="font-display"
+                  style={{
+                    fontSize: 14,
+                    fontWeight: 700,
+                    color: 'var(--color-loss)',
+                  }}
+                >
+                  Verification failed
+                </div>
+                <div
+                  style={{
+                    fontSize: 12,
+                    color: 'var(--mm-ink-1, #384151)',
+                    marginTop: 2,
+                  }}
+                >
+                  {errorMsg ?? 'The token is invalid, used, or expired.'}
+                </div>
+              </div>
+            </div>
+
+            <p
+              style={{
+                fontSize: 11,
+                color: 'var(--mm-ink-2, #6B7280)',
+                lineHeight: 1.5,
+                marginBottom: 16,
+              }}
+            >
+              Sign in and use the &quot;Verify your email&quot; banner on the dashboard to request a
+              fresh verification link.
+            </p>
+
+            <Link
+              href="/login"
+              style={{
+                width: '100%',
+                padding: '14px',
+                background: 'transparent',
+                color: 'var(--mm-ink-0, #0E1116)',
+                border: '1px solid var(--mm-hair-2, rgba(14,17,22,0.1))',
+                borderRadius: 12,
+                fontSize: 14,
+                fontWeight: 600,
+                textDecoration: 'none',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              Back to sign in
+            </Link>
+          </div>
+        )}
+      </AuthCard>
+    </AuthShell>
   );
 }
 

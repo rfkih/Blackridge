@@ -1,0 +1,67 @@
+/* Shared dashboard app shell — sidebar, topbar, panels.
+   Used by dashboard.html and all authenticated pages. */
+
+body { background: #F4F6F5; margin: 0; }
+
+.app { display: grid; grid-template-columns: 240px 1fr; min-height: 100vh; }
+
+/* Sidebar */
+.sidebar {
+  background: #0E1116; color: #fff; padding: 24px 16px;
+  display: flex; flex-direction: column;
+  position: sticky; top: 0; height: 100vh;
+}
+.sb-logo { display: flex; align-items: center; gap: 10px; padding: 0 8px 24px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+.sb-logo img { width: 32px; height: 32px; }
+.sb-logo .name { font-family: var(--font-display); font-weight: 800; font-size: 16px; letter-spacing: -0.01em; }
+.sb-logo .tag { font-size: 9px; letter-spacing: 0.2em; color: rgba(255,255,255,0.5); margin-top: 2px; text-transform: uppercase; font-weight: 500; }
+
+.sb-section { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: rgba(255,255,255,0.4); font-weight: 700; padding: 24px 8px 8px; }
+.sb-nav { display: flex; flex-direction: column; gap: 2px; }
+.sb-link {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 12px; border-radius: 10px;
+  color: rgba(255,255,255,0.65); text-decoration: none;
+  font-size: 14px; font-weight: 500;
+  transition: all var(--dur-base) var(--ease-out);
+}
+.sb-link:hover { color: #fff; background: rgba(255,255,255,0.04); }
+.sb-link.on { background: rgba(22,179,100,0.14); color: #fff; }
+.sb-link svg { flex-shrink: 0; opacity: 0.7; }
+.sb-link.on svg { color: #5FCB8B; opacity: 1; }
+.sb-badge { margin-left: auto; padding: 1px 7px; background: rgba(22,179,100,0.2); color: #5FCB8B; border-radius: 999px; font-size: 10px; font-weight: 700; }
+
+.sb-user {
+  margin-top: auto; padding: 12px;
+  background: rgba(255,255,255,0.04); border-radius: 12px;
+  display: flex; align-items: center; gap: 10px;
+}
+.sb-user .avatar { width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, #16B364, #0A7E3F); display: grid; place-items: center; color: #fff; font-weight: 700; font-size: 13px; }
+.sb-user .name2 { font-size: 13px; font-weight: 600; }
+.sb-user .meta { font-size: 11px; color: rgba(255,255,255,0.5); }
+
+/* Main */
+.main { padding: 24px 32px 64px; }
+.topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 32px; }
+.topbar h1 { font-family: var(--font-display); font-size: 28px; font-weight: 800; letter-spacing: -0.02em; }
+.topbar .ts { font-size: 12px; color: var(--text-muted); margin-top: 2px; font-family: var(--font-mono); }
+.topbar-actions { display: flex; gap: 10px; align-items: center; }
+.icon-btn { width: 38px; height: 38px; border-radius: 10px; background: #fff; border: 1px solid var(--ink-100); display: grid; place-items: center; color: var(--ink-700); cursor: pointer; transition: all var(--dur-base) var(--ease-out); }
+.icon-btn:hover { border-color: var(--ink-200); }
+.btn-prim { display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px; background: var(--brand-500); color: #fff; border-radius: 10px; font-weight: 600; font-size: 14px; border: none; cursor: pointer; font-family: inherit; text-decoration: none; }
+.btn-prim:hover { background: var(--brand-600); box-shadow: var(--shadow-glow-brand); }
+.btn-sec { display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px; background: #fff; color: var(--ink-900); border: 1px solid var(--ink-100); border-radius: 10px; font-weight: 600; font-size: 14px; cursor: pointer; font-family: inherit; text-decoration: none; }
+.btn-sec:hover { border-color: var(--ink-200); }
+
+.panel-c { background: #fff; border: 1px solid var(--ink-100); border-radius: 20px; padding: 24px; }
+.panel-c-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.panel-c-head h3 { font-family: var(--font-display); font-size: 18px; font-weight: 700; letter-spacing: -0.01em; }
+.panel-c-head a { font-size: 13px; color: var(--brand-700); text-decoration: none; font-weight: 600; }
+
+@media (max-width: 760px) {
+  .app { grid-template-columns: 1fr; }
+  .sidebar { display: none; }
+  .main { padding: 20px 16px 48px; }
+}
+
+/* Reusable sidebar markup snippet — embed via JS */

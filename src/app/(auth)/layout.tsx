@@ -19,7 +19,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
   return (
     <main
       className="mm"
-      data-theme="dark"
+      data-theme="light"
       style={{
         minHeight: '100vh',
         background: 'var(--mm-bg, var(--bg-base))',

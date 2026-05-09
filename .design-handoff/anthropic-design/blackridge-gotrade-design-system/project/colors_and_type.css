@@ -1,0 +1,215 @@
+/* =========================================================================
+   Blackridge × Gotrade — colors_and_type.css
+   Drop this into any HTML file:
+     <link rel="stylesheet" href="colors_and_type.css">
+   ========================================================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+:root {
+  /* ── Brand: emerald / kelly green ─────────────────────────────────────── */
+  --brand-50:  #E8F8EE;
+  --brand-100: #C8EED5;
+  --brand-200: #97DEB1;
+  --brand-300: #5FCB8B;
+  --brand-400: #2EBC72;
+  --brand-500: #16B364;  /* primary */
+  --brand-600: #0E9F50;  /* hover */
+  --brand-700: #0A7E3F;  /* press */
+  --brand-800: #075E2F;
+  --brand-900: #054020;
+
+  /* ── Ink (text + borders) ─────────────────────────────────────────────── */
+  --ink-900: #0E1116;    /* primary text */
+  --ink-800: #1C2027;
+  --ink-700: #384151;    /* body text */
+  --ink-500: #6B7280;    /* secondary text */
+  --ink-400: #8A93A0;
+  --ink-300: #A8B0BC;    /* muted text */
+  --ink-200: #CDD2DA;
+  --ink-100: #E5E8EC;    /* default border */
+  --ink-50:  #F2F5F7;    /* subtle border / row hover */
+
+  /* ── Surfaces ─────────────────────────────────────────────────────────── */
+  --bg-base:      #FFFFFF;
+  --bg-surface:   #F7FAF8;     /* page bg with green tint */
+  --bg-elevated:  #FFFFFF;     /* card */
+  --bg-overlay:   rgba(255,255,255,0.92);
+  --bg-hover:     #F2F5F4;
+  --bg-tint:      var(--brand-50);
+
+  /* ── Semantic ─────────────────────────────────────────────────────────── */
+  --color-profit:  #16B364;
+  --color-loss:    #E5484D;
+  --color-warning: #F5A623;
+  --color-info:    #3B82F6;
+  --color-neutral: #6B7280;
+
+  --tint-profit:  #E8F8EE;
+  --tint-loss:    #FCEAEB;
+  --tint-warning: #FEF4E2;
+  --tint-info:    #E6EFFE;
+
+  /* ── Text tokens ──────────────────────────────────────────────────────── */
+  --text-primary:   var(--ink-900);
+  --text-secondary: var(--ink-700);
+  --text-muted:     var(--ink-500);
+  --text-disabled:  var(--ink-300);
+  --text-inverse:   #FFFFFF;
+  --text-brand:     var(--brand-700);
+  --text-on-brand:  #FFFFFF;
+
+  /* ── Type families ────────────────────────────────────────────────────── */
+  --font-display: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  --font-body:    'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  --font-mono:    'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* ── Type scale (size / line-height / tracking) ───────────────────────── */
+  --fs-micro:       11px;  --lh-micro:       1.4;   --ls-micro:        0.04em;
+  --fs-caption:     13px;  --lh-caption:     1.45;  --ls-caption:      0;
+  --fs-body:        15px;  --lh-body:        1.55;  --ls-body:         0;
+  --fs-body-lg:     17px;  --lh-body-lg:     1.55;  --ls-body-lg:      0;
+  --fs-h3:          18px;  --lh-h3:          1.3;   --ls-h3:          -0.005em;
+  --fs-h2:          22px;  --lh-h2:          1.25;  --ls-h2:          -0.01em;
+  --fs-h1:          28px;  --lh-h1:          1.2;   --ls-h1:          -0.015em;
+  --fs-display-lg:  36px;  --lh-display-lg:  1.1;   --ls-display-lg:  -0.02em;
+  --fs-display-xl:  44px;  --lh-display-xl:  1.05;  --ls-display-xl:  -0.025em;
+  --fs-display-2xl: 56px;  --lh-display-2xl: 1.0;   --ls-display-2xl: -0.03em;
+
+  /* ── Weights ──────────────────────────────────────────────────────────── */
+  --fw-regular:  400;
+  --fw-medium:   500;
+  --fw-semibold: 600;
+  --fw-bold:     700;
+  --fw-display:  800;
+
+  /* ── Spacing (4px grid) ───────────────────────────────────────────────── */
+  --sp-1:  4px;
+  --sp-2:  8px;
+  --sp-3:  12px;
+  --sp-4:  16px;
+  --sp-5:  20px;
+  --sp-6:  24px;
+  --sp-8:  32px;
+  --sp-10: 40px;
+  --sp-14: 56px;
+  --sp-20: 80px;
+  --sp-30: 120px;
+
+  /* ── Radius ───────────────────────────────────────────────────────────── */
+  --radius-sm:   6px;
+  --radius-md:   12px;
+  --radius-lg:   20px;
+  --radius-xl:   28px;
+  --radius-pill: 9999px;
+
+  /* ── Shadow ───────────────────────────────────────────────────────────── */
+  --shadow-sm: 0 1px 2px rgba(15,23,42,0.04), 0 1px 1px rgba(15,23,42,0.03);
+  --shadow-md: 0 4px 12px rgba(15,23,42,0.06), 0 1px 3px rgba(15,23,42,0.04);
+  --shadow-lg: 0 12px 32px rgba(15,23,42,0.08), 0 2px 8px rgba(15,23,42,0.04);
+  --shadow-xl: 0 24px 56px rgba(15,23,42,0.12), 0 4px 16px rgba(15,23,42,0.06);
+  --shadow-glow-brand:  0 8px 28px rgba(22,179,100,0.22);
+  --shadow-glow-loss:   0 8px 28px rgba(229,72,77,0.18);
+  --shadow-focus-ring:  0 0 0 3px rgba(22,179,100,0.25);
+
+  /* ── Motion ───────────────────────────────────────────────────────────── */
+  --ease-out:  cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in:   cubic-bezier(0.7, 0, 0.84, 0);
+  --ease-both: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-fast:  150ms;
+  --dur-base:  220ms;
+  --dur-slow:  400ms;
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   Dark mode (warmer than Blackridge's pure-black; for trader dashboard nights)
+   ────────────────────────────────────────────────────────────────────────── */
+[data-theme='dark'] {
+  --bg-base:     #0E1116;
+  --bg-surface:  #14181F;
+  --bg-elevated: #171B22;
+  --bg-overlay:  rgba(20,24,31,0.92);
+  --bg-hover:    #1E232C;
+  --bg-tint:     rgba(22,179,100,0.10);
+
+  --ink-900: #F2F5F8;
+  --ink-700: #C5CCD5;
+  --ink-500: #8C95A2;
+  --ink-300: #5A6371;
+  --ink-100: #2A2F3A;
+  --ink-50:  #1E232C;
+
+  --text-primary:   #F2F5F8;
+  --text-secondary: #C5CCD5;
+  --text-muted:     #8C95A2;
+  --text-disabled:  #5A6371;
+  --text-inverse:   #0E1116;
+
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.4);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.45), 0 1px 3px rgba(0,0,0,0.35);
+  --shadow-lg: 0 12px 32px rgba(0,0,0,0.55), 0 2px 8px rgba(0,0,0,0.4);
+  --shadow-xl: 0 24px 56px rgba(0,0,0,0.65);
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   Base typography (semantic element styles — apply automatically)
+   ────────────────────────────────────────────────────────────────────────── */
+html, body {
+  background: var(--bg-base);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+  font-weight: var(--fw-regular);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+h1, .h1 {
+  font-family: var(--font-display);
+  font-size: var(--fs-h1);
+  line-height: var(--lh-h1);
+  letter-spacing: var(--ls-h1);
+  font-weight: var(--fw-bold);
+  color: var(--text-primary);
+  margin: 0;
+}
+h2, .h2 {
+  font-family: var(--font-display);
+  font-size: var(--fs-h2);
+  line-height: var(--lh-h2);
+  letter-spacing: var(--ls-h2);
+  font-weight: var(--fw-semibold);
+  color: var(--text-primary);
+  margin: 0;
+}
+h3, .h3 {
+  font-family: var(--font-display);
+  font-size: var(--fs-h3);
+  line-height: var(--lh-h3);
+  letter-spacing: var(--ls-h3);
+  font-weight: var(--fw-semibold);
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.display-2xl { font-family: var(--font-display); font-size: var(--fs-display-2xl); line-height: var(--lh-display-2xl); letter-spacing: var(--ls-display-2xl); font-weight: var(--fw-display); }
+.display-xl  { font-family: var(--font-display); font-size: var(--fs-display-xl);  line-height: var(--lh-display-xl);  letter-spacing: var(--ls-display-xl);  font-weight: var(--fw-display); }
+.display-lg  { font-family: var(--font-display); font-size: var(--fs-display-lg);  line-height: var(--lh-display-lg);  letter-spacing: var(--ls-display-lg);  font-weight: var(--fw-bold); }
+
+p, .body { font-size: var(--fs-body); line-height: var(--lh-body); color: var(--text-secondary); margin: 0; }
+.body-lg { font-size: var(--fs-body-lg); line-height: var(--lh-body-lg); }
+.caption { font-size: var(--fs-caption); line-height: var(--lh-caption); color: var(--text-muted); }
+.micro   { font-size: var(--fs-micro); line-height: var(--lh-micro); letter-spacing: var(--ls-micro); color: var(--text-muted); text-transform: uppercase; font-weight: var(--fw-semibold); }
+.mono, code, kbd, pre { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.num { font-feature-settings: 'tnum' 1, 'lnum' 1; font-variant-numeric: tabular-nums; }
+
+/* ── Utility helpers ─────────────────────────────────────────────────────── */
+.profit { color: var(--color-profit); }
+.loss   { color: var(--color-loss); }
+.warn   { color: var(--color-warning); }
+.info-c { color: var(--color-info); }
+.muted  { color: var(--text-muted); }
+
+* { box-sizing: border-box; }

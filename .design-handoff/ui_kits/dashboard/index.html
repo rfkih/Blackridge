@@ -1,0 +1,346 @@
+<!doctype html>
+<html><head>
+<meta charset="utf-8">
+<title>Dashboard · Machiavelli Technology</title>
+<link rel="stylesheet" href="../../colors_and_type.css">
+<link rel="icon" href="../../assets/logo-mark.svg">
+<style>
+  body { margin: 0; background: var(--bg-surface); color: var(--text-primary); font-family: var(--font-body); }
+  a { color: inherit; text-decoration: none; }
+
+  /* Shell */
+  .shell { display: grid; grid-template-columns: 240px 1fr; min-height: 100vh; }
+  .sidebar { background: #fff; border-right: 1px solid var(--ink-50); padding: 20px 16px; display: flex; flex-direction: column; gap: 4px; position: sticky; top: 0; height: 100vh; }
+  .brand { display: flex; align-items: center; gap: 10px; padding: 6px 8px 18px; }
+  .brand img { width: 32px; height: 32px; border-radius: 8px; }
+  .brand .n { font-weight: 800; font-size: 16px; letter-spacing: -0.01em; line-height: 1; }
+  .brand .s { font-size: 9px; letter-spacing: 0.2em; color: var(--text-muted); margin-top: 4px; font-weight: 600; }
+  .nav-section { font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); font-weight: 700; padding: 14px 12px 6px; }
+  .nav-item { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 10px; font-size: 14px; font-weight: 500; color: var(--text-secondary); cursor: pointer; }
+  .nav-item:hover { background: var(--bg-hover); color: var(--text-primary); }
+  .nav-item.active { background: var(--brand-50); color: var(--brand-700); font-weight: 600; }
+  .nav-item .ico { width: 16px; height: 16px; flex: none; opacity: 0.85; }
+  .nav-item .badge { margin-left: auto; background: var(--ink-50); color: var(--text-muted); font-size: 11px; padding: 1px 7px; border-radius: 8px; font-weight: 600; font-family: var(--font-mono); }
+  .nav-item.active .badge { background: var(--brand-100); color: var(--brand-700); }
+
+  /* Top bar */
+  .topbar { display: flex; align-items: center; gap: 16px; padding: 16px 28px; background: rgba(255,255,255,0.85); backdrop-filter: blur(8px); border-bottom: 1px solid var(--ink-50); position: sticky; top: 0; z-index: 5; }
+  .crumb { font-size: 13px; color: var(--text-muted); }
+  .crumb b { color: var(--text-primary); font-weight: 600; }
+  .search { flex: 1; max-width: 380px; display: flex; align-items: center; gap: 8px; padding: 8px 14px; background: var(--bg-surface); border-radius: 10px; border: 1px solid transparent; font-size: 13px; color: var(--text-muted); }
+  .search:focus-within { background: #fff; border-color: var(--brand-500); }
+  .search kbd { margin-left: auto; background: #fff; border: 1px solid var(--ink-100); padding: 1px 6px; border-radius: 5px; font-family: var(--font-mono); font-size: 11px; color: var(--text-secondary); }
+  .topbar .spacer { flex: 1; }
+  .pill-account { display: flex; align-items: center; gap: 8px; padding: 6px 12px; background: var(--bg-surface); border-radius: 999px; font-size: 13px; font-weight: 600; }
+  .pill-account .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--color-profit); }
+  .avatar { width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, #16B364, #0E8A4D); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; }
+
+  /* Content */
+  .content { padding: 24px 28px 40px; display: flex; flex-direction: column; gap: 20px; max-width: 1440px; }
+
+  /* Hero card */
+  .hero { background: #fff; border: 1px solid var(--ink-100); border-radius: var(--radius-xl); padding: 32px 36px; display: grid; grid-template-columns: 1.2fr 1fr; gap: 32px; box-shadow: var(--shadow-sm); }
+  .eyebrow { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-muted); }
+  .eyebrow .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--color-profit); animation: pulse 2s ease-in-out infinite; }
+  @keyframes pulse { 0%,100% { opacity: 1 } 50% { opacity: 0.4 } }
+  .balance { font-family: var(--font-display); font-size: 76px; font-weight: 800; letter-spacing: -0.04em; line-height: 0.95; margin: 16px 0; color: var(--ink-900); font-variant-numeric: tabular-nums; }
+  .change-row { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+  .change-chip { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; background: var(--tint-profit); color: #0A7E3F; font-family: var(--font-mono); font-size: 13px; font-weight: 600; }
+  .change-sub { font-size: 14px; color: var(--text-secondary); }
+  .periods { display: flex; gap: 6px; margin-top: 22px; }
+  .periods button { padding: 6px 14px; border-radius: 999px; border: 0; background: transparent; font-family: inherit; font-size: 12px; font-weight: 600; color: var(--text-muted); cursor: pointer; }
+  .periods button:hover { background: var(--bg-hover); color: var(--text-primary); }
+  .periods button.active { background: var(--ink-900); color: #fff; }
+  .chart-wrap { position: relative; min-height: 220px; align-self: center; }
+  .chart-wrap svg { display: block; width: 100%; height: 220px; }
+  .chart-tag { position: absolute; padding: 4px 10px; background: var(--brand-500); color: #fff; border-radius: 8px; font-family: var(--font-mono); font-size: 12px; font-weight: 600; transform: translate(-50%, -120%); }
+
+  /* Two-col layout */
+  .twocol { display: grid; grid-template-columns: 1.55fr 1fr; gap: 20px; }
+
+  /* Positions panel */
+  .panel { background: #fff; border: 1px solid var(--ink-100); border-radius: var(--radius-lg); padding: 24px 28px; box-shadow: var(--shadow-sm); }
+  .panel-h { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 18px; gap: 12px; flex-wrap: wrap; }
+  .panel-h .title { font-family: var(--font-display); font-size: 22px; font-weight: 700; letter-spacing: -0.01em; }
+  .panel-h .meta { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
+  .panel-h .meta b { color: var(--color-profit); font-weight: 600; }
+  .pill-row { display: flex; gap: 6px; }
+  .pill-row button { padding: 5px 12px; border-radius: 999px; border: 0; background: transparent; font-family: inherit; font-size: 11px; font-weight: 600; color: var(--text-muted); cursor: pointer; }
+  .pill-row button.active { background: var(--bg-surface); color: var(--text-primary); }
+
+  .pos-row { display: grid; grid-template-columns: 44px 1.3fr 120px 1fr 1fr; gap: 16px; align-items: center; padding: 12px 16px; border-radius: 14px; background: var(--bg-surface); border: 1px solid transparent; margin-bottom: 8px; transition: all var(--dur-fast) var(--ease-out); cursor: pointer; }
+  .pos-row:hover { border-color: var(--ink-100); background: #fff; box-shadow: var(--shadow-sm); }
+  .pos-logo { width: 44px; height: 44px; border-radius: 999px; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 800; font-size: 14px; }
+  .pos-info .sym { font-size: 15px; font-weight: 600; color: var(--text-primary); }
+  .pos-info .meta { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+  .pos-info .meta .long { color: var(--color-profit); font-weight: 600; }
+  .pos-info .meta .short { color: var(--color-loss); font-weight: 600; }
+  .pos-row .right { text-align: right; }
+  .pos-row .right .v { font-family: var(--font-mono); font-size: 15px; font-weight: 600; color: var(--text-primary); font-variant-numeric: tabular-nums; }
+  .pos-row .right .lbl { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+  .pnl-up { color: var(--color-profit); font-family: var(--font-mono); font-weight: 600; font-size: 15px; font-variant-numeric: tabular-nums; }
+  .pnl-down { color: var(--color-loss); font-family: var(--font-mono); font-weight: 600; font-size: 15px; font-variant-numeric: tabular-nums; }
+  .pnl-pct { font-size: 12px; margin-top: 2px; font-family: var(--font-mono); }
+  .spark { width: 120px; height: 36px; }
+
+  /* At a glance */
+  .glance { background: #fff; border: 1px solid var(--ink-100); border-radius: var(--radius-lg); padding: 22px 24px; box-shadow: var(--shadow-sm); }
+  .glance .title { font-family: var(--font-display); font-size: 18px; font-weight: 700; margin-bottom: 16px; }
+  .glance-grid { display: grid; grid-template-columns: 1fr 1fr; row-gap: 18px; column-gap: 16px; }
+  .glance-cell .lbl { font-size: 12px; color: var(--text-muted); }
+  .glance-cell .v { font-family: var(--font-mono); font-size: 22px; font-weight: 700; margin-top: 4px; color: var(--text-primary); font-variant-numeric: tabular-nums; }
+  .glance-cell .v.mint { color: var(--color-profit); }
+  .glance-cell .sub { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+  /* Top performer */
+  .perf { background: linear-gradient(135deg, #fff 0%, var(--brand-50) 120%); border: 1px solid var(--brand-100); border-radius: var(--radius-lg); padding: 22px 24px; box-shadow: var(--shadow-sm); display: flex; flex-direction: column; gap: 12px; }
+  .perf-h { display: flex; justify-content: space-between; align-items: flex-start; }
+  .perf-tag { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; background: var(--brand-500); color: #fff; border-radius: 999px; font-size: 11px; font-weight: 600; }
+  .perf-name { font-family: var(--font-display); font-size: 22px; font-weight: 700; letter-spacing: -0.015em; margin-top: 12px; }
+  .perf-pair { font-size: 13px; color: var(--text-secondary); margin-top: 2px; }
+  .perf-icon { width: 44px; height: 44px; border-radius: 12px; background: var(--brand-500); color: #fff; display: flex; align-items: center; justify-content: center; }
+  .perf-pnl { font-family: var(--font-mono); font-size: 32px; font-weight: 700; color: var(--color-profit); margin-top: 6px; font-variant-numeric: tabular-nums; }
+  .perf-pnl-sub { font-size: 13px; color: var(--text-muted); margin-left: 10px; }
+  .alloc { margin-top: 10px; }
+  .alloc .h { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-muted); margin-bottom: 6px; }
+  .alloc .h b { color: var(--text-primary); font-family: var(--font-mono); }
+  .alloc-bar { height: 6px; border-radius: 999px; background: var(--ink-50); overflow: hidden; }
+  .alloc-fill { height: 100%; background: linear-gradient(90deg, var(--brand-500), var(--brand-300)); border-radius: 999px; }
+  .perf-cta { display: flex; gap: 8px; margin-top: auto; padding-top: 14px; }
+  .btn { font-family: inherit; font-weight: 600; border: 0; cursor: pointer; padding: 10px 16px; border-radius: 10px; font-size: 13px; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+  .btn.primary { background: var(--brand-500); color: #fff; flex: 1; }
+  .btn.primary:hover { background: var(--brand-600); }
+  .btn.ghost { background: #fff; color: var(--text-primary); border: 1px solid var(--ink-100); }
+
+  /* SVG icon wrapper */
+  .ic { width: 16px; height: 16px; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; fill: none; stroke: currentColor; }
+</style>
+</head>
+<body data-screen-label="Dashboard — Home">
+
+<div class="shell">
+  <aside class="sidebar">
+    <div class="brand">
+      <img src="../../assets/logo-mark.svg" alt="">
+      <div><div class="n">Machiavelli</div><div class="s">TECHNOLOGY</div></div>
+    </div>
+
+    <div class="nav-section">Trade</div>
+    <div class="nav-item active">
+      <svg class="ic" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      Dashboard
+    </div>
+    <div class="nav-item">
+      <svg class="ic" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      Positions <span class="badge">14</span>
+    </div>
+    <div class="nav-item">
+      <svg class="ic" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 4 6-6"/></svg>
+      Trades
+    </div>
+    <div class="nav-item">
+      <svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 6v6l4 2"/></svg>
+      Markets
+    </div>
+
+    <div class="nav-section">Automation</div>
+    <div class="nav-item">
+      <svg class="ic" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+      Strategies <span class="badge">8</span>
+    </div>
+    <div class="nav-item">
+      <svg class="ic" viewBox="0 0 24 24"><path d="M12 20l9-9-9-9-9 9 9 9z"/><path d="M3 11h18"/></svg>
+      Backtest
+    </div>
+    <div class="nav-item">
+      <svg class="ic" viewBox="0 0 24 24"><path d="M2 12h4l3-9 6 18 3-9h4"/></svg>
+      Research
+    </div>
+
+    <div class="nav-section">Account</div>
+    <div class="nav-item">
+      <svg class="ic" viewBox="0 0 24 24"><path d="M21 12c0 5-4 9-9 9s-9-4-9-9 4-9 9-9 9 4 9 9z"/><path d="M9 12l2 2 4-4"/></svg>
+      P&amp;L
+    </div>
+    <div class="nav-item">
+      <svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3h.1a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8v.1a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+      Settings
+    </div>
+  </aside>
+
+  <div>
+    <div class="topbar">
+      <div class="crumb">Trade · <b>Dashboard</b></div>
+      <div class="search">
+        <svg class="ic" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        Search markets, strategies…
+        <kbd>⌘K</kbd>
+      </div>
+      <div class="spacer"></div>
+      <div class="pill-account"><span class="dot"></span> Live · Binance Main</div>
+      <div class="avatar">RF</div>
+    </div>
+
+    <div class="content">
+      <!-- HERO -->
+      <section class="hero">
+        <div>
+          <span class="eyebrow"><span class="dot"></span> Good afternoon, Rohit · Live · 14:32</span>
+          <div class="balance">$148,302.74</div>
+          <div class="change-row">
+            <span class="change-chip">▲ Up $2,847.20</span>
+            <span class="change-sub">+1.95% today · since this morning</span>
+          </div>
+          <div class="periods">
+            <button>1D</button>
+            <button>1W</button>
+            <button class="active">1M</button>
+            <button>3M</button>
+            <button>YTD</button>
+            <button>1Y</button>
+            <button>ALL</button>
+          </div>
+        </div>
+        <div class="chart-wrap">
+          <svg viewBox="0 0 560 220" preserveAspectRatio="none">
+            <defs>
+              <linearGradient id="ha" x1="0" x2="0" y1="0" y2="1">
+                <stop offset="0" stop-color="#16B364" stop-opacity="0.30"/>
+                <stop offset="1" stop-color="#16B364" stop-opacity="0"/>
+              </linearGradient>
+            </defs>
+            <path d="M0,180 C40,170 70,165 100,158 C130,150 150,165 180,150 C210,135 230,140 260,128 C290,118 310,125 340,108 C370,92 400,95 430,80 C460,65 490,55 520,42 L540,38 L540,210 L0,210 Z" fill="url(#ha)"/>
+            <path d="M0,180 C40,170 70,165 100,158 C130,150 150,165 180,150 C210,135 230,140 260,128 C290,118 310,125 340,108 C370,92 400,95 430,80 C460,65 490,55 520,42 L540,38" fill="none" stroke="#16B364" stroke-width="2.6" stroke-linecap="round"/>
+            <circle cx="540" cy="38" r="6" fill="#fff" stroke="#16B364" stroke-width="2.5"/>
+            <line x1="0" x2="560" y1="200" y2="200" stroke="#E5E8EC" stroke-width="1" stroke-dasharray="3 4"/>
+          </svg>
+          <div class="chart-tag" style="left: 96%; top: 26%">$148,302</div>
+        </div>
+      </section>
+
+      <!-- TWO COL -->
+      <section class="twocol">
+        <!-- POSITIONS -->
+        <div class="panel">
+          <div class="panel-h">
+            <div>
+              <div class="title">Your positions</div>
+              <div class="meta">14 open · <b>11 making money</b></div>
+            </div>
+            <div class="pill-row">
+              <button class="active">All</button>
+              <button>Crypto</button>
+              <button>Bots</button>
+            </div>
+          </div>
+
+          <div class="pos-row">
+            <div class="pos-logo" style="background: #F7931A">B</div>
+            <div class="pos-info">
+              <div class="sym">BTC</div>
+              <div class="meta">0.4821 BTC · <span class="long">LONG</span></div>
+            </div>
+            <svg class="spark" viewBox="0 0 120 36"><path d="M0,28 L10,26 L20,22 L30,24 L40,18 L50,16 L60,12 L70,14 L80,10 L90,7 L100,9 L110,5 L120,3" stroke="#16B364" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <div class="right"><div class="v">$32,508.20</div><div class="lbl">value</div></div>
+            <div class="right"><div class="pnl-up">+$1,284.40</div><div class="pnl-pct" style="color:var(--color-profit)">▲ 4.12%</div></div>
+          </div>
+
+          <div class="pos-row">
+            <div class="pos-logo" style="background: #627EEA">E</div>
+            <div class="pos-info">
+              <div class="sym">ETH</div>
+              <div class="meta">8.42 ETH · <span class="long">LONG</span></div>
+            </div>
+            <svg class="spark" viewBox="0 0 120 36"><path d="M0,30 L10,28 L20,24 L30,20 L40,22 L50,18 L60,14 L70,12 L80,15 L90,10 L100,8 L110,6 L120,5" stroke="#16B364" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <div class="right"><div class="v">$27,651.78</div><div class="lbl">value</div></div>
+            <div class="right"><div class="pnl-up">+$748.92</div><div class="pnl-pct" style="color:var(--color-profit)">▲ 2.78%</div></div>
+          </div>
+
+          <div class="pos-row">
+            <div class="pos-logo" style="background: linear-gradient(135deg,#9945FF,#14F195)">S</div>
+            <div class="pos-info">
+              <div class="sym">SOL</div>
+              <div class="meta">128.4 SOL · <span class="long">LONG</span></div>
+            </div>
+            <svg class="spark" viewBox="0 0 120 36"><path d="M0,28 L10,24 L20,20 L30,16 L40,12 L50,15 L60,10 L70,8 L80,5 L90,7 L100,4 L110,3 L120,2" stroke="#16B364" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <div class="right"><div class="v">$23,651.28</div><div class="lbl">value</div></div>
+            <div class="right"><div class="pnl-up">+$1,124.50</div><div class="pnl-pct" style="color:var(--color-profit)">▲ 4.99%</div></div>
+          </div>
+
+          <div class="pos-row">
+            <div class="pos-logo" style="background: #345D9D">M</div>
+            <div class="pos-info">
+              <div class="sym">MATIC</div>
+              <div class="meta">12,400 MATIC · <span class="short">SHORT</span></div>
+            </div>
+            <svg class="spark" viewBox="0 0 120 36"><path d="M0,8 L10,10 L20,12 L30,14 L40,18 L50,16 L60,20 L70,22 L80,24 L90,21 L100,26 L110,28 L120,30" stroke="#E5484D" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <div class="right"><div class="v">$11,298.88</div><div class="lbl">value</div></div>
+            <div class="right"><div class="pnl-down">−$248.20</div><div class="pnl-pct" style="color:var(--color-loss)">▼ 2.15%</div></div>
+          </div>
+
+          <div class="pos-row">
+            <div class="pos-logo" style="background: #2775CA">U</div>
+            <div class="pos-info">
+              <div class="sym">UNI</div>
+              <div class="meta">684 UNI · <span class="long">LONG</span></div>
+            </div>
+            <svg class="spark" viewBox="0 0 120 36"><path d="M0,22 L10,20 L20,18 L30,21 L40,16 L50,14 L60,16 L70,12 L80,10 L90,12 L100,9 L110,7 L120,8" stroke="#16B364" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <div class="right"><div class="v">$8,420.40</div><div class="lbl">value</div></div>
+            <div class="right"><div class="pnl-up">+$184.10</div><div class="pnl-pct" style="color:var(--color-profit)">▲ 2.23%</div></div>
+          </div>
+
+          <div class="pos-row">
+            <div class="pos-logo" style="background: #FFA600">L</div>
+            <div class="pos-info">
+              <div class="sym">LINK</div>
+              <div class="meta">412 LINK · <span class="long">LONG</span></div>
+            </div>
+            <svg class="spark" viewBox="0 0 120 36"><path d="M0,20 L10,22 L20,18 L30,20 L40,16 L50,18 L60,14 L70,16 L80,12 L90,14 L100,10 L110,12 L120,9" stroke="#16B364" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <div class="right"><div class="v">$6,184.80</div><div class="lbl">value</div></div>
+            <div class="right"><div class="pnl-up">+$92.40</div><div class="pnl-pct" style="color:var(--color-profit)">▲ 1.52%</div></div>
+          </div>
+        </div>
+
+        <!-- AT A GLANCE + TOP PERFORMER -->
+        <div style="display: flex; flex-direction: column; gap: 16px;">
+          <div class="glance">
+            <div class="title">At a glance</div>
+            <div class="glance-grid">
+              <div class="glance-cell"><div class="lbl">Buying power</div><div class="v">$48,302.74</div></div>
+              <div class="glance-cell"><div class="lbl">Best today</div><div class="v mint">SOL</div><div class="sub">+4.99%</div></div>
+              <div class="glance-cell"><div class="lbl">Active bots</div><div class="v">5</div><div class="sub">of 8</div></div>
+              <div class="glance-cell"><div class="lbl">Win rate · 30d</div><div class="v mint">68%</div><div class="sub">above 50%</div></div>
+            </div>
+          </div>
+
+          <div class="perf">
+            <div class="perf-h">
+              <div>
+                <span class="perf-tag">⚡ Top performer</span>
+                <div class="perf-name">LSR_V2</div>
+                <div class="perf-pair">BTCUSDT · 15m</div>
+              </div>
+              <div class="perf-icon">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+              </div>
+            </div>
+            <div>
+              <span class="perf-pnl">+$1,847.30</span>
+              <span class="perf-pnl-sub">today</span>
+            </div>
+            <div class="alloc">
+              <div class="h"><span>Allocation</span><b>32%</b></div>
+              <div class="alloc-bar"><div class="alloc-fill" style="width:32%"></div></div>
+            </div>
+            <div class="perf-cta">
+              <button class="btn primary">Tune settings</button>
+              <button class="btn ghost">Details →</button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+
+</body></html>

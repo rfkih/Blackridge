@@ -1,0 +1,23 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><link rel="stylesheet" href="../colors_and_type.css">
+<style>
+  body { margin: 0; padding: 20px; background: var(--bg-base); }
+  .lbl { font-size: 11px; letter-spacing: 0.04em; text-transform: uppercase; font-weight: 700; color: var(--text-muted); margin: 0 0 10px; }
+  .row { display: flex; align-items: center; gap: 12px; padding: 6px 0; border-bottom: 1px dashed var(--ink-50); }
+  .row:last-child { border-bottom: 0; }
+  .row .name { width: 60px; font-family: var(--font-mono); font-size: 11px; color: var(--text-secondary); }
+  .row .px { width: 50px; font-family: var(--font-mono); font-size: 11px; color: var(--text-muted); }
+  .row .bar { background: var(--brand-500); height: 14px; border-radius: 4px; }
+</style></head>
+<body>
+  <div class="lbl">Spacing tokens · 4px grid</div>
+  <div class="row"><span class="name">sp-1</span><span class="px">4px</span><span class="bar" style="width:4px"></span></div>
+  <div class="row"><span class="name">sp-2</span><span class="px">8px</span><span class="bar" style="width:8px"></span></div>
+  <div class="row"><span class="name">sp-3</span><span class="px">12px</span><span class="bar" style="width:12px"></span></div>
+  <div class="row"><span class="name">sp-4</span><span class="px">16px</span><span class="bar" style="width:16px"></span></div>
+  <div class="row"><span class="name">sp-6</span><span class="px">24px</span><span class="bar" style="width:24px"></span></div>
+  <div class="row"><span class="name">sp-8</span><span class="px">32px</span><span class="bar" style="width:32px"></span></div>
+  <div class="row"><span class="name">sp-10</span><span class="px">40px</span><span class="bar" style="width:40px"></span></div>
+  <div class="row"><span class="name">sp-14</span><span class="px">56px</span><span class="bar" style="width:56px"></span></div>
+  <div class="row"><span class="name">sp-20</span><span class="px">80px</span><span class="bar" style="width:80px"></span></div>
+</body></html>

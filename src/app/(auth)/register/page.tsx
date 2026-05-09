@@ -3,17 +3,11 @@
 import { Suspense, useCallback, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { ArrowRight, Check, CheckCircle2, Loader2, Sparkles } from 'lucide-react';
+import { ArrowRight, CheckCircle2, Eye, EyeOff, Loader2, Sparkles } from 'lucide-react';
 import { z } from 'zod';
-import { AuthHero } from '@/components/auth/AuthHero';
+import { AuthCard, AuthMark, AuthShell } from '@/components/auth/AuthShell';
 import { useAuth } from '@/hooks/useAuth';
 
-/**
- * Backend contract: `registerUser(email, password, fullName, phoneNumber?)`.
- * The design shows first + last name split, so we concatenate on submit.
- * Phone number is not in the design pack — the backend accepts it as
- * optional so we simply don't expose it here.
- */
 const formSchema = z
   .object({
     firstName: z.string().min(1, 'Required').max(40),
@@ -35,8 +29,6 @@ const EMPTY: FormState = {
   inviteCode: '',
   agreed: false,
 };
-
-// ─── Password strength — 5 segments like the design pack ─────────────────────
 
 interface Strength {
   score: 0 | 1 | 2 | 3 | 4 | 5;
@@ -63,7 +55,28 @@ function scorePassword(pw: string): Strength {
   return { score: clamped, label: labels[clamped] };
 }
 
-// ─── Page ────────────────────────────────────────────────────────────────────
+const FIELD_LABEL_STYLE: React.CSSProperties = {
+  display: 'block',
+  fontSize: 11,
+  fontWeight: 600,
+  color: 'var(--mm-ink-1, #384151)',
+  marginBottom: 6,
+  textTransform: 'uppercase',
+  letterSpacing: '0.04em',
+};
+
+const FIELD_INPUT_STYLE: React.CSSProperties = {
+  width: '100%',
+  padding: '12px 14px',
+  border: '1px solid var(--mm-hair-2, rgba(14,17,22,0.1))',
+  borderRadius: 10,
+  fontSize: 14,
+  fontFamily: 'inherit',
+  boxSizing: 'border-box',
+  background: '#FFFFFF',
+  color: 'var(--mm-ink-0, #0E1116)',
+  outline: 'none',
+};
 
 function RegisterPageContent() {
   const { register: registerUser } = useAuth();
@@ -75,6 +88,7 @@ function RegisterPageContent() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const setField = useCallback(<K extends keyof FormState>(key: K, value: FormState[K]) => {
     setState((prev) => ({ ...prev, [key]: value }));
@@ -115,77 +129,42 @@ function RegisterPageContent() {
   }, [registerUser, state]);
 
   return (
-    <div
-      className="grid min-h-screen grid-cols-1 lg:grid-cols-2"
-      role="form"
-      aria-label="Create account"
-      aria-busy={isSubmitting}
+    <AuthShell
+      maxWidth={480}
+      topRight={{ label: 'Already a trader?', cta: 'Sign in →', href: '/login' }}
     >
-      <AuthHero kicker="MERIDIAN · EDGE · INVITE" tag="BETA · BY INVITATION" />
-
-      <div
-        className="flex items-center justify-center"
-        style={{ padding: 40, background: 'var(--mm-bg, var(--bg-base))' }}
-      >
-        <div
-          style={{
-            width: '100%',
-            maxWidth: 420,
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 18,
-          }}
-        >
+      <div role="form" aria-label="Create account" aria-busy={isSubmitting}>
+        <AuthCard>
           {success ? (
             <SuccessScreen firstName={state.firstName || 'Trader'} />
           ) : (
             <>
-              <div>
-                <div
-                  className="font-mono"
-                  style={{
-                    fontSize: 10,
-                    letterSpacing: '0.18em',
-                    textTransform: 'uppercase',
-                    color: 'var(--mm-mint, var(--color-profit))',
-                  }}
-                >
-                  CREATE ACCOUNT
-                </div>
-                <h2
-                  className="font-display"
-                  style={{
-                    marginTop: 8,
-                    fontSize: 34,
-                    letterSpacing: '-0.03em',
-                    lineHeight: 1.05,
-                  }}
-                >
-                  Open your desk.
-                </h2>
-                <p
-                  style={{
-                    marginTop: 6,
-                    fontSize: 14,
-                    color: 'var(--mm-ink-2, var(--text-secondary))',
-                  }}
-                >
-                  Already a trader?{' '}
-                  <Link
-                    href="/login"
-                    style={{
-                      color: 'var(--mm-ink-0, var(--text-primary))',
-                      textDecoration: 'underline',
-                      textUnderlineOffset: 3,
-                    }}
-                  >
-                    Sign in →
-                  </Link>
-                </p>
-              </div>
+              <AuthMark />
 
-              {/* Step indicator — single visible step; the rest are aspirational
-                  and render per the design pack. */}
+              <h1
+                className="font-display"
+                style={{
+                  fontSize: 28,
+                  fontWeight: 800,
+                  letterSpacing: '-0.025em',
+                  lineHeight: 1.1,
+                  margin: '0 0 6px',
+                  color: 'var(--mm-ink-0, #0E1116)',
+                }}
+              >
+                Open your desk
+              </h1>
+              <p
+                style={{
+                  fontSize: 14,
+                  color: 'var(--mm-ink-1, #384151)',
+                  margin: '0 0 20px',
+                  lineHeight: 1.5,
+                }}
+              >
+                Backtest, simulate, deploy. One account, one ledger.
+              </p>
+
               <div
                 className="font-mono"
                 style={{
@@ -194,33 +173,49 @@ function RegisterPageContent() {
                   gap: 8,
                   fontSize: 10,
                   letterSpacing: '0.15em',
-                  color: 'var(--mm-ink-3, var(--text-muted))',
+                  color: 'var(--mm-ink-2, #6B7280)',
+                  marginBottom: 20,
                 }}
               >
-                <span style={{ color: 'var(--mm-mint, var(--color-profit))' }}>● 01 ACCOUNT</span>
+                <span style={{ color: 'var(--brand-700, #0A7E3F)' }}>● 01 ACCOUNT</span>
                 <span
-                  style={{ flex: 1, height: 1, background: 'var(--mm-hair, var(--border-subtle))' }}
+                  style={{
+                    flex: 1,
+                    height: 1,
+                    background: 'var(--mm-hair-2, rgba(14,17,22,0.1))',
+                  }}
                 />
                 <span>○ 02 PROFILE</span>
                 <span
-                  style={{ flex: 1, height: 1, background: 'var(--mm-hair, var(--border-subtle))' }}
+                  style={{
+                    flex: 1,
+                    height: 1,
+                    background: 'var(--mm-hair-2, rgba(14,17,22,0.1))',
+                  }}
                 />
                 <span>○ 03 VERIFY</span>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: '1fr 1fr',
+                  gap: 10,
+                  marginBottom: 12,
+                }}
+              >
                 <div>
-                  <label htmlFor="firstName" className="mm-label">
+                  <label htmlFor="firstName" style={FIELD_LABEL_STYLE}>
                     First name
                   </label>
                   <input
                     id="firstName"
                     autoComplete="given-name"
-                    className="mm-input"
                     value={state.firstName}
                     onChange={(e) => setField('firstName', e.target.value)}
                     disabled={isSubmitting}
                     aria-invalid={Boolean(errors.firstName)}
+                    style={FIELD_INPUT_STYLE}
                   />
                   {errors.firstName && (
                     <p
@@ -232,33 +227,33 @@ function RegisterPageContent() {
                   )}
                 </div>
                 <div>
-                  <label htmlFor="lastName" className="mm-label">
+                  <label htmlFor="lastName" style={FIELD_LABEL_STYLE}>
                     Last name
                   </label>
                   <input
                     id="lastName"
                     autoComplete="family-name"
-                    className="mm-input"
                     value={state.lastName}
                     onChange={(e) => setField('lastName', e.target.value)}
                     disabled={isSubmitting}
+                    style={FIELD_INPUT_STYLE}
                   />
                 </div>
               </div>
 
-              <div>
-                <label htmlFor="email" className="mm-label">
+              <div style={{ marginBottom: 12 }}>
+                <label htmlFor="email" style={FIELD_LABEL_STYLE}>
                   Work email
                 </label>
                 <input
                   id="email"
                   type="email"
                   autoComplete="email"
-                  className="mm-input"
                   value={state.email}
                   onChange={(e) => setField('email', e.target.value)}
                   disabled={isSubmitting}
                   aria-invalid={Boolean(errors.email)}
+                  style={FIELD_INPUT_STYLE}
                 />
                 {errors.email ? (
                   <p
@@ -272,32 +267,57 @@ function RegisterPageContent() {
                     style={{
                       marginTop: 6,
                       fontSize: 11,
-                      color: 'var(--mm-ink-3, var(--text-muted))',
+                      color: 'var(--mm-ink-2, #6B7280)',
                       display: 'flex',
                       alignItems: 'center',
                       gap: 6,
                     }}
                   >
-                    <span style={{ color: 'var(--mm-mint, var(--color-profit))' }}>✓</span>
+                    <span style={{ color: 'var(--brand-700, #0A7E3F)' }}>✓</span>
                     Looks valid
                   </div>
                 ) : null}
               </div>
 
-              <div>
-                <label htmlFor="password" className="mm-label">
+              <div style={{ marginBottom: 12 }}>
+                <label htmlFor="password" style={FIELD_LABEL_STYLE}>
                   Password
                 </label>
-                <input
-                  id="password"
-                  type="password"
-                  autoComplete="new-password"
-                  className="mm-input"
-                  value={state.password}
-                  onChange={(e) => setField('password', e.target.value)}
-                  disabled={isSubmitting}
-                  aria-invalid={Boolean(errors.password)}
-                />
+                <div style={{ position: 'relative' }}>
+                  <input
+                    id="password"
+                    type={showPassword ? 'text' : 'password'}
+                    autoComplete="new-password"
+                    value={state.password}
+                    onChange={(e) => setField('password', e.target.value)}
+                    disabled={isSubmitting}
+                    aria-invalid={Boolean(errors.password)}
+                    style={{ ...FIELD_INPUT_STYLE, paddingRight: 56 }}
+                  />
+                  <button
+                    type="button"
+                    tabIndex={-1}
+                    onClick={() => setShowPassword((v) => !v)}
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    style={{
+                      position: 'absolute',
+                      right: 12,
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      fontSize: 12,
+                      background: 'transparent',
+                      border: 'none',
+                      color: 'var(--mm-ink-2, #6B7280)',
+                      cursor: 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 4,
+                    }}
+                  >
+                    {showPassword ? <EyeOff size={12} /> : <Eye size={12} />}
+                    {showPassword ? 'hide' : 'show'}
+                  </button>
+                </div>
                 <StrengthBars strength={strength} />
                 {errors.password ? (
                   <p
@@ -307,35 +327,28 @@ function RegisterPageContent() {
                     {errors.password}
                   </p>
                 ) : (
-                  <div
-                    style={{
-                      fontSize: 11,
-                      color: 'var(--mm-ink-3, var(--text-muted))',
-                      marginTop: 6,
-                    }}
-                  >
+                  <div style={{ fontSize: 11, color: 'var(--mm-ink-2, #6B7280)', marginTop: 6 }}>
                     {strength.label}
                     {state.password.length > 0 && ` · ${state.password.length} characters`}
                   </div>
                 )}
               </div>
 
-              {/* Invite code — cosmetic in the current backend (no invite
-               *  gating yet). Kept for visual parity with the design pack so
-               *  the form shape matches on first render. When backend invite
-               *  gating ships, wire this value into the register request. */}
-              <div>
-                <label htmlFor="inviteCode" className="mm-label">
-                  Invite code
+              <div style={{ marginBottom: 12 }}>
+                <label htmlFor="inviteCode" style={FIELD_LABEL_STYLE}>
+                  Invite code <span style={{ opacity: 0.5, fontWeight: 500 }}>(optional)</span>
                 </label>
                 <input
                   id="inviteCode"
-                  className="mm-input"
-                  style={{ fontFamily: 'var(--font-mono)', letterSpacing: '0.05em' }}
-                  placeholder="MER-XXXX-XXXX-YYYY"
+                  placeholder="MAC-XXXX-XXXX-YYYY"
                   value={state.inviteCode}
                   onChange={(e) => setField('inviteCode', e.target.value)}
                   disabled={isSubmitting}
+                  style={{
+                    ...FIELD_INPUT_STYLE,
+                    fontFamily: 'var(--font-mono)',
+                    letterSpacing: '0.05em',
+                  }}
                 />
               </div>
 
@@ -346,7 +359,8 @@ function RegisterPageContent() {
                   gap: 10,
                   fontSize: 12,
                   lineHeight: 1.5,
-                  color: 'var(--mm-ink-2, var(--text-secondary))',
+                  color: 'var(--mm-ink-1, #384151)',
+                  margin: '12px 0 18px',
                   cursor: 'pointer',
                 }}
               >
@@ -354,59 +368,49 @@ function RegisterPageContent() {
                   type="checkbox"
                   checked={state.agreed}
                   onChange={(e) => setField('agreed', e.target.checked)}
-                  style={{ position: 'absolute', opacity: 0, pointerEvents: 'none' }}
                   aria-label="Accept terms"
-                />
-                <span
-                  aria-hidden="true"
                   style={{
-                    width: 16,
-                    height: 16,
-                    borderRadius: 4,
-                    flexShrink: 0,
+                    width: 15,
+                    height: 15,
+                    accentColor: 'var(--brand-500, #16B364)',
                     marginTop: 2,
-                    display: 'grid',
-                    placeItems: 'center',
-                    background: state.agreed
-                      ? 'var(--mm-mint, var(--color-profit))'
-                      : 'var(--mm-surface-2, var(--bg-elevated))',
-                    color: state.agreed ? 'var(--mm-bg, var(--bg-base))' : 'transparent',
-                    border: state.agreed
-                      ? 'none'
-                      : '1px solid var(--mm-hair-2, var(--border-default))',
-                    transition: 'background 120ms',
+                    flexShrink: 0,
+                    cursor: 'pointer',
                   }}
-                >
-                  {state.agreed && <Check size={10} strokeWidth={3} />}
-                </span>
+                />
                 <span>
                   I agree to the{' '}
                   <Link
                     href="/terms"
                     target="_blank"
                     style={{
-                      color: 'var(--mm-ink-0, var(--text-primary))',
+                      color: 'var(--mm-ink-0, #0E1116)',
                       textDecoration: 'underline',
+                      textDecorationColor: 'var(--mm-hair-2, rgba(14,17,22,0.1))',
                     }}
                   >
                     Terms
                   </Link>{' '}
-                  &amp;{' '}
+                  and{' '}
                   <Link
                     href="/privacy"
                     target="_blank"
                     style={{
-                      color: 'var(--mm-ink-0, var(--text-primary))',
+                      color: 'var(--mm-ink-0, #0E1116)',
                       textDecoration: 'underline',
+                      textDecorationColor: 'var(--mm-hair-2, rgba(14,17,22,0.1))',
                     }}
                   >
-                    Market-Data Addendum
+                    Privacy Policy
                   </Link>
                   . No funds will be transferred until verification.
                 </span>
               </label>
               {errors.agreed && (
-                <p role="alert" style={{ fontSize: 11, color: 'var(--color-loss)' }}>
+                <p
+                  role="alert"
+                  style={{ fontSize: 11, color: 'var(--color-loss)', marginBottom: 12 }}
+                >
                   {errors.agreed}
                 </p>
               )}
@@ -418,9 +422,10 @@ function RegisterPageContent() {
                     padding: '10px 12px',
                     fontSize: 12,
                     borderRadius: 10,
-                    border: '1px solid rgba(255,122,122,0.4)',
-                    background: 'rgba(255,122,122,0.08)',
+                    border: '1px solid rgba(229,72,77,0.4)',
+                    background: 'rgba(229,72,77,0.08)',
                     color: 'var(--color-loss)',
+                    margin: '0 0 12px',
                   }}
                 >
                   {submitError}
@@ -429,18 +434,24 @@ function RegisterPageContent() {
 
               <button
                 type="button"
-                className="mm-btn mm-btn-mint"
                 disabled={isSubmitting}
                 onClick={() => void submit()}
                 style={{
-                  padding: '14px 16px',
+                  width: '100%',
+                  padding: '14px',
+                  background: 'var(--mm-ink-0, #0E1116)',
+                  color: '#FFFFFF',
+                  border: 'none',
+                  borderRadius: 12,
                   fontSize: 14,
+                  fontWeight: 700,
+                  cursor: isSubmitting ? 'not-allowed' : 'pointer',
+                  fontFamily: 'inherit',
                   display: 'inline-flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   gap: 8,
-                  cursor: isSubmitting ? 'not-allowed' : 'pointer',
-                  opacity: isSubmitting ? 0.65 : 1,
+                  opacity: isSubmitting ? 0.7 : 1,
                 }}
               >
                 {isSubmitting ? (
@@ -449,15 +460,27 @@ function RegisterPageContent() {
                   </>
                 ) : (
                   <>
-                    Continue to profile <ArrowRight size={14} />
+                    Create account <ArrowRight size={14} strokeWidth={3} />
                   </>
                 )}
               </button>
+
+              <div
+                style={{
+                  textAlign: 'center',
+                  fontSize: 11,
+                  color: 'var(--mm-ink-2, #6B7280)',
+                  marginTop: 16,
+                  lineHeight: 1.5,
+                }}
+              >
+                Protected by 2FA. We never custody funds.
+              </div>
             </>
           )}
-        </div>
+        </AuthCard>
       </div>
-    </div>
+    </AuthShell>
   );
 }
 
@@ -473,9 +496,7 @@ function StrengthBars({ strength }: { strength: Strength }) {
               flex: 1,
               height: 3,
               borderRadius: 2,
-              background: on
-                ? 'var(--mm-mint, var(--color-profit))'
-                : 'var(--mm-hair-2, var(--border-default))',
+              background: on ? 'var(--brand-500, #16B364)' : 'var(--mm-hair-2, rgba(14,17,22,0.1))',
               transition: 'background 120ms',
             }}
           />
@@ -493,7 +514,7 @@ function SuccessScreen({ firstName }: { firstName: string }) {
         flexDirection: 'column',
         alignItems: 'center',
         textAlign: 'center',
-        padding: '16px 0',
+        padding: '8px 0',
       }}
     >
       <div
@@ -503,15 +524,20 @@ function SuccessScreen({ firstName }: { firstName: string }) {
           borderRadius: '50%',
           display: 'grid',
           placeItems: 'center',
-          background: 'var(--mm-mint-soft, var(--accent-glow))',
-          border: '1px solid var(--mm-mint-edge, var(--border-default))',
+          background: 'rgba(22,179,100,0.12)',
+          border: '1px solid rgba(22,179,100,0.45)',
         }}
       >
-        <CheckCircle2 size={32} style={{ color: 'var(--mm-mint, var(--color-profit))' }} />
+        <CheckCircle2 size={32} style={{ color: 'var(--brand-700, #0A7E3F)' }} />
       </div>
       <h2
         className="font-display"
-        style={{ marginTop: 20, fontSize: 28, letterSpacing: '-0.02em' }}
+        style={{
+          marginTop: 20,
+          fontSize: 28,
+          letterSpacing: '-0.02em',
+          color: 'var(--mm-ink-0, #0E1116)',
+        }}
       >
         Welcome, {firstName}.
       </h2>
@@ -520,7 +546,7 @@ function SuccessScreen({ firstName }: { firstName: string }) {
           marginTop: 8,
           maxWidth: 340,
           fontSize: 13,
-          color: 'var(--mm-ink-2, var(--text-secondary))',
+          color: 'var(--mm-ink-1, #384151)',
         }}
       >
         Your desk is ready. Connect a broker and configure your first strategy.
@@ -537,9 +563,14 @@ function SuccessScreen({ firstName }: { firstName: string }) {
       >
         <Link
           href="/"
-          className="mm-btn mm-btn-mint"
           style={{
             padding: '12px 16px',
+            background: 'var(--mm-ink-0, #0E1116)',
+            color: '#FFFFFF',
+            borderRadius: 12,
+            fontSize: 14,
+            fontWeight: 700,
+            textDecoration: 'none',
             display: 'inline-flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -550,9 +581,15 @@ function SuccessScreen({ firstName }: { firstName: string }) {
         </Link>
         <Link
           href="/strategies"
-          className="mm-btn"
           style={{
             padding: '12px 16px',
+            background: 'transparent',
+            color: 'var(--mm-ink-0, #0E1116)',
+            border: '1px solid var(--mm-hair-2, rgba(14,17,22,0.1))',
+            borderRadius: 12,
+            fontSize: 14,
+            fontWeight: 600,
+            textDecoration: 'none',
             display: 'inline-flex',
             alignItems: 'center',
             justifyContent: 'center',

@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Grid Bot — Machiavelli Technology</title>
+<link rel="stylesheet" href="colors_and_type.css">
+<link rel="stylesheet" href="site.css">
+<style>
+  .detail-hero { padding-bottom: 140px; }
+  .detail-grid { display: grid; grid-template-columns: 1.3fr 1fr; gap: 56px; align-items: end; }
+  .detail-meta { display: flex; gap: 16px; align-items: center; margin-top: 24px; }
+  .icon-tile { width: 64px; height: 64px; border-radius: 18px; background: var(--brand-500); color: #fff; display: grid; place-items: center; font-family: var(--font-display); font-size: 32px; font-weight: 800; }
+
+  .live-card {
+    background: linear-gradient(180deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 100%);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 20px; padding: 24px; color: #fff;
+    backdrop-filter: blur(8px);
+  }
+  .live-card .row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.08); font-size: 13px; }
+  .live-card .row:last-child { border-bottom: none; padding-bottom: 0; }
+  .live-card .row .l { color: rgba(255,255,255,0.55); }
+  .live-card .row .v { color: #fff; font-weight: 600; font-family: var(--font-mono); }
+  .live-card .row .v.profit { color: #5FCB8B; }
+
+  /* Body */
+  .panel-grid {
+    display: grid; grid-template-columns: 1fr 320px; gap: 32px;
+    margin-top: -100px; position: relative; z-index: 5;
+    padding-bottom: 120px;
+  }
+  .panel {
+    background: #fff; border: 1px solid var(--ink-100);
+    border-radius: 20px; padding: 28px; box-shadow: var(--shadow-md);
+    margin-bottom: 24px;
+  }
+  .panel-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+  .panel-head h3 { font-family: var(--font-display); font-size: 20px; font-weight: 700; letter-spacing: -0.01em; }
+  .stat-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+  .stat-row .stat { padding: 16px; background: var(--bg-surface); border-radius: 12px; }
+  .stat-row .stat .l { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; }
+  .stat-row .stat .v { font-family: var(--font-display); font-size: 24px; font-weight: 800; letter-spacing: -0.02em; margin-top: 4px; font-variant-numeric: tabular-nums; }
+  .stat-row .stat .v.profit { color: var(--color-profit); }
+
+  .period-tabs { display: flex; gap: 4px; padding: 4px; background: var(--ink-50); border-radius: 8px; }
+  .period-tabs button { background: transparent; border: none; padding: 6px 14px; border-radius: 6px; font-size: 12px; font-weight: 600; color: var(--text-muted); cursor: pointer; font-family: inherit; }
+  .period-tabs button.on { background: #fff; color: var(--ink-900); box-shadow: var(--shadow-sm); }
+
+  /* Trade table */
+  table.trades { width: 100%; border-collapse: collapse; font-size: 13px; }
+  table.trades th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); font-weight: 700; padding: 10px 0; border-bottom: 1px solid var(--ink-100); }
+  table.trades td { padding: 14px 0; border-bottom: 1px solid var(--ink-50); font-family: var(--font-mono); }
+  table.trades td.feat { font-family: var(--font-body); font-weight: 600; }
+  table.trades .tag { padding: 2px 8px; border-radius: 4px; font-weight: 700; font-size: 10px; letter-spacing: 0.04em; display: inline-block; }
+  table.trades .tag.b { background: var(--brand-50); color: var(--brand-700); }
+  table.trades .tag.s { background: var(--tint-loss); color: var(--color-loss); }
+  table.trades .pnl { color: var(--color-profit); font-weight: 600; }
+
+  /* Sidebar */
+  .side-card { background: #fff; border: 1px solid var(--ink-100); border-radius: 20px; padding: 24px; margin-bottom: 16px; }
+  .side-card h4 { font-family: var(--font-display); font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); margin-bottom: 16px; }
+  .side-card.deploy { background: var(--ink-900); color: #fff; border-color: var(--ink-900); }
+  .side-card.deploy h4 { color: rgba(255,255,255,0.55); }
+  .side-card.deploy .field { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.08); font-size: 13px; }
+  .side-card.deploy .field .l { color: rgba(255,255,255,0.55); }
+  .side-card.deploy .field .v { font-family: var(--font-mono); font-weight: 600; }
+  .side-card.deploy .btn { width: 100%; justify-content: center; margin-top: 16px; }
+
+  .side-card .meta-row { display: flex; justify-content: space-between; padding: 8px 0; font-size: 13px; }
+  .side-card .meta-row .l { color: var(--text-muted); }
+  .side-card .meta-row .v { color: var(--ink-900); font-weight: 600; }
+
+  .pair-list { display: flex; flex-wrap: wrap; gap: 6px; }
+  .pair-list span { padding: 4px 10px; background: var(--ink-50); border-radius: 6px; font-family: var(--font-mono); font-size: 12px; color: var(--text-secondary); }
+</style>
+</head>
+<body data-screen-label="Strategy Detail — Grid Bot">
+
+<nav class="nav">
+  <div class="wrap nav-inner">
+    <a href="website.html" class="nav-logo">
+      <img src="assets/logo-mark.svg" class="mark" alt="">
+      <div><div class="name">Machiavelli</div><div class="tag">Technology</div></div>
+    </a>
+    <div class="nav-links">
+      <a href="strategies.html" class="on">Strategies</a>
+      <a href="website.html#backtest">Backtest</a>
+      <a href="website.html#workflow">How it works</a>
+      <a href="pricing.html">Pricing</a>
+      <a href="#docs">Docs</a>
+    </div>
+    <div class="nav-cta">
+      <a href="#" class="btn btn-ghost-dark">Sign in</a>
+      <a href="#" class="btn btn-primary">Start trading</a>
+    </div>
+  </div>
+</nav>
+
+<header class="page-head detail-hero">
+  <div class="wrap">
+    <nav class="crumbs">
+      <a href="website.html">Home</a>
+      <span class="sep">/</span>
+      <a href="strategies.html">Strategies</a>
+      <span class="sep">/</span>
+      <span style="color:#fff">Grid Bot</span>
+    </nav>
+    <div class="detail-grid">
+      <div>
+        <span class="pill" style="margin-top: 16px;"><span class="dot"></span>421 strategies running this algo right now</span>
+        <h1 style="margin-top: 16px;">Grid Bot.</h1>
+        <p class="lede">A market-neutral algorithm that sets up an evenly-spaced ladder of buy and sell orders inside a price range. Buys when price drops to the next rung, sells when it rises. Profits from volatility — no directional bias required.</p>
+        <div class="detail-meta">
+          <div class="icon-tile">G</div>
+          <div>
+            <div style="font-size: 13px; color: rgba(255,255,255,0.55); text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600;">Category</div>
+            <div style="font-weight: 700; margin-top: 2px;">Market neutral · Volatility harvest</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="live-card">
+        <div style="font-size: 12px; color: rgba(255,255,255,0.55); text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; margin-bottom: 8px;">All-strategy aggregate · 30d</div>
+        <div style="font-family: var(--font-display); font-size: 40px; font-weight: 800; color: #5FCB8B; letter-spacing: -0.02em; margin-bottom: 16px;">+18.4%</div>
+        <div class="row"><span class="l">Total bots running</span><span class="v">421</span></div>
+        <div class="row"><span class="l">Combined AUM</span><span class="v">$84.2M</span></div>
+        <div class="row"><span class="l">Trades / 24h</span><span class="v">12,847</span></div>
+        <div class="row"><span class="l">Median Sharpe</span><span class="v profit">2.31</span></div>
+        <div class="row"><span class="l">Win rate</span><span class="v">68.4%</span></div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="panel-grid">
+
+    <div>
+      <!-- Performance panel -->
+      <div class="panel">
+        <div class="panel-head">
+          <h3>Live performance</h3>
+          <div class="period-tabs">
+            <button>1D</button>
+            <button>7D</button>
+            <button class="on">30D</button>
+            <button>90D</button>
+            <button>1Y</button>
+          </div>
+        </div>
+
+        <div class="stat-row">
+          <div class="stat"><div class="l">Total return</div><div class="v profit">+18.4%</div></div>
+          <div class="stat"><div class="l">Max drawdown</div><div class="v">-4.2%</div></div>
+          <div class="stat"><div class="l">Sharpe</div><div class="v">2.31</div></div>
+          <div class="stat"><div class="l">Trades</div><div class="v">12,847</div></div>
+        </div>
+
+        <svg viewBox="0 0 700 240" style="width:100%; height: 240px;">
+          <defs><linearGradient id="lp1" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#16B364" stop-opacity="0.25"/><stop offset="100%" stop-color="#16B364" stop-opacity="0"/></linearGradient></defs>
+          <g stroke="#E5E8EC" stroke-width="1">
+            <line x1="0" y1="40" x2="700" y2="40"/>
+            <line x1="0" y1="100" x2="700" y2="100"/>
+            <line x1="0" y1="160" x2="700" y2="160"/>
+            <line x1="0" y1="210" x2="700" y2="210"/>
+          </g>
+          <path d="M 0 200 L 50 192 L 100 198 L 150 180 L 200 184 L 250 162 L 300 168 L 350 144 L 400 152 L 450 128 L 500 134 L 550 110 L 600 118 L 650 90 L 700 76 L 700 240 L 0 240 Z" fill="url(#lp1)"/>
+          <path d="M 0 200 L 50 192 L 100 198 L 150 180 L 200 184 L 250 162 L 300 168 L 350 144 L 400 152 L 450 128 L 500 134 L 550 110 L 600 118 L 650 90 L 700 76" fill="none" stroke="#16B364" stroke-width="2.5" stroke-linecap="round"/>
+          <circle cx="700" cy="76" r="5" fill="#16B364"/>
+          <g font-family="JetBrains Mono, monospace" font-size="10" fill="#8A93A0">
+            <text x="6" y="36">+25%</text>
+            <text x="6" y="96">+15%</text>
+            <text x="6" y="156">+5%</text>
+            <text x="6" y="206">0%</text>
+          </g>
+          <g font-family="JetBrains Mono, monospace" font-size="10" fill="#8A93A0">
+            <text x="0" y="232">Apr 7</text>
+            <text x="180" y="232">Apr 14</text>
+            <text x="360" y="232">Apr 21</text>
+            <text x="540" y="232">Apr 28</text>
+            <text x="660" y="232">May 6</text>
+          </g>
+        </svg>
+      </div>
+
+      <!-- How it works -->
+      <div class="panel">
+        <div class="panel-head"><h3>How the algorithm works</h3></div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; padding: 8px 0;">
+          <div>
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+              <div style="width:28px;height:28px;border-radius:8px;background:var(--brand-50);color:var(--brand-700);display:grid;place-items:center;font-weight:800;font-size:13px;">1</div>
+              <div style="font-weight:700;">Define the range</div>
+            </div>
+            <p style="font-size:14px;color:var(--text-secondary);line-height:1.6;margin-bottom:24px;">You set an upper and lower bound based on recent support/resistance. Default: 30-day Bollinger Bands at 2σ.</p>
+
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+              <div style="width:28px;height:28px;border-radius:8px;background:var(--brand-50);color:var(--brand-700);display:grid;place-items:center;font-weight:800;font-size:13px;">3</div>
+              <div style="font-weight:700;">Trigger on touch</div>
+            </div>
+            <p style="font-size:14px;color:var(--text-secondary);line-height:1.6;">As price hits a buy rung, the algo fills the order and immediately places a sell order one rung above. Spread = profit.</p>
+          </div>
+          <div>
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+              <div style="width:28px;height:28px;border-radius:8px;background:var(--brand-50);color:var(--brand-700);display:grid;place-items:center;font-weight:800;font-size:13px;">2</div>
+              <div style="font-weight:700;">Slice into N grids</div>
+            </div>
+            <p style="font-size:14px;color:var(--text-secondary);line-height:1.6;margin-bottom:24px;">The range is divided into 5–50 evenly-spaced rungs (you choose). More grids = more trades but smaller per-trade profits.</p>
+
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+              <div style="width:28px;height:28px;border-radius:8px;background:var(--brand-50);color:var(--brand-700);display:grid;place-items:center;font-weight:800;font-size:13px;">4</div>
+              <div style="font-weight:700;">Auto-rebalance</div>
+            </div>
+            <p style="font-size:14px;color:var(--text-secondary);line-height:1.6;">If price breaks the range, the algo can either pause, rebalance to a new range, or exit — you choose the policy on deploy.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent trades -->
+      <div class="panel">
+        <div class="panel-head">
+          <h3>Recent trades</h3>
+          <a href="#" style="font-size: 13px; color: var(--brand-700); font-weight: 600; text-decoration: none;">View all 12,847 →</a>
+        </div>
+        <table class="trades">
+          <thead>
+            <tr><th>Time</th><th>Side</th><th>Pair</th><th>Size</th><th>Price</th><th>P&amp;L</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>14:42:08</td><td><span class="tag b">BUY</span></td><td class="feat">BTC/USDT</td><td>0.0184</td><td>$67,420.50</td><td class="pnl">+$184.20</td></tr>
+            <tr><td>14:38:51</td><td><span class="tag s">SELL</span></td><td class="feat">BTC/USDT</td><td>0.0184</td><td>$67,684.10</td><td class="pnl">+$48.58</td></tr>
+            <tr><td>14:31:14</td><td><span class="tag b">BUY</span></td><td class="feat">BTC/USDT</td><td>0.0186</td><td>$67,256.00</td><td class="pnl">+$79.84</td></tr>
+            <tr><td>14:18:09</td><td><span class="tag s">SELL</span></td><td class="feat">ETH/USDT</td><td>0.420</td><td>$3,284.18</td><td class="pnl">+$32.40</td></tr>
+            <tr><td>14:04:22</td><td><span class="tag b">BUY</span></td><td class="feat">ETH/USDT</td><td>0.420</td><td>$3,261.10</td><td class="pnl">+$22.18</td></tr>
+            <tr><td>13:51:46</td><td><span class="tag s">SELL</span></td><td class="feat">SOL/USDT</td><td>4.18</td><td>$184.62</td><td class="pnl">+$8.42</td></tr>
+            <tr><td>13:42:18</td><td><span class="tag b">BUY</span></td><td class="feat">SOL/USDT</td><td>4.18</td><td>$182.74</td><td class="pnl">+$6.18</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Sidebar -->
+    <aside>
+      <div class="side-card deploy">
+        <h4>Deploy this strategy</h4>
+        <div class="field"><span class="l">Pair</span><span class="v">BTC/USDT</span></div>
+        <div class="field"><span class="l">Capital</span><span class="v">$10,000</span></div>
+        <div class="field"><span class="l">Range</span><span class="v">$62k–$72k</span></div>
+        <div class="field"><span class="l">Grids</span><span class="v">8</span></div>
+        <div class="field"><span class="l">Est. APY</span><span class="v" style="color:#5FCB8B;">+18.4%</span></div>
+        <a href="#" class="btn btn-primary">Deploy in 2 clicks →</a>
+      </div>
+
+      <div class="side-card">
+        <h4>Best suited for</h4>
+        <div class="meta-row"><span class="l">Market regime</span><span class="v">Sideways · Volatile</span></div>
+        <div class="meta-row"><span class="l">Capital floor</span><span class="v">$1,000</span></div>
+        <div class="meta-row"><span class="l">Time horizon</span><span class="v">2–6 weeks</span></div>
+        <div class="meta-row"><span class="l">Risk profile</span><span class="v">Low · Market neutral</span></div>
+      </div>
+
+      <div class="side-card">
+        <h4>Supported pairs</h4>
+        <div class="pair-list">
+          <span>BTC/USDT</span><span>ETH/USDT</span><span>SOL/USDT</span><span>BNB/USDT</span><span>XRP/USDT</span><span>ADA/USDT</span><span>AVAX/USDT</span><span>DOGE/USDT</span><span>+34</span>
+        </div>
+      </div>
+
+      <div class="side-card">
+        <h4>Exchanges</h4>
+        <div class="meta-row"><span class="l">Binance</span><span class="v" style="color:var(--color-profit);">●</span></div>
+        <div class="meta-row"><span class="l">Coinbase</span><span class="v" style="color:var(--color-profit);">●</span></div>
+        <div class="meta-row"><span class="l">Kraken</span><span class="v" style="color:var(--color-profit);">●</span></div>
+        <div class="meta-row"><span class="l">Bybit</span><span class="v" style="color:var(--color-profit);">●</span></div>
+        <div class="meta-row"><span class="l">OKX</span><span class="v" style="color:var(--color-profit);">●</span></div>
+      </div>
+    </aside>
+
+  </div>
+</div>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="foot-grid">
+      <div class="foot-brand">
+        <a href="website.html" class="nav-logo">
+          <img src="assets/logo-mark.svg" class="mark" alt="">
+          <div><div class="name">Machiavelli</div><div class="tag">Technology</div></div>
+        </a>
+        <p>Algorithmic crypto trading infrastructure for serious traders. Built in Singapore. Trusted globally.</p>
+      </div>
+      <div class="foot-col"><h4>Product</h4><ul><li><a href="strategies.html">Strategies</a></li><li><a href="#">Backtesting</a></li><li><a href="#">Live performance</a></li><li><a href="pricing.html">Pricing</a></li></ul></div>
+      <div class="foot-col"><h4>Resources</h4><ul><li><a href="#">Documentation</a></li><li><a href="#">API reference</a></li><li><a href="#">Changelog</a></li><li><a href="#">Status</a></li></ul></div>
+      <div class="foot-col"><h4>Company</h4><ul><li><a href="#">About</a></li><li><a href="#">Security</a></li><li><a href="#">Contact</a></li><li><a href="#">Press kit</a></li></ul></div>
+    </div>
+    <div class="foot-bottom">
+      <div>© 2026 Machiavelli Technology Pte. Ltd. Trading involves risk.</div>
+      <div class="legal"><a href="#">Privacy</a><a href="#">Terms</a><a href="#">Risk disclosure</a></div>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

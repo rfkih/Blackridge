@@ -10,6 +10,7 @@ import { StrategyBadge } from '@/components/trading/StrategyBadge';
 import { RunSourceBadge } from '@/components/backtest/RunSourceBadge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { BacktestMetricsGrid } from '@/components/backtest/BacktestMetricsGrid';
+import { BacktestMonthlyReturns } from '@/components/backtest/BacktestMonthlyReturns';
 import { BacktestTradeTable } from '@/components/backtest/BacktestTradeTable';
 import { FundingRatePanel } from '@/components/backtest/FundingRatePanel';
 import { AnalysisCard } from '@/components/research/AnalysisCard';
@@ -192,6 +193,13 @@ export default function BacktestResultPage({ params }: { params: { id: string } 
         <BacktestEquityPanel
           points={equityQ.data ?? EMPTY_EQUITY}
           initialCapital={runQ.data?.initialCapital ?? 0}
+          isLoading={equityQ.isLoading}
+        />
+      </ErrorBoundary>
+
+      <ErrorBoundary label="Monthly returns">
+        <BacktestMonthlyReturns
+          points={equityQ.data ?? EMPTY_EQUITY}
           isLoading={equityQ.isLoading}
         />
       </ErrorBoundary>

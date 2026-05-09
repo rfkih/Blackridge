@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wallets — Machiavelli Technology</title>
+<link rel="stylesheet" href="colors_and_type.css">
+<link rel="stylesheet" href="app.css">
+<style>
+  /* Hero portfolio */
+  .port-hero {
+    background: linear-gradient(135deg, #0E1116 0%, #11151B 60%, #16241B 100%);
+    color: #fff; border-radius: 20px; padding: 32px;
+    display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 32px;
+    margin-bottom: 24px; position: relative; overflow: hidden;
+  }
+  @media (max-width: 1100px) {
+    .port-hero { grid-template-columns: 1fr; gap: 24px; padding: 24px; }
+    .alloc { flex-direction: column; align-items: flex-start; }
+    .alloc .legend { width: 100%; }
+  }
+  @media (max-width: 760px) {
+    .stats { grid-template-columns: repeat(2, 1fr); }
+  }
+  .port-hero::after { content: ""; position: absolute; right: -120px; top: -120px; width: 360px; height: 360px; border-radius: 50%; background: radial-gradient(circle, rgba(22,179,100,0.2), transparent 70%); pointer-events: none; }
+  .port-hero .lbl { font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: rgba(255,255,255,0.55); font-weight: 600; }
+  .port-hero .total { font-family: var(--font-display); font-size: clamp(40px, 5vw, 64px); font-weight: 800; letter-spacing: -0.025em; margin: 8px 0 4px; font-variant-numeric: tabular-nums; }
+  .port-hero .change { display: inline-flex; align-items: baseline; gap: 12px; font-family: var(--font-mono); font-size: 14px; }
+  .port-hero .change .pos { color: #5FCB8B; font-weight: 700; }
+  .port-hero .change .ms { color: rgba(255,255,255,0.55); }
+
+  .port-actions { display: flex; gap: 8px; margin-top: 24px; flex-wrap: wrap; }
+  .port-actions button { display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); color: #fff; border-radius: 10px; font-weight: 600; font-size: 13px; cursor: pointer; font-family: inherit; }
+  .port-actions button:hover { background: rgba(255,255,255,0.14); }
+  .port-actions .primary { background: var(--brand-500); border-color: var(--brand-500); }
+  .port-actions .primary:hover { background: var(--brand-600); }
+
+  /* Allocation donut */
+  .alloc { display: flex; align-items: center; gap: 24px; }
+  .alloc svg { flex-shrink: 0; }
+  .alloc .legend { display: flex; flex-direction: column; gap: 8px; flex: 1; }
+  .alloc .leg-row { display: flex; justify-content: space-between; align-items: center; font-size: 13px; }
+  .alloc .leg-row .l { display: flex; align-items: center; gap: 8px; color: rgba(255,255,255,0.85); }
+  .alloc .leg-row .dot { width: 10px; height: 10px; border-radius: 2px; }
+  .alloc .leg-row .v { font-family: var(--font-mono); font-weight: 600; color: #fff; }
+
+  /* Stats strip */
+  .stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 24px; }
+  .stat { background: #fff; border: 1px solid var(--ink-100); border-radius: 14px; padding: 18px; }
+  .stat .l { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; }
+  .stat .v { font-family: var(--font-display); font-size: 22px; font-weight: 800; letter-spacing: -0.015em; margin-top: 6px; font-variant-numeric: tabular-nums; }
+  .stat .delta { font-family: var(--font-mono); font-size: 11px; margin-top: 4px; }
+  .stat .delta.pos { color: var(--color-profit); }
+  .stat .delta.neg { color: var(--color-loss); }
+
+  /* Two-column layout */
+  .wallets-grid { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 20px; }
+  @media (max-width: 1100px) { .wallets-grid { grid-template-columns: 1fr; } }
+
+  /* Asset table */
+  .panel { background: #fff; border: 1px solid var(--ink-100); border-radius: 16px; padding: 24px; margin-bottom: 16px; }
+  .panel-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+  .panel-head h3 { font-family: var(--font-display); font-size: 16px; font-weight: 700; }
+  .seg { display: flex; padding: 3px; background: var(--ink-50); border-radius: 8px; gap: 2px; }
+  .seg button { background: transparent; border: none; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; color: var(--text-muted); cursor: pointer; font-family: inherit; }
+  .seg button.on { background: #fff; color: var(--ink-900); box-shadow: var(--shadow-sm); }
+
+  table.assets { width: 100%; border-collapse: collapse; }
+  table.assets th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); font-weight: 700; padding: 10px 8px; border-bottom: 1px solid var(--ink-100); }
+  table.assets th.right { text-align: right; }
+  table.assets td { padding: 14px 8px; border-bottom: 1px solid var(--ink-50); font-size: 14px; vertical-align: middle; }
+  table.assets td.right { text-align: right; }
+  table.assets tr:last-child td { border-bottom: none; }
+  table.assets tr:hover { background: var(--bg-surface); }
+
+  .coin { display: flex; align-items: center; gap: 12px; }
+  .coin .ic { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; color: #fff; font-weight: 800; font-family: var(--font-display); font-size: 14px; flex-shrink: 0; }
+  .coin .ic.btc { background: #F7931A; }
+  .coin .ic.eth { background: #627EEA; }
+  .coin .ic.sol { background: linear-gradient(135deg, #9945FF, #14F195); }
+  .coin .ic.usdt { background: #26A17B; }
+  .coin .ic.bnb { background: #F0B90B; color: #1F1F1F; }
+  .coin .ic.xrp { background: #00AAE4; }
+  .coin .ic.ada { background: #0033AD; }
+  .coin .name { font-weight: 700; font-size: 14px; }
+  .coin .sym { font-size: 11px; color: var(--text-muted); font-family: var(--font-mono); margin-top: 1px; }
+  .mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+  .pos { color: var(--color-profit); font-weight: 600; }
+  .neg { color: var(--color-loss); font-weight: 600; }
+
+  /* Sparkline cell */
+  .spark { width: 80px; height: 28px; }
+
+  /* Sidebar widgets */
+  .deposit-card { background: #fff; border: 1px solid var(--ink-100); border-radius: 16px; padding: 24px; margin-bottom: 16px; }
+  .deposit-card h3 { font-family: var(--font-display); font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+  .deposit-card .sub { font-size: 13px; color: var(--text-muted); margin-bottom: 20px; }
+
+  .deposit-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 3px; background: var(--ink-50); border-radius: 10px; margin-bottom: 20px; }
+  .deposit-tabs button { background: transparent; border: none; padding: 10px; border-radius: 7px; font-size: 13px; font-weight: 600; color: var(--text-muted); cursor: pointer; font-family: inherit; }
+  .deposit-tabs button.on { background: #fff; color: var(--ink-900); box-shadow: var(--shadow-sm); }
+
+  .qr-area { display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 18px; background: var(--bg-surface); border-radius: 12px; margin-bottom: 16px; }
+  .qr-frame { width: 140px; height: 140px; background: #fff; border-radius: 10px; padding: 10px; box-shadow: var(--shadow-sm); }
+  .qr-frame svg { width: 100%; height: 100%; }
+  .qr-net { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); font-weight: 700; }
+
+  .addr-row { display: flex; gap: 6px; align-items: stretch; margin-bottom: 12px; }
+  .addr-row input { flex: 1; padding: 10px 12px; border: 1px solid var(--ink-100); border-radius: 8px; font-family: var(--font-mono); font-size: 11px; background: var(--bg-surface); color: var(--ink-900); min-width: 0; box-sizing: border-box; }
+  .copy-btn { padding: 0 12px; background: var(--ink-900); color: #fff; border: none; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 600; }
+
+  .net-pick { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+  .net-pick button { padding: 6px 10px; background: var(--bg-surface); border: 1px solid var(--ink-100); border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; font-family: inherit; color: var(--text-secondary); }
+  .net-pick button.on { background: var(--brand-50); border-color: var(--brand-500); color: var(--brand-700); }
+
+  .warn-strip { display: flex; gap: 10px; padding: 12px; background: #FFF8E1; border: 1px solid #F5D58A; border-radius: 10px; font-size: 12px; color: #735815; line-height: 1.45; }
+  .warn-strip svg { flex-shrink: 0; color: #C99A2D; margin-top: 1px; }
+
+  /* Recent activity */
+  .activity-row { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--ink-50); }
+  .activity-row:last-child { border-bottom: none; }
+  .activity-row .ic { width: 32px; height: 32px; border-radius: 8px; display: grid; place-items: center; flex-shrink: 0; }
+  .activity-row .ic.in { background: rgba(22,179,100,0.12); color: var(--brand-500); }
+  .activity-row .ic.out { background: rgba(229,72,77,0.10); color: var(--color-loss); }
+  .activity-row .ic.bot { background: rgba(110,86,207,0.10); color: #6E56CF; }
+  .activity-row .body { flex: 1; min-width: 0; }
+  .activity-row .body .t { font-size: 13px; font-weight: 600; }
+  .activity-row .body .s { font-size: 11px; color: var(--text-muted); font-family: var(--font-mono); margin-top: 2px; }
+  .activity-row .amt { font-family: var(--font-mono); font-size: 13px; font-weight: 600; text-align: right; }
+</style>
+</head>
+<body data-screen-label="Wallets">
+
+<div class="app">
+  <aside class="sidebar">
+    <div class="sb-logo"><img src="assets/logo-mark.svg" alt=""><div><div class="name">Machiavelli</div><div class="tag">Technology</div></div></div>
+    <div class="sb-section">Trading</div>
+    <nav class="sb-nav">
+      <a href="dashboard.html" class="sb-link"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>Dashboard</a>
+      <a href="strategies.html" class="sb-link"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/></svg>Strategies <span class="sb-badge">8</span></a>
+      <a href="backtest.html" class="sb-link"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 4 5-5"/></svg>Backtests</a>
+      <a href="wallets.html" class="sb-link on"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>Wallets</a>
+      <a href="history.html" class="sb-link"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>History</a>
+    </nav>
+    <div class="sb-section">Account</div>
+    <nav class="sb-nav">
+      <a href="alerts.html" class="sb-link"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>Alerts</a>
+      <a href="settings.html" class="sb-link"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/></svg>Settings</a>
+    </nav>
+    <div class="sb-user"><div class="avatar">JD</div><div><div class="name2">Jordan Davies</div><div class="meta">Pro · 4 exchanges</div></div></div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div>
+        <h1>Wallets</h1>
+        <div class="ts">Aggregated across 4 exchanges · Updated 2s ago</div>
+      </div>
+      <div class="topbar-actions">
+        <button class="btn-sec">Export CSV</button>
+        <button class="btn-prim">Rebalance →</button>
+      </div>
+    </div>
+
+    <!-- Hero -->
+    <section class="port-hero">
+      <div>
+        <div class="lbl">Total portfolio value</div>
+        <div class="total">$284,721.20</div>
+        <div class="change">
+          <span class="pos">+$8,412.50</span>
+          <span class="pos">+3.04%</span>
+          <span class="ms">past 24h</span>
+        </div>
+        <div class="port-actions">
+          <button class="primary"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 19V5M5 12l7-7 7 7"/></svg>Deposit</button>
+          <button><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12l7 7 7-7"/></svg>Withdraw</button>
+          <button><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17 1l4 4-4 4M3 11V9a4 4 0 0 1 4-4h14M7 23l-4-4 4-4M21 13v2a4 4 0 0 1-4 4H3"/></svg>Transfer</button>
+          <button><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 2"/></svg>Convert</button>
+        </div>
+      </div>
+
+      <!-- Allocation donut -->
+      <div class="alloc">
+        <svg width="160" height="160" viewBox="0 0 42 42">
+          <circle cx="21" cy="21" r="15.915" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="6"/>
+          <!-- BTC 38% -->
+          <circle cx="21" cy="21" r="15.915" fill="none" stroke="#F7931A" stroke-width="6" stroke-dasharray="38 62" stroke-dashoffset="25" transform="rotate(-90 21 21)"/>
+          <!-- ETH 24% offset 38 -->
+          <circle cx="21" cy="21" r="15.915" fill="none" stroke="#627EEA" stroke-width="6" stroke-dasharray="24 76" stroke-dashoffset="-13" transform="rotate(-90 21 21)"/>
+          <!-- USDT 18% offset 62 -->
+          <circle cx="21" cy="21" r="15.915" fill="none" stroke="#26A17B" stroke-width="6" stroke-dasharray="18 82" stroke-dashoffset="-37" transform="rotate(-90 21 21)"/>
+          <!-- SOL 12% offset 80 -->
+          <circle cx="21" cy="21" r="15.915" fill="none" stroke="#9945FF" stroke-width="6" stroke-dasharray="12 88" stroke-dashoffset="-55" transform="rotate(-90 21 21)"/>
+          <!-- Other 8% offset 92 -->
+          <circle cx="21" cy="21" r="15.915" fill="none" stroke="#A8B0BC" stroke-width="6" stroke-dasharray="8 92" stroke-dashoffset="-67" transform="rotate(-90 21 21)"/>
+          <text x="21" y="20" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="3" font-family="JetBrains Mono, monospace" font-weight="600" letter-spacing="0.08em">ASSETS</text>
+          <text x="21" y="25" text-anchor="middle" fill="#fff" font-size="6" font-weight="800" font-family="Inter, sans-serif">12</text>
+        </svg>
+        <div class="legend">
+          <div class="leg-row"><span class="l"><span class="dot" style="background:#F7931A;"></span>Bitcoin</span><span class="v">38%</span></div>
+          <div class="leg-row"><span class="l"><span class="dot" style="background:#627EEA;"></span>Ethereum</span><span class="v">24%</span></div>
+          <div class="leg-row"><span class="l"><span class="dot" style="background:#26A17B;"></span>USDT</span><span class="v">18%</span></div>
+          <div class="leg-row"><span class="l"><span class="dot" style="background:#9945FF;"></span>Solana</span><span class="v">12%</span></div>
+          <div class="leg-row"><span class="l"><span class="dot" style="background:#A8B0BC;"></span>Other (8)</span><span class="v">8%</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Stats strip -->
+    <div class="stats">
+      <div class="stat"><div class="l">Available</div><div class="v">$184,921.40</div><div class="delta">Tradeable now</div></div>
+      <div class="stat"><div class="l">In strategies</div><div class="v">$94,182.00</div><div class="delta">Across 8 bots</div></div>
+      <div class="stat"><div class="l">Realized P&amp;L · 30d</div><div class="v pos" style="color:var(--color-profit);">+$12,847</div><div class="delta pos">+4.71%</div></div>
+      <div class="stat"><div class="l">Unrealized P&amp;L</div><div class="v pos" style="color:var(--color-profit);">+$5,617</div><div class="delta pos">Open positions</div></div>
+    </div>
+
+    <!-- Main grid: assets + sidebar -->
+    <div class="wallets-grid">
+
+      <!-- Assets table -->
+      <div class="panel">
+        <div class="panel-head">
+          <h3>Assets</h3>
+          <div class="seg">
+            <button class="on">All</button>
+            <button>Crypto</button>
+            <button>Stablecoins</button>
+            <button>In bots</button>
+          </div>
+        </div>
+        <table class="assets">
+          <thead><tr>
+            <th>Asset</th>
+            <th class="right">Balance</th>
+            <th class="right">Price</th>
+            <th class="right">24h</th>
+            <th>7d</th>
+            <th class="right">Value</th>
+          </tr></thead>
+          <tbody>
+            <tr>
+              <td><div class="coin"><div class="ic btc">₿</div><div><div class="name">Bitcoin</div><div class="sym">BTC</div></div></div></td>
+              <td class="right mono">1.6020<div style="font-size:11px;color:var(--text-muted);margin-top:2px;">on Binance, Kraken</div></td>
+              <td class="right mono">$67,584.10</td>
+              <td class="right pos">+2.18%</td>
+              <td><svg class="spark" viewBox="0 0 80 28" preserveAspectRatio="none"><path d="M0 18 L10 16 L20 19 L30 14 L40 16 L50 11 L60 13 L70 8 L80 6" fill="none" stroke="#16B364" stroke-width="1.5"/></svg></td>
+              <td class="right mono"><strong>$108,290</strong></td>
+            </tr>
+            <tr>
+              <td><div class="coin"><div class="ic eth">Ξ</div><div><div class="name">Ethereum</div><div class="sym">ETH</div></div></div></td>
+              <td class="right mono">20.842<div style="font-size:11px;color:var(--text-muted);margin-top:2px;">on Binance, Coinbase</div></td>
+              <td class="right mono">$3,284.40</td>
+              <td class="right pos">+3.42%</td>
+              <td><svg class="spark" viewBox="0 0 80 28" preserveAspectRatio="none"><path d="M0 20 L10 18 L20 21 L30 17 L40 15 L50 12 L60 14 L70 9 L80 7" fill="none" stroke="#16B364" stroke-width="1.5"/></svg></td>
+              <td class="right mono"><strong>$68,471</strong></td>
+            </tr>
+            <tr>
+              <td><div class="coin"><div class="ic usdt">T</div><div><div class="name">Tether USD</div><div class="sym">USDT</div></div></div></td>
+              <td class="right mono">51,247.20<div style="font-size:11px;color:var(--text-muted);margin-top:2px;">on all exchanges</div></td>
+              <td class="right mono">$1.0001</td>
+              <td class="right" style="color:var(--text-muted);">±0.01%</td>
+              <td><svg class="spark" viewBox="0 0 80 28" preserveAspectRatio="none"><path d="M0 14 L10 14 L20 13 L30 14 L40 14 L50 13 L60 14 L70 14 L80 14" fill="none" stroke="#A8B0BC" stroke-width="1.5"/></svg></td>
+              <td class="right mono"><strong>$51,250</strong></td>
+            </tr>
+            <tr>
+              <td><div class="coin"><div class="ic sol">S</div><div><div class="name">Solana</div><div class="sym">SOL</div></div></div></td>
+              <td class="right mono">184.50<div style="font-size:11px;color:var(--text-muted);margin-top:2px;">on Binance, Bybit</div></td>
+              <td class="right mono">$184.62</td>
+              <td class="right pos">+5.84%</td>
+              <td><svg class="spark" viewBox="0 0 80 28" preserveAspectRatio="none"><path d="M0 22 L10 20 L20 18 L30 19 L40 14 L50 11 L60 9 L70 6 L80 5" fill="none" stroke="#16B364" stroke-width="1.5"/></svg></td>
+              <td class="right mono"><strong>$34,063</strong></td>
+            </tr>
+            <tr>
+              <td><div class="coin"><div class="ic bnb">B</div><div><div class="name">BNB</div><div class="sym">BNB</div></div></div></td>
+              <td class="right mono">18.120<div style="font-size:11px;color:var(--text-muted);margin-top:2px;">on Binance</div></td>
+              <td class="right mono">$612.40</td>
+              <td class="right pos">+1.42%</td>
+              <td><svg class="spark" viewBox="0 0 80 28" preserveAspectRatio="none"><path d="M0 14 L10 16 L20 13 L30 15 L40 12 L50 13 L60 11 L70 12 L80 10" fill="none" stroke="#16B364" stroke-width="1.5"/></svg></td>
+              <td class="right mono"><strong>$11,097</strong></td>
+            </tr>
+            <tr>
+              <td><div class="coin"><div class="ic xrp">X</div><div><div class="name">Ripple</div><div class="sym">XRP</div></div></div></td>
+              <td class="right mono">8,420.0<div style="font-size:11px;color:var(--text-muted);margin-top:2px;">on Kraken</div></td>
+              <td class="right mono">$0.6184</td>
+              <td class="right neg">-1.20%</td>
+              <td><svg class="spark" viewBox="0 0 80 28" preserveAspectRatio="none"><path d="M0 12 L10 14 L20 13 L30 15 L40 17 L50 16 L60 18 L70 20 L80 19" fill="none" stroke="#E5484D" stroke-width="1.5"/></svg></td>
+              <td class="right mono"><strong>$5,207</strong></td>
+            </tr>
+            <tr>
+              <td><div class="coin"><div class="ic ada">A</div><div><div class="name">Cardano</div><div class="sym">ADA</div></div></div></td>
+              <td class="right mono">14,201.0<div style="font-size:11px;color:var(--text-muted);margin-top:2px;">on Bybit</div></td>
+              <td class="right mono">$0.4218</td>
+              <td class="right pos">+0.84%</td>
+              <td><svg class="spark" viewBox="0 0 80 28" preserveAspectRatio="none"><path d="M0 16 L10 17 L20 14 L30 15 L40 13 L50 14 L60 12 L70 13 L80 11" fill="none" stroke="#16B364" stroke-width="1.5"/></svg></td>
+              <td class="right mono"><strong>$5,990</strong></td>
+            </tr>
+          </tbody>
+        </table>
+        <div style="text-align:center; margin-top:16px;"><a href="#" style="font-size:13px;color:var(--brand-700);font-weight:600;text-decoration:none;">Show 5 more assets →</a></div>
+      </div>
+
+      <!-- Sidebar widgets -->
+      <div>
+
+        <!-- Deposit / withdraw widget -->
+        <div class="deposit-card">
+          <h3>Deposit BTC</h3>
+          <div class="sub">Send to this address from any wallet or exchange.</div>
+
+          <div class="deposit-tabs">
+            <button class="on">Deposit</button>
+            <button>Withdraw</button>
+          </div>
+
+          <div class="net-pick">
+            <button class="on">Bitcoin</button>
+            <button>Lightning</button>
+            <button>BSC (BTCB)</button>
+          </div>
+
+          <div class="qr-area">
+            <div class="qr-frame">
+              <!-- Stylized QR -->
+              <svg viewBox="0 0 100 100">
+                <rect width="100" height="100" fill="#fff"/>
+                <g fill="#0E1116">
+                  <!-- Position markers -->
+                  <rect x="6" y="6" width="22" height="22"/>
+                  <rect x="9" y="9" width="16" height="16" fill="#fff"/>
+                  <rect x="12" y="12" width="10" height="10"/>
+                  <rect x="72" y="6" width="22" height="22"/>
+                  <rect x="75" y="9" width="16" height="16" fill="#fff"/>
+                  <rect x="78" y="12" width="10" height="10"/>
+                  <rect x="6" y="72" width="22" height="22"/>
+                  <rect x="9" y="75" width="16" height="16" fill="#fff"/>
+                  <rect x="12" y="78" width="10" height="10"/>
+                  <!-- Pseudo-random data modules -->
+                  <rect x="34" y="6" width="4" height="4"/><rect x="42" y="6" width="4" height="4"/><rect x="50" y="6" width="4" height="4"/><rect x="58" y="6" width="4" height="4"/>
+                  <rect x="34" y="14" width="4" height="4"/><rect x="46" y="14" width="4" height="4"/><rect x="54" y="14" width="4" height="4"/>
+                  <rect x="38" y="22" width="4" height="4"/><rect x="42" y="22" width="4" height="4"/><rect x="50" y="22" width="4" height="4"/><rect x="62" y="22" width="4" height="4"/>
+                  <rect x="6" y="34" width="4" height="4"/><rect x="14" y="34" width="4" height="4"/><rect x="22" y="34" width="4" height="4"/><rect x="34" y="34" width="4" height="4"/><rect x="42" y="34" width="4" height="4"/><rect x="50" y="34" width="4" height="4"/><rect x="58" y="34" width="4" height="4"/><rect x="66" y="34" width="4" height="4"/><rect x="74" y="34" width="4" height="4"/><rect x="82" y="34" width="4" height="4"/><rect x="90" y="34" width="4" height="4"/>
+                  <rect x="10" y="42" width="4" height="4"/><rect x="18" y="42" width="4" height="4"/><rect x="38" y="42" width="4" height="4"/><rect x="46" y="42" width="4" height="4"/><rect x="62" y="42" width="4" height="4"/><rect x="74" y="42" width="4" height="4"/><rect x="86" y="42" width="4" height="4"/>
+                  <rect x="6" y="50" width="4" height="4"/><rect x="22" y="50" width="4" height="4"/><rect x="34" y="50" width="4" height="4"/><rect x="50" y="50" width="4" height="4"/><rect x="58" y="50" width="4" height="4"/><rect x="70" y="50" width="4" height="4"/><rect x="82" y="50" width="4" height="4"/><rect x="90" y="50" width="4" height="4"/>
+                  <rect x="14" y="58" width="4" height="4"/><rect x="26" y="58" width="4" height="4"/><rect x="42" y="58" width="4" height="4"/><rect x="54" y="58" width="4" height="4"/><rect x="66" y="58" width="4" height="4"/><rect x="78" y="58" width="4" height="4"/>
+                  <rect x="6" y="66" width="4" height="4"/><rect x="18" y="66" width="4" height="4"/><rect x="30" y="66" width="4" height="4"/><rect x="38" y="66" width="4" height="4"/><rect x="50" y="66" width="4" height="4"/><rect x="62" y="66" width="4" height="4"/><rect x="74" y="66" width="4" height="4"/><rect x="86" y="66" width="4" height="4"/>
+                  <rect x="34" y="74" width="4" height="4"/><rect x="46" y="74" width="4" height="4"/><rect x="58" y="74" width="4" height="4"/><rect x="70" y="74" width="4" height="4"/><rect x="86" y="74" width="4" height="4"/>
+                  <rect x="38" y="82" width="4" height="4"/><rect x="50" y="82" width="4" height="4"/><rect x="62" y="82" width="4" height="4"/><rect x="78" y="82" width="4" height="4"/><rect x="90" y="82" width="4" height="4"/>
+                  <rect x="34" y="90" width="4" height="4"/><rect x="42" y="90" width="4" height="4"/><rect x="54" y="90" width="4" height="4"/><rect x="66" y="90" width="4" height="4"/><rect x="74" y="90" width="4" height="4"/><rect x="82" y="90" width="4" height="4"/>
+                </g>
+                <!-- Center logo -->
+                <rect x="42" y="42" width="16" height="16" fill="#fff"/>
+                <circle cx="50" cy="50" r="7" fill="#16B364"/>
+                <text x="50" y="53.5" text-anchor="middle" fill="#fff" font-size="8" font-weight="800" font-family="Inter, sans-serif">M</text>
+              </svg>
+            </div>
+            <div class="qr-net">Bitcoin Network</div>
+          </div>
+
+          <div class="addr-row">
+            <input value="bc1qx9hr8e5...kpf2qz4nm0" readonly>
+            <button class="copy-btn">Copy</button>
+          </div>
+
+          <div class="warn-strip">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            <div>Send only <strong>BTC</strong> to this address. Any other token will be lost. Min deposit: 0.00010 BTC. Confirmations: 2.</div>
+          </div>
+        </div>
+
+        <!-- Recent activity -->
+        <div class="deposit-card">
+          <div class="panel-head"><h3>Recent activity</h3><a href="history.html" style="font-size:13px;color:var(--brand-700);font-weight:600;text-decoration:none;">View all →</a></div>
+
+          <div class="activity-row">
+            <div class="ic in"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 19V5M5 12l7-7 7 7"/></svg></div>
+            <div class="body"><div class="t">Deposit · BTC</div><div class="s">2 hours ago · Confirmed</div></div>
+            <div class="amt pos">+0.0500 BTC</div>
+          </div>
+          <div class="activity-row">
+            <div class="ic bot"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5z"/></svg></div>
+            <div class="body"><div class="t">Grid Bot · trade fill</div><div class="s">14m ago · BTC/USDT</div></div>
+            <div class="amt pos">+$11.20</div>
+          </div>
+          <div class="activity-row">
+            <div class="ic out"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12l7 7 7-7"/></svg></div>
+            <div class="body"><div class="t">Withdraw · USDT</div><div class="s">Yesterday · 4 confirmations</div></div>
+            <div class="amt neg">-2,500 USDT</div>
+          </div>
+          <div class="activity-row">
+            <div class="ic bot"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5z"/></svg></div>
+            <div class="body"><div class="t">Smart DCA · weekly buy</div><div class="s">2 days ago · ETH/USDT</div></div>
+            <div class="amt mono">0.305 ETH</div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </main>
+</div>
+
+</body>
+</html>
