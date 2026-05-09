@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 import { useAccounts } from '@/hooks/useAccounts';
 import { useStrategies } from '@/hooks/useStrategies';
 import { useOpenTrades } from '@/hooks/useTrades';
+import { NewAccountDialog } from '@/components/account/NewAccountDialog';
 
 /**
  * First-run guidance shown above the dashboard hero. We ladder through the
@@ -53,6 +54,7 @@ export function OnboardingPanel() {
   // Start false on the server / first paint to keep hydration deterministic;
   // read the persisted dismissed flag in useEffect after mount.
   const [dismissed, setDismissed] = useState(false);
+  const [newAccountOpen, setNewAccountOpen] = useState(false);
   useEffect(() => {
     setDismissed(readDismissed());
   }, []);
@@ -81,7 +83,7 @@ export function OnboardingPanel() {
       blurb: 'Add your Binance API key + secret. We encrypt both at rest before storing.',
       icon: KeyRound,
       done: hasAccount,
-      cta: { href: '/settings', label: 'Add account' },
+      cta: { onClick: () => setNewAccountOpen(true), label: 'Add account' },
     },
     {
       key: 'activate-account',
@@ -131,6 +133,8 @@ export function OnboardingPanel() {
   const completed = steps.filter((s) => s.done).length;
 
   return (
+    <>
+    <NewAccountDialog open={newAccountOpen} onOpenChange={setNewAccountOpen} />
     <section
       className="rounded-xl border border-bd-subtle bg-bg-surface p-4"
       aria-labelledby="onboarding-heading"
@@ -176,6 +180,7 @@ export function OnboardingPanel() {
         ))}
       </ol>
     </section>
+    </>
   );
 }
 
@@ -185,7 +190,7 @@ interface Step {
   blurb: string;
   icon: React.ElementType;
   done: boolean;
-  cta: { href: string; label: string } | null;
+  cta: { href: string; label: string } | { onClick: () => void; label: string } | null;
   /** True when an earlier step blocks this one — render dimmed, no CTA. */
   gated?: boolean;
 }
@@ -236,17 +241,32 @@ function OnboardingStep({ step, isFocus }: { step: Step; isFocus: boolean }) {
       </div>
 
       {!step.done && step.cta && !dim && (
-        <Link
-          href={step.cta.href}
-          className={`inline-flex shrink-0 items-center gap-1 rounded-sm border px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.14em] transition-colors ${
-            isFocus
-              ? 'border-[var(--accent-primary)] bg-[var(--accent-primary)] text-[var(--text-inverse)] hover:opacity-90'
-              : 'border-bd-subtle bg-bg-base text-text-primary hover:bg-bg-hover'
-          }`}
-        >
-          {step.cta.label}
-          <ChevronRight size={11} strokeWidth={2} />
-        </Link>
+        'href' in step.cta ? (
+          <Link
+            href={step.cta.href}
+            className={`inline-flex shrink-0 items-center gap-1 rounded-sm border px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.14em] transition-colors ${
+              isFocus
+                ? 'border-[var(--accent-primary)] bg-[var(--accent-primary)] text-[var(--text-inverse)] hover:opacity-90'
+                : 'border-bd-subtle bg-bg-base text-text-primary hover:bg-bg-hover'
+            }`}
+          >
+            {step.cta.label}
+            <ChevronRight size={11} strokeWidth={2} />
+          </Link>
+        ) : (
+          <button
+            type="button"
+            onClick={step.cta.onClick}
+            className={`inline-flex shrink-0 items-center gap-1 rounded-sm border px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.14em] transition-colors ${
+              isFocus
+                ? 'border-[var(--accent-primary)] bg-[var(--accent-primary)] text-[var(--text-inverse)] hover:opacity-90'
+                : 'border-bd-subtle bg-bg-base text-text-primary hover:bg-bg-hover'
+            }`}
+          >
+            {step.cta.label}
+            <ChevronRight size={11} strokeWidth={2} />
+          </button>
+        )
       )}
     </li>
   );

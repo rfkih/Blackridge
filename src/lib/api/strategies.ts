@@ -4,15 +4,17 @@ import { extractList } from './pageUtils';
 import type { AccountStrategy, AccountStrategyStatus, KellyStatus } from '@/types/strategy';
 import type { BackendAccountStrategy, PageResponse } from '@/types/api';
 
-/** Map Java DTO field names to the frontend AccountStrategy shape. */
+/** Map Java DTO field names to the frontend AccountStrategy shape.
+ *  Accepts both new @JsonProperty wire names (id, interval, status, createdAt,
+ *  updatedAt) and the legacy Java field names for backwards compatibility. */
 function mapAccountStrategy(s: BackendAccountStrategy): AccountStrategy {
   return {
-    id: s.accountStrategyId,
+    id: (s.id ?? s.accountStrategyId) as string,
     accountId: s.accountId,
     strategyCode: s.strategyCode,
     presetName: (s.presetName ?? '').trim() || 'Default',
     symbol: s.symbol,
-    interval: s.intervalName,
+    interval: (s.interval ?? s.intervalName ?? '') as string,
     status: (s.enabled ? 'LIVE' : 'STOPPED') as AccountStrategyStatus,
     simulated: Boolean(s.simulated),
     capitalAllocationPct: toNum(s.capitalAllocationPct),
@@ -20,8 +22,8 @@ function mapAccountStrategy(s: BackendAccountStrategy): AccountStrategy {
     allowLong: s.allowLong,
     allowShort: s.allowShort,
     priorityOrder: s.priorityOrder,
-    createdAt: s.createdTime,
-    updatedAt: s.updatedTime,
+    createdAt: (s.createdAt ?? s.createdTime ?? '') as string,
+    updatedAt: (s.updatedAt ?? s.updatedTime ?? '') as string,
     ddKillThresholdPct: toNum(s.ddKillThresholdPct),
     isKillSwitchTripped: Boolean(s.isKillSwitchTripped),
     killSwitchTrippedAt: s.killSwitchTrippedAt ?? null,

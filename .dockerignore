@@ -1,0 +1,15 @@
+node_modules/
+.git/
+.idea/
+.claude/
+.vscode/
+logs/
+*.log
+.DS_Store
+.env*.local
+playwright-report/
+test-results/
+coverage/
+out/
+# NOTE: .next/ is intentionally NOT excluded - manage.ps1 builds it on the
+# host (it has cached Google Fonts; the in-container build can't reach them).

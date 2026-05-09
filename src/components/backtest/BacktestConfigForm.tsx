@@ -263,6 +263,29 @@ export function BacktestConfigForm() {
     });
   }, [evaluationMode, selectedStrategies, strategyAccountStrategyIds, strategyById]);
 
+  // When account-strategies finish loading, auto-fill any selected strategy
+  // that is missing an account-strategy ID. This covers the race where the
+  // user clicked a chip before useAccountStrategies resolved (candidates was
+  // empty at click time so toggleStrategy couldn't pick one).
+  useEffect(() => {
+    if (strategiesLoading) return;
+    setStrategyAccountStrategyIds((ids) => {
+      let changed = false;
+      const next = { ...ids };
+      for (const code of selectedStrategies) {
+        if (!next[code]) {
+          const candidates = strategyOptionsByCode.get(code) ?? [];
+          const pick = pickDefaultAccountStrategy(candidates, scopedAccountId);
+          if (pick) {
+            next[code] = pick.id;
+            changed = true;
+          }
+        }
+      }
+      return changed ? next : ids;
+    });
+  }, [strategiesLoading, selectedStrategies, strategyOptionsByCode, scopedAccountId]);
+
   // Phase B2 — a strategy's "effective interval" is its per-strategy
   // override when set, otherwise the wizard's primary interval. Mismatch
   // exists when the assigned account-strategy is registered on a
@@ -384,6 +407,11 @@ export function BacktestConfigForm() {
         if (!fieldErrors[key]) fieldErrors[key] = issue.message;
       }
       setErrors(fieldErrors);
+      requestAnimationFrame(() => {
+        document
+          .querySelector('[data-form-error]')
+          ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      });
       return;
     }
 
@@ -537,7 +565,7 @@ export function BacktestConfigForm() {
             regime) can be safely run long-only without touching the strategy code.
           </p>
           {errors.allowLong && (
-            <p className="text-xs text-[var(--color-warning)]">{errors.allowLong}</p>
+            <p data-form-error className="text-xs text-[var(--color-warning)]">{errors.allowLong}</p>
           )}
         </div>
       </section>
@@ -585,7 +613,7 @@ export function BacktestConfigForm() {
         )}
 
         {errors.strategyCodes && (
-          <p className="border-t border-bd-subtle bg-tint-loss px-5 py-2 text-[11px] text-loss">
+          <p data-form-error className="border-t border-bd-subtle bg-tint-loss px-5 py-2 text-[11px] text-loss">
             {errors.strategyCodes}
           </p>
         )}
@@ -669,7 +697,7 @@ export function BacktestConfigForm() {
               })}
             </div>
             {errors.strategyAccountStrategyIds && (
-              <p className="mt-3 text-[11px] text-loss">{errors.strategyAccountStrategyIds}</p>
+              <p data-form-error className="mt-3 text-[11px] text-loss">{errors.strategyAccountStrategyIds}</p>
             )}
 
             {/* Phase A — concurrent cap + per-strategy allocation overrides. */}
@@ -927,7 +955,7 @@ function Field({
       <Label className="label-caps !text-[9px]">{label}</Label>
       {children}
       {error ? (
-        <p className="text-[11px] text-loss">{error}</p>
+        <p data-form-error className="text-[11px] text-loss">{error}</p>
       ) : hint ? (
         <p className="text-[11px] text-text-muted">{hint}</p>
       ) : null}
@@ -1040,8 +1068,8 @@ function AccountStrategyPicker({
           {candidates.map((c) => (
             <SelectItem key={c.id} value={c.id}>
               <span className="flex items-center gap-2 text-[12px]">
-                <span className="font-mono">{c.symbol}</span>
-                <span className="font-mono text-text-muted">· {c.interval}</span>
+                <span className="font-mono font-semibold">{c.interval}</span>
+                <span className="font-mono text-text-muted">· {c.presetName}</span>
               </span>
             </SelectItem>
           ))}

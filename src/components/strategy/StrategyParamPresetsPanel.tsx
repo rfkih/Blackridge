@@ -68,7 +68,7 @@ export function StrategyParamPresetsPanel({ accountStrategyId }: Props) {
             reads the active preset; backtests can pin any preset by ID.
           </p>
         </div>
-        <Button size="sm" variant="default" onClick={() => setCreateOpen(true)}>
+        <Button size="sm" variant="default" className="shrink-0 whitespace-nowrap" onClick={() => setCreateOpen(true)}>
           <Plus size={14} className="mr-1" />
           New preset
         </Button>

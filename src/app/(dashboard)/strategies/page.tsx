@@ -898,7 +898,7 @@ export default function StrategiesPage() {
             type="button"
             onClick={() => setCreateOpen(true)}
             disabled={!canCreate}
-            className="mm-btn mm-btn-mint"
+            className="mm-btn mm-btn-mint whitespace-nowrap"
             style={{ padding: '10px 18px', borderRadius: 9999, fontSize: 14 }}
           >
             <Plus size={14} strokeWidth={2.2} />

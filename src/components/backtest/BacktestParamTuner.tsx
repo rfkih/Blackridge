@@ -261,6 +261,7 @@ export function BacktestParamTuner() {
     vboDefaults,
     paramOverrides,
     defaultsByCode,
+    useCalibratedSlippage,
     createMutation,
     resetWizard,
     router,

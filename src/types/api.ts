@@ -81,9 +81,23 @@ export interface BackendAuthData {
   user: BackendUser;
 }
 
-/** Backend AccountStrategy DTO (Java field names; mirrors AccountStrategyResponse). */
+/** Backend AccountStrategy DTO — accepts both old Java field names and the
+ *  new @JsonProperty aliases added to AccountStrategyResponse. All renamed
+ *  fields are optional so the mapper can fall back gracefully. */
 export interface BackendAccountStrategy {
-  accountStrategyId: UUID;
+  // New wire names (from @JsonProperty on AccountStrategyResponse)
+  id?: UUID | null;           // was accountStrategyId
+  interval?: string | null;   // was intervalName
+  status?: string | null;     // was currentStatus
+  createdAt?: ISO8601 | null; // was createdTime
+  updatedAt?: ISO8601 | null; // was updatedTime
+  // Legacy Java field names — kept so cached/proxied responses still map
+  accountStrategyId?: UUID | null;
+  intervalName?: string | null;
+  currentStatus?: string | null;
+  createdTime?: ISO8601 | null;
+  updatedTime?: ISO8601 | null;
+  // Unchanged fields
   accountId: UUID;
   strategyDefinitionId?: UUID | null;
   strategyCode: string;
@@ -91,22 +105,18 @@ export interface BackendAccountStrategy {
    *  only one is `enabled` at a time. */
   presetName?: string | null;
   symbol: string;
-  intervalName: string; // frontend: interval
   enabled: boolean; // frontend: derives `status` from this
   /** Paper-trade flag: when true the strategy emits real signals but
    *  OPEN_LONG/OPEN_SHORT are diverted to paper_trade_run. Combined with
    *  `enabled` this defines the promotion state (RESEARCH / PAPER_TRADE /
    *  PROMOTED / DEMOTED). Optional for pre-V15 cached responses. */
   simulated?: boolean | null;
-  currentStatus: string; // DB column is never updated by backend — do not use
   /** Fraction of the account's equity allocated to this strategy (0–100). */
   capitalAllocationPct: number | string | null;
   maxOpenPositions: number | null;
   allowLong: boolean;
   allowShort: boolean;
   priorityOrder: number;
-  createdTime: ISO8601; // frontend: createdAt
-  updatedTime: ISO8601; // frontend: updatedAt
   /** Phase 2a — drawdown kill-switch fields. Optional in the type so old
    *  cached responses without them don't fail validation. */
   ddKillThresholdPct?: number | string | null;

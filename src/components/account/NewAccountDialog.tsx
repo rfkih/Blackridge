@@ -104,6 +104,7 @@ export function NewAccountDialog({ open, onOpenChange }: NewAccountDialogProps) 
         exchange: form.exchange,
         apiKey: form.apiKey.trim(),
         apiSecret: form.apiSecret.trim(),
+        acknowledgedSafety: true,
       },
       {
         onSuccess: (account) => {

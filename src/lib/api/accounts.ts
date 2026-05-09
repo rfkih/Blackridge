@@ -48,6 +48,7 @@ export interface CreateAccountPayload {
   exchange: string;
   apiKey: string;
   apiSecret: string;
+  acknowledgedSafety: boolean;
 }
 
 export async function createAccount(payload: CreateAccountPayload): Promise<AccountSummary> {

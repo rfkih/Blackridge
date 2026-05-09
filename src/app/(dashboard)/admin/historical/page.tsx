@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useId, useMemo, useRef, useState } from 'react';
+import { useEffect, useId, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   AlertTriangle,
@@ -1213,12 +1213,6 @@ function BackfillCandleRangeCard({ onJobsSubmitted }: { onJobsSubmitted: (ids: s
   // mutateAsync settles — not after all parallel calls complete.
   const [isSubmitting, setIsSubmitting] = useState(false);
   const submit = useSubmitJob();
-  const mountedRef = useRef(true);
-  useEffect(() => {
-    return () => {
-      mountedRef.current = false;
-    };
-  }, []);
 
   const rangeError = useMemo(() => {
     if (!from || !to) return 'Pick both start and end.';
@@ -1265,7 +1259,7 @@ function BackfillCandleRangeCard({ onJobsSubmitted }: { onJobsSubmitted: (ids: s
         });
       }
     } finally {
-      if (mountedRef.current) setIsSubmitting(false);
+      setIsSubmitting(false);
     }
   };
 
