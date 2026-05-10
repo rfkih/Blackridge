@@ -33,6 +33,11 @@ function mapAccountStrategy(s: BackendAccountStrategy): AccountStrategy {
     allowedVolatilityRegimes: s.allowedVolatilityRegimes ?? null,
     kellySizingEnabled: Boolean(s.kellySizingEnabled),
     kellyMaxFraction: toNum(s.kellyMaxFraction) || 0.25,
+    // V54 — visibility + ownership decoration. Default to PRIVATE/owned/"You"
+    // for pre-V54 cached responses so mapping never produces undefined.
+    visibility: s.visibility === 'PUBLIC' ? 'PUBLIC' : 'PRIVATE',
+    ownedByCurrentUser: s.ownedByCurrentUser ?? true,
+    ownerLabel: s.ownerLabel ?? 'You',
   };
 }
 
@@ -167,4 +172,32 @@ export async function rearmKillSwitch(id: string): Promise<AccountStrategy> {
     `/api/v1/account-strategies/${id}/rearm`,
   );
   return mapAccountStrategy(data);
+}
+
+/**
+ * V54 — clone a (typically PUBLIC, research-agent-owned) strategy into one of
+ * the calling user's accounts. Optional `targetAccountId` selects a specific
+ * destination account; omitted = backend picks the user's first account.
+ *
+ * The clone lands as PRIVATE / disabled / simulated / STOPPED, so the user
+ * must explicitly enable it before any capital is at risk. The active
+ * strategy_param preset is copied alongside the row.
+ *
+ * Duplicate-call safety: the dialog disables the submit button while the
+ * mutation is in flight (covers double-clicks). For network-retry de-dup we
+ * rely on the backend's same-tuple guard, which rejects duplicate (definition
+ * + symbol + interval) on the target account. The JVM has no
+ * Idempotency-Key infrastructure today, so we don't pretend to send one.
+ */
+export async function cloneAccountStrategy(
+  sourceId: string,
+  targetAccountId?: string,
+): Promise<{ accountStrategyId: string }> {
+  const body: Record<string, string> = {};
+  if (targetAccountId) body.targetAccountId = targetAccountId;
+  const { data } = await apiClient.post<{ accountStrategyId: string }>(
+    `/api/v1/account-strategies/${sourceId}/clone`,
+    body,
+  );
+  return data;
 }

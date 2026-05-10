@@ -41,6 +41,19 @@ export interface AccountStrategy {
   kellySizingEnabled: boolean;
   /** Hard cap on the Kelly fraction [0.05, 1.00]. Default 0.25. */
   kellyMaxFraction: number;
+  /** Tenant visibility (V54). PRIVATE = listed only to the owner.
+   *  PUBLIC  = listed to every user for browse-and-clone (the research-agent
+   *            account seeds its rows as PUBLIC). Backtest/edit/enable still
+   *            require ownership regardless of visibility. */
+  visibility: 'PRIVATE' | 'PUBLIC';
+  /** True iff the calling user owns this strategy's account. False rows are
+   *  read-only PUBLIC clones-of-other-tenants — render "Clone to my account"
+   *  in place of edit/delete affordances. */
+  ownedByCurrentUser: boolean;
+  /** Display label for the owning account. "You" for owned rows, "Research
+   *  Agent" for the research-agent's PUBLIC rows, otherwise the foreign
+   *  account's username. Avoid leaking userIds to the UI — branch on this. */
+  ownerLabel: string;
 }
 
 /**

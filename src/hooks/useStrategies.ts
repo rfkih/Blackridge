@@ -1,5 +1,6 @@
 'use client';
 
+import { useMemo } from 'react';
 import {
   useQuery,
   useMutation,
@@ -11,6 +12,7 @@ import {
   getAccountStrategyById,
   getKellyStatus,
   createAccountStrategy,
+  cloneAccountStrategy,
   deleteAccountStrategy,
   activateAccountStrategy,
   deactivateAccountStrategy,
@@ -43,7 +45,37 @@ import { QUERY_STALE_TIMES } from '@/lib/constants';
 import { useAuthStore } from '@/store/authStore';
 import type { LsrParams, VboParams, VcbParams } from '@/types/strategy';
 
+/**
+ * V54 — owned-only listing. Backwards-compatible: every existing consumer
+ * (dashboard counts, trades/pnl filters, KillSwitchBanner, BacktestConfigForm,
+ * AccountSwitcher, OnboardingPanel, useEquityCurve, etc.) keeps seeing only
+ * the user's own strategies and never the research-agent's PUBLIC catalogue.
+ *
+ * Use {@link useAllVisibleStrategies} on screens that *want* the PUBLIC
+ * catalogue surfaced (today: the /strategies clone-source picker).
+ */
 export function useStrategies() {
+  const all = useAllVisibleStrategies();
+  // useMemo so the filtered array is referentially stable across renders
+  // when the underlying query data hasn't changed. Otherwise every
+  // consumer's `useEffect([strategies])` / `useMemo([strategies])` would
+  // re-fire on each render of any component up the tree.
+  const data = useMemo(
+    () => all.data?.filter((s) => s.ownedByCurrentUser),
+    [all.data],
+  );
+  return { ...all, data };
+}
+
+export const useAccountStrategies = useStrategies;
+
+/**
+ * V54 — owned + every PUBLIC strategy from any user (today, just the
+ * research-agent's catalogue). The wire query is shared with
+ * {@link useStrategies} so React Query de-dups; the owned-only hook just
+ * filters client-side. Use sparingly — most screens don't want foreign rows.
+ */
+export function useAllVisibleStrategies() {
   const userId = useAuthStore((s) => s.user?.id);
   return useQuery({
     queryKey: ['strategies', userId ?? null],
@@ -52,8 +84,6 @@ export function useStrategies() {
     enabled: Boolean(userId),
   });
 }
-
-export const useAccountStrategies = useStrategies;
 
 export function useAccountStrategy(id: string | undefined) {
   return useQuery({
@@ -174,6 +204,23 @@ export function useDeleteStrategy() {
     onSuccess: (_, accountStrategyId) => {
       queryClient.invalidateQueries({ queryKey: ['strategies'] });
       queryClient.removeQueries({ queryKey: ['strategy', accountStrategyId] });
+    },
+  });
+}
+
+/**
+ * V54 — clone a (typically PUBLIC, research-agent-owned) strategy into the
+ * caller's account. Pass `targetAccountId` to override the default
+ * destination (the user's first account). The clone is private + disabled
+ * + simulated by default; the user must explicitly enable it.
+ */
+export function useCloneStrategy() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ sourceId, targetAccountId }: { sourceId: string; targetAccountId?: string }) =>
+      cloneAccountStrategy(sourceId, targetAccountId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['strategies'] });
     },
   });
 }

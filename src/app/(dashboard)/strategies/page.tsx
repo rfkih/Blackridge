@@ -8,6 +8,7 @@ import {
   ArrowDownRight,
   ChevronRight,
   Check,
+  Copy,
   GripVertical,
   Loader2,
   Plus,
@@ -20,13 +21,14 @@ import { StrategyBadge } from '@/components/trading/StrategyBadge';
 import { StrategyStatusBadge } from '@/components/strategy/StrategyStatusBadge';
 import { NewStrategyDialog } from '@/components/strategy/NewStrategyDialog';
 import { DeleteStrategyDialog } from '@/components/strategy/DeleteStrategyDialog';
+import { CloneStrategyDialog } from '@/components/strategy/CloneStrategyDialog';
 import { RearmKillSwitchDialog } from '@/components/strategy/RearmKillSwitchDialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { PageHeader } from '@/components/shared/PageHeader';
 import {
-  useAccountStrategies,
   useActivateStrategy,
+  useAllVisibleStrategies,
   useDeactivateStrategy,
   useRearmKillSwitch,
   useUpdateStrategyInterval,
@@ -45,11 +47,39 @@ function tupleKey(s: AccountStrategy): string {
   return `${s.accountId}::${s.strategyCode}::${s.symbol}::${s.interval}`;
 }
 
+/**
+ * V54 — card body wrapper. Owned rows wrap in a `<Link>` to /strategies/[id]
+ * so the user can edit params; PUBLIC foreign rows render a plain `<div>`
+ * because the detail route enforces ownership and would 404. The Clone
+ * button on read-only cards is the only action.
+ */
+function CardBody({
+  readOnly,
+  href,
+  className,
+  children,
+}: {
+  readOnly: boolean;
+  href: string;
+  className?: string;
+  children: React.ReactNode;
+}) {
+  if (readOnly) {
+    return <div className={className}>{children}</div>;
+  }
+  return (
+    <Link href={href} className={className}>
+      {children}
+    </Link>
+  );
+}
+
 function StrategyCard({
   strategy,
   position,
   groupHasOtherPreset,
   onDelete,
+  onClone,
   onActivate,
   onDeactivate,
   onIntervalChange,
@@ -71,6 +101,7 @@ function StrategyCard({
   position: number;
   groupHasOtherPreset: boolean;
   onDelete: (s: AccountStrategy) => void;
+  onClone: (s: AccountStrategy) => void;
   onActivate: (s: AccountStrategy) => void;
   onDeactivate: (s: AccountStrategy) => void;
   onIntervalChange: (s: AccountStrategy, intervalName: string) => void;
@@ -89,42 +120,72 @@ function StrategyCard({
 }) {
   const isLive = strategy.status === 'LIVE';
   const isToggling = isActivating || isDeactivating;
+  // V54 — read-only PUBLIC clone-of-other-tenant. Writes are routed through
+  // the clone flow instead of edit/delete; drag-to-reorder is disabled
+  // because the row isn't in this user's preset list.
+  const isReadOnlyPublic = !strategy.ownedByCurrentUser;
   return (
     <div
-      draggable
+      draggable={!isReadOnlyPublic}
       onDragStart={(e) => {
+        if (isReadOnlyPublic) return;
         e.dataTransfer.effectAllowed = 'move';
         e.dataTransfer.setData('text/plain', strategy.id);
         onDragStart();
       }}
       onDragEnd={onDragEnd}
-      onDragOver={onDragOver}
-      onDragLeave={onDragLeave}
-      onDrop={onDrop}
+      onDragOver={isReadOnlyPublic ? undefined : onDragOver}
+      onDragLeave={isReadOnlyPublic ? undefined : onDragLeave}
+      onDrop={isReadOnlyPublic ? undefined : onDrop}
       className={cn(
         'group relative flex flex-col justify-between gap-4 rounded-xl border bg-[var(--bg-surface)] p-5 shadow-panel transition-all',
         isLive
           ? 'border-[var(--color-profit)]/60 shadow-[0_0_0_1px_var(--color-profit),0_8px_24px_rgba(22,179,100,0.14)]'
-          : 'border-[var(--border-subtle)] hover:-translate-y-px hover:border-[var(--border-default)] hover:shadow-float',
+          : isReadOnlyPublic
+            ? 'border-dashed border-[var(--accent-primary)]/40 hover:-translate-y-px hover:border-[var(--accent-primary)] hover:shadow-float'
+            : 'border-[var(--border-subtle)] hover:-translate-y-px hover:border-[var(--border-default)] hover:shadow-float',
         isDragging && 'cursor-grabbing opacity-40',
         isDragOver && 'ring-[var(--accent-primary)]/60 border-[var(--accent-primary)] ring-2',
       )}
       style={{ cursor: isDragging ? 'grabbing' : undefined }}
     >
-      <button
-        type="button"
-        onClick={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          onDelete(strategy);
-        }}
-        className="absolute right-2 top-2 z-10 rounded-md p-1.5 text-[var(--text-muted)] opacity-0 transition-all hover:bg-[rgba(229,72,77,0.12)] hover:text-[var(--color-loss)] focus:opacity-100 group-hover:opacity-100"
-        aria-label={`Delete preset ${strategy.presetName}`}
-      >
-        <Trash2 size={14} />
-      </button>
+      {isReadOnlyPublic ? (
+        <button
+          type="button"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            onClone(strategy);
+          }}
+          className="absolute right-2 top-2 z-10 inline-flex items-center gap-1 rounded-md border border-[var(--accent-primary)]/40 bg-[var(--bg-elevated)] px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--accent-primary)] transition-colors hover:bg-[var(--accent-primary)] hover:text-[var(--text-inverse)]"
+          aria-label={`Clone preset ${strategy.presetName} to my account`}
+        >
+          <Copy size={11} />
+          Clone
+        </button>
+      ) : (
+        <button
+          type="button"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            onDelete(strategy);
+          }}
+          className="absolute right-2 top-2 z-10 rounded-md p-1.5 text-[var(--text-muted)] opacity-0 transition-all hover:bg-[rgba(229,72,77,0.12)] hover:text-[var(--color-loss)] focus:opacity-100 group-hover:opacity-100"
+          aria-label={`Delete preset ${strategy.presetName}`}
+        >
+          <Trash2 size={14} />
+        </button>
+      )}
 
-      <Link href={`/strategies/${strategy.id}`} className="flex flex-col gap-4">
+      {/* V54 — PUBLIC rows aren't fetchable via /strategies/[id] (the detail
+          page enforces ownership and would 404), so the body is a non-link
+          div for read-only cards. The "Clone" button is the only action. */}
+      <CardBody
+        readOnly={isReadOnlyPublic}
+        href={`/strategies/${strategy.id}`}
+        className="flex flex-col gap-4"
+      >
         {/* Top row — strategy-icon tile + tag pill (left) and status toggle
             (right). Mirrors the design pack's `.strat-head`. */}
         <div className="flex items-start justify-between gap-3 pr-8">
@@ -140,7 +201,17 @@ function StrategyCard({
               {strategy.symbol.slice(0, 1)}
             </span>
             <div className="flex min-w-0 flex-col gap-1">
-              <StrategyBadge code={strategy.strategyCode} size="sm" />
+              <div className="flex items-center gap-2">
+                <StrategyBadge code={strategy.strategyCode} size="sm" />
+                {isReadOnlyPublic && (
+                  <span
+                    className="rounded-sm bg-[var(--accent-primary)]/12 px-1.5 py-0.5 font-mono text-[9px] font-semibold uppercase tracking-[0.12em] text-[var(--accent-primary)]"
+                    title={`Owned by ${strategy.ownerLabel} — clone to edit or run`}
+                  >
+                    {strategy.ownerLabel}
+                  </span>
+                )}
+              </div>
               <span
                 className="truncate text-[11px]"
                 style={{ color: 'var(--mm-ink-2)' }}
@@ -150,11 +221,20 @@ function StrategyCard({
               </span>
             </div>
           </div>
-          <StatusToggle
-            status={strategy.status}
-            disabled={isToggling}
-            onToggle={() => (isLive ? onDeactivate(strategy) : onActivate(strategy))}
-          />
+          {isReadOnlyPublic ? (
+            <span
+              className="rounded-md border border-[var(--border-subtle)] bg-[var(--bg-elevated)] px-2 py-1 font-mono text-[9px] uppercase tracking-[0.14em] text-[var(--text-muted)]"
+              title="Public preset — clone to your account before enabling"
+            >
+              Read-only
+            </span>
+          ) : (
+            <StatusToggle
+              status={strategy.status}
+              disabled={isToggling}
+              onToggle={() => (isLive ? onDeactivate(strategy) : onActivate(strategy))}
+            />
+          )}
         </div>
 
         {/* Symbol + interval — display headline */}
@@ -183,7 +263,7 @@ function StrategyCard({
           >
             <IntervalSelect
               value={strategy.interval}
-              disabled={isUpdatingInterval}
+              disabled={isUpdatingInterval || isReadOnlyPublic}
               onChange={(v) => onIntervalChange(strategy, v)}
             />
           </div>
@@ -280,17 +360,19 @@ function StrategyCard({
               color: 'var(--mm-ink-3)',
             }}
           >
-            Drag to reorder
+            {isReadOnlyPublic ? 'Public preset' : 'Drag to reorder'}
           </span>
-          <span
-            className="flex items-center gap-1 text-xs transition-colors group-hover:text-[var(--accent-primary)]"
-            style={{ color: 'var(--mm-ink-1)', fontWeight: 600 }}
-          >
-            Edit params
-            <ChevronRight size={12} />
-          </span>
+          {!isReadOnlyPublic && (
+            <span
+              className="flex items-center gap-1 text-xs transition-colors group-hover:text-[var(--accent-primary)]"
+              style={{ color: 'var(--mm-ink-1)', fontWeight: 600 }}
+            >
+              Edit params
+              <ChevronRight size={12} />
+            </span>
+          )}
         </div>
-      </Link>
+      </CardBody>
 
       {/* Drag handle — sits at the top-left corner. The whole card is the
           drag source; the handle is just the visual affordance. */}
@@ -306,7 +388,7 @@ function StrategyCard({
         <KillSwitchPanel strategy={strategy} onRearm={onRearm} isRearming={isRearming} />
       )}
 
-      {groupHasOtherPreset && (
+      {groupHasOtherPreset && !isReadOnlyPublic && (
         <div className="-mt-2 flex items-center justify-between border-t border-[var(--border-subtle)] pt-3">
           {isLive ? (
             <span className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--accent-primary)]">
@@ -621,6 +703,7 @@ function IntervalGroupSortable({
   strategies,
   presetsByTuple,
   onDelete,
+  onClone,
   onActivate,
   onDeactivate,
   onIntervalChange,
@@ -635,6 +718,7 @@ function IntervalGroupSortable({
   strategies: AccountStrategy[];
   presetsByTuple: Map<string, number>;
   onDelete: (s: AccountStrategy) => void;
+  onClone: (s: AccountStrategy) => void;
   onActivate: (s: AccountStrategy) => void;
   onDeactivate: (s: AccountStrategy) => void;
   onIntervalChange: (s: AccountStrategy, intervalName: string) => void;
@@ -682,6 +766,7 @@ function IntervalGroupSortable({
             position={idx + 1}
             groupHasOtherPreset={(presetsByTuple.get(tupleKey(s)) ?? 0) > 1}
             onDelete={onDelete}
+            onClone={onClone}
             onActivate={onActivate}
             onDeactivate={onDeactivate}
             onIntervalChange={onIntervalChange}
@@ -715,6 +800,95 @@ function IntervalGroupSortable({
   );
 }
 
+/**
+ * V54 — read-only browse-and-clone section for PUBLIC strategies (today, the
+ * research-agent's catalogue). Rendered separately from the per-account
+ * grouping so PUBLIC rows don't appear as a confusing "ghost account" under
+ * the user's own account headers. All mutate handlers are no-ops because
+ * StrategyCard already routes everything through the Clone button when
+ * `ownedByCurrentUser=false`.
+ */
+function PublicStrategiesSection({
+  strategies,
+  presetsByTuple,
+  onClone,
+}: {
+  strategies: AccountStrategy[];
+  presetsByTuple: Map<string, number>;
+  onClone: (s: AccountStrategy) => void;
+}) {
+  const noop = () => {};
+  // Bucket by interval for visual consistency with the user's owned section.
+  const byInterval = new Map<string, AccountStrategy[]>();
+  for (const s of strategies) {
+    const list = byInterval.get(s.interval) ?? [];
+    list.push(s);
+    byInterval.set(s.interval, list);
+  }
+  const orderedIntervals = Array.from(byInterval.keys()).sort(compareIntervals);
+  return (
+    <section className="space-y-3 border-t border-[var(--border-subtle)] pt-6">
+      <header className="flex items-baseline gap-2 px-1">
+        <h2 className="font-display text-sm font-semibold text-[var(--text-primary)]">
+          Research Agent · Public Strategies
+        </h2>
+        <span className="font-mono text-[10px] text-[var(--text-muted)]">
+          · clone to your account before enabling
+        </span>
+      </header>
+      <div className="space-y-5">
+        {orderedIntervals.map((interval) => {
+          const sorted = (byInterval.get(interval) ?? []).slice().sort(
+            (a, b) => a.priorityOrder - b.priorityOrder,
+          );
+          return (
+            <div key={`public::${interval}`} className="space-y-2">
+              <div className="flex items-baseline gap-2 px-1">
+                <span className="font-mono text-[10px] uppercase tracking-widest text-[var(--text-muted)]">
+                  Interval
+                </span>
+                <span className="rounded bg-[var(--bg-elevated)] px-2 py-0.5 font-mono text-[11px] font-semibold text-[var(--text-primary)]">
+                  {interval}
+                </span>
+                <span className="font-mono text-[10px] text-[var(--text-muted)]">
+                  · {sorted.length} preset{sorted.length === 1 ? '' : 's'}
+                </span>
+              </div>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                {sorted.map((s, idx) => (
+                  <StrategyCard
+                    key={s.id}
+                    strategy={s}
+                    position={idx + 1}
+                    groupHasOtherPreset={(presetsByTuple.get(tupleKey(s)) ?? 0) > 1}
+                    onDelete={noop}
+                    onClone={onClone}
+                    onActivate={noop}
+                    onDeactivate={noop}
+                    onIntervalChange={noop}
+                    onRearm={noop}
+                    isActivating={false}
+                    isDeactivating={false}
+                    isUpdatingInterval={false}
+                    isRearming={false}
+                    isDragging={false}
+                    isDragOver={false}
+                    onDragStart={noop}
+                    onDragEnd={noop}
+                    onDragOver={noop}
+                    onDragLeave={noop}
+                    onDrop={noop}
+                  />
+                ))}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
 function StrategyCardSkeleton() {
   return (
     <div className="rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-4">
@@ -730,10 +904,14 @@ function StrategyCardSkeleton() {
 }
 
 export default function StrategiesPage() {
-  const { data: strategies = [], isLoading, isError, refetch } = useAccountStrategies();
+  // V54 — opt in to PUBLIC research-agent strategies so users can browse +
+  // clone them. All other consumers (dashboard, trades, pnl, etc.) keep
+  // using `useStrategies()` which filters to owned-only.
+  const { data: strategies = [], isLoading, isError, refetch } = useAllVisibleStrategies();
   const { accounts, isAll, activeAccount, scopedAccountId } = useActiveAccount();
   const [isCreateOpen, setCreateOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<AccountStrategy | null>(null);
+  const [cloneTarget, setCloneTarget] = useState<AccountStrategy | null>(null);
   const [rearmTarget, setRearmTarget] = useState<AccountStrategy | null>(null);
   const activateMutation = useActivateStrategy();
   const deactivateMutation = useDeactivateStrategy();
@@ -742,9 +920,16 @@ export default function StrategiesPage() {
   const rearmMutation = useRearmKillSwitch();
   const riskConfigMutation = useUpdateAccountRiskConfig();
 
-  const visibleStrategies = scopedAccountId
-    ? strategies.filter((s) => s.accountId === scopedAccountId)
-    : strategies;
+  // V54 — partition into owned vs PUBLIC. Owned go through the per-account
+  // bucketed view; PUBLIC render in their own section above (always visible
+  // regardless of the top-bar account scope) so users can browse + clone the
+  // research-agent's catalogue without it showing up as a "ghost account"
+  // under per-account groupings.
+  const ownedStrategies = scopedAccountId
+    ? strategies.filter((s) => s.ownedByCurrentUser && s.accountId === scopedAccountId)
+    : strategies.filter((s) => s.ownedByCurrentUser);
+  const publicStrategies = strategies.filter((s) => !s.ownedByCurrentUser);
+  const visibleStrategies = ownedStrategies; // backwards-compat for the empty-state check below
 
   // Count siblings per tuple so cards know when to render the
   // "Active preset / Activate" footer vs. a lone-preset card.
@@ -946,7 +1131,7 @@ export default function StrategiesPage() {
             <StrategyCardSkeleton key={i} />
           ))}
         </div>
-      ) : visibleStrategies.length === 0 ? (
+      ) : ownedStrategies.length === 0 && publicStrategies.length === 0 ? (
         <EmptyState
           icon={Zap}
           title={
@@ -961,24 +1146,48 @@ export default function StrategiesPage() {
           }
         />
       ) : (
-        <AccountsAndIntervalsView
-          accounts={accounts}
-          strategies={visibleStrategies}
-          presetsByTuple={presetsByTuple}
-          showAccountHeaders={isAll && accounts.length > 1}
-          onDelete={setDeleteTarget}
-          onActivate={handleActivate}
-          onDeactivate={handleDeactivate}
-          onIntervalChange={handleIntervalChange}
-          onRearm={setRearmTarget}
-          onReorder={handleReorder}
-          activatingId={activateMutation.isPending ? activateMutation.variables : undefined}
-          deactivatingId={deactivateMutation.isPending ? deactivateMutation.variables : undefined}
-          updatingIntervalId={
-            intervalMutation.isPending ? intervalMutation.variables?.id : undefined
-          }
-          rearmingId={rearmMutation.isPending ? rearmMutation.variables : undefined}
-        />
+        <>
+          {ownedStrategies.length === 0 ? (
+            <EmptyState
+              icon={Zap}
+              title={
+                isAll
+                  ? 'No strategies of your own yet'
+                  : `No strategies on ${activeAccount?.label ?? 'this account'}`
+              }
+              description="Browse the public catalogue below and clone one to get started."
+            />
+          ) : (
+            <AccountsAndIntervalsView
+              accounts={accounts}
+              strategies={ownedStrategies}
+              presetsByTuple={presetsByTuple}
+              showAccountHeaders={isAll && accounts.length > 1}
+              onDelete={setDeleteTarget}
+              onClone={setCloneTarget}
+              onActivate={handleActivate}
+              onDeactivate={handleDeactivate}
+              onIntervalChange={handleIntervalChange}
+              onRearm={setRearmTarget}
+              onReorder={handleReorder}
+              activatingId={activateMutation.isPending ? activateMutation.variables : undefined}
+              deactivatingId={
+                deactivateMutation.isPending ? deactivateMutation.variables : undefined
+              }
+              updatingIntervalId={
+                intervalMutation.isPending ? intervalMutation.variables?.id : undefined
+              }
+              rearmingId={rearmMutation.isPending ? rearmMutation.variables : undefined}
+            />
+          )}
+          {publicStrategies.length > 0 && (
+            <PublicStrategiesSection
+              strategies={publicStrategies}
+              presetsByTuple={presetsByTuple}
+              onClone={setCloneTarget}
+            />
+          )}
+        </>
       )}
 
       <NewStrategyDialog
@@ -993,6 +1202,13 @@ export default function StrategiesPage() {
           if (!open) setDeleteTarget(null);
         }}
         strategy={deleteTarget}
+      />
+      <CloneStrategyDialog
+        open={Boolean(cloneTarget)}
+        onOpenChange={(open) => {
+          if (!open) setCloneTarget(null);
+        }}
+        strategy={cloneTarget}
       />
       <RearmKillSwitchDialog
         open={Boolean(rearmTarget)}
@@ -1025,6 +1241,7 @@ function AccountsAndIntervalsView({
   presetsByTuple,
   showAccountHeaders,
   onDelete,
+  onClone,
   onActivate,
   onDeactivate,
   onIntervalChange,
@@ -1040,6 +1257,7 @@ function AccountsAndIntervalsView({
   presetsByTuple: Map<string, number>;
   showAccountHeaders: boolean;
   onDelete: (s: AccountStrategy) => void;
+  onClone: (s: AccountStrategy) => void;
   onActivate: (s: AccountStrategy) => void;
   onDeactivate: (s: AccountStrategy) => void;
   onIntervalChange: (s: AccountStrategy, intervalName: string) => void;
@@ -1108,6 +1326,7 @@ function AccountsAndIntervalsView({
                   strategies={byInterval.get(interval) ?? []}
                   presetsByTuple={presetsByTuple}
                   onDelete={onDelete}
+                  onClone={onClone}
                   onActivate={onActivate}
                   onDeactivate={onDeactivate}
                   onIntervalChange={onIntervalChange}

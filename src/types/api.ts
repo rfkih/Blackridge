@@ -130,6 +130,12 @@ export interface BackendAccountStrategy {
   /** Kelly/bankroll sizing (V45) — PSR-discounted half-Kelly multiplier. */
   kellySizingEnabled?: boolean | null;
   kellyMaxFraction?: number | string | null;
+  /** Tenant visibility (V54). Optional for pre-V54 cached responses. */
+  visibility?: 'PRIVATE' | 'PUBLIC' | null;
+  /** True iff calling user owns the row's account. */
+  ownedByCurrentUser?: boolean | null;
+  /** Display label: "You" / "Research Agent" / foreign account username. */
+  ownerLabel?: string | null;
 }
 
 /** Backend strategy-param response — params are nested under effectiveParams. */
