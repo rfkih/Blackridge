@@ -59,9 +59,10 @@ export function AuthShell({
           <BlackridgeMark size={36} tone="inverse" />
           <span
             className="font-display"
-            style={{ fontWeight: 800, fontSize: 20, color: '#fff' }}
+            style={{ fontWeight: 800, fontSize: 20, letterSpacing: '-0.02em' }}
           >
-            Blackridge
+            <span style={{ color: '#fff' }}>Black</span>
+            <span style={{ color: '#16B364' }}>ridge</span>
           </span>
         </Link>
 
@@ -112,13 +113,10 @@ export function AuthShell({
             <BlackridgeMark size={28} />
             <span
               className="font-display"
-              style={{
-                fontWeight: 800,
-                fontSize: 17,
-                color: 'var(--text-primary)',
-              }}
+              style={{ fontWeight: 800, fontSize: 17, letterSpacing: '-0.02em' }}
             >
-              Blackridge
+              <span style={{ color: 'var(--text-primary)' }}>Black</span>
+              <span style={{ color: '#16B364' }}>ridge</span>
             </span>
           </Link>
           {topRight && (

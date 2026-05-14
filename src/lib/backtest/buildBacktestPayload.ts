@@ -1,22 +1,13 @@
 import { ALLOC_MAX_PCT } from '@/lib/constants';
+import { paramValuesEqual } from '@/lib/paramsFormHelpers';
 import type { BacktestRunPayload, BacktestWizardConfig } from '@/types/backtest';
-
-/**
- * Number equality at the precision users care about. Param values round-trip
- * through JSON so floating-point noise is possible; ignoring sub-1e-9 deltas
- * keeps the payload tight.
- */
-function equal(a: unknown, b: unknown): boolean {
-  if (typeof a === 'number' && typeof b === 'number') {
-    return Math.abs(a - b) < 1e-9;
-  }
-  return a === b;
-}
 
 /**
  * Only include fields whose override differs from the backend default. Sending
  * the full object would work, but the backend merge path handles partial diffs
- * and the slimmer payload is easier to diff in audit logs.
+ * and the slimmer payload is easier to diff in audit logs. Uses the shared
+ * epsilon equality so floating-point noise from JSON round-trips doesn't
+ * inflate the payload with no-op overrides.
  */
 function computeDiff(
   defaults: Record<string, unknown>,
@@ -24,7 +15,7 @@ function computeDiff(
 ): Record<string, unknown> {
   const out: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(overrides)) {
-    if (!equal(value, defaults[key])) {
+    if (!paramValuesEqual(value, defaults[key])) {
       out[key] = value;
     }
   }

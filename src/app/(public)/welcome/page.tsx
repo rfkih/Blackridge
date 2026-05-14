@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import type { Metadata } from 'next';
 import { ArrowRight, Play, Beaker, Bot, LineChart, Shield, Zap, List } from 'lucide-react';
-import { BlackridgeMark, BlackridgeWordmark } from '@/components/brand/BlackridgeMark';
+import { MarketingShell } from '@/components/marketing/MarketingShell';
 import { Sparkline, makeSpark } from '@/components/marketing/Sparkline';
 
 export const metadata: Metadata = {
@@ -36,49 +36,14 @@ const STRATEGY_HIGHLIGHTS = [
 
 export default function WelcomePage() {
   return (
-    <main className="br marketing-root">
-      {/* Sticky nav */}
-      <header
-        className="sticky top-0 z-50 backdrop-blur"
-        style={{
-          background: 'color-mix(in srgb, var(--bg-base) 88%, transparent)',
-          borderBottom: '1px solid var(--border-subtle)',
-        }}
-      >
-        <div className="mx-auto flex h-[68px] max-w-[1180px] items-center gap-10 px-8">
-          <Link href="/welcome" className="inline-flex items-center gap-2.5">
-            <BlackridgeWordmark size="md" />
-          </Link>
-          <nav className="flex flex-1 gap-7 text-[14px] font-medium">
-            {['Product', 'Strategies', 'Backtest', 'Pricing', 'Docs'].map((item) => (
-              <button
-                key={item}
-                type="button"
-                className="cursor-pointer bg-transparent"
-                style={{ color: 'var(--text-secondary)' }}
-              >
-                {item}
-              </button>
-            ))}
-          </nav>
-          <div className="flex gap-2">
-            <Link href="/login" className="br-btn br-btn-ghost">
-              Sign in
-            </Link>
-            <Link href="/onboarding" className="br-btn br-btn-primary">
-              Open account
-            </Link>
-          </div>
-        </div>
-      </header>
-
+    <MarketingShell>
       {/* Hero */}
       <section
         className="relative overflow-hidden"
         style={{ padding: '72px 0 56px', background: 'var(--bg-base)' }}
       >
         <div className="br-hero-blob" aria-hidden="true" />
-        <div className="relative z-[1] mx-auto grid max-w-[1180px] grid-cols-[1.1fr_1fr] items-center gap-[60px] px-8">
+        <div className="relative z-[1] mx-auto grid max-w-[1180px] grid-cols-1 items-center gap-12 px-5 sm:px-8 lg:grid-cols-[1.1fr_1fr] lg:gap-[60px]">
           <div>
             <span
               className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-[12px] font-semibold"
@@ -90,7 +55,7 @@ export default function WelcomePage() {
             <h1
               className="font-display font-extrabold"
               style={{
-                fontSize: 64,
+                fontSize: "clamp(40px, 7vw, 64px)",
                 lineHeight: 1.02,
                 letterSpacing: '-0.032em',
                 margin: '20px 0 22px',
@@ -165,7 +130,7 @@ export default function WelcomePage() {
             title="A trading desk that runs itself."
             sub="Six tools for the same job: turn an idea into a strategy, prove it on history, ship it to your live account, and watch it without watching it."
           />
-          <div className="grid grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
             <Feature
               icon={<Beaker />}
               title="Honest backtests"
@@ -208,7 +173,7 @@ export default function WelcomePage() {
             title="Start with a strategy. Not a blinking cursor."
             sub="Each strategy ships with documented logic, tunable parameters, and three years of out-of-sample results. Enable the ones you trust."
           />
-          <div className="grid grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
             {STRATEGY_HIGHLIGHTS.map((s, i) => (
               <div key={s.code} className="br-card" style={{ borderRadius: 28, padding: 28 }}>
                 <div className="mb-4 flex items-start justify-between">
@@ -327,40 +292,7 @@ export default function WelcomePage() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer
-        className="text-[13px]"
-        style={{
-          padding: '56px 0',
-          borderTop: '1px solid var(--border-subtle)',
-          color: 'var(--text-muted)',
-        }}
-      >
-        <div className="mx-auto max-w-[1180px] px-8">
-          <div className="mb-10 grid grid-cols-[2fr_1fr_1fr_1fr] gap-10">
-            <div>
-              <div className="mb-3.5 flex items-center gap-2.5">
-                <BlackridgeMark size={28} />
-                <div className="font-display text-[17px] font-extrabold">Blackridge</div>
-              </div>
-              <p style={{ maxWidth: 280, fontSize: 13, color: 'var(--text-muted)' }}>
-                Algorithmic crypto trading for traders who would rather sleep.
-              </p>
-            </div>
-            <FooterCol title="Product" items={['Strategies', 'Backtest', 'Pricing', 'Changelog']} />
-            <FooterCol title="Resources" items={['Docs', 'API', 'Status', 'Roadmap']} />
-            <FooterCol title="Company" items={['About', 'Security', 'Terms', 'Privacy']} />
-          </div>
-          <div
-            className="flex items-center justify-between pt-6 text-[13px]"
-            style={{ borderTop: '1px solid var(--border-subtle)' }}
-          >
-            <span>© 2026 Blackridge Technology Pte. Ltd.</span>
-            <span>Trading involves risk. Past performance does not guarantee future results.</span>
-          </div>
-        </div>
-      </footer>
-    </main>
+    </MarketingShell>
   );
 }
 
@@ -476,32 +408,6 @@ function TrustStat({ value, label }: { value: string; label: string }) {
       >
         {label}
       </div>
-    </div>
-  );
-}
-
-function FooterCol({ title, items }: { title: string; items: string[] }) {
-  return (
-    <div>
-      <h5
-        className="mb-3.5 text-[13px] font-bold"
-        style={{ color: 'var(--text-primary)', margin: '0 0 14px' }}
-      >
-        {title}
-      </h5>
-      <ul className="m-0 flex list-none flex-col gap-2.5 p-0">
-        {items.map((it) => (
-          <li key={it}>
-            <button
-              type="button"
-              className="cursor-pointer bg-transparent text-left"
-              style={{ color: 'var(--text-muted)' }}
-            >
-              {it}
-            </button>
-          </li>
-        ))}
-      </ul>
     </div>
   );
 }

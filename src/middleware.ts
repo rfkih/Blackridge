@@ -21,6 +21,11 @@ const PUBLIC_PATHS = [
   '/cookies',
   '/welcome',
   '/onboarding',
+  '/pricing',
+  '/product',
+  '/security',
+  '/strategies-overview',
+  '/docs',
 ];
 
 function isPublicPath(pathname: string): boolean {
@@ -51,6 +56,6 @@ export function middleware(request: NextRequest) {
 export const config = {
   // Match everything except Next internals, static files, and public auth paths.
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|login|register|healthcheck|welcome|onboarding|api/).*)',
+    '/((?!_next/static|_next/image|favicon.ico|login|register|healthcheck|welcome|onboarding|pricing|product|security|strategies-overview|docs|api/).*)',
   ],
 };

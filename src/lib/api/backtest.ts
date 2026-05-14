@@ -1,4 +1,4 @@
-import type { BackendAccountStrategy, PageResponse, UUID } from '@/types/api';
+﻿import type { BackendAccountStrategy, PageResponse, UUID } from '@/types/api';
 import type {
   BacktestEquityPoint,
   BacktestMetrics,
@@ -12,45 +12,26 @@ import type { AccountStrategy } from '@/types/strategy';
 // Phase 1 decoupling: backtest endpoints live on the research JVM (8081),
 // not the trading JVM (8080). Use researchClient throughout this module.
 import { researchClient as apiClient } from './client';
+import { toNum, toNumOrNull } from './coerce';
+import { extractList } from './pageUtils';
 import { mapAccountStrategy } from './strategies';
 
 const BASE = '/api/v1/backtest';
 
-function extractList<T>(data: T[] | PageResponse<T>): T[] {
-  if (Array.isArray(data)) return data;
-  return (data as PageResponse<T>).content ?? [];
-}
-
-/**
- * Strict number coercion. Returns null for null/undefined/NaN instead of
- * letting Number(undefined) → NaN leak downstream into `.toFixed()` crashes
- * and blank cells. The result is explicit: either a real number or null.
- */
-function num(v: unknown): number | null {
-  if (v == null) return null;
-  const n = typeof v === 'number' ? v : Number(v);
-  return Number.isFinite(n) ? n : null;
-}
-
-function numOr(v: unknown, fallback: number): number {
-  const n = num(v);
-  return n == null ? fallback : n;
-}
-
 /**
  * Best-effort metrics synthesis from the legacy flat BacktestRunResponse
  * shape. Only used when `metrics` is absent on the wire (older backends / the
- * legacy POST endpoint). Kept conservative — null out anything we can't
+ * legacy POST endpoint). Kept conservative â€” null out anything we can't
  * derive cleanly so the UI distinguishes "missing" from 0.
  */
 function synthesiseLegacyMetrics(b: BackendBacktestRun): BacktestMetrics | null {
   const totalTrades = b.totalTrades;
-  const winRate = num(b.winRate);
-  const grossProfit = num(b.grossProfit);
-  const grossLoss = num(b.grossLoss);
-  const netProfit = num(b.netProfit);
-  const initialCapital = num(b.initialCapital);
-  const endingBalance = num(b.endingBalance);
+  const winRate = toNumOrNull(b.winRate);
+  const grossProfit = toNumOrNull(b.grossProfit);
+  const grossLoss = toNumOrNull(b.grossLoss);
+  const netProfit = toNumOrNull(b.netProfit);
+  const initialCapital = toNumOrNull(b.initialCapital);
+  const endingBalance = toNumOrNull(b.endingBalance);
   // Nothing to populate from if the wire has neither flat metrics nor any
   // derivable balances. Signal "no metrics yet" to the UI.
   if (
@@ -84,43 +65,43 @@ function synthesiseLegacyMetrics(b: BackendBacktestRun): BacktestMetrics | null 
     avgWinUsdt: null,
     avgLossUsdt: null,
     maxDrawdown: null,
-    maxDrawdownPct: numOr(b.maxDrawdownPct, 0),
+    maxDrawdownPct: toNum(b.maxDrawdownPct, 0),
     sharpe: null,
     sortino: null,
     psr: null,
     totalTrades: totalTrades ?? 0,
     winningTrades: b.totalWins ?? 0,
     losingTrades: b.totalLosses ?? 0,
-    avgTradeReturnPct: num(b.avgTradeReturnPct),
-    geometricReturnPctAtAlloc90: num(b.geometricReturnPctAtAlloc90),
+    avgTradeReturnPct: toNumOrNull(b.avgTradeReturnPct),
+    geometricReturnPctAtAlloc90: toNumOrNull(b.geometricReturnPctAtAlloc90),
   };
 }
 
 /**
  * Map the backend's nested BacktestRunDetailResponse into the frontend's
  * BacktestRun. metrics comes through as a nested object (or null on
- * non-COMPLETED runs); we preserve field nullability so the UI can render "—"
+ * non-COMPLETED runs); we preserve field nullability so the UI can render "â€”"
  * instead of lying with 0.
  */
 function mapMetrics(m: BackendBacktestRun['metrics']): BacktestMetrics | null {
   if (!m) return null;
   return {
-    totalReturn: numOr(m.totalReturn, 0),
-    totalReturnPct: numOr(m.totalReturnPct, 0),
-    winRate: numOr(m.winRate, 0),
-    profitFactor: num(m.profitFactor),
-    avgWinUsdt: num(m.avgWinUsdt),
-    avgLossUsdt: num(m.avgLossUsdt),
-    maxDrawdown: num(m.maxDrawdown),
-    maxDrawdownPct: numOr(m.maxDrawdownPct, 0),
-    sharpe: num(m.sharpe),
-    sortino: num(m.sortino),
-    psr: num(m.psr),
-    totalTrades: numOr(m.totalTrades, 0),
-    winningTrades: numOr(m.winningTrades, 0),
-    losingTrades: numOr(m.losingTrades, 0),
-    avgTradeReturnPct: num(m.avgTradeReturnPct),
-    geometricReturnPctAtAlloc90: num(m.geometricReturnPctAtAlloc90),
+    totalReturn: toNum(m.totalReturn, 0),
+    totalReturnPct: toNum(m.totalReturnPct, 0),
+    winRate: toNum(m.winRate, 0),
+    profitFactor: toNumOrNull(m.profitFactor),
+    avgWinUsdt: toNumOrNull(m.avgWinUsdt),
+    avgLossUsdt: toNumOrNull(m.avgLossUsdt),
+    maxDrawdown: toNumOrNull(m.maxDrawdown),
+    maxDrawdownPct: toNum(m.maxDrawdownPct, 0),
+    sharpe: toNumOrNull(m.sharpe),
+    sortino: toNumOrNull(m.sortino),
+    psr: toNumOrNull(m.psr),
+    totalTrades: toNum(m.totalTrades, 0),
+    winningTrades: toNum(m.winningTrades, 0),
+    losingTrades: toNum(m.losingTrades, 0),
+    avgTradeReturnPct: toNumOrNull(m.avgTradeReturnPct),
+    geometricReturnPctAtAlloc90: toNumOrNull(m.geometricReturnPctAtAlloc90),
   };
 }
 
@@ -135,7 +116,7 @@ function mapParamSnapshot(raw: unknown): Record<string, Record<string, unknown>>
     try {
       return mapParamSnapshot(JSON.parse(raw));
     } catch (err) {
-      console.warn('[backtest] paramSnapshot JSON.parse failed — treating as no snapshot:', err);
+      console.warn('[backtest] paramSnapshot JSON.parse failed â€” treating as no snapshot:', err);
       return null;
     }
   }
@@ -154,7 +135,7 @@ function mapParamSnapshot(raw: unknown): Record<string, Record<string, unknown>>
 function mapBacktestRun(b: BackendBacktestRun): BacktestRun {
   // Accept either the new BacktestRunDetailResponse shape (id/symbol/fromDate)
   // or the legacy BacktestRunResponse shape (backtestRunId/asset/startTime).
-  // The two endpoints that still emit the legacy shape are internal — we
+  // The two endpoints that still emit the legacy shape are internal â€” we
   // shouldn't crash navigation when one sneaks through.
   const id = (b.id ?? b.backtestRunId ?? '') as UUID;
   const strategyCode = b.strategyCode ?? b.strategyName ?? '';
@@ -174,11 +155,11 @@ function mapBacktestRun(b: BackendBacktestRun): BacktestRun {
     symbol,
     interval: b.interval ?? '',
     status: b.status ?? 'PENDING',
-    progressPercent: Math.max(0, Math.min(100, Math.round(numOr(b.progressPercent, 0)))),
+    progressPercent: Math.max(0, Math.min(100, Math.round(toNum(b.progressPercent, 0)))),
     fromDate,
     toDate,
-    initialCapital: numOr(b.initialCapital, 0),
-    endingBalance: numOr(b.endingBalance, 0),
+    initialCapital: toNum(b.initialCapital, 0),
+    endingBalance: toNum(b.endingBalance, 0),
     metrics,
     createdAt,
     completedAt,
@@ -195,7 +176,7 @@ function mapBacktestRun(b: BackendBacktestRun): BacktestRun {
     strategyRiskPcts: coerceStrategyAllocations(b.strategyRiskPcts),
     strategyAllowLong: coerceStrategyBoolMap(b.strategyAllowLong),
     strategyAllowShort: coerceStrategyBoolMap(b.strategyAllowShort),
-    // V62 — round-trip the gate overrides so "Re-run with these params"
+    // V62 â€” round-trip the gate overrides so "Re-run with these params"
     // reproduces the original run faithfully. Each is a Record<code,bool>
     // (or null when the run pre-dates V62 / never used gate overrides).
     strategyKillSwitchOverrides: coerceStrategyBoolMap(b.strategyKillSwitchOverrides),
@@ -236,7 +217,7 @@ function coerceStrategyIntervals(
   return Object.keys(out).length > 0 ? out : null;
 }
 
-/** V58 — coerce a per-strategy boolean override map (allowLong / allowShort).
+/** V58 â€” coerce a per-strategy boolean override map (allowLong / allowShort).
  *  Drops non-boolean values so a wire glitch doesn't silently flip a flag. */
 function coerceStrategyBoolMap(
   raw: Record<string, boolean> | null | undefined,
@@ -249,7 +230,7 @@ function coerceStrategyBoolMap(
   return Object.keys(out).length > 0 ? out : null;
 }
 
-/** Server-side sort keys the backend whitelists — see BacktestQueryService. */
+/** Server-side sort keys the backend whitelists â€” see BacktestQueryService. */
 export type BacktestSortKey =
   | 'createdAt'
   | 'returnPct'
@@ -266,7 +247,7 @@ export interface BacktestListFilters {
   strategyCode?: string;
   symbol?: string;
   interval?: string;
-  /** ISO LocalDateTime (e.g. `2026-01-01T00:00:00`) — matches Spring's
+  /** ISO LocalDateTime (e.g. `2026-01-01T00:00:00`) â€” matches Spring's
    *  `@DateTimeFormat(iso = DATE_TIME)` binding. */
   from?: string;
   to?: string;
@@ -349,11 +330,11 @@ export async function createBacktestRun(payload: BacktestRunPayload): Promise<Ba
   return mapBacktestRun(data);
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Result-page endpoints — each maps the backend shape into the UI-friendly one.
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Result-page endpoints â€” each maps the backend shape into the UI-friendly one.
 // Timestamps are normalised to epoch ms for app code and to TV seconds at the
 // chart boundary only (see buildTradeMarkers + candle normaliser below).
-// ─────────────────────────────────────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 interface BackendBacktestTradePosition {
   id: string;
@@ -393,7 +374,7 @@ interface BackendBacktestEquityPoint {
 }
 
 // Backend candles may arrive as either epoch-ms (long) or ISO strings; this
-// covers both. TV needs seconds, domain code wants ms — we standardise on ms
+// covers both. TV needs seconds, domain code wants ms â€” we standardise on ms
 // here and convert at render time.
 interface BackendBacktestCandle {
   time?: number | string;

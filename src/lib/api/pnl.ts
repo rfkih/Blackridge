@@ -1,5 +1,5 @@
 import { apiClient } from './client';
-import { toNum } from './coerce';
+import { toNum, toNumOrNull } from './coerce';
 import type { PnlSummary } from '@/types/trading';
 import type { DailyPnl, StrategyPnl } from '@/types/pnl';
 
@@ -51,18 +51,9 @@ export async function getPnlSummary(period: 'today' | 'week' | 'month'): Promise
     tradeCount: data.tradeCount ?? 0,
     winRate: toNum(data.winRate),
     openCount: data.openCount ?? 0,
-    avgTradeReturnPct: nullableNum(data.avgTradeReturnPct),
-    geometricReturnPctAtAlloc90: nullableNum(data.geometricReturnPctAtAlloc90),
+    avgTradeReturnPct: toNumOrNull(data.avgTradeReturnPct),
+    geometricReturnPctAtAlloc90: toNumOrNull(data.geometricReturnPctAtAlloc90),
   };
-}
-
-/** Null-preserving number coerce — distinct from {@link toNum} which folds
- *  null/undefined/NaN to 0. The V60 fields are explicitly nullable when no
- *  closed trades exist; a 0 would lie about the data. */
-function nullableNum(v: number | string | null | undefined): number | null {
-  if (v == null) return null;
-  const n = typeof v === 'number' ? v : Number(v);
-  return Number.isFinite(n) ? n : null;
 }
 
 export async function getDailyPnl(
@@ -93,7 +84,7 @@ export async function getPnlByStrategy(from?: string, to?: string): Promise<Stra
     totalPnl: toNum(s.totalPnl ?? s.realizedPnl),
     winRate: toNum(s.winRate),
     tradeCount: s.tradeCount ?? 0,
-    avgTradeReturnPct: nullableNum(s.avgTradeReturnPct),
-    geometricReturnPctAtAlloc90: nullableNum(s.geometricReturnPctAtAlloc90),
+    avgTradeReturnPct: toNumOrNull(s.avgTradeReturnPct),
+    geometricReturnPctAtAlloc90: toNumOrNull(s.geometricReturnPctAtAlloc90),
   }));
 }

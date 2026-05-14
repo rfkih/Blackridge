@@ -31,6 +31,7 @@ import {
   GitBranch,
   ChevronRight,
   Bot,
+  Brain,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { BlackridgeMark } from '@/components/brand/BlackridgeMark';
@@ -85,6 +86,7 @@ const ADMIN_NAV_ITEMS: NavItem[] = [
   { label: 'Research Queue', href: '/research/queue', icon: ListChecks },
   { label: 'Catalogue', href: '/admin/strategies', icon: ShieldCheck },
   { label: 'Historical Data', href: '/admin/historical', icon: Database },
+  { label: 'ML Data Sources', href: '/admin/ml-ingest', icon: Brain },
   { label: 'Inbox', href: '/admin/inbox', icon: Inbox },
   { label: 'Alerts', href: '/admin/alerts', icon: Bell },
   { label: 'Errors', href: '/admin/errors', icon: AlertOctagon },
@@ -169,12 +171,12 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                 style={{
                   fontSize: 17,
                   lineHeight: 1,
-                  color: '#F2F5F8',
-                  letterSpacing: '-0.01em',
+                  letterSpacing: '-0.02em',
                   fontWeight: 800,
                 }}
               >
-                Blackridge
+                <span style={{ color: '#F2F5F8' }}>Black</span>
+                <span style={{ color: '#16B364' }}>ridge</span>
               </div>
             </div>
           </Link>
@@ -220,19 +222,23 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                       aria-current={active ? 'page' : undefined}
                       className={cn('br-sb-link', active && 'br-sb-link-on')}
                       style={{
+                        // Active state on a pinned-dark sidebar: subtle white
+                        // tint for the surface, keep text at the primary light
+                        // color (high contrast in every palette), let the
+                        // lifted brand color show through on the icon.
+                        // Avoids "dark text on dark tinted background" failure.
                         display: 'flex',
                         alignItems: 'center',
                         gap: 12,
                         padding: '9px 12px',
                         borderRadius: 10,
-                        color: active ? 'var(--brand-50)' : '#C5CCD5',
-                        background: active
-                          ? 'color-mix(in srgb, var(--brand-500) 28%, transparent)'
-                          : 'transparent',
+                        color: active ? '#F2F5F8' : '#C5CCD5',
+                        background: active ? 'rgba(255,255,255,0.08)' : 'transparent',
                         fontSize: 14,
-                        fontWeight: 500,
+                        fontWeight: active ? 600 : 500,
                         textDecoration: 'none',
-                        transition: 'background var(--dur-fast), color var(--dur-fast)',
+                        transition:
+                          'background var(--dur-fast), color var(--dur-fast)',
                       }}
                     >
                       <Icon
@@ -240,8 +246,8 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                         strokeWidth={1.75}
                         style={{
                           flexShrink: 0,
-                          opacity: 0.9,
-                          color: active ? 'var(--brand-200)' : '#8C95A2',
+                          opacity: 0.95,
+                          color: active ? 'var(--brand-500)' : '#8C95A2',
                         }}
                       />
                       <span>{label}</span>
@@ -319,11 +325,10 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                         gap: 10,
                         padding: '7px 12px 7px 32px',
                         borderRadius: 8,
-                        color: active ? 'var(--brand-50)' : '#A8B0BC',
-                        background: active
-                          ? 'color-mix(in srgb, var(--brand-500) 24%, transparent)'
-                          : 'transparent',
+                        color: active ? '#F2F5F8' : '#A8B0BC',
+                        background: active ? 'rgba(255,255,255,0.06)' : 'transparent',
                         fontSize: 13,
+                        fontWeight: active ? 600 : 400,
                         textDecoration: 'none',
                       }}
                     >
@@ -332,7 +337,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                         strokeWidth={1.6}
                         style={{
                           flexShrink: 0,
-                          color: active ? 'var(--brand-200)' : '#8C95A2',
+                          color: active ? 'var(--brand-500)' : '#8C95A2',
                         }}
                       />
                       <span>{label}</span>
