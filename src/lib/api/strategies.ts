@@ -4,10 +4,27 @@ import { extractList } from './pageUtils';
 import type { AccountStrategy, AccountStrategyStatus, KellyStatus } from '@/types/strategy';
 import type { BackendAccountStrategy, PageResponse } from '@/types/api';
 
+/**
+ * V66 — derive the user-facing status from the two execution flags so the
+ * dashboard never labels a simulated row as `LIVE`:
+ *
+ *   STOPPED  enabled=false  (orchestrator skips it)
+ *   PAPER    enabled=true, simulated=true  (paper_trade_run target)
+ *   LIVE     enabled=true, simulated=false (real Binance orders)
+ *
+ * Definition-scope `simulated` is not visible here — even if def.simulated=true
+ * forces this row's decisions to paper at runtime, the wire still reports
+ * row.simulated honestly. The mapper trusts what the backend sends.
+ */
+function deriveStatus(enabled: boolean, simulated: boolean): AccountStrategyStatus {
+  if (!enabled) return 'STOPPED';
+  return simulated ? 'PAPER' : 'LIVE';
+}
+
 /** Map Java DTO field names to the frontend AccountStrategy shape.
  *  Accepts both new @JsonProperty wire names (id, interval, status, createdAt,
  *  updatedAt) and the legacy Java field names for backwards compatibility. */
-function mapAccountStrategy(s: BackendAccountStrategy): AccountStrategy {
+export function mapAccountStrategy(s: BackendAccountStrategy): AccountStrategy {
   return {
     id: (s.id ?? s.accountStrategyId) as string,
     accountId: s.accountId,
@@ -15,7 +32,7 @@ function mapAccountStrategy(s: BackendAccountStrategy): AccountStrategy {
     presetName: (s.presetName ?? '').trim() || 'Default',
     symbol: s.symbol,
     interval: (s.interval ?? s.intervalName ?? '') as string,
-    status: (s.enabled ? 'LIVE' : 'STOPPED') as AccountStrategyStatus,
+    status: deriveStatus(Boolean(s.enabled), Boolean(s.simulated)),
     simulated: Boolean(s.simulated),
     capitalAllocationPct: toNum(s.capitalAllocationPct),
     maxOpenPositions: toNum(s.maxOpenPositions),
@@ -31,8 +48,16 @@ function mapAccountStrategy(s: BackendAccountStrategy): AccountStrategy {
     regimeGateEnabled: Boolean(s.regimeGateEnabled),
     allowedTrendRegimes: s.allowedTrendRegimes ?? null,
     allowedVolatilityRegimes: s.allowedVolatilityRegimes ?? null,
+    // V62 — kill-switch / correlation / concurrent-cap toggles. Default false
+    // matches the backend backfill so pre-V62 cached responses map to
+    // "gate off" without surprises.
+    killSwitchGateEnabled: Boolean(s.killSwitchGateEnabled),
+    correlationGateEnabled: Boolean(s.correlationGateEnabled),
+    concurrentCapGateEnabled: Boolean(s.concurrentCapGateEnabled),
     kellySizingEnabled: Boolean(s.kellySizingEnabled),
     kellyMaxFraction: toNum(s.kellyMaxFraction) || 0.25,
+    useRiskBasedSizing: Boolean(s.useRiskBasedSizing),
+    riskPct: toNum(s.riskPct) || 0.05,
     // V54 — visibility + ownership decoration. Default to PRIVATE/owned/"You"
     // for pre-V54 cached responses so mapping never produces undefined.
     visibility: s.visibility === 'PUBLIC' ? 'PUBLIC' : 'PRIVATE',
@@ -68,6 +93,12 @@ export interface CreateAccountStrategyPayload {
   capitalAllocationPct: number;
   priorityOrder: number;
   enabled?: boolean;
+  /** V55 — opt the new preset into risk-based LONG sizing. When omitted the
+   *  backend defaults to true (new presets adopt the unified risk model). */
+  useRiskBasedSizing?: boolean;
+  /** V55 — per-trade risk fraction (0, 0.20]. When omitted the backend
+   *  defaults to 0.05 (5%). */
+  riskPct?: number;
 }
 
 export async function createAccountStrategy(
@@ -126,6 +157,23 @@ export interface AccountStrategyPatch {
   kellySizingEnabled?: boolean;
   /** Hard cap on the Kelly fraction [0.05, 1.00]. */
   kellyMaxFraction?: number;
+  /** Risk-based sizing toggle (V55). Affects LONG entries on legacy strategies. */
+  useRiskBasedSizing?: boolean;
+  /** Per-trade risk fraction (0, 0.20]; used when useRiskBasedSizing=true. */
+  riskPct?: number;
+  /** Capital allocation % (0.01–100). Direct trade size in allocation mode;
+   *  notional position cap in risk-based mode. */
+  capitalAllocationPct?: number;
+  /** Allow long entries. At least one of allowLong/allowShort must remain true. */
+  allowLong?: boolean;
+  /** Allow short entries. */
+  allowShort?: boolean;
+  /** V62 — kill-switch entry gate. When true, isKillSwitchTripped blocks new entries. */
+  killSwitchGateEnabled?: boolean;
+  /** V62 — correlation / concentration gate. */
+  correlationGateEnabled?: boolean;
+  /** V62 — account-level concurrent-position cap gate. */
+  concurrentCapGateEnabled?: boolean;
 }
 
 export async function updateAccountStrategy(

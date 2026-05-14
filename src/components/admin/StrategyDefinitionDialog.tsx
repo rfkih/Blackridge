@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { AlertTriangle, Loader2, ShieldCheck, Sparkles } from 'lucide-react';
+import { AlertTriangle, Copy, Loader2, ShieldCheck, Sparkles } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
 import {
   Dialog,
   DialogContent,
@@ -34,6 +35,9 @@ interface StrategyDefinitionDialogProps {
   onOpenChange: (open: boolean) => void;
   /** When present, the dialog is in edit mode — otherwise it's a create form. */
   existing?: StrategyDefinition | null;
+  /** When present, the dialog pre-fills from this row (replicate mode).
+   *  strategyCode is left blank so the admin must choose a new code. */
+  replicateFrom?: StrategyDefinition | null;
 }
 
 interface FormState {
@@ -42,6 +46,7 @@ interface FormState {
   strategyType: string;
   description: string;
   status: string;
+  simulated: boolean;
 }
 
 const EMPTY_STATE: FormState = {
@@ -50,6 +55,7 @@ const EMPTY_STATE: FormState = {
   strategyType: 'TREND',
   description: '',
   status: 'ACTIVE',
+  simulated: true,
 };
 
 const STRATEGY_TYPE_OPTIONS = [
@@ -71,8 +77,10 @@ export function StrategyDefinitionDialog({
   open,
   onOpenChange,
   existing,
+  replicateFrom,
 }: StrategyDefinitionDialogProps) {
   const isEdit = Boolean(existing);
+  const isReplicate = !isEdit && Boolean(replicateFrom);
   const [form, setForm] = useState<FormState>(EMPTY_STATE);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
@@ -80,8 +88,9 @@ export function StrategyDefinitionDialog({
   const updateMutation = useUpdateStrategyDefinition();
   const isPending = createMutation.isPending || updateMutation.isPending;
 
-  // Reset whenever the dialog opens. In edit mode we hydrate from the row
-  // the admin clicked; in create mode we start from empty.
+  // Reset whenever the dialog opens. Edit → hydrate from row. Replicate →
+  // pre-fill all fields except code so the admin picks a fresh code.
+  // Create → start from empty.
   useEffect(() => {
     if (!open) return;
     setSubmitError(null);
@@ -92,11 +101,21 @@ export function StrategyDefinitionDialog({
         strategyType: existing.strategyType || 'TREND',
         description: existing.description ?? '',
         status: existing.status,
+        simulated: existing.simulated,
+      });
+    } else if (replicateFrom) {
+      setForm({
+        strategyCode: '',
+        strategyName: replicateFrom.strategyName,
+        strategyType: replicateFrom.strategyType || 'TREND',
+        description: replicateFrom.description ?? '',
+        status: 'ACTIVE',
+        simulated: replicateFrom.simulated,
       });
     } else {
       setForm(EMPTY_STATE);
     }
-  }, [open, existing]);
+  }, [open, existing, replicateFrom]);
 
   const errors = useMemo(() => {
     const e: Partial<Record<keyof FormState, string>> = {};
@@ -150,6 +169,7 @@ export function StrategyDefinitionDialog({
         strategyType: form.strategyType.trim(),
         description: form.description.trim() || undefined,
         status: form.status as never,
+        simulated: form.simulated,
       },
       {
         onSuccess: (created) => {
@@ -181,16 +201,18 @@ export function StrategyDefinitionDialog({
                 color: 'var(--accent-primary)',
               }}
             >
-              {isEdit ? <ShieldCheck size={14} /> : <Sparkles size={14} />}
+              {isEdit ? <ShieldCheck size={14} /> : isReplicate ? <Copy size={14} /> : <Sparkles size={14} />}
             </span>
             <DialogTitle className="font-display text-lg">
-              {isEdit ? 'Edit strategy definition' : 'Register a new strategy'}
+              {isEdit ? 'Edit strategy definition' : isReplicate ? `Replicate ${replicateFrom!.strategyCode}` : 'Register a new strategy'}
             </DialogTitle>
           </div>
           <DialogDescription className="text-[var(--text-secondary)]">
             {isEdit
               ? 'Update display metadata or status. The strategy code is immutable — downstream tables key on it.'
-              : 'Add a new entry to the strategy catalogue. Codes are immutable once created, so choose carefully.'}
+              : isReplicate
+                ? 'Fields pre-filled from the source strategy. Choose a new unique code for the replicated entry.'
+                : 'Add a new entry to the strategy catalogue. Codes are immutable once created, so choose carefully.'}
           </DialogDescription>
         </DialogHeader>
 
@@ -276,6 +298,22 @@ export function StrategyDefinitionDialog({
             />
           </FieldRow>
 
+          {!isEdit && (
+            <div className="col-span-2 flex items-center justify-between rounded-sm border border-bd-subtle bg-bg-base px-3 py-2.5">
+              <div>
+                <p className="text-[11px] font-semibold text-text-primary">Simulated (paper trading)</p>
+                <p className="text-[10px] text-text-muted">
+                  When on, all accounts using this strategy route OPEN orders to paper_trade_run.
+                  Turn off only when the strategy has passed walk-forward validation.
+                </p>
+              </div>
+              <Switch
+                checked={form.simulated}
+                onCheckedChange={(v) => setField('simulated', v)}
+              />
+            </div>
+          )}
+
           {submitError && (
             <p
               role="alert"
@@ -309,6 +347,8 @@ export function StrategyDefinitionDialog({
               </>
             ) : isEdit ? (
               'Save changes'
+            ) : isReplicate ? (
+              'Register replicated strategy'
             ) : (
               'Register strategy'
             )}

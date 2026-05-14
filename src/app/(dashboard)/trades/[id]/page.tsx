@@ -2,18 +2,20 @@
 
 import { useMemo } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, ArrowUpRight, ArrowDownRight, Clock, TrendingUp } from 'lucide-react';
+import { ArrowLeft, ArrowUpRight, ArrowDownRight, Clock, Loader2, TrendingUp, X } from 'lucide-react';
 import { PriceCell } from '@/components/shared/PriceCell';
 import { PnlCell } from '@/components/shared/PnlCell';
 import { StrategyBadge } from '@/components/trading/StrategyBadge';
 import { TradePositionRow } from '@/components/trading/TradePositionRow';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useTrade, useTradeAttribution } from '@/hooks/useTrades';
+import { useCloseTrade, useTrade, useTradeAttribution } from '@/hooks/useTrades';
 import { usePositionStore } from '@/store/positionStore';
 import { useLivePnl } from '@/hooks/useLivePnl';
 import { useCurrencyFormatter } from '@/hooks/useCurrency';
 import { formatDate, formatDuration } from '@/lib/formatters';
+import { toast } from '@/hooks/useToast';
+import { normalizeError } from '@/lib/api/client';
 import type { TradePosition, TradeStatus, Trades } from '@/types/trading';
 
 const LEG_ORDER: Record<TradePosition['type'], number> = {
@@ -90,15 +92,18 @@ export default function TradeDetailPage({ params }: { params: { id: string } }) 
           </div>
 
           {isOpen ? (
-            <div className="flex flex-col items-end">
-              <span className="label-caps">Unrealized P&L</span>
-              <PnlCell value={unrealized} className="!text-[22px]" />
-              {trade.unrealizedPnlPct != null && (
-                <span className="font-mono text-[11px] text-text-muted">
-                  {trade.unrealizedPnlPct >= 0 ? '+' : ''}
-                  {trade.unrealizedPnlPct.toFixed(2)}%
-                </span>
-              )}
+            <div className="flex items-start gap-4">
+              <div className="flex flex-col items-end">
+                <span className="label-caps">Unrealized P&L</span>
+                <PnlCell value={unrealized} className="!text-[22px]" />
+                {trade.unrealizedPnlPct != null && (
+                  <span className="font-mono text-[11px] text-text-muted">
+                    {trade.unrealizedPnlPct >= 0 ? '+' : ''}
+                    {trade.unrealizedPnlPct.toFixed(2)}%
+                  </span>
+                )}
+              </div>
+              <CloseTradeButton trade={trade} />
             </div>
           ) : (
             <div className="flex flex-col items-end">
@@ -417,6 +422,64 @@ function BackLink() {
       <ArrowLeft size={13} strokeWidth={1.75} />
       All trades
     </Link>
+  );
+}
+
+/**
+ * Manual close — places a Binance market order in the opposite direction
+ * for the full remaining quantity of every open leg. Surfaces a confirm
+ * dialog because this hits real money, and shows a loading/disabled state
+ * during the network call so the user can't double-click and trigger two
+ * close orders.
+ *
+ * Only renders for open trades; nothing to do on a CLOSED row.
+ */
+function CloseTradeButton({ trade }: { trade: Trades }) {
+  const closeMutation = useCloseTrade();
+
+  // Open legs only — `trade.quantity` is the *original* entry size, not what's
+  // left after TP1/TP2 fills. Summing remaining qty across open legs is what
+  // the backend will actually send to Binance.
+  const openLegs = (trade.positions ?? []).filter((p) => p.exitTime == null);
+  const remainingQty = openLegs.reduce((sum, p) => sum + (p.quantity ?? 0), 0);
+  const baseAsset = trade.symbol.replace('USDT', '');
+
+  const handleClose = () => {
+    const qtyStr = remainingQty > 0
+      ? `${remainingQty.toFixed(5)} ${baseAsset} across ${openLegs.length} leg${openLegs.length === 1 ? '' : 's'}`
+      : 'all open legs';
+    const ok = window.confirm(
+      `Close ${trade.symbol} ${trade.direction}?\n\n` +
+        `Places ONE Binance market ${trade.direction === 'LONG' ? 'SELL' : 'BUY'} ` +
+        `for ${qtyStr}. Cannot be undone.`,
+    );
+    if (!ok) return;
+    closeMutation.mutate(trade.id, {
+      onSuccess: () =>
+        toast.success({
+          title: 'Trade closed',
+          description: 'Realised P&L persisted; listener reconciled fills.',
+        }),
+      onError: (err) =>
+        toast.error({ title: 'Could not close trade', description: normalizeError(err) }),
+    });
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={handleClose}
+      disabled={closeMutation.isPending}
+      title="Place a real Binance market order to flatten every open leg of this trade"
+      className="inline-flex items-center gap-1.5 rounded-sm border border-[var(--color-loss)]/60 bg-[var(--bg-base)] px-3 py-1.5 font-mono text-[10px] uppercase tracking-wider text-[var(--color-loss)] transition-colors hover:bg-[rgba(229,72,77,0.08)] disabled:cursor-not-allowed disabled:opacity-50"
+    >
+      {closeMutation.isPending ? (
+        <Loader2 size={11} strokeWidth={1.75} className="animate-spin" />
+      ) : (
+        <X size={11} strokeWidth={1.75} />
+      )}
+      {closeMutation.isPending ? 'Closing…' : 'Close trade'}
+    </button>
   );
 }
 

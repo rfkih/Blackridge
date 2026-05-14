@@ -12,6 +12,22 @@ export interface SpecParamsFormProps {
   onChange: (key: string, value: unknown) => void;
 }
 
+/**
+ * V56 — sizing config moved to `account_strategy.useRiskBasedSizing` /
+ * `riskPct` / `capitalAllocationPct`. The spec-engine Tuning classes
+ * historically loaded these keys from spec body params and surface them in
+ * the strategy_definition defaults, but post-V56 the engines route through
+ * `StrategyHelper.calculateLongEntryNotional` / `calculateShortEntryQty`
+ * which read account-level fields. Editing the spec-param versions has no
+ * effect, so hide them from the form to avoid wasted operator effort.
+ */
+const INERT_SIZING_KEYS: ReadonlySet<string> = new Set([
+  'useRiskBasedSizing',
+  'riskPct',
+  'riskPerTradePct',
+  'maxAllocationPct',
+]);
+
 function humanizeKey(key: string): string {
   return key
     .replace(/([A-Z])/g, ' $1')
@@ -31,7 +47,13 @@ export function SpecParamsForm({
   overrides,
   onChange,
 }: SpecParamsFormProps) {
-  const keys = useMemo(() => Object.keys(defaults).sort(), [defaults]);
+  const keys = useMemo(
+    () =>
+      Object.keys(defaults)
+        .filter((k) => !INERT_SIZING_KEYS.has(k))
+        .sort(),
+    [defaults],
+  );
 
   if (keys.length === 0) {
     return (
@@ -49,9 +71,7 @@ export function SpecParamsForm({
     <div className="space-y-3">
       <div className="flex items-baseline justify-between">
         <p className="font-mono text-[12px] font-semibold text-text-primary">{strategyCode}</p>
-        {archetype && (
-          <span className="label-caps">archetype · {archetype}</span>
-        )}
+        {archetype && <span className="label-caps">archetype · {archetype}</span>}
       </div>
 
       <div className="divide-y divide-bd-subtle rounded-sm border border-bd-subtle bg-bg-base">
@@ -85,10 +105,7 @@ export function SpecParamsForm({
               </div>
               <div className="shrink-0">
                 {typeof def === 'boolean' ? (
-                  <Switch
-                    checked={Boolean(current)}
-                    onCheckedChange={(v) => onChange(key, v)}
-                  />
+                  <Switch checked={Boolean(current)} onCheckedChange={(v) => onChange(key, v)} />
                 ) : (
                   <input
                     type="number"

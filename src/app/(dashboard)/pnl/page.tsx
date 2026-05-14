@@ -418,7 +418,15 @@ function StrategyTable({ rows }: { rows: StrategyPnl[] }) {
       <table className="w-full">
         <thead>
           <tr className="border-b border-bd-subtle">
-            {['Strategy', 'Total P&L', 'Win %', 'Trades', 'Avg'].map((col) => (
+            {[
+              'Strategy',
+              'Total P&L',
+              'Win %',
+              'Trades',
+              'Avg',
+              'Avg / Trade %',
+              'Compound @ 90%',
+            ].map((col) => (
               <th key={col} className="label-caps whitespace-nowrap px-3 py-2.5 text-left">
                 {col}
               </th>
@@ -428,6 +436,8 @@ function StrategyTable({ rows }: { rows: StrategyPnl[] }) {
         <tbody>
           {ordered.map((r) => {
             const avg = r.tradeCount > 0 ? r.totalPnl / r.tradeCount : 0;
+            const avgPct = r.avgTradeReturnPct;
+            const geomPct = r.geometricReturnPctAtAlloc90;
             return (
               <tr
                 key={r.strategyCode}
@@ -452,6 +462,36 @@ function StrategyTable({ rows }: { rows: StrategyPnl[] }) {
                 </td>
                 <td className="whitespace-nowrap px-3 py-2">
                   <PnlCell value={avg} noFlash />
+                </td>
+                <td
+                  className="num whitespace-nowrap px-3 py-2 text-[12px]"
+                  title="Mean per-trade return rate (pnl ÷ notional × 100). Sizing-independent."
+                  style={{
+                    color:
+                      avgPct == null
+                        ? 'var(--text-muted)'
+                        : avgPct >= 0
+                          ? 'var(--color-profit)'
+                          : 'var(--color-loss)',
+                  }}
+                >
+                  {avgPct != null ? `${avgPct >= 0 ? '+' : ''}${avgPct.toFixed(3)}%` : '—'}
+                </td>
+                <td
+                  className="num whitespace-nowrap px-3 py-2 text-[12px]"
+                  title="Compounded return assuming every trade had been sized at 90% of equity."
+                  style={{
+                    color:
+                      geomPct == null
+                        ? 'var(--text-muted)'
+                        : geomPct <= -100
+                          ? 'var(--color-loss)'
+                          : geomPct >= 0
+                            ? 'var(--color-profit)'
+                            : 'var(--color-loss)',
+                  }}
+                >
+                  {geomPct != null ? `${geomPct >= 0 ? '+' : ''}${geomPct.toFixed(2)}%` : '—'}
                 </td>
               </tr>
             );

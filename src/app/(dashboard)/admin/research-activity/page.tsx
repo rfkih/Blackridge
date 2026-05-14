@@ -261,7 +261,8 @@ function SessionTimeline({
   const query = useQuery({
     queryKey: ['research-activity', 'timeline', sessionId],
     queryFn: () => researchActivityApi.getActivities(sessionId, 0, ACTIVITIES_PAGE_SIZE),
-    staleTime: 30_000,
+    staleTime: 10_000,
+    refetchInterval: 15_000,
     placeholderData: (prev) => prev,
   });
 
@@ -689,7 +690,8 @@ function SessionsList({
   const query = useQuery({
     queryKey: ['research-activity', 'sessions', page],
     queryFn: () => researchActivityApi.getSessions(page, SESSIONS_PAGE_SIZE),
-    staleTime: 30_000,
+    staleTime: 10_000,
+    refetchInterval: 15_000,
     placeholderData: (prev) => prev,
   });
 
@@ -806,12 +808,16 @@ export default function ResearchActivityPage() {
   // Deduplicated by activityId; accumulated for the current mount lifetime.
   const [liveActivities, setLiveActivities] = useState<AgentActivity[]>([]);
 
-  // Track which session was open when liveActivities were captured so we can
-  // clear the buffer when the user navigates between sessions.
+  // Clear the live buffer only when navigating BETWEEN sessions, not when
+  // opening a session from the list (null → id). Events that arrived while
+  // browsing the sessions list are still relevant to the session about to open.
   const lastSessionRef = useRef<string | null>(null);
   useEffect(() => {
-    if (selectedSessionId !== lastSessionRef.current) {
-      lastSessionRef.current = selectedSessionId;
+    const prev = lastSessionRef.current;
+    lastSessionRef.current = selectedSessionId;
+    // Only clear if we're moving from one session to a different one, not
+    // from the sessions list (null) to a specific session.
+    if (prev !== null && prev !== selectedSessionId) {
       setLiveActivities([]);
     }
   }, [selectedSessionId]);
@@ -823,9 +829,11 @@ export default function ResearchActivityPage() {
         return [...prev, activity];
       });
 
-      // When a session ends, refresh the sessions list so the card stats update.
+      // When a session ends, refresh both the sessions list and the open
+      // timeline so the card stats and the final SESSION_END row both appear.
       if (activity.activityType === 'SESSION_END') {
         void queryClient.invalidateQueries({ queryKey: ['research-activity', 'sessions'] });
+        void queryClient.invalidateQueries({ queryKey: ['research-activity', 'timeline'] });
       }
     },
     [queryClient],

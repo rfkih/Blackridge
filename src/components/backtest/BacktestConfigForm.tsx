@@ -6,7 +6,6 @@ import { ArrowRight, AlertTriangle, Check, ChevronDown, Loader2 } from 'lucide-r
 import { z } from 'zod';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
 import { DatePicker } from '@/components/ui/date-picker';
 import {
   Select,
@@ -16,7 +15,13 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { WizardBreadcrumb } from './WizardBreadcrumb';
-import { BACKTEST_INTERVALS as INTERVALS, BACKTEST_INTERVAL_REGEX_SOURCE } from '@/lib/constants';
+import {
+  ALLOC_MAX_PCT,
+  ALLOC_OPTIONS,
+  BACKTEST_INTERVALS as INTERVALS,
+  BACKTEST_INTERVAL_REGEX_SOURCE,
+  RISK_OPTIONS,
+} from '@/lib/constants';
 import { useAccountStrategies } from '@/hooks/useStrategies';
 import { useActiveAccount } from '@/hooks/useAccounts';
 import { useStrategyDefinitions } from '@/hooks/useStrategyDefinitions';
@@ -33,6 +38,12 @@ const COMMON_SYMBOLS = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'BNBUSDT', 'XRPUSDT', '
  *  for "show placeholder / clear selection" — we use a non-empty token
  *  internally and translate it back to '' before storing in state. */
 const INHERIT_PRIMARY = '__inherit_primary__';
+const INHERIT_ALLOC   = '__inherit_alloc__';
+const INHERIT_RISK    = '__inherit_risk__';
+// V62 — tristate sentinel for the gate-override selects (Auto / On / Off).
+// Picking "Auto" deletes the strategy's key from the override map so the
+// backend falls back to account_strategy.<gate>_gate_enabled.
+const INHERIT_GATE    = '__inherit_gate__';
 
 const configSchema = z
   .object({
@@ -51,7 +62,21 @@ const configSchema = z
       .min(1, 'Must allow at least 1 concurrent strategy')
       .max(20, 'Cap is 20 concurrent strategies')
       .optional(),
-    strategyAllocations: z.record(z.string(), z.number().positive().max(100)).optional(),
+    strategyAllocations: z.record(z.string(), z.number().positive().max(ALLOC_MAX_PCT)).optional(),
+    /** V57 — per-strategy risk-pct override map. Fractional scale (0, 0.20]. */
+    strategyRiskPcts: z.record(z.string(), z.number().positive().max(0.2)).optional(),
+    /** V58 — per-strategy direction overrides. Both true and false are
+     *  valid override values; key absent = "use bound AS's flag". */
+    strategyAllowLong: z.record(z.string(), z.boolean()).optional(),
+    strategyAllowShort: z.record(z.string(), z.boolean()).optional(),
+    /** V62 — per-strategy risk-gate overrides. Same shape as
+     *  strategyAllowLong: key present = explicit override for this run,
+     *  key absent = "use the bound account_strategy's persisted toggle".
+     *  Both `true` and `false` are valid override values. */
+    strategyKillSwitchOverrides: z.record(z.string(), z.boolean()).optional(),
+    strategyRegimeOverrides: z.record(z.string(), z.boolean()).optional(),
+    strategyCorrelationOverrides: z.record(z.string(), z.boolean()).optional(),
+    strategyConcurrentCapOverrides: z.record(z.string(), z.boolean()).optional(),
     strategyIntervals: z
       .record(
         z.string(),
@@ -64,6 +89,11 @@ const configSchema = z
       )
       .optional(),
     evaluationMode: z.enum(['single', 'multi']).optional(),
+    // V58 — direction flags moved to per-strategy (sourced from each
+    // strategy's bound account_strategy). Run-level fields are kept
+    // wire-compatible but always sent as TRUE/TRUE so the resolver's
+    // run-level fallback (used only for ad-hoc spec strategies without a
+    // bound AS) stays permissive.
     allowLong: z.boolean(),
     allowShort: z.boolean(),
   })
@@ -74,10 +104,6 @@ const configSchema = z
   .refine((d) => d.strategyCodes.every((code) => Boolean(d.strategyAccountStrategyIds[code])), {
     message: 'Every selected strategy needs an account-strategy',
     path: ['strategyAccountStrategyIds'],
-  })
-  .refine((d) => d.allowLong || d.allowShort, {
-    message: 'At least one direction (long or short) must be allowed',
-    path: ['allowLong'],
   });
 
 type FormErrors = Partial<Record<string, string>>;
@@ -152,6 +178,46 @@ export function BacktestConfigForm() {
       ]),
     ),
   );
+  // V57 — per-strategy risk-pct override (UI scale: percent, e.g. "5" =
+  // 5%). Stored fractional on submit. Blank = "fall back to persisted
+  // account_strategy.risk_pct" (and the persisted toggle).
+  const [strategyRiskPcts, setStrategyRiskPcts] = useState<Record<string, string>>(
+    Object.fromEntries(
+      Object.entries(savedConfig?.strategyRiskPcts ?? {}).map(([code, frac]) => [
+        code,
+        // Saved value is fractional; UI shows percent.
+        String(Number(frac) * 100),
+      ]),
+    ),
+  );
+  // V58 — per-strategy direction override maps. Key absent = "no override
+  // → use bound account_strategy's flag" (matches live behaviour). Key
+  // present = explicit override for this run (for research). Both `true`
+  // and `false` are valid override values.
+  const [strategyAllowLong, setStrategyAllowLong] = useState<Record<string, boolean>>(
+    savedConfig?.strategyAllowLong ?? {},
+  );
+  const [strategyAllowShort, setStrategyAllowShort] = useState<Record<string, boolean>>(
+    savedConfig?.strategyAllowShort ?? {},
+  );
+  // V62 — per-strategy risk-gate overrides. Same null-vs-bool semantics as
+  // strategyAllowLong: present key = explicit override (true/false), absent
+  // key = "use bound account_strategy's persisted toggle".
+  const [strategyKillSwitchOverrides, setStrategyKillSwitchOverrides] = useState<
+    Record<string, boolean>
+  >(savedConfig?.strategyKillSwitchOverrides ?? {});
+  const [strategyRegimeOverrides, setStrategyRegimeOverrides] = useState<Record<string, boolean>>(
+    savedConfig?.strategyRegimeOverrides ?? {},
+  );
+  const [strategyCorrelationOverrides, setStrategyCorrelationOverrides] = useState<
+    Record<string, boolean>
+  >(savedConfig?.strategyCorrelationOverrides ?? {});
+  const [strategyConcurrentCapOverrides, setStrategyConcurrentCapOverrides] = useState<
+    Record<string, boolean>
+  >(savedConfig?.strategyConcurrentCapOverrides ?? {});
+  // V62 — UI toggle for the gate-overrides section. Hidden by default so the
+  // common single-strategy / single-account research flow isn't cluttered.
+  const [showGateOverrides, setShowGateOverrides] = useState<boolean>(false);
   // Per-strategy interval. Blank string = "use primary interval".
   const [strategyIntervals, setStrategyIntervals] = useState<Record<string, string>>(
     savedConfig?.strategyIntervals ?? {},
@@ -162,15 +228,17 @@ export function BacktestConfigForm() {
   const [evaluationMode, setEvaluationMode] = useState<'single' | 'multi'>(
     savedConfig?.evaluationMode ?? 'single',
   );
-  // Direction toggles. Default long-only — most strategies in the book are
-  // long-favored on BTC's structural bull regime, and the backend's null
-  // → TRUE default would silently allow shorts on a strategy not validated
-  // for them. Explicit user choice from the form is the safe default.
-  const [allowLong, setAllowLong] = useState<boolean>(savedConfig?.allowLong ?? true);
-  const [allowShort, setAllowShort] = useState<boolean>(savedConfig?.allowShort ?? false);
+  // V58 — run-level direction flags are no longer user-controlled in the
+  // wizard. The backend resolver now reads allowLong/allowShort per-strategy
+  // from the bound account_strategy; run-level fields stay on the wire as a
+  // permissive fallback (used only for ad-hoc strategies without a bound
+  // AS), so we always submit TRUE/TRUE. Locals retained because re-run flow
+  // hydrates them and the wire payload still carries the field.
+  const [allowLong] = useState<boolean>(true);
+  const [allowShort] = useState<boolean>(true);
   const [errors, setErrors] = useState<FormErrors>({});
 
-  const strategyOptionsByCode = useMemo(() => {
+const strategyOptionsByCode = useMemo(() => {
     const map = new Map<string, AccountStrategy[]>();
     for (const def of activeDefinitions) map.set(def.strategyCode, []);
     for (const s of strategies) {
@@ -371,8 +439,21 @@ export function BacktestConfigForm() {
       const raw = strategyAllocations[code];
       if (raw == null || raw === '') continue;
       const n = Number(raw);
-      if (Number.isFinite(n) && n > 0 && n <= 100) {
+      if (Number.isFinite(n) && n > 0 && n <= ALLOC_MAX_PCT) {
         allocs[code] = n;
+      }
+    }
+
+    // V57 — trim per-strategy risk-pct overrides. UI scale is percent
+    // (5 = 5%); convert to fraction (0.05) for the wire/schema. Drop
+    // blanks (fall back to persisted) and out-of-range.
+    const riskPcts: Record<string, number> = {};
+    for (const code of selectedStrategies) {
+      const raw = strategyRiskPcts[code];
+      if (raw == null || raw === '') continue;
+      const pct = Number(raw);
+      if (Number.isFinite(pct) && pct > 0 && pct <= 20) {
+        riskPcts[code] = pct / 100;
       }
     }
 
@@ -382,6 +463,33 @@ export function BacktestConfigForm() {
     for (const code of selectedStrategies) {
       const v = strategyIntervals[code];
       if (typeof v === 'string' && v.trim() !== '') intervals[code] = v.trim();
+    }
+
+    // V58 — same trim for direction overrides: only carry entries for
+    // currently-selected strategies. Both true and false are valid
+    // override values, so we don't drop falsy entries.
+    const allowLongMap: Record<string, boolean> = {};
+    const allowShortMap: Record<string, boolean> = {};
+    // V62 — same trim for gate overrides. Trims to currently-selected
+    // strategies; preserves explicit false values (operator's intent to
+    // force a gate off for this run).
+    const killSwitchMap: Record<string, boolean> = {};
+    const regimeMap: Record<string, boolean> = {};
+    const correlationMap: Record<string, boolean> = {};
+    const concurrentCapMap: Record<string, boolean> = {};
+    for (const code of selectedStrategies) {
+      if (typeof strategyAllowLong[code] === 'boolean')
+        allowLongMap[code] = strategyAllowLong[code];
+      if (typeof strategyAllowShort[code] === 'boolean')
+        allowShortMap[code] = strategyAllowShort[code];
+      if (typeof strategyKillSwitchOverrides[code] === 'boolean')
+        killSwitchMap[code] = strategyKillSwitchOverrides[code];
+      if (typeof strategyRegimeOverrides[code] === 'boolean')
+        regimeMap[code] = strategyRegimeOverrides[code];
+      if (typeof strategyCorrelationOverrides[code] === 'boolean')
+        correlationMap[code] = strategyCorrelationOverrides[code];
+      if (typeof strategyConcurrentCapOverrides[code] === 'boolean')
+        concurrentCapMap[code] = strategyConcurrentCapOverrides[code];
     }
 
     const parsed = configSchema.safeParse({
@@ -394,6 +502,15 @@ export function BacktestConfigForm() {
       strategyAccountStrategyIds,
       maxConcurrentStrategies: Number(maxConcurrentStrategies) || undefined,
       strategyAllocations: Object.keys(allocs).length ? allocs : undefined,
+      strategyRiskPcts: Object.keys(riskPcts).length ? riskPcts : undefined,
+      strategyAllowLong: Object.keys(allowLongMap).length ? allowLongMap : undefined,
+      strategyAllowShort: Object.keys(allowShortMap).length ? allowShortMap : undefined,
+      strategyKillSwitchOverrides: Object.keys(killSwitchMap).length ? killSwitchMap : undefined,
+      strategyRegimeOverrides: Object.keys(regimeMap).length ? regimeMap : undefined,
+      strategyCorrelationOverrides: Object.keys(correlationMap).length ? correlationMap : undefined,
+      strategyConcurrentCapOverrides: Object.keys(concurrentCapMap).length
+        ? concurrentCapMap
+        : undefined,
       strategyIntervals: Object.keys(intervals).length ? intervals : undefined,
       evaluationMode,
       allowLong,
@@ -429,6 +546,13 @@ export function BacktestConfigForm() {
     strategyAccountStrategyIds,
     maxConcurrentStrategies,
     strategyAllocations,
+    strategyRiskPcts,
+    strategyAllowLong,
+    strategyAllowShort,
+    strategyKillSwitchOverrides,
+    strategyRegimeOverrides,
+    strategyCorrelationOverrides,
+    strategyConcurrentCapOverrides,
     strategyIntervals,
     evaluationMode,
     allowLong,
@@ -537,41 +661,6 @@ export function BacktestConfigForm() {
 
       <section className="rounded-xl border border-bd-subtle bg-bg-surface">
         <SectionHeader
-          title="Direction"
-          hint={
-            allowLong && allowShort
-              ? 'Long + short'
-              : allowLong
-                ? 'Long-only'
-                : allowShort
-                  ? 'Short-only'
-                  : 'No direction selected'
-          }
-        />
-        <div className="flex flex-col gap-3 px-5 py-4">
-          <div className="flex items-center gap-6">
-            <div className="flex items-center gap-2">
-              <Switch checked={allowLong} onCheckedChange={setAllowLong} />
-              <Label className="font-mono text-xs uppercase tracking-wider">Allow Long</Label>
-            </div>
-            <div className="flex items-center gap-2">
-              <Switch checked={allowShort} onCheckedChange={setAllowShort} />
-              <Label className="font-mono text-xs uppercase tracking-wider">Allow Short</Label>
-            </div>
-          </div>
-          <p className="text-[11px] text-text-muted">
-            Backend defaults missing flags to long+short. The wizard now sends your explicit choice
-            so a strategy not validated for shorts (e.g. trend followers in a structural bull
-            regime) can be safely run long-only without touching the strategy code.
-          </p>
-          {errors.allowLong && (
-            <p data-form-error className="text-xs text-[var(--color-warning)]">{errors.allowLong}</p>
-          )}
-        </div>
-      </section>
-
-      <section className="rounded-xl border border-bd-subtle bg-bg-surface">
-        <SectionHeader
           title="Strategies"
           hint={
             selectedStrategies.length > 0
@@ -613,7 +702,10 @@ export function BacktestConfigForm() {
         )}
 
         {errors.strategyCodes && (
-          <p data-form-error className="border-t border-bd-subtle bg-tint-loss px-5 py-2 text-[11px] text-loss">
+          <p
+            data-form-error
+            className="border-t border-bd-subtle bg-tint-loss px-5 py-2 text-[11px] text-loss"
+          >
             {errors.strategyCodes}
           </p>
         )}
@@ -697,7 +789,9 @@ export function BacktestConfigForm() {
               })}
             </div>
             {errors.strategyAccountStrategyIds && (
-              <p data-form-error className="mt-3 text-[11px] text-loss">{errors.strategyAccountStrategyIds}</p>
+              <p data-form-error className="mt-3 text-[11px] text-loss">
+                {errors.strategyAccountStrategyIds}
+              </p>
             )}
 
             {/* Phase A — concurrent cap + per-strategy allocation overrides. */}
@@ -718,76 +812,243 @@ export function BacktestConfigForm() {
                 </p>
               </Field>
               <div className="lg:col-span-2">
-                <p className="label-caps pb-2">Per-strategy allocation + interval</p>
+                <p className="label-caps pb-2">
+                  Per-strategy direction + allocation + risk + interval
+                </p>
                 <div className="grid grid-cols-1 gap-2">
-                  {selectedStrategies.map((code) => (
-                    <div
-                      key={code}
-                      className="grid grid-cols-[5rem_1fr_auto_5rem] items-center gap-2"
-                    >
-                      <span className="truncate font-mono text-[11px] font-semibold text-text-primary">
-                        {code}
-                      </span>
-                      <div className="flex items-center gap-1">
-                        <Input
-                          type="number"
-                          inputMode="decimal"
-                          min={0}
-                          max={100}
-                          step={5}
-                          placeholder="from account"
-                          value={strategyAllocations[code] ?? ''}
-                          onChange={(e) =>
+                  {selectedStrategies.map((code) => {
+                    const boundAs = strategyOptionsByCode
+                      .get(code)
+                      ?.find((s) => s.id === strategyAccountStrategyIds[code]);
+                    return (
+                      <div
+                        key={code}
+                        className="grid grid-cols-[5rem_auto_1fr_1fr_auto_5rem] items-center gap-2"
+                      >
+                        <span className="truncate font-mono text-[11px] font-semibold text-text-primary">
+                          {code}
+                        </span>
+                        <DirectionSelect
+                          allowLong={boundAs?.allowLong}
+                          allowShort={boundAs?.allowShort}
+                          longOverride={strategyAllowLong[code]}
+                          shortOverride={strategyAllowShort[code]}
+                          onLongChange={(next) =>
+                            setStrategyAllowLong((prev) => {
+                              const out = { ...prev };
+                              if (next === undefined) delete out[code];
+                              else out[code] = next;
+                              return out;
+                            })
+                          }
+                          onShortChange={(next) =>
+                            setStrategyAllowShort((prev) => {
+                              const out = { ...prev };
+                              if (next === undefined) delete out[code];
+                              else out[code] = next;
+                              return out;
+                            })
+                          }
+                        />
+                        <Select
+                          value={strategyAllocations[code] ? strategyAllocations[code] : INHERIT_ALLOC}
+                          onValueChange={(value) =>
                             setStrategyAllocations((prev) => ({
                               ...prev,
-                              [code]: e.target.value,
+                              [code]: value === INHERIT_ALLOC ? '' : value,
                             }))
                           }
-                          className="num h-8 flex-1"
-                        />
-                        <span className="text-[10px] text-text-muted">%</span>
-                      </div>
-                      <span className="text-[9px] uppercase tracking-wider text-text-muted">
-                        on
-                      </span>
-                      <Select
-                        // Radix forbids value="" — use a sentinel for "use
-                        // primary" and translate on both edges. Stored
-                        // state still holds "" or a real interval, so the
-                        // submit-time trim logic stays unchanged.
-                        // In 'multi' mode the picker is locked to the
-                        // strategy's registered interval (auto-filled by
-                        // the effect above) — disabled to avoid drift.
-                        value={strategyIntervals[code] ? strategyIntervals[code] : INHERIT_PRIMARY}
-                        onValueChange={(value) =>
-                          setStrategyIntervals((prev) => ({
-                            ...prev,
-                            [code]: value === INHERIT_PRIMARY ? '' : value,
-                          }))
-                        }
-                        disabled={evaluationMode === 'multi'}
-                      >
-                        <SelectTrigger className="h-8 font-mono text-[11px]">
-                          <SelectValue placeholder={interval} />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value={INHERIT_PRIMARY}>Use primary ({interval})</SelectItem>
-                          {INTERVALS.map((i) => (
-                            <SelectItem key={i} value={i}>
-                              {i}
+                        >
+                          <SelectTrigger className="h-8 font-mono text-[11px]" aria-label={`${code} allocation`}>
+                            <SelectValue placeholder="alloc %" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value={INHERIT_ALLOC}>Auto (account default)</SelectItem>
+                            {ALLOC_OPTIONS.map((v) => (
+                              <SelectItem key={v} value={String(v)}>
+                                {v}%
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <Select
+                          value={strategyRiskPcts[code] ? strategyRiskPcts[code] : INHERIT_RISK}
+                          onValueChange={(value) =>
+                            setStrategyRiskPcts((prev) => ({
+                              ...prev,
+                              [code]: value === INHERIT_RISK ? '' : value,
+                            }))
+                          }
+                        >
+                          <SelectTrigger className="h-8 font-mono text-[11px]" aria-label={`${code} risk per trade`}>
+                            <SelectValue placeholder="risk %" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value={INHERIT_RISK}>Auto (account default)</SelectItem>
+                            {RISK_OPTIONS.map((v) => (
+                              <SelectItem key={v} value={String(v)}>
+                                {v}%R
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <span className="text-[9px] uppercase tracking-wider text-text-muted">
+                          on
+                        </span>
+                        <Select
+                          // Radix forbids value="" — use a sentinel for "use
+                          // primary" and translate on both edges. Stored
+                          // state still holds "" or a real interval, so the
+                          // submit-time trim logic stays unchanged.
+                          // In 'multi' mode the picker is locked to the
+                          // strategy's registered interval (auto-filled by
+                          // the effect above) — disabled to avoid drift.
+                          value={
+                            strategyIntervals[code] ? strategyIntervals[code] : INHERIT_PRIMARY
+                          }
+                          onValueChange={(value) =>
+                            setStrategyIntervals((prev) => ({
+                              ...prev,
+                              [code]: value === INHERIT_PRIMARY ? '' : value,
+                            }))
+                          }
+                          disabled={evaluationMode === 'multi'}
+                        >
+                          <SelectTrigger className="h-8 font-mono text-[11px]">
+                            <SelectValue placeholder={interval} />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value={INHERIT_PRIMARY}>
+                              Use primary ({interval})
                             </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  ))}
+                            {INTERVALS.map((i) => (
+                              <SelectItem key={i} value={i}>
+                                {i}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    );
+                  })}
                 </div>
                 <p className="mt-1 text-[10px] text-text-muted">
-                  Allocation blank → falls back to{' '}
-                  <span className="font-mono">account_strategy.capital_allocation_pct</span>.
-                  Interval blank → uses the primary <span className="font-mono">{interval}</span>.
-                  Sizing per strategy is <span className="font-mono">balance × allocation</span>.
+                  Direction defaults to each strategy&apos;s live setting — select{' '}
+                  <strong className="font-semibold text-text-secondary">Both</strong>,{' '}
+                  <strong className="font-semibold text-profit">Long</strong>, or{' '}
+                  <strong className="font-semibold text-loss">Short</strong> to override for this
+                  run only. A{' '}
+                  <span className="font-semibold text-text-secondary">≠ live</span> badge appears
+                  when you&apos;ve changed it. Allocation and Risk% blank → fall back to each
+                  strategy&apos;s saved settings. Setting Risk% forces risk-based sizing on for
+                  that strategy in this run.
                 </p>
+
+                {/* V62 — per-strategy risk-gate overrides. Collapsed by
+                    default so the common single-strategy research flow
+                    isn't cluttered. Each gate is independently tristate:
+                    Auto (use persisted toggle), On (force enabled for
+                    this run), Off (force disabled for this run). */}
+                <div className="mt-4">
+                  <button
+                    type="button"
+                    onClick={() => setShowGateOverrides((v) => !v)}
+                    className="inline-flex items-center gap-1.5 rounded-sm border border-bd-subtle bg-bg-base px-2.5 py-1 font-mono text-[10px] uppercase tracking-wider text-text-secondary transition-colors hover:border-text-muted hover:text-text-primary"
+                    aria-expanded={showGateOverrides}
+                  >
+                    <ChevronDown
+                      size={11}
+                      strokeWidth={1.75}
+                      className={cn(
+                        'transition-transform',
+                        showGateOverrides ? 'rotate-0' : '-rotate-90',
+                      )}
+                    />
+                    Risk gate overrides (research)
+                  </button>
+                  {showGateOverrides && (
+                    <div className="mt-3 rounded-sm border border-bd-subtle bg-bg-base p-3">
+                      <p className="mb-2 text-[10px] text-text-muted">
+                        Each gate defaults to the strategy&apos;s persisted toggle. Pick{' '}
+                        <strong className="font-semibold text-profit">On</strong> to force
+                        the gate active for this run, or{' '}
+                        <strong className="font-semibold text-loss">Off</strong> to disable.
+                        Same gate stack runs in live and backtest after V62.
+                      </p>
+                      <div className="grid grid-cols-1 gap-1.5">
+                        <div className="grid grid-cols-[5rem_repeat(4,_minmax(0,_1fr))] items-center gap-2 border-b border-bd-subtle pb-1 font-mono text-[9px] uppercase tracking-wider text-text-muted">
+                          <span></span>
+                          <span>Kill-switch</span>
+                          <span>Regime</span>
+                          <span>Correlation</span>
+                          <span>Account cap</span>
+                        </div>
+                        {selectedStrategies.map((code) => (
+                          <div
+                            key={code}
+                            className="grid grid-cols-[5rem_repeat(4,_minmax(0,_1fr))] items-center gap-2"
+                          >
+                            <span className="truncate font-mono text-[11px] font-semibold text-text-primary">
+                              {code}
+                            </span>
+                            <GateOverrideSelect
+                              code={code}
+                              gate="kill-switch"
+                              value={strategyKillSwitchOverrides[code]}
+                              onChange={(next) =>
+                                setStrategyKillSwitchOverrides((prev) => {
+                                  const out = { ...prev };
+                                  if (next === undefined) delete out[code];
+                                  else out[code] = next;
+                                  return out;
+                                })
+                              }
+                            />
+                            <GateOverrideSelect
+                              code={code}
+                              gate="regime"
+                              value={strategyRegimeOverrides[code]}
+                              onChange={(next) =>
+                                setStrategyRegimeOverrides((prev) => {
+                                  const out = { ...prev };
+                                  if (next === undefined) delete out[code];
+                                  else out[code] = next;
+                                  return out;
+                                })
+                              }
+                            />
+                            <GateOverrideSelect
+                              code={code}
+                              gate="correlation"
+                              value={strategyCorrelationOverrides[code]}
+                              onChange={(next) =>
+                                setStrategyCorrelationOverrides((prev) => {
+                                  const out = { ...prev };
+                                  if (next === undefined) delete out[code];
+                                  else out[code] = next;
+                                  return out;
+                                })
+                              }
+                            />
+                            <GateOverrideSelect
+                              code={code}
+                              gate="concurrent-cap"
+                              value={strategyConcurrentCapOverrides[code]}
+                              onChange={(next) =>
+                                setStrategyConcurrentCapOverrides((prev) => {
+                                  const out = { ...prev };
+                                  if (next === undefined) delete out[code];
+                                  else out[code] = next;
+                                  return out;
+                                })
+                              }
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -939,6 +1200,147 @@ function SectionHeader({ title, hint }: { title: string; hint?: string }) {
   );
 }
 
+type DirectionMode = 'both' | 'long' | 'short';
+
+function directionMode(l: boolean, s: boolean): DirectionMode {
+  if (l && s) return 'both';
+  if (l) return 'long';
+  return 'short';
+}
+
+/** 3-segment pill control for per-strategy direction in a backtest run.
+ *  Defaults to the bound account-strategy's live config. Selecting a
+ *  different mode overrides for this run only; a "≠ live" badge appears
+ *  when the selection differs from the persisted live setting. */
+function DirectionSelect({
+  allowLong,
+  allowShort,
+  longOverride,
+  shortOverride,
+  onLongChange,
+  onShortChange,
+}: {
+  allowLong: boolean | undefined;
+  allowShort: boolean | undefined;
+  longOverride: boolean | undefined;
+  shortOverride: boolean | undefined;
+  onLongChange: (next: boolean | undefined) => void;
+  onShortChange: (next: boolean | undefined) => void;
+}) {
+  const disabled = allowLong === undefined && allowShort === undefined;
+
+  const effectiveLong = longOverride !== undefined ? longOverride : Boolean(allowLong);
+  const effectiveShort = shortOverride !== undefined ? shortOverride : Boolean(allowShort);
+  const current = directionMode(effectiveLong, effectiveShort);
+
+  const persistedLong = Boolean(allowLong);
+  const persistedShort = Boolean(allowShort);
+  const liveMode = directionMode(persistedLong, persistedShort);
+  const differsFromLive = !disabled && current !== liveMode;
+
+  const select = (mode: DirectionMode) => {
+    if (disabled) return;
+    const wantsLong = mode !== 'short';
+    const wantsShort = mode !== 'long';
+    // Clear overrides when the selection already matches live — keeps wire minimal.
+    onLongChange(wantsLong === persistedLong ? undefined : wantsLong);
+    onShortChange(wantsShort === persistedShort ? undefined : wantsShort);
+  };
+
+  const segments: { mode: DirectionMode; label: string; title: string }[] = [
+    { mode: 'both',  label: 'Both',  title: 'Long and short entries allowed' },
+    { mode: 'long',  label: 'Long',  title: 'Long entries only for this run' },
+    { mode: 'short', label: 'Short', title: 'Short entries only for this run' },
+  ];
+
+  return (
+    <div className="flex items-center gap-1.5">
+      <div
+        className={cn(
+          'flex items-stretch overflow-hidden rounded-md border border-border',
+          disabled && 'pointer-events-none opacity-40',
+        )}
+        title={disabled ? 'Select an account-strategy preset to configure direction.' : undefined}
+      >
+        {segments.map(({ mode, label, title }) => {
+          const isActive = current === mode;
+          const activeClass =
+            mode === 'long'
+              ? 'bg-[rgba(22,179,100,0.18)] text-profit'
+              : mode === 'short'
+                ? 'bg-[rgba(229,72,77,0.15)] text-loss'
+                : 'bg-bg-elevated text-text-primary';
+          return (
+            <button
+              key={mode}
+              type="button"
+              onClick={() => select(mode)}
+              disabled={disabled}
+              title={title}
+              className={cn(
+                'h-7 px-2.5 text-[10px] font-semibold whitespace-nowrap transition-colors',
+                isActive
+                  ? activeClass
+                  : 'bg-bg-surface text-text-muted hover:bg-bg-elevated hover:text-text-secondary',
+                mode !== 'both' && 'border-l border-border',
+              )}
+            >
+              {label}
+            </button>
+          );
+        })}
+      </div>
+      {differsFromLive && (
+        <span
+          className="text-[9px] leading-none text-text-muted"
+          title={`Strategy live config: ${liveMode}`}
+        >
+          ≠ live
+        </span>
+      )}
+    </div>
+  );
+}
+
+/**
+ * V62 — tristate select for one per-strategy risk-gate override.
+ * "Auto" maps to undefined (delete the strategy's key from the override map,
+ * fall back to account_strategy.<gate>_gate_enabled); "On" forces TRUE; "Off"
+ * forces FALSE. Both true and false are valid override values, so the parent
+ * carries the distinction via `next === undefined ? delete : assign`.
+ */
+function GateOverrideSelect({
+  code,
+  gate,
+  value,
+  onChange,
+}: {
+  code: string;
+  gate: string;
+  value: boolean | undefined;
+  onChange: (next: boolean | undefined) => void;
+}) {
+  const selectValue =
+    value === undefined ? INHERIT_GATE : value ? 'true' : 'false';
+  return (
+    <Select
+      value={selectValue}
+      onValueChange={(v) =>
+        onChange(v === INHERIT_GATE ? undefined : v === 'true')
+      }
+    >
+      <SelectTrigger className="h-7 font-mono text-[10px]" aria-label={`${code} ${gate} gate override`}>
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value={INHERIT_GATE}>Auto</SelectItem>
+        <SelectItem value="true">On</SelectItem>
+        <SelectItem value="false">Off</SelectItem>
+      </SelectContent>
+    </Select>
+  );
+}
+
 function Field({
   label,
   error,
@@ -955,7 +1357,9 @@ function Field({
       <Label className="label-caps !text-[9px]">{label}</Label>
       {children}
       {error ? (
-        <p data-form-error className="text-[11px] text-loss">{error}</p>
+        <p data-form-error className="text-[11px] text-loss">
+          {error}
+        </p>
       ) : hint ? (
         <p className="text-[11px] text-text-muted">{hint}</p>
       ) : null}

@@ -225,6 +225,17 @@ export async function getTradeById(id: string): Promise<Trades> {
   return mapTrade(data);
 }
 
+/**
+ * Manually close every open position on a trade. The backend places a
+ * Binance market order in the opposite direction for the full remaining
+ * quantity and stamps the closed positions with exitReason=MANUAL_CLOSE.
+ * Returns the refreshed trade (now usually status=CLOSED).
+ */
+export async function closeTrade(id: string): Promise<Trades> {
+  const { data } = await apiClient.post<BackendTrade>(`/api/v1/trades/${id}/close`);
+  return mapTrade(data);
+}
+
 interface BackendTradeAttribution {
   realizedPnl: number | string | null;
   signalAlpha: number | string | null;

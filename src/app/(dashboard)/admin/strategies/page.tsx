@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import {
   AlertCircle,
   Archive,
+  Copy,
   Edit3,
   FlaskConical,
   Plus,
@@ -52,13 +53,21 @@ export default function AdminStrategiesPage() {
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<StrategyDefinition | null>(null);
+  const [replicating, setReplicating] = useState<StrategyDefinition | null>(null);
 
   const openCreate = () => {
     setEditing(null);
+    setReplicating(null);
     setDialogOpen(true);
   };
   const openEdit = (row: StrategyDefinition) => {
     setEditing(row);
+    setReplicating(null);
+    setDialogOpen(true);
+  };
+  const openReplicate = (row: StrategyDefinition) => {
+    setEditing(null);
+    setReplicating(row);
     setDialogOpen(true);
   };
 
@@ -156,6 +165,7 @@ export default function AdminStrategiesPage() {
             label="Active"
             rows={active}
             onEdit={openEdit}
+            onReplicate={openReplicate}
             onDeprecate={handleDeprecate}
           />
           {inactive.length > 0 && (
@@ -163,6 +173,7 @@ export default function AdminStrategiesPage() {
               label="Inactive"
               rows={inactive}
               onEdit={openEdit}
+              onReplicate={openReplicate}
               onDeprecate={handleDeprecate}
             />
           )}
@@ -171,6 +182,7 @@ export default function AdminStrategiesPage() {
               label="Deprecated"
               rows={deprecated}
               onEdit={openEdit}
+              onReplicate={openReplicate}
               onDeprecate={handleDeprecate}
               hideDeprecateAction
             />
@@ -178,7 +190,12 @@ export default function AdminStrategiesPage() {
         </div>
       )}
 
-      <StrategyDefinitionDialog open={dialogOpen} onOpenChange={setDialogOpen} existing={editing} />
+      <StrategyDefinitionDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        existing={editing}
+        replicateFrom={replicating}
+      />
     </div>
   );
 }
@@ -189,6 +206,7 @@ interface StrategyTableProps {
   label: string;
   rows: StrategyDefinition[];
   onEdit: (row: StrategyDefinition) => void;
+  onReplicate: (row: StrategyDefinition) => void;
   onDeprecate: (row: StrategyDefinition) => void;
   hideDeprecateAction?: boolean;
 }
@@ -197,6 +215,7 @@ function StrategyTable({
   label,
   rows,
   onEdit,
+  onReplicate,
   onDeprecate,
   hideDeprecateAction,
 }: StrategyTableProps) {
@@ -256,6 +275,14 @@ function StrategyTable({
                       aria-label={`Edit ${row.strategyCode}`}
                     >
                       <Edit3 size={11} strokeWidth={1.75} /> Edit
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => onReplicate(row)}
+                      className="inline-flex items-center gap-1 rounded-sm border border-bd-subtle bg-bg-base px-2 py-1 text-[11px] text-text-primary transition-colors hover:bg-bg-hover"
+                      aria-label={`Replicate ${row.strategyCode}`}
+                    >
+                      <Copy size={11} strokeWidth={1.75} /> Replicate
                     </button>
                     {!hideDeprecateAction && (
                       <button

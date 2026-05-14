@@ -118,7 +118,14 @@ function StrategyCard({
   onDragLeave: () => void;
   onDrop: (e: React.DragEvent) => void;
 }) {
+  // V66 — `isLive` is strict: only true for real-money LIVE. PAPER rows
+  // are *running* (orchestrator picks them up) but never get the green
+  // glow or "LIVE" labels — those would mislead the operator into
+  // thinking real capital is at risk. Use `isRunning` for stop/start
+  // toggle semantics where PAPER also stops.
   const isLive = strategy.status === 'LIVE';
+  const isPaper = strategy.status === 'PAPER';
+  const isRunning = isLive || isPaper;
   const isToggling = isActivating || isDeactivating;
   // V54 — read-only PUBLIC clone-of-other-tenant. Writes are routed through
   // the clone flow instead of edit/delete; drag-to-reorder is disabled
@@ -141,9 +148,11 @@ function StrategyCard({
         'group relative flex flex-col justify-between gap-4 rounded-xl border bg-[var(--bg-surface)] p-5 shadow-panel transition-all',
         isLive
           ? 'border-[var(--color-profit)]/60 shadow-[0_0_0_1px_var(--color-profit),0_8px_24px_rgba(22,179,100,0.14)]'
-          : isReadOnlyPublic
-            ? 'border-dashed border-[var(--accent-primary)]/40 hover:-translate-y-px hover:border-[var(--accent-primary)] hover:shadow-float'
-            : 'border-[var(--border-subtle)] hover:-translate-y-px hover:border-[var(--border-default)] hover:shadow-float',
+          : isPaper
+            ? 'border-[var(--color-warning)]/60 shadow-[0_0_0_1px_var(--color-warning),0_8px_24px_rgba(245,166,35,0.12)]'
+            : isReadOnlyPublic
+              ? 'border-[var(--accent-primary)]/40 border-dashed hover:-translate-y-px hover:border-[var(--accent-primary)] hover:shadow-float'
+              : 'border-[var(--border-subtle)] hover:-translate-y-px hover:border-[var(--border-default)] hover:shadow-float',
         isDragging && 'cursor-grabbing opacity-40',
         isDragOver && 'ring-[var(--accent-primary)]/60 border-[var(--accent-primary)] ring-2',
       )}
@@ -157,7 +166,7 @@ function StrategyCard({
             e.stopPropagation();
             onClone(strategy);
           }}
-          className="absolute right-2 top-2 z-10 inline-flex items-center gap-1 rounded-md border border-[var(--accent-primary)]/40 bg-[var(--bg-elevated)] px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--accent-primary)] transition-colors hover:bg-[var(--accent-primary)] hover:text-[var(--text-inverse)]"
+          className="border-[var(--accent-primary)]/40 absolute right-2 top-2 z-10 inline-flex items-center gap-1 rounded-md border bg-[var(--bg-elevated)] px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--accent-primary)] transition-colors hover:bg-[var(--accent-primary)] hover:text-[var(--text-inverse)]"
           aria-label={`Clone preset ${strategy.presetName} to my account`}
         >
           <Copy size={11} />
@@ -205,7 +214,7 @@ function StrategyCard({
                 <StrategyBadge code={strategy.strategyCode} size="sm" />
                 {isReadOnlyPublic && (
                   <span
-                    className="rounded-sm bg-[var(--accent-primary)]/12 px-1.5 py-0.5 font-mono text-[9px] font-semibold uppercase tracking-[0.12em] text-[var(--accent-primary)]"
+                    className="bg-[var(--accent-primary)]/12 rounded-sm px-1.5 py-0.5 font-mono text-[9px] font-semibold uppercase tracking-[0.12em] text-[var(--accent-primary)]"
                     title={`Owned by ${strategy.ownerLabel} — clone to edit or run`}
                   >
                     {strategy.ownerLabel}
@@ -232,7 +241,7 @@ function StrategyCard({
             <StatusToggle
               status={strategy.status}
               disabled={isToggling}
-              onToggle={() => (isLive ? onDeactivate(strategy) : onActivate(strategy))}
+              onToggle={() => (isRunning ? onDeactivate(strategy) : onActivate(strategy))}
             />
           )}
         </div>
@@ -269,8 +278,10 @@ function StrategyCard({
           </div>
         </div>
 
-        {/* 3-stat grid — allocation, side, priority. Replaces the two-row
-            stats block; mirrors the design pack's `.strat-stats`. */}
+        {/* 3-stat grid — sizing, side, priority. The first cell adapts its
+            label + value to the strategy's sizing mode (V55) so users don't
+            have to guess what the percentage means. Mirrors the design
+            pack's `.strat-stats`. */}
         <div
           className="grid grid-cols-3 gap-3"
           style={{
@@ -278,25 +289,7 @@ function StrategyCard({
             borderTop: '1px solid var(--mm-hair)',
           }}
         >
-          <div>
-            <div
-              style={{
-                fontSize: 10,
-                fontWeight: 600,
-                letterSpacing: '0.08em',
-                textTransform: 'uppercase',
-                color: 'var(--mm-ink-2)',
-              }}
-            >
-              Allocation
-            </div>
-            <div
-              className="mm-num"
-              style={{ fontSize: 16, color: 'var(--mm-ink-0)', marginTop: 2 }}
-            >
-              {strategy.capitalAllocationPct.toFixed(1)}%
-            </div>
-          </div>
+          <SizingStat strategy={strategy} />
           <div>
             <div
               style={{
@@ -390,17 +383,20 @@ function StrategyCard({
 
       {groupHasOtherPreset && !isReadOnlyPublic && (
         <div className="-mt-2 flex items-center justify-between border-t border-[var(--border-subtle)] pt-3">
-          {isLive ? (
-            <span className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--accent-primary)]">
-              <Radio size={10} className="animate-pulse" />
-              Active preset
+          {isRunning ? (
+            <span
+              className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.14em]"
+              style={{ color: isPaper ? 'var(--color-warning)' : 'var(--accent-primary)' }}
+            >
+              <Radio size={10} className={isLive ? 'animate-pulse' : ''} />
+              {isPaper ? 'Active preset · paper' : 'Active preset'}
             </span>
           ) : (
             <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--text-muted)]">
               Inactive
             </span>
           )}
-          {!isLive && (
+          {!isRunning && (
             <button
               type="button"
               onClick={(e) => {
@@ -417,6 +413,79 @@ function StrategyCard({
           )}
         </div>
       )}
+    </div>
+  );
+}
+
+/**
+ * V55 — sizing-mode aware stat cell.
+ *
+ * `capital_allocation_pct` plays two different roles depending on
+ * `use_risk_based_sizing`:
+ *  - **Risk-based ON**:  the per-trade *risk* is `risk_pct` of cash; the
+ *                        position is capped at `capital_allocation_pct`.
+ *  - **Risk-based OFF**: `capital_allocation_pct` is the trade size itself.
+ *
+ * Naming the first cell "Allocation" in both modes is what the user flagged
+ * as confusing. We instead name the cell after the *active* concept and
+ * surface the secondary number on a sublabel — so the card reads correctly
+ * without anyone having to remember which mode this preset is in.
+ */
+function SizingStat({ strategy }: { strategy: AccountStrategy }) {
+  const useRisk = Boolean(strategy.useRiskBasedSizing);
+  const allocation = strategy.capitalAllocationPct ?? 0;
+  // riskPct is wire-fraction (0..0.20); display as percent.
+  const riskPctDisplay = (strategy.riskPct ?? 0) * 100;
+
+  const label = useRisk ? 'Risk per trade' : 'Trade size';
+  const primary = useRisk ? riskPctDisplay : allocation;
+  const subline = useRisk
+    ? allocation >= 100
+      ? 'of cash · uncapped'
+      : `of cash · cap ${allocation.toFixed(0)}%`
+    : 'of cash · direct';
+  const tooltip = useRisk
+    ? `Risk-based sizing: each trade risks ${riskPctDisplay.toFixed(2)}% of cash. ` +
+      `Position size is auto-derived from the stop distance and capped at ` +
+      `${allocation.toFixed(0)}% of cash.`
+    : `Direct allocation: each trade uses ${allocation.toFixed(1)}% of cash as the trade ` +
+      `notional. Stop loss runs inside the position. Switch to risk-based sizing in Edit params.`;
+  return (
+    <div title={tooltip}>
+      <div
+        style={{
+          fontSize: 10,
+          fontWeight: 600,
+          letterSpacing: '0.08em',
+          textTransform: 'uppercase',
+          color: 'var(--mm-ink-2)',
+        }}
+      >
+        {label}
+      </div>
+      <div
+        className="mm-num"
+        style={{
+          fontSize: 16,
+          color: useRisk ? 'var(--mm-mint)' : 'var(--mm-ink-0)',
+          marginTop: 2,
+          lineHeight: 1.1,
+        }}
+      >
+        {primary.toFixed(1)}%
+      </div>
+      <div
+        className="font-mono"
+        style={{
+          marginTop: 2,
+          fontSize: 9,
+          letterSpacing: '0.02em',
+          color: 'var(--mm-ink-3)',
+          whiteSpace: 'nowrap',
+        }}
+      >
+        {subline}
+      </div>
     </div>
   );
 }
@@ -469,7 +538,9 @@ function StatusToggle({
   disabled: boolean;
   onToggle: () => void;
 }) {
-  const isLive = status === 'LIVE';
+  // V66 — both LIVE and PAPER are "running" (orchestrator picks them up);
+  // clicking either should stop the row. Only STOPPED rows start.
+  const isRunning = status === 'LIVE' || status === 'PAPER';
   return (
     <button
       type="button"
@@ -480,8 +551,8 @@ function StatusToggle({
         onToggle();
       }}
       className="rounded transition-opacity hover:opacity-80 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-primary)] disabled:cursor-not-allowed disabled:opacity-50"
-      aria-label={isLive ? 'Stop strategy' : 'Start strategy'}
-      title={isLive ? 'Click to stop' : 'Click to start'}
+      aria-label={isRunning ? 'Stop strategy' : 'Start strategy'}
+      title={isRunning ? 'Click to stop' : 'Click to start'}
     >
       <StrategyStatusBadge status={status} />
     </button>
@@ -838,9 +909,9 @@ function PublicStrategiesSection({
       </header>
       <div className="space-y-5">
         {orderedIntervals.map((interval) => {
-          const sorted = (byInterval.get(interval) ?? []).slice().sort(
-            (a, b) => a.priorityOrder - b.priorityOrder,
-          );
+          const sorted = (byInterval.get(interval) ?? [])
+            .slice()
+            .sort((a, b) => a.priorityOrder - b.priorityOrder);
           return (
             <div key={`public::${interval}`} className="space-y-2">
               <div className="flex items-baseline gap-2 px-1">
@@ -910,6 +981,7 @@ export default function StrategiesPage() {
   const { data: strategies = [], isLoading, isError, refetch } = useAllVisibleStrategies();
   const { accounts, isAll, activeAccount, scopedAccountId } = useActiveAccount();
   const [isCreateOpen, setCreateOpen] = useState(false);
+  const [showActiveOnly, setShowActiveOnly] = useState(true);
   const [deleteTarget, setDeleteTarget] = useState<AccountStrategy | null>(null);
   const [cloneTarget, setCloneTarget] = useState<AccountStrategy | null>(null);
   const [rearmTarget, setRearmTarget] = useState<AccountStrategy | null>(null);
@@ -929,12 +1001,17 @@ export default function StrategiesPage() {
     ? strategies.filter((s) => s.ownedByCurrentUser && s.accountId === scopedAccountId)
     : strategies.filter((s) => s.ownedByCurrentUser);
   const publicStrategies = strategies.filter((s) => !s.ownedByCurrentUser);
-  const visibleStrategies = ownedStrategies; // backwards-compat for the empty-state check below
+  const filteredOwned = showActiveOnly
+    ? ownedStrategies.filter((s) => s.status === 'LIVE')
+    : ownedStrategies;
 
   // Count siblings per tuple so cards know when to render the
   // "Active preset / Activate" footer vs. a lone-preset card.
+  // Always count from ALL owned strategies, not the filtered view — otherwise
+  // active-only mode (max 1 LIVE per tuple) makes every count = 1 and the
+  // "Active preset" card footer is never rendered.
   const presetsByTuple = new Map<string, number>();
-  for (const s of visibleStrategies) {
+  for (const s of ownedStrategies) {
     const k = tupleKey(s);
     presetsByTuple.set(k, (presetsByTuple.get(k) ?? 0) + 1);
   }
@@ -1065,10 +1142,10 @@ export default function StrategiesPage() {
   };
 
   const headerSubtitle = isAll
-    ? `Live strategies across ${accounts.length} account${accounts.length === 1 ? '' : 's'}. Each tuple can hold multiple presets — one active at a time.`
+    ? `${showActiveOnly ? 'Active strategies' : 'All presets'} across ${accounts.length} account${accounts.length === 1 ? '' : 's'}. Each tuple can hold multiple presets — one active at a time.`
     : activeAccount
-      ? `Strategies on ${activeAccount.label}. Switch accounts in the top bar to see others.`
-      : 'Live strategies. Click any card to edit its parameters.';
+      ? `${showActiveOnly ? 'Active strategies' : 'All presets'} on ${activeAccount.label}. Switch accounts in the top bar to see others.`
+      : `${showActiveOnly ? 'Active strategies' : 'All presets'}. Click any card to edit its parameters.`;
 
   const canCreate = accounts.some((a) => a.active);
 
@@ -1079,16 +1156,30 @@ export default function StrategiesPage() {
         title="Strategies"
         description={headerSubtitle}
         actions={
-          <button
-            type="button"
-            onClick={() => setCreateOpen(true)}
-            disabled={!canCreate}
-            className="mm-btn mm-btn-mint whitespace-nowrap"
-            style={{ padding: '10px 18px', borderRadius: 9999, fontSize: 14 }}
-          >
-            <Plus size={14} strokeWidth={2.2} />
-            New Preset
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setShowActiveOnly((v) => !v)}
+              className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
+                showActiveOnly
+                  ? 'border-[var(--color-mint)] bg-[var(--color-mint)]/10 text-[var(--color-mint)]'
+                  : 'border-[var(--border-default)] bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]'
+              }`}
+            >
+              <Radio size={12} strokeWidth={2.2} className="shrink-0" />
+              {showActiveOnly ? 'Show all' : 'Active only'}
+            </button>
+            <button
+              type="button"
+              onClick={() => setCreateOpen(true)}
+              disabled={!canCreate}
+              className="mm-btn mm-btn-mint inline-flex items-center gap-1 whitespace-nowrap"
+              style={{ padding: '10px 18px', borderRadius: 9999, fontSize: 14 }}
+            >
+              <Plus size={14} strokeWidth={2.2} className="shrink-0" />
+              New Preset
+            </button>
+          </div>
         }
       />
 
@@ -1147,20 +1238,39 @@ export default function StrategiesPage() {
         />
       ) : (
         <>
-          {ownedStrategies.length === 0 ? (
+          {filteredOwned.length === 0 ? (
             <EmptyState
               icon={Zap}
               title={
-                isAll
-                  ? 'No strategies of your own yet'
-                  : `No strategies on ${activeAccount?.label ?? 'this account'}`
+                showActiveOnly && ownedStrategies.length > 0
+                  ? 'No active strategies'
+                  : isAll
+                    ? 'No strategies of your own yet'
+                    : `No strategies on ${activeAccount?.label ?? 'this account'}`
               }
-              description="Browse the public catalogue below and clone one to get started."
+              description={
+                showActiveOnly && ownedStrategies.length > 0
+                  ? `${ownedStrategies.length} preset${ownedStrategies.length === 1 ? '' : 's'} exist but none are active — toggle "All presets" to see them.`
+                  : publicStrategies.length > 0
+                    ? 'Browse the public catalogue below and clone one to get started.'
+                    : 'Create a preset to get started.'
+              }
+              action={
+                showActiveOnly && ownedStrategies.length > 0 ? (
+                  <button
+                    type="button"
+                    onClick={() => setShowActiveOnly(false)}
+                    className="rounded-md border border-[var(--border-default)] bg-[var(--bg-elevated)] px-3 py-1.5 text-xs text-[var(--text-primary)] transition-colors hover:bg-[var(--bg-hover)]"
+                  >
+                    Show all presets
+                  </button>
+                ) : undefined
+              }
             />
           ) : (
             <AccountsAndIntervalsView
               accounts={accounts}
-              strategies={ownedStrategies}
+              strategies={filteredOwned}
               presetsByTuple={presetsByTuple}
               showAccountHeaders={isAll && accounts.length > 1}
               onDelete={setDeleteTarget}

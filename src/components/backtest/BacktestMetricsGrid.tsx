@@ -134,6 +134,50 @@ const HELP = {
       </p>
     </>
   ),
+  avgTradeReturn: (
+    <>
+      <p>
+        Mean of per-trade return rate{' '}
+        <span className="font-mono">(pnl ÷ notional × 100)</span>. Answers
+        &ldquo;average edge per trade&rdquo; — independent of how much
+        equity was actually risked.
+      </p>
+      <p className="mt-1.5 text-text-muted">
+        Compare to Total Return: when the bet size is small (e.g.
+        risk-based sizing), Total Return can look tiny even though the
+        edge is strong. This number doesn&apos;t care about sizing.
+      </p>
+    </>
+  ),
+  avgRiskReward: (
+    <>
+      <p>
+        <span className="font-mono">avg winning trade ÷ |avg losing trade|</span>.
+        How many average losers a single average winner pays for.
+      </p>
+      <p className="mt-1.5 text-text-muted">
+        1.0 means wins and losses are equal size — need &gt;50% win rate
+        to profit. 2.0+ means a single winner covers two average losers,
+        so a sub-50% win rate can still be profitable. Pair with Win Rate
+        to spot trend-follow (low WR, high R:R) vs mean-revert (high WR,
+        low R:R) profiles. &ldquo;∞&rdquo; means no losing trades.
+      </p>
+    </>
+  ),
+  geomReturn90: (
+    <>
+      <p>
+        Compounded return assuming every trade had been sized at 90% of
+        equity. The geometric equivalent of stacking the per-trade
+        returns; order-sensitive.
+      </p>
+      <p className="mt-1.5 text-text-muted">
+        Read as &ldquo;what would this strategy have made on an aggressive
+        bankroll&rdquo;. Pair with Max Drawdown — same sizing also
+        amplifies losses. A single −100%+ step clamps this to −100% (ruin).
+      </p>
+    </>
+  ),
 };
 
 export function BacktestMetricsGrid({ metrics, isLoading }: BacktestMetricsGridProps) {
@@ -141,6 +185,27 @@ export function BacktestMetricsGrid({ metrics, isLoading }: BacktestMetricsGridP
   const formatCurrency = useCurrencyFormatter();
   const totalReturnColor = m == null ? 'neutral' : m.totalReturn >= 0 ? 'profit' : 'loss';
   const totalReturnPctPrefix = m && m.totalReturnPct >= 0 ? '+' : '';
+
+  // Risk:reward — avg win ÷ |avg loss|. Three states: null (no data), '∞'
+  // (winners but no losers — same convention as ProfitFactor's null = ∞), or
+  // a numeric ratio. `Math.abs` defends against either sign convention coming
+  // through avgLossUsdt.
+  const avgWin = m?.avgWinUsdt ?? null;
+  const avgLossAbs = m?.avgLossUsdt == null ? null : Math.abs(m.avgLossUsdt);
+  const rrrInfinite =
+    avgWin != null && avgWin > 0 && (avgLossAbs == null || avgLossAbs === 0);
+  const rrr =
+    avgWin != null && avgLossAbs != null && avgLossAbs > 0 ? avgWin / avgLossAbs : null;
+  const rrrTone =
+    avgWin == null && avgLossAbs == null
+      ? 'neutral'
+      : rrrInfinite
+        ? 'profit'
+        : rrr == null
+          ? 'neutral'
+          : rrr >= 1
+            ? 'profit'
+            : 'loss';
 
   return (
     <div className="grid grid-cols-2 gap-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-4">
@@ -225,11 +290,61 @@ export function BacktestMetricsGrid({ metrics, isLoading }: BacktestMetricsGridP
         help={HELP.avgWinLoss}
       />
       <StatCard
+        label="Avg R:R"
+        isLoading={isLoading}
+        value={rrrInfinite ? '∞' : rrr != null ? formatNum(rrr) : '—'}
+        valueColor={rrrTone}
+        sub="reward ÷ risk"
+        help={HELP.avgRiskReward}
+      />
+      <StatCard
         label="Total Trades"
         isLoading={isLoading}
         value={m ? String(m.totalTrades) : '—'}
         valueColor="neutral"
         help={HELP.totalTrades}
+      />
+      <StatCard
+        label="Avg Trade Return"
+        isLoading={isLoading}
+        value={
+          m?.avgTradeReturnPct != null
+            ? `${m.avgTradeReturnPct >= 0 ? '+' : ''}${formatNum(m.avgTradeReturnPct, 3)}%`
+            : '—'
+        }
+        valueColor={
+          m?.avgTradeReturnPct == null
+            ? 'neutral'
+            : m.avgTradeReturnPct >= 0
+            ? 'profit'
+            : 'loss'
+        }
+        sub="per-trade · sizing-independent"
+        help={HELP.avgTradeReturn}
+      />
+      <StatCard
+        label="Geom. Return @ 90%"
+        isLoading={isLoading}
+        value={
+          m?.geometricReturnPctAtAlloc90 != null
+            ? `${m.geometricReturnPctAtAlloc90 >= 0 ? '+' : ''}${formatNum(m.geometricReturnPctAtAlloc90, 2)}%`
+            : '—'
+        }
+        valueColor={
+          m?.geometricReturnPctAtAlloc90 == null
+            ? 'neutral'
+            : m.geometricReturnPctAtAlloc90 <= -100
+            ? 'loss'
+            : m.geometricReturnPctAtAlloc90 >= 0
+            ? 'profit'
+            : 'loss'
+        }
+        sub={
+          m?.geometricReturnPctAtAlloc90 != null && m.geometricReturnPctAtAlloc90 <= -100
+            ? 'ruin'
+            : 'compound @ 90% alloc'
+        }
+        help={HELP.geomReturn90}
       />
     </div>
   );

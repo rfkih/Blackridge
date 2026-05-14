@@ -28,6 +28,11 @@ export interface BackendBacktestRunMetrics {
   totalTrades: number | null;
   winningTrades: number | null;
   losingTrades: number | null;
+  /** V60 — mean per-trade return rate (pnl / notional × 100). Sizing-
+   *  independent companion to totalReturnPct. */
+  avgTradeReturnPct?: number | null;
+  /** V60 — compounded return assuming 90% of equity sized per trade. */
+  geometricReturnPctAtAlloc90?: number | null;
 }
 
 /**
@@ -69,6 +74,17 @@ export interface BackendBacktestRun {
   allowShort?: boolean | null;
   maxConcurrentStrategies?: number | null;
   strategyAllocations?: Record<string, number | string> | null;
+  /** V57 — per-strategy risk-pct override map. Fractional scale (0 < x ≤ 0.20). */
+  strategyRiskPcts?: Record<string, number | string> | null;
+  /** V58 — per-strategy direction overrides. Wizard-supplied for research. */
+  strategyAllowLong?: Record<string, boolean> | null;
+  strategyAllowShort?: Record<string, boolean> | null;
+  /** V62 — per-strategy risk-gate overrides. Wizard-supplied; missing on
+   *  pre-V62 cached responses, treated as "no overrides". */
+  strategyKillSwitchOverrides?: Record<string, boolean> | null;
+  strategyRegimeOverrides?: Record<string, boolean> | null;
+  strategyCorrelationOverrides?: Record<string, boolean> | null;
+  strategyConcurrentCapOverrides?: Record<string, boolean> | null;
   strategyIntervals?: Record<string, string> | null;
   /** Flat funding-rate stub (basis points per 8h). Null on legacy runs. */
   fundingRateBpsPer8h?: number | string | null;
@@ -91,6 +107,9 @@ export interface BackendBacktestRun {
   totalWins?: number | null;
   totalLosses?: number | null;
   maxDrawdownPct?: number | string | null;
+  /** V60 — flat legacy alias (BacktestRunResponse) for the two new metrics. */
+  avgTradeReturnPct?: number | string | null;
+  geometricReturnPctAtAlloc90?: number | string | null;
 }
 
 /**
@@ -114,6 +133,13 @@ export interface BacktestMetrics {
   totalTrades: number;
   winningTrades: number;
   losingTrades: number;
+  /** V60 — Mean per-trade return rate (pnl / notional × 100). Sizing-
+   *  independent edge per trade. Null on legacy runs pre-V60. */
+  avgTradeReturnPct: number | null;
+  /** V60 — Compounded return assuming every trade had been sized at 90% of
+   *  equity, in percent. Order-sensitive; clamps to ruin (-100%) on any
+   *  -100%+ step. Null on legacy runs pre-V60. */
+  geometricReturnPctAtAlloc90: number | null;
 }
 
 export interface BacktestEquityPoint {
@@ -205,6 +231,16 @@ export interface BacktestRun {
   allowShort: boolean | null;
   maxConcurrentStrategies: number | null;
   strategyAllocations: Record<string, number> | null;
+  /** V57 — per-strategy risk-pct override map. Fractional scale. */
+  strategyRiskPcts: Record<string, number> | null;
+  /** V58 — per-strategy direction overrides (research). Null on legacy runs. */
+  strategyAllowLong: Record<string, boolean> | null;
+  strategyAllowShort: Record<string, boolean> | null;
+  /** V62 — per-strategy risk-gate overrides (research). Null on legacy runs. */
+  strategyKillSwitchOverrides: Record<string, boolean> | null;
+  strategyRegimeOverrides: Record<string, boolean> | null;
+  strategyCorrelationOverrides: Record<string, boolean> | null;
+  strategyConcurrentCapOverrides: Record<string, boolean> | null;
   strategyIntervals: Record<string, string> | null;
   /** Flat funding-rate stub captured at submit (bps per 8h). Null on
    *  legacy runs that pre-date V22. */
@@ -251,6 +287,26 @@ export interface BacktestRunPayload {
    *  Key = strategy code, value = allocation % (0–100). Strategies missing
    *  from the map fall back to account_strategy.capital_allocation_pct. */
   strategyAllocations?: Record<string, number>;
+  /** V57 — per-strategy risk-pct override for this run only. Fractional
+   *  scale (0 < x ≤ 0.20). Setting a value implicitly forces risk-based
+   *  sizing on for that strategy in this run. Missing keys fall back to
+   *  account_strategy.risk_pct (and the persisted toggle). */
+  strategyRiskPcts?: Record<string, number>;
+  /** V58 — per-strategy allowLong / allowShort override for this run only.
+   *  Lets the operator research a different direction policy without
+   *  flipping the live account_strategy. Missing keys fall back to the
+   *  bound AS's flag (the V58 default). */
+  strategyAllowLong?: Record<string, boolean>;
+  strategyAllowShort?: Record<string, boolean>;
+  /** V62 — per-strategy risk-gate override maps. Each is keyed by strategy
+   *  code → boolean (true = force on, false = force off). Missing key =
+   *  use the bound account_strategy's persisted toggle. The four gates
+   *  evaluate identically in live and backtest, so the override applies
+   *  to whichever path the run targets. */
+  strategyKillSwitchOverrides?: Record<string, boolean>;
+  strategyRegimeOverrides?: Record<string, boolean>;
+  strategyCorrelationOverrides?: Record<string, boolean>;
+  strategyConcurrentCapOverrides?: Record<string, boolean>;
   /** Phase B2 — per-strategy interval override for multi-timeframe runs.
    *  Key = strategy code, value = interval string (e.g. "15m"). When set,
    *  each strategy fires on its own timeframe's bar closes. When omitted,
@@ -272,6 +328,17 @@ export interface BacktestWizardConfig {
   maxConcurrentStrategies?: number;
   /** Phase A — per-strategy capital allocation override (% on 0-100 scale). */
   strategyAllocations?: Record<string, number>;
+  /** V57 — per-strategy risk-pct override (fractional, e.g. {"LSR": 0.03}). */
+  strategyRiskPcts?: Record<string, number>;
+  /** V58 — per-strategy direction overrides for research runs. */
+  strategyAllowLong?: Record<string, boolean>;
+  strategyAllowShort?: Record<string, boolean>;
+  /** V62 — per-strategy risk-gate overrides for research runs. Each map is
+   *  strategy code → boolean. Missing key = use persisted toggle. */
+  strategyKillSwitchOverrides?: Record<string, boolean>;
+  strategyRegimeOverrides?: Record<string, boolean>;
+  strategyCorrelationOverrides?: Record<string, boolean>;
+  strategyConcurrentCapOverrides?: Record<string, boolean>;
   /** Phase B2 — per-strategy interval override (e.g. {"LSR": "15m", "VCB": "1h"}). */
   strategyIntervals?: Record<string, string>;
   /** Phase B2 wizard-only mode. 'multi' auto-fills strategyIntervals

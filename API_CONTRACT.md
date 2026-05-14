@@ -348,7 +348,7 @@ Protected. Returns every account owned by the authenticated user — used by the
     "accountId": "uuid",
     "userId": "uuid",
     "username": "mainnet-1",
-    "exchange": "BIN",
+    "exchange": "BNC",
     "isActive": "Y",
     "createdTime": "2026-01-12T09:41:00"
   }

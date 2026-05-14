@@ -32,8 +32,7 @@ interface EditAccountDialogProps {
 }
 
 const EXCHANGE_OPTIONS = [
-  { value: 'BIN', label: 'Binance Spot' },
-  { value: 'BIF', label: 'Binance Futures (USD-M)' },
+  { value: 'BNC', label: 'Binance Spot' },
 ];
 
 const USERNAME_PATTERN = /^[A-Za-z0-9 _-]+$/;
@@ -84,14 +83,14 @@ export function EditAccountDialog({ account, open, onOpenChange }: EditAccountDi
         },
       },
       {
-        onSuccess: (next) => {
+        onSuccess: (next: AccountSummary) => {
           toast.success({
             title: 'Account updated',
             description: `${next.label} · ${next.exchange}`,
           });
           onOpenChange(false);
         },
-        onError: (err) => setSubmitError(normalizeError(err)),
+        onError: (err: unknown) => setSubmitError(normalizeError(err)),
       },
     );
   };
@@ -111,8 +110,8 @@ export function EditAccountDialog({ account, open, onOpenChange }: EditAccountDi
             <DialogTitle className="font-display text-lg">Edit account</DialogTitle>
           </div>
           <DialogDescription className="text-[var(--text-secondary)]">
-            Rename the label or change the exchange. To rotate credentials, use the dedicated
-            rotate button.
+            Rename the label or change the exchange. To rotate credentials, use the dedicated rotate
+            button.
           </DialogDescription>
         </DialogHeader>
 

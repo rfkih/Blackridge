@@ -27,6 +27,48 @@ export const STRATEGY_CODES = [
 ] as const;
 export type StrategyCode = (typeof STRATEGY_CODES)[number];
 
+/**
+ * V56 — sizing config (`useRiskBasedSizing` + `riskPct`) is now read from
+ * `account_strategy` for every strategy class. Pre-V56 spec-driven engines
+ * (DCB / MMR / MRO / TPR) carried their own risk config inside spec body
+ * params; that hook stayed compiled in but became inert when the engines
+ * routed through `StrategyHelper.calculateLongEntryNotional` /
+ * `calculateShortEntryQty`.
+ *
+ * <p>This helper now returns {@code true} unconditionally, kept as a single
+ * call-site so a future strategy that genuinely doesn't expose sizing config
+ * (e.g. an external broker bridge) can opt out without re-touching every
+ * caller. Existing callers stay correct.
+ */
+export function strategyControlsRiskSizing(_strategyCode: string): boolean {
+  return true;
+}
+
+/**
+ * Canonical per-strategy sizing dropdown options. Shared by:
+ *  - `BacktestConfigForm` per-strategy allocation/risk override pickers
+ *  - `PositionSizingPanel` on the strategy detail page
+ * Keep these two lists as the single source of truth so the dropdowns stay
+ * unified across the project — changing one list updates every call-site.
+ *
+ * ALLOC = capital allocation %, integer-ish whole-percent grid. Capped at
+ *         90% intentionally — full 100% commitment to a single strategy
+ *         leaves no headroom for fees, slippage, or the second concurrent
+ *         entry the executor may queue on the same bar. Backend still
+ *         accepts up to 100 for back-compat with legacy rows.
+ * RISK  = risk per trade, expressed as a % (UI scale). Persisted as the
+ *         fractional `riskPct` on `account_strategy`, so callers divide by
+ *         100 before writing.
+ */
+export const ALLOC_OPTIONS = [5, 10, 15, 20, 25, 30, 33, 40, 50, 60, 70, 80, 90] as const;
+export const RISK_OPTIONS = [0.25, 0.5, 0.75, 1, 1.5, 2, 3, 5, 10] as const;
+/**
+ * Max allocation % accepted by the frontend's per-strategy / new-strategy
+ * forms. Mirrors {@link ALLOC_OPTIONS}'s ceiling and is used by every
+ * input-validation site so all UI paths share the same cap.
+ */
+export const ALLOC_MAX_PCT = 90;
+
 export const QUERY_STALE_TIMES = {
   openPositions: 0,
   closedTrades: 30_000,

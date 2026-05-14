@@ -69,7 +69,7 @@ export function StrategyParamPresetsPanel({ accountStrategyId }: Props) {
           </p>
         </div>
         <Button size="sm" variant="default" className="shrink-0 whitespace-nowrap" onClick={() => setCreateOpen(true)}>
-          <Plus size={14} className="mr-1" />
+          <Plus size={14} className="mr-1 shrink-0" />
           New preset
         </Button>
       </div>

@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Loader2, Play, AlertTriangle, HelpCircle } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Clock, Loader2, Play, AlertTriangle, HelpCircle } from 'lucide-react';
 import {
   Tooltip,
   TooltipContent,
@@ -26,7 +26,7 @@ import {
   useReplaceVcbParams,
   useReplaceVboParams,
 } from '@/hooks/useStrategies';
-import { useCreateBacktestRun } from '@/hooks/useBacktest';
+import { useActiveBacktestCount, useCreateBacktestRun } from '@/hooks/useBacktest';
 import { useBacktestParamStore } from '@/store/backtestParamStore';
 import { buildBacktestPayload } from '@/lib/backtest/buildBacktestPayload';
 import { normalizeError } from '@/lib/api/client';
@@ -197,6 +197,8 @@ export function BacktestParamTuner() {
   }, [totalOverrides]);
 
   const createMutation = useCreateBacktestRun();
+  const { count: activeBacktestCount, isLoading: activeCountLoading, firstActiveId } = useActiveBacktestCount();
+  const isAtLimit = activeBacktestCount > 0;
   const lsrSaveMutation = useReplaceLsrParams(
     isLsr(activeTab) ? config?.strategyAccountStrategyIds[activeTab] : undefined,
   );
@@ -246,10 +248,18 @@ export function BacktestParamTuner() {
       router.push(`/backtest/${run.id}`);
       resetWizard();
     } catch (err) {
-      toast.error({
-        title: 'Could not submit backtest',
-        description: normalizeError(err),
-      });
+      const is429 =
+        err != null &&
+        typeof err === 'object' &&
+        (err as { response?: { status?: number } }).response?.status === 429;
+      // Skip the toast for 429 — the warning bar already shows the "slot in
+      // use" message and surfacing both creates a confusing double-message.
+      if (!is429) {
+        toast.error({
+          title: 'Could not submit backtest',
+          description: normalizeError(err),
+        });
+      }
     }
   }, [
     config,
@@ -427,42 +437,68 @@ export function BacktestParamTuner() {
       </div>
 
       {/* Footer — Run submit */}
-      <footer className="flex items-center justify-between gap-3 rounded-xl border border-bd-subtle bg-bg-surface px-4 py-3">
-        <div className="flex items-center gap-2 text-[11px] text-text-muted">
-          <span className="label-caps">Total</span>
-          <span className="num text-text-primary">
-            {totalOverrides} override{totalOverrides === 1 ? '' : 's'}
-          </span>
-          <span className="text-text-muted">across {strategyCodes.length} strategy</span>
-          <span className="label-caps ml-4">Shortcut</span>
-          <kbd className="rounded-sm border border-bd-subtle bg-bg-base px-1.5 py-px font-mono text-[9px]">
-            ⌘/Ctrl + ↵
-          </kbd>
-        </div>
+      <footer className="flex flex-col gap-2 rounded-xl border border-bd-subtle bg-bg-surface px-4 py-3">
+        {isAtLimit && (
+          <div className="flex items-center justify-between gap-3 rounded-sm border border-[rgba(245,158,11,0.3)] bg-tint-warning px-3 py-2 text-[11px] text-warning">
+            <div className="flex items-center gap-2">
+              <Clock size={12} strokeWidth={2} className="shrink-0" />
+              <span>
+                A backtest is already running or queued — submit is blocked until that slot frees up.
+              </span>
+            </div>
+            {firstActiveId && (
+              <button
+                type="button"
+                onClick={() => router.push(`/backtest/${firstActiveId}`)}
+                className="inline-flex shrink-0 items-center gap-1 font-semibold underline-offset-2 hover:underline"
+              >
+                View run <ArrowRight size={11} strokeWidth={2} />
+              </button>
+            )}
+          </div>
+        )}
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2 text-[11px] text-text-muted">
+            <span className="label-caps">Total</span>
+            <span className="num text-text-primary">
+              {totalOverrides} override{totalOverrides === 1 ? '' : 's'}
+            </span>
+            <span className="text-text-muted">across {strategyCodes.length} strategy</span>
+            <span className="label-caps ml-4">Shortcut</span>
+            <kbd className="rounded-sm border border-bd-subtle bg-bg-base px-1.5 py-px font-mono text-[9px]">
+              ⌘/Ctrl + ↵
+            </kbd>
+          </div>
 
-        <button
-          type="button"
-          onClick={handleRun}
-          disabled={createMutation.isPending || defaultsLoading}
-          className={cn(
-            'inline-flex items-center gap-1.5 rounded-sm bg-profit px-4 py-2 text-[12px] font-semibold text-text-inverse',
-            'transition-opacity duration-fast hover:opacity-90',
-            'focus:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-            'disabled:cursor-not-allowed disabled:opacity-50',
-          )}
-        >
-          {createMutation.isPending ? (
-            <>
-              <Loader2 size={14} strokeWidth={2} className="animate-spin" />
-              Submitting…
-            </>
-          ) : (
-            <>
-              <Play size={13} strokeWidth={2} />
-              Run Backtest
-            </>
-          )}
-        </button>
+          <button
+            type="button"
+            onClick={handleRun}
+            disabled={createMutation.isPending || defaultsLoading || isAtLimit || activeCountLoading}
+            className={cn(
+              'inline-flex items-center gap-1.5 rounded-sm bg-profit px-4 py-2 text-[12px] font-semibold text-text-inverse',
+              'transition-opacity duration-fast hover:opacity-90',
+              'focus:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+              'disabled:cursor-not-allowed disabled:opacity-50',
+            )}
+          >
+            {createMutation.isPending ? (
+              <>
+                <Loader2 size={14} strokeWidth={2} className="animate-spin" />
+                Submitting…
+              </>
+            ) : activeCountLoading ? (
+              <>
+                <Loader2 size={14} strokeWidth={2} className="animate-spin" />
+                Checking…
+              </>
+            ) : (
+              <>
+                <Play size={13} strokeWidth={2} />
+                Run Backtest
+              </>
+            )}
+          </button>
+        </div>
       </footer>
     </div>
   );

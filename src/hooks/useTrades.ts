@@ -1,7 +1,8 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
+  closeTrade,
   getOpenTrades,
   getTradeAnomalies,
   getTradeAttribution,
@@ -73,6 +74,23 @@ export function useTrade(id: string | undefined) {
     queryFn: () => getTradeById(id as string),
     enabled: Boolean(id),
     staleTime: QUERY_STALE_TIMES.closedTrades,
+  });
+}
+
+/**
+ * Manually close every open position on a trade. Used by the "Close trade"
+ * button on the trade detail page. Refreshes the detail query and the open
+ * trades list so the dashboard repaints once the close lands.
+ */
+export function useCloseTrade() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (tradeId: string) => closeTrade(tradeId),
+    onSuccess: (trade) => {
+      queryClient.setQueryData(['trades', 'detail', trade.id], trade);
+      queryClient.invalidateQueries({ queryKey: ['trades', 'open'] });
+      queryClient.invalidateQueries({ queryKey: ['trades', 'list'] });
+    },
   });
 }
 

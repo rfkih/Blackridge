@@ -3,6 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   getDefinitionState,
+  promoteAccountStrategy,
   promoteDefinition,
   searchRecentPromotions,
   type PromoteRequest,
@@ -30,6 +31,27 @@ export function useSearchRecentPromotions(q: RecentPromotionsQuery) {
     refetchInterval: 30_000,
     staleTime: 15_000,
     placeholderData: (prev) => prev,
+  });
+}
+
+// ── account-scope (V15) ───────────────────────────────────────────────────
+
+/**
+ * Account-scope promote/demote — used by the strategy detail page's mode
+ * toggle (PAPER ↔ LIVE). Invalidates the strategies list + the per-strategy
+ * detail query + the cross-strategy recent promotions feed so every surface
+ * picks up the new simulated/enabled state.
+ */
+export function useAccountStrategyPromote() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ accountStrategyId, ...body }: PromoteRequest & { accountStrategyId: string }) =>
+      promoteAccountStrategy(accountStrategyId, body),
+    onSuccess: (_data, vars) => {
+      queryClient.invalidateQueries({ queryKey: RECENT_KEY });
+      queryClient.invalidateQueries({ queryKey: ['strategies'] });
+      queryClient.invalidateQueries({ queryKey: ['strategy', vars.accountStrategyId] });
+    },
   });
 }
 

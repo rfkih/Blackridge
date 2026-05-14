@@ -3,12 +3,14 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
+  activateBacktestStrategy,
   createBacktestRun,
   getBacktestCandles,
   getBacktestEquityPoints,
   getBacktestRun,
   getBacktestTrades,
   listBacktestRuns,
+  type ActivateStrategyPayload,
   type BacktestListFilters,
 } from '@/lib/api/backtest';
 import { QUERY_STALE_TIMES } from '@/lib/constants';
@@ -123,6 +125,51 @@ export function useCreateBacktestRun() {
       queryClient.invalidateQueries({ queryKey: ['backtest-runs'] });
     },
   });
+}
+
+export function useActivateBacktestStrategy(runId: string | undefined) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: ActivateStrategyPayload) => {
+      if (!runId) throw new Error('runId is required');
+      return activateBacktestStrategy(runId, payload);
+    },
+    onSuccess: (strategy) => {
+      // Refresh the account strategies list so the newly-enabled strategy
+      // shows up immediately in the Strategies page without a manual reload.
+      queryClient.invalidateQueries({ queryKey: ['strategies'] });
+      queryClient.invalidateQueries({ queryKey: ['strategy', strategy.id] });
+    },
+  });
+}
+
+/**
+ * Returns the count + loading state of the caller's PENDING or RUNNING
+ * backtests, plus the id of the first active run for a "View run →" link.
+ *
+ * `isLoading` is true while either query is still in its initial fetch —
+ * callers should disable the submit button during this window to prevent a
+ * race where count is 0 before the data arrives, the user clicks, gets a
+ * 429, and then the warning bar appears a beat later (double-message bug).
+ */
+export function useActiveBacktestCount(): {
+  count: number;
+  isLoading: boolean;
+  firstActiveId: string | null;
+} {
+  // triggeredBy: 'USER' scopes both totals to the caller's own runs.
+  // Without it, the backend visibility rule (user_id = :me OR triggered_by = 'RESEARCHER')
+  // includes all RESEARCHER runs in the total — a researcher run in flight would
+  // disable the submit button for every regular user even though they have a free slot.
+  const pendingQ = useBacktestRuns({ status: 'PENDING', size: 1, triggeredBy: 'USER' });
+  const runningQ = useBacktestRuns({ status: 'RUNNING', size: 1, triggeredBy: 'USER' });
+  return {
+    count: (pendingQ.data?.total ?? 0) + (runningQ.data?.total ?? 0),
+    isLoading: pendingQ.isLoading || runningQ.isLoading,
+    // Prefer the RUNNING run for the link — it's the one the user cares about.
+    firstActiveId:
+      runningQ.data?.content[0]?.id ?? pendingQ.data?.content[0]?.id ?? null,
+  };
 }
 
 /**

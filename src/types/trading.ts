@@ -82,6 +82,13 @@ export interface PnlSummary {
   tradeCount: number;
   winRate: number;
   openCount?: number;
+  /** V60 — mean per-trade return rate (pnl / notional × 100). Null when no
+   *  closed trades in the window. Sizing-independent: shows the edge
+   *  per trade regardless of how small a notional was actually placed. */
+  avgTradeReturnPct?: number | null;
+  /** V60 — compounded return assuming every trade had been sized at 90% of
+   *  equity, in percent. Null when no closed trades in the window. */
+  geometricReturnPctAtAlloc90?: number | null;
 }
 
 /**

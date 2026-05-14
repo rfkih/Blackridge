@@ -4,7 +4,7 @@ import { useCallback, useMemo, useState } from 'react';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
-import { AlertCircle, ArrowLeft, PlayCircle, RefreshCw } from 'lucide-react';
+import { AlertCircle, ArrowLeft, ExternalLink, PlayCircle, RefreshCw, Scale, Zap } from 'lucide-react';
 import { format } from 'date-fns';
 import { StrategyBadge } from '@/components/trading/StrategyBadge';
 import { RunSourceBadge } from '@/components/backtest/RunSourceBadge';
@@ -15,6 +15,7 @@ import { BacktestTradeTable } from '@/components/backtest/BacktestTradeTable';
 import { FundingRatePanel } from '@/components/backtest/FundingRatePanel';
 import { AnalysisCard } from '@/components/research/AnalysisCard';
 import { ErrorBoundary } from '@/components/shared/ErrorBoundary';
+import { BacktestActivateStrategyDialog } from '@/components/backtest/BacktestActivateStrategyDialog';
 import {
   useBacktestCandles,
   useBacktestEquityPoints,
@@ -22,9 +23,11 @@ import {
   useBacktestRun,
   useBacktestTrades,
 } from '@/hooks/useBacktest';
+import { useAccountStrategies } from '@/hooks/useStrategies';
 import { useBacktestParamStore } from '@/store/backtestParamStore';
 import { cn } from '@/lib/utils';
 import type { BacktestEquityPoint, BacktestRun, BacktestTrade } from '@/types/backtest';
+import type { AccountStrategy } from '@/types/strategy';
 import { BacktestProgressBar } from '@/components/backtest/BacktestProgressBar';
 import type { CandleData } from '@/types/market';
 
@@ -75,6 +78,23 @@ export default function BacktestResultPage({ params }: { params: { id: string } 
   // marker set — otherwise arrows would have no matching row.
   const [filteredTrades, setFilteredTrades] = useState<BacktestTrade[] | null>(null);
 
+  const [activateDialogOpen, setActivateDialogOpen] = useState(false);
+
+  // useAccountStrategies shares a query key with the /strategies page so the
+  // React Query cache makes this a no-cost read when the user has visited that
+  // page in the same session. The hook doesn't support an `enabled` prop, so
+  // we gate the actual computation on COMPLETED status instead.
+  const { data: strategies = [] } = useAccountStrategies();
+
+  // Determine whether this run was submitted from (or references) a currently-live
+  // account strategy. When true: hide "Activate as Strategy" — the user already
+  // has an active strategy and shouldn't create a duplicate preset.
+  const liveSourceStrategies = useMemo(() => {
+    if (!runQ.data || runQ.data.status !== 'COMPLETED' || !strategies.length) return [];
+    const boundIds = new Set(Object.values(runQ.data.strategyAccountStrategyIds ?? {}));
+    return strategies.filter((s) => boundIds.has(s.id) && s.status === 'LIVE');
+  }, [runQ.data, strategies]);
+
   const handleChartSelect = useCallback((tradeId: string | null) => {
     setSelectedTradeId(tradeId);
     setTableScrollTrigger((t) => t + 1);
@@ -120,6 +140,16 @@ export default function BacktestResultPage({ params }: { params: { id: string } 
         allowShort: run.allowShort ?? false,
         maxConcurrentStrategies: run.maxConcurrentStrategies ?? undefined,
         strategyAllocations: run.strategyAllocations ?? undefined,
+        strategyRiskPcts: run.strategyRiskPcts ?? undefined,
+        strategyAllowLong: run.strategyAllowLong ?? undefined,
+        strategyAllowShort: run.strategyAllowShort ?? undefined,
+        // V62 — re-run with the original run's gate overrides so the replay
+        // matches the recorded behaviour. Null on legacy runs → undefined so
+        // the wizard's reducer treats those as "no overrides".
+        strategyKillSwitchOverrides: run.strategyKillSwitchOverrides ?? undefined,
+        strategyRegimeOverrides: run.strategyRegimeOverrides ?? undefined,
+        strategyCorrelationOverrides: run.strategyCorrelationOverrides ?? undefined,
+        strategyConcurrentCapOverrides: run.strategyConcurrentCapOverrides ?? undefined,
         strategyIntervals: run.strategyIntervals ?? undefined,
         evaluationMode: run.strategyIntervals ? 'multi' : 'single',
       },
@@ -166,9 +196,30 @@ export default function BacktestResultPage({ params }: { params: { id: string } 
 
   return (
     <div className="space-y-6">
-      <ResultHeader run={runQ.data} isLoading={runQ.isLoading} onRerun={handleRerun} />
+      <ResultHeader
+        run={runQ.data}
+        isLoading={runQ.isLoading}
+        onRerun={handleRerun}
+        onActivate={() => setActivateDialogOpen(true)}
+        liveSourceStrategies={liveSourceStrategies}
+      />
+
+      {/* Dialog: never mount for runs whose bound strategy is already live —
+          creating a second preset would duplicate an active configuration. */}
+      {liveSourceStrategies.length === 0 &&
+        runQ.data &&
+        runQ.data.status === 'COMPLETED' &&
+        activateDialogOpen && (
+          <BacktestActivateStrategyDialog
+            run={runQ.data}
+            open={activateDialogOpen}
+            onClose={() => setActivateDialogOpen(false)}
+          />
+        )}
 
       {runQ.data && <BacktestProgressBar run={runQ.data} />}
+
+      {runQ.data && <RunConfigPanel run={runQ.data} />}
 
       <BacktestMetricsGrid metrics={runQ.data?.metrics ?? null} isLoading={runQ.isLoading} />
 
@@ -281,9 +332,11 @@ interface ResultHeaderProps {
   run: BacktestRun | undefined;
   isLoading: boolean;
   onRerun: () => void;
+  onActivate: () => void;
+  liveSourceStrategies: AccountStrategy[];
 }
 
-function ResultHeader({ run, isLoading, onRerun }: ResultHeaderProps) {
+function ResultHeader({ run, isLoading, onRerun, onActivate, liveSourceStrategies }: ResultHeaderProps) {
   const codes = useMemo(
     () =>
       (run?.strategyCode ?? '')
@@ -342,17 +395,158 @@ function ResultHeader({ run, isLoading, onRerun }: ResultHeaderProps) {
           )}
         </div>
       </div>
-      <button
-        type="button"
-        onClick={onRerun}
-        disabled={!run}
-        className={cn('mm-btn', 'disabled:cursor-not-allowed disabled:opacity-60')}
-        style={{ borderRadius: 9999, padding: '9px 16px', fontSize: 13 }}
-      >
-        <PlayCircle size={14} strokeWidth={2} />
-        Re-run with these params
-      </button>
+      <div className="flex shrink-0 flex-wrap items-center gap-2">
+        {run?.status === 'COMPLETED' && (
+          liveSourceStrategies.length > 0 ? (
+            /* Run is already bound to a live strategy — guide the user there
+               instead of letting them create a duplicate preset. */
+            <div className="inline-flex items-center gap-2 rounded-full border border-[var(--color-profit)]/30 bg-[var(--color-profit)]/5 px-3 py-2">
+              <Zap size={13} strokeWidth={2} className="shrink-0 text-[var(--color-profit)]/70" />
+              <span className="text-[12px] text-[var(--text-secondary)]">Active strategy</span>
+              <span className="h-3 w-px bg-[var(--border-subtle)]" aria-hidden />
+              <Link
+                href={`/strategies/${liveSourceStrategies[0].id}`}
+                className="inline-flex items-center gap-1 font-mono text-[12px] text-[var(--color-profit)] hover:underline"
+              >
+                {liveSourceStrategies[0].strategyCode} · {liveSourceStrategies[0].symbol}
+                {liveSourceStrategies.length > 1 && (
+                  <span className="ml-0.5 text-[var(--color-profit)]/70">
+                    +{liveSourceStrategies.length - 1}
+                  </span>
+                )}
+                <ExternalLink size={10} strokeWidth={2} />
+              </Link>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={onActivate}
+              className={cn(
+                'inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-4 py-2 text-[13px] font-semibold',
+                'bg-profit text-text-inverse transition-opacity hover:opacity-90',
+              )}
+            >
+              <Zap size={13} strokeWidth={2} />
+              Activate as Strategy
+            </button>
+          )
+        )}
+        <button
+          type="button"
+          onClick={onRerun}
+          disabled={!run}
+          className={cn(
+            'mm-btn inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap',
+            'disabled:cursor-not-allowed disabled:opacity-60',
+          )}
+          style={{ borderRadius: 9999, padding: '9px 16px', fontSize: 13 }}
+        >
+          <PlayCircle size={14} strokeWidth={2} />
+          Re-run with these params
+        </button>
+      </div>
     </header>
+  );
+}
+
+// ─── Run config panel ─────────────────────────────────────────────────────────
+
+/**
+ * Surfaces the per-strategy sizing config that was used for this run —
+ * allocation %, risk/trade %, and direction. Placed before the metrics grid
+ * so users read the sizing context before interpreting the numbers (a +20%
+ * return on 5% allocation is very different from 50% allocation).
+ * Renders nothing when none of these fields are populated (older runs).
+ */
+function RunConfigPanel({ run }: { run: BacktestRun }) {
+  const codes = useMemo(
+    () =>
+      (run.strategyCode ?? '')
+        .split(',')
+        .map((c) => c.trim())
+        .filter(Boolean),
+    [run.strategyCode],
+  );
+
+  const hasAllocations =
+    run.strategyAllocations != null && Object.keys(run.strategyAllocations).length > 0;
+  const hasRiskPcts =
+    run.strategyRiskPcts != null && Object.keys(run.strategyRiskPcts).length > 0;
+  const hasDirections =
+    (run.strategyAllowLong != null && Object.keys(run.strategyAllowLong).length > 0) ||
+    (run.strategyAllowShort != null && Object.keys(run.strategyAllowShort).length > 0);
+
+  if (!hasAllocations && !hasRiskPcts && !hasDirections) return null;
+
+  return (
+    <section className="overflow-hidden rounded-xl border border-bd-subtle bg-bg-surface shadow-panel">
+      <div className="flex items-center gap-2 border-b border-bd-subtle px-4 py-2.5">
+        <Scale size={13} className="shrink-0 text-text-muted" />
+        <h3 className="font-mono text-[10px] uppercase tracking-wider text-text-muted">
+          Position sizing
+        </h3>
+        {run.maxConcurrentStrategies != null && run.maxConcurrentStrategies > 1 && (
+          <span className="ml-auto font-mono text-[10px] text-text-muted">
+            max {run.maxConcurrentStrategies} concurrent
+          </span>
+        )}
+      </div>
+      <div className="divide-y divide-bd-subtle">
+        {codes.map((code) => {
+          const allocation = run.strategyAllocations?.[code];
+          const riskPct = run.strategyRiskPcts?.[code];
+          const allowLong = run.strategyAllowLong?.[code];
+          const allowShort = run.strategyAllowShort?.[code];
+
+          // Only render direction when both flags are explicitly set.
+          // A single null means "fall back to bound AS's flag" — we don't
+          // know what that is here, so showing a partial direction would
+          // mislead the user.
+          const dir = (() => {
+            if (allowLong == null || allowShort == null) return null;
+            if (allowLong && allowShort) return 'Long + Short';
+            if (allowLong) return 'Long only';
+            if (allowShort) return 'Short only';
+            return null;
+          })();
+
+          return (
+            <div
+              key={code}
+              className="flex flex-wrap items-center gap-x-6 gap-y-1 px-4 py-2.5 text-[12px]"
+            >
+              {codes.length > 1 && (
+                <span className="w-16 font-mono font-semibold text-text-primary">{code}</span>
+              )}
+              {allocation != null ? (
+                <span className="text-text-secondary">
+                  Allocation{' '}
+                  <span className="font-mono font-semibold text-text-primary">
+                    {allocation.toFixed(1)}%
+                  </span>
+                </span>
+              ) : (
+                <span className="font-mono text-[11px] text-text-muted">default allocation</span>
+              )}
+              {riskPct != null && (
+                <span className="text-text-secondary">
+                  Risk/trade{' '}
+                  <span className="font-mono font-semibold text-text-primary">
+                    {(riskPct * 100).toFixed(2)}%
+                  </span>
+                </span>
+              )}
+              {dir && (
+                <span className="text-text-secondary">
+                  Direction{' '}
+                  <span className="font-mono font-semibold text-text-primary">{dir}</span>
+                </span>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </section>
   );
 }
 

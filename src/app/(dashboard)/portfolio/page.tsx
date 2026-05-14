@@ -540,6 +540,32 @@ function PerformanceCard() {
       l: 'Open · today',
       v: today?.openCount != null ? today.openCount.toString() : '—',
     },
+    {
+      l: 'Avg trade · month',
+      v:
+        month?.avgTradeReturnPct != null
+          ? `${month.avgTradeReturnPct >= 0 ? '+' : ''}${month.avgTradeReturnPct.toFixed(3)}%`
+          : '—',
+      t:
+        month?.avgTradeReturnPct == null
+          ? undefined
+          : month.avgTradeReturnPct >= 0
+            ? 'mint'
+            : 'dn',
+    },
+    {
+      l: 'Compound @ 90% · month',
+      v:
+        month?.geometricReturnPctAtAlloc90 != null
+          ? `${month.geometricReturnPctAtAlloc90 >= 0 ? '+' : ''}${month.geometricReturnPctAtAlloc90.toFixed(2)}%`
+          : '—',
+      t:
+        month?.geometricReturnPctAtAlloc90 == null
+          ? undefined
+          : month.geometricReturnPctAtAlloc90 >= 0
+            ? 'mint'
+            : 'dn',
+    },
   ];
 
   return (

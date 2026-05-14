@@ -1,4 +1,4 @@
-import { Loader2 } from 'lucide-react';
+import { Clock, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { BacktestRun } from '@/types/backtest';
 
@@ -39,12 +39,15 @@ export function BacktestProgressBar({ run, className }: BacktestProgressBarProps
     >
       <div className="flex items-center justify-between gap-3">
         <div className="flex min-w-0 items-center gap-2">
-          {(isPending || isRunning) && (
-            <Loader2 size={14} className="animate-spin text-[var(--accent-primary)]" />
+          {isPending && (
+            <Clock size={14} className="shrink-0 text-[var(--color-warning)]" />
+          )}
+          {isRunning && (
+            <Loader2 size={14} className="animate-spin shrink-0 text-[var(--accent-primary)]" />
           )}
           <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-[var(--text-secondary)]">
             {isPending
-              ? 'Queued'
+              ? 'In Queue'
               : isRunning
                 ? 'Running backtest'
                 : 'Backtest failed'}
@@ -52,7 +55,13 @@ export function BacktestProgressBar({ run, className }: BacktestProgressBarProps
         </div>
         <span
           className="font-mono text-sm tabular-nums"
-          style={{ color: isFailed ? 'var(--color-loss)' : 'var(--text-primary)' }}
+          style={{
+            color: isFailed
+              ? 'var(--color-loss)'
+              : isPending
+                ? 'var(--color-warning)'
+                : 'var(--text-primary)',
+          }}
         >
           {displayPercent}
           <span className="ml-0.5 text-[10px] text-[var(--text-muted)]">%</span>
@@ -64,13 +73,18 @@ export function BacktestProgressBar({ run, className }: BacktestProgressBarProps
         style={{ backgroundColor: 'var(--border-subtle)' }}
       >
         <div
-          className="h-full rounded-full transition-[width] duration-700 ease-out"
+          className={cn(
+            'h-full rounded-full transition-[width] duration-700 ease-out',
+            isPending && 'animate-pulse',
+          )}
           style={{
             width: `${displayPercent}%`,
             background: isFailed
               ? 'var(--color-loss)'
-              : 'linear-gradient(90deg, var(--color-profit) 0%, rgba(22,179,100, 0.6) 100%)',
-            boxShadow: isFailed
+              : isPending
+                ? 'var(--color-warning)'
+                : 'linear-gradient(90deg, var(--color-profit) 0%, rgba(22,179,100, 0.6) 100%)',
+            boxShadow: isFailed || isPending
               ? 'none'
               : '0 0 12px rgba(22,179,100, 0.35)',
           }}
@@ -80,7 +94,7 @@ export function BacktestProgressBar({ run, className }: BacktestProgressBarProps
       {(isPending || isRunning) && (
         <p className="mt-2 text-[11px] text-[var(--text-muted)]">
           {isPending
-            ? 'Waiting for a worker to pick up the run…'
+            ? 'Queued for execution — this run will start automatically when a slot is free.'
             : 'Iterating candles, running strategies, and persisting trades. Results appear below as soon as the run finishes.'}
         </p>
       )}

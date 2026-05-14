@@ -33,6 +33,8 @@ export interface CreateStrategyDefinitionPayload {
   strategyType: string;
   description?: string;
   status?: StrategyDefinitionStatus;
+  enabled?: boolean;
+  simulated?: boolean;
 }
 
 export interface UpdateStrategyDefinitionPayload {
@@ -40,4 +42,6 @@ export interface UpdateStrategyDefinitionPayload {
   strategyType?: string;
   description?: string;
   status?: StrategyDefinitionStatus;
+  enabled?: boolean;
+  simulated?: boolean;
 }

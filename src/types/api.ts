@@ -86,15 +86,13 @@ export interface BackendAuthData {
  *  fields are optional so the mapper can fall back gracefully. */
 export interface BackendAccountStrategy {
   // New wire names (from @JsonProperty on AccountStrategyResponse)
-  id?: UUID | null;           // was accountStrategyId
-  interval?: string | null;   // was intervalName
-  status?: string | null;     // was currentStatus
+  id?: UUID | null; // was accountStrategyId
+  interval?: string | null; // was intervalName
   createdAt?: ISO8601 | null; // was createdTime
   updatedAt?: ISO8601 | null; // was updatedTime
   // Legacy Java field names — kept so cached/proxied responses still map
   accountStrategyId?: UUID | null;
   intervalName?: string | null;
-  currentStatus?: string | null;
   createdTime?: ISO8601 | null;
   updatedTime?: ISO8601 | null;
   // Unchanged fields
@@ -127,9 +125,19 @@ export interface BackendAccountStrategy {
   regimeGateEnabled?: boolean | null;
   allowedTrendRegimes?: string | null;
   allowedVolatilityRegimes?: string | null;
+  /** Kill-switch / correlation / concurrent-cap gate toggles (V62). All
+   *  default false so older cached responses missing these fields map to
+   *  "gate off" without surprises. */
+  killSwitchGateEnabled?: boolean | null;
+  correlationGateEnabled?: boolean | null;
+  concurrentCapGateEnabled?: boolean | null;
   /** Kelly/bankroll sizing (V45) — PSR-discounted half-Kelly multiplier. */
   kellySizingEnabled?: boolean | null;
   kellyMaxFraction?: number | string | null;
+  /** Risk-based sizing toggle (V55) for legacy strategies. */
+  useRiskBasedSizing?: boolean | null;
+  /** Per-trade risk fraction (0, 0.20]; used when useRiskBasedSizing=true. */
+  riskPct?: number | string | null;
   /** Tenant visibility (V54). Optional for pre-V54 cached responses. */
   visibility?: 'PRIVATE' | 'PUBLIC' | null;
   /** True iff calling user owns the row's account. */

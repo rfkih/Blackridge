@@ -17,6 +17,16 @@ const STATUS_CONFIG: Record<
     text: 'var(--color-profit)',
     bg: 'rgba(22,179,100,0.12)',
   },
+  // V66 — PAPER uses the warning/amber tone so the operator can never
+  // mistake it for LIVE at a glance. The label also explicitly says
+  // PAPER (not LIVE) per user request: "if a strategy is paper trade
+  // don't say it as an active strategy".
+  PAPER: {
+    label: 'PAPER',
+    dot: 'var(--color-warning)',
+    text: 'var(--color-warning)',
+    bg: 'rgba(245,166,35,0.12)',
+  },
   PAUSED: {
     label: 'PAUSED',
     dot: 'var(--color-warning)',

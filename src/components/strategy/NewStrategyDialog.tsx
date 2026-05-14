@@ -19,7 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { INTERVALS } from '@/lib/constants';
+import { ALLOC_MAX_PCT, INTERVALS, strategyControlsRiskSizing } from '@/lib/constants';
 import { normalizeError } from '@/lib/api/client';
 import { useCreateStrategy } from '@/hooks/useStrategies';
 import { useStrategyDefinitions } from '@/hooks/useStrategyDefinitions';
@@ -45,6 +45,12 @@ interface FormState {
   capitalAllocationPct: string;
   priorityOrder: string;
   enabled: boolean;
+  /** V55 — risk-based sizing toggle. Defaults ON so new presets adopt the
+   *  unified risk model; user can flip OFF to keep direct allocation sizing. */
+  useRiskBasedSizing: boolean;
+  /** V55 — per-trade risk as a percentage (UI scale: 0.01..20). Sent to the
+   *  backend divided by 100 so the wire value is a fraction. */
+  riskPct: string;
 }
 
 function initialState(defaultAccountId?: string): FormState {
@@ -63,6 +69,8 @@ function initialState(defaultAccountId?: string): FormState {
     capitalAllocationPct: '25',
     priorityOrder: '1',
     enabled: false,
+    useRiskBasedSizing: true,
+    riskPct: '5',
   };
 }
 
@@ -75,10 +83,8 @@ export function NewStrategyDialog({
   const [form, setForm] = useState<FormState>(() => initialState(defaultAccountId));
   const [error, setError] = useState<string | null>(null);
   const createMutation = useCreateStrategy();
-  const {
-    data: strategyDefinitions = [],
-    isLoading: isDefinitionsLoading,
-  } = useStrategyDefinitions();
+  const { data: strategyDefinitions = [], isLoading: isDefinitionsLoading } =
+    useStrategyDefinitions();
 
   useEffect(() => {
     if (open) {
@@ -113,6 +119,23 @@ export function NewStrategyDialog({
     }
   }, [open, activeDefinitions, form.strategyCode]);
 
+  // V56 — sizing config is unified through account_strategy
+  // (use_risk_based_sizing + risk_pct) for ALL engines, both legacy
+  // (LSR/LSR_V2/VCB/VBO/FCARRY) and spec-driven (DCB/MMR/MRO/TPR + research
+  // archetypes). `strategyControlsRiskSizing` returns true unconditionally;
+  // the predicate is kept as a hook for the rare future case where a
+  // strategy genuinely owns its own sizing math (none today). Show the
+  // section as soon as the user picks any strategy.
+  const riskSizingApplies = form.strategyCode
+    ? strategyControlsRiskSizing(form.strategyCode)
+    : false;
+
+  const riskPctNum = Number(form.riskPct);
+  const riskPctValid =
+    !riskSizingApplies ||
+    !form.useRiskBasedSizing ||
+    (Number.isFinite(riskPctNum) && riskPctNum > 0 && riskPctNum <= 20);
+
   const canSubmit =
     Boolean(form.accountId) &&
     Boolean(form.strategyCode) &&
@@ -120,9 +143,10 @@ export function NewStrategyDialog({
     Boolean(form.intervalName) &&
     Number(form.maxOpenPositions) >= 1 &&
     Number(form.capitalAllocationPct) > 0 &&
-    Number(form.capitalAllocationPct) <= 100 &&
+    Number(form.capitalAllocationPct) <= ALLOC_MAX_PCT &&
     Number(form.priorityOrder) >= 0 &&
     (form.allowLong || form.allowShort) &&
+    riskPctValid &&
     !createMutation.isPending;
 
   const handleSubmit = () => {
@@ -141,6 +165,13 @@ export function NewStrategyDialog({
         capitalAllocationPct: Number(form.capitalAllocationPct),
         priorityOrder: Number(form.priorityOrder),
         enabled: form.enabled,
+        // V55 — only send the risk-sizing fields for legacy strategies that
+        // actually read them. For spec engines, omit so the backend default
+        // (TRUE/0.05) is stored but stays inert.
+        useRiskBasedSizing: riskSizingApplies ? form.useRiskBasedSizing : undefined,
+        // UI is in percent (5 = 5%); backend stores fraction (0.05 = 5%).
+        riskPct:
+          riskSizingApplies && form.useRiskBasedSizing ? Number(form.riskPct) / 100 : undefined,
       },
       {
         onSuccess: (strategy) => {
@@ -228,8 +259,8 @@ export function NewStrategyDialog({
             </Select>
             {!isDefinitionsLoading && activeDefinitions.length === 0 && (
               <p className="text-[10px] text-[var(--color-warning)]">
-                No ACTIVE strategy definitions exist. Ask an admin to register one via
-                the strategy catalogue before creating a preset.
+                No ACTIVE strategy definitions exist. Ask an admin to register one via the strategy
+                catalogue before creating a preset.
               </p>
             )}
           </div>
@@ -278,25 +309,32 @@ export function NewStrategyDialog({
               placeholder="e.g. Aggressive · Conservative · V2-tuned"
             />
             <p className="text-[10px] text-[var(--text-muted)]">
-              Multiple presets can share the same strategy + symbol + interval. Only one is
-              active at a time. Leave blank to auto-name.
+              Multiple presets can share the same strategy + symbol + interval. Only one is active
+              at a time. Leave blank to auto-name.
             </p>
           </div>
 
           <div className="flex flex-col gap-1.5">
             <Label className="text-xs uppercase tracking-wider text-[var(--text-muted)]">
-              Capital allocation (%)
+              Position size cap (% of cash)
             </Label>
             <Input
               type="number"
               inputMode="decimal"
               step="0.01"
               min="0.01"
-              max="100"
+              max={String(ALLOC_MAX_PCT)}
               value={form.capitalAllocationPct}
               onChange={(e) => setForm((s) => ({ ...s, capitalAllocationPct: e.target.value }))}
               className="font-mono tabular-nums"
             />
+            <p className="text-[10px] text-[var(--text-muted)]">
+              {!riskSizingApplies
+                ? 'Notional cap on trade size (% of cash).'
+                : form.useRiskBasedSizing
+                  ? 'Maximum position size when risk-based sizing hits the cap.'
+                  : 'Direct trade size (no risk-based override).'}
+            </p>
           </div>
 
           <div className="flex flex-col gap-1.5">
@@ -329,6 +367,57 @@ export function NewStrategyDialog({
             />
           </div>
 
+          {riskSizingApplies ? (
+            <div className="col-span-2 flex flex-col gap-2 rounded-md border border-[var(--border-subtle)] bg-[var(--bg-elevated)] px-3 py-2">
+              <div className="flex items-center justify-between">
+                <div className="flex flex-col">
+                  <Label className="font-mono text-xs uppercase tracking-wider">
+                    Risk-based sizing
+                  </Label>
+                  <p className="text-[10px] text-[var(--text-muted)]">
+                    Sizes both LONG and SHORT entries off Max risk per trade; allocation above
+                    becomes the position cap. Off = allocation is the trade size directly (legacy
+                    behaviour).
+                  </p>
+                </div>
+                <Switch
+                  checked={form.useRiskBasedSizing}
+                  onCheckedChange={(v) => setForm((s) => ({ ...s, useRiskBasedSizing: v }))}
+                />
+              </div>
+              {form.useRiskBasedSizing && (
+                <div className="flex flex-col gap-1.5 pt-1">
+                  <Label className="text-xs uppercase tracking-wider text-[var(--text-muted)]">
+                    Max risk per trade (%)
+                  </Label>
+                  <Input
+                    type="number"
+                    inputMode="decimal"
+                    step="0.1"
+                    min="0.01"
+                    max="20"
+                    value={form.riskPct}
+                    onChange={(e) => setForm((s) => ({ ...s, riskPct: e.target.value }))}
+                    className="font-mono tabular-nums"
+                  />
+                  <p className="text-[10px] text-[var(--text-muted)]">
+                    Loss target if the stop is hit, as a fraction of cash. Applied symmetrically to
+                    LONG (USDT notional) and SHORT (BTC qty). Range 0.01–20%. Strategy-specific
+                    multipliers (e.g. LSR continuation 0.85×, premium short 0.70×) further shrink
+                    the per-trade risk on those setups.
+                  </p>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="col-span-2 rounded-md border border-[var(--border-subtle)] bg-[var(--bg-elevated)] px-3 py-2">
+              <p className="text-[11px] text-[var(--text-secondary)]">
+                Sizing for this strategy is controlled by its spec parameters. The Position-size cap
+                above still acts as a notional ceiling.
+              </p>
+            </div>
+          )}
+
           <div className="col-span-2 flex items-center justify-between rounded-md border border-[var(--border-subtle)] bg-[var(--bg-elevated)] px-3 py-2">
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2">
@@ -354,6 +443,12 @@ export function NewStrategyDialog({
               <Label className="font-mono text-xs uppercase tracking-wider">Enable on create</Label>
             </div>
           </div>
+
+          {form.useRiskBasedSizing && !riskPctValid && (
+            <p className="col-span-2 text-xs text-[var(--color-warning)]">
+              Max risk per trade must be between 0.01% and 20%.
+            </p>
+          )}
 
           {!form.allowLong && !form.allowShort && (
             <p className="col-span-2 text-xs text-[var(--color-warning)]">

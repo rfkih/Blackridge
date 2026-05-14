@@ -111,6 +111,25 @@ export function derivePromotionState(enabled: boolean, simulated: boolean): Deri
   return 'INACTIVE';
 }
 
+// ── Account-scoped promotion endpoint ─────────────────────────────────────
+
+/**
+ * Account-scope promote/demote. Used by the strategy detail page's mode
+ * toggle to flip a single row between PAPER_TRADE and PROMOTED (and other
+ * legal transitions). The backend enforces the legal-state graph plus the
+ * "active strategy_param preset exists" precondition. Admin-only.
+ */
+export async function promoteAccountStrategy(
+  accountStrategyId: UUID,
+  body: PromoteRequest,
+): Promise<PromoteResponse> {
+  const { data } = await apiClient.post<PromoteResponse>(
+    `${BASE}/${accountStrategyId}/promote`,
+    body,
+  );
+  return data;
+}
+
 // ── Definition-scoped promotion endpoints ─────────────────────────────────
 
 export async function promoteDefinition(

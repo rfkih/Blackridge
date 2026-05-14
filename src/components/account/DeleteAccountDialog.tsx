@@ -59,7 +59,7 @@ export function DeleteAccountDialog({ account, open, onOpenChange }: DeleteAccou
         });
         onOpenChange(false);
       },
-      onError: (err) => setSubmitError(normalizeError(err)),
+      onError: (err: unknown) => setSubmitError(normalizeError(err)),
     });
   };
 
@@ -81,8 +81,9 @@ export function DeleteAccountDialog({ account, open, onOpenChange }: DeleteAccou
             <DialogTitle className="font-display text-lg">Remove account?</DialogTitle>
           </div>
           <DialogDescription className="text-[var(--text-secondary)]">
-            This soft-deletes <span className="font-semibold text-text-primary">{account.label}</span>{' '}
-            (<span className="font-mono">{account.exchange}</span>). Historical trades and P&amp;L
+            This soft-deletes{' '}
+            <span className="font-semibold text-text-primary">{account.label}</span> (
+            <span className="font-mono">{account.exchange}</span>). Historical trades and P&amp;L
             stay intact for reporting, but no new strategies can run on this account.
           </DialogDescription>
         </DialogHeader>
@@ -95,7 +96,10 @@ export function DeleteAccountDialog({ account, open, onOpenChange }: DeleteAccou
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="delete-confirm" className="text-[10px] uppercase tracking-[0.18em] text-text-secondary">
+          <Label
+            htmlFor="delete-confirm"
+            className="text-[10px] uppercase tracking-[0.18em] text-text-secondary"
+          >
             Type <span className="font-mono text-text-primary">{account.label}</span> to confirm
           </Label>
           <Input
@@ -125,7 +129,11 @@ export function DeleteAccountDialog({ account, open, onOpenChange }: DeleteAccou
         )}
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={mutation.isPending}>
+          <Button
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            disabled={mutation.isPending}
+          >
             Cancel
           </Button>
           <Button

@@ -108,19 +108,13 @@ export function BacktestMonthlyReturns({ points, isLoading }: BacktestMonthlyRet
           >
             <span>
               Best:{' '}
-              <strong
-                className="font-mono"
-                style={{ color: 'var(--mm-mint)', fontWeight: 700 }}
-              >
+              <strong className="font-mono" style={{ color: 'var(--mm-mint)', fontWeight: 700 }}>
                 {summary.best ?? '—'}
               </strong>
             </span>
             <span>
               Worst:{' '}
-              <strong
-                className="font-mono"
-                style={{ color: 'var(--mm-dn)', fontWeight: 700 }}
-              >
+              <strong className="font-mono" style={{ color: 'var(--mm-dn)', fontWeight: 700 }}>
                 {summary.worst ?? '—'}
               </strong>
             </span>
@@ -137,13 +131,7 @@ export function BacktestMonthlyReturns({ points, isLoading }: BacktestMonthlyRet
   );
 }
 
-function YearRow({
-  year,
-  cells,
-}: {
-  year: number;
-  cells: Array<MonthlyCell>;
-}) {
+function YearRow({ year, cells }: { year: number; cells: Array<MonthlyCell> }) {
   return (
     <>
       <div
@@ -285,7 +273,7 @@ function buildHeatmap(points: BacktestEquityPoint[]): {
   const totalMonths = monthly.length;
   const best = monthly.reduce((a, b) => (b.pct > a.pct ? b : a));
   const worst = monthly.reduce((a, b) => (b.pct < a.pct ? b : a));
-  const fmtPct = (n: number) => `${n >= 0 ? '+' : ''}${n.toFixed(1)}%`;
+  const fmtPct = (n: number) => `${n >= 0 ? '+' : ''}${n.toFixed(2)}%`;
   const fmtMonth = (m: { year: number; month: number; pct: number }) =>
     `${fmtPct(m.pct)} ${monthName(m.month)} '${String(m.year).slice(2)}`;
 
@@ -323,5 +311,5 @@ function cellStyle(pct: number | null): { bg: string; fg: string; text: string }
   else bg = '#F08688';
   // Negative bands deeper than -6 read better with a slightly lighter foreground.
   if (a > 6) fg = 'rgba(0,0,0,0.85)';
-  return { bg, fg, text: `${pct > 0 ? '+' : ''}${pct.toFixed(0)}` };
+  return { bg, fg, text: `${pct > 0 ? '+' : ''}${pct.toFixed(2)}` };
 }

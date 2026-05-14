@@ -148,12 +148,31 @@ function HeadlineRow({ h }: { h: Headline }) {
   const pfStr = h.profitFactor == null ? '∞' : h.profitFactor.toFixed(2);
   const pfTone = h.profitFactor == null || h.profitFactor >= 1 ? 'profit' : 'loss';
 
+  const avgPct = h.avgTradeReturnPct ?? null;
+  const geomPct = h.geometricReturnPctAtAlloc90 ?? null;
+
+  // Risk:reward — Headline.avgLoss is signed-negative (HeadlineAccumulator
+  // sums raw negative pnl, doesn't take abs), so Math.abs is required.
+  // Three states mirror Profit Factor: null (no trades), '∞' (no losers),
+  // or numeric. The '∞' branch protects against the divide-by-zero path.
+  const avgLossAbs = Math.abs(h.avgLoss);
+  const rrrInfinite = h.avgWin > 0 && avgLossAbs === 0;
+  const rrr = avgLossAbs > 0 ? h.avgWin / avgLossAbs : null;
+  const rrrStr = rrrInfinite ? '∞' : rrr != null ? rrr.toFixed(2) : '—';
+  const rrrTone =
+    h.avgWin === 0 && avgLossAbs === 0
+      ? 'neutral'
+      : rrrInfinite || (rrr != null && rrr >= 1)
+        ? 'profit'
+        : 'loss';
+
   return (
-    <div className="grid grid-cols-2 gap-3 md:grid-cols-4 lg:grid-cols-8">
+    <div className="grid grid-cols-2 gap-3 md:grid-cols-4 lg:grid-cols-11">
       <Stat label="Trades" value={String(h.tradeCount)} />
       <Stat label="Win rate" value={`${wrPct}%`} tone={h.winRate >= 0.5 ? 'profit' : 'loss'} />
       <Stat label="Profit factor" value={pfStr} tone={pfTone} />
       <Stat label="Avg R" value={avgR} tone={rTone} />
+      <Stat label="Avg R:R" value={rrrStr} tone={rrrTone} />
       <Stat label="Net PnL" value={formatSignedUsdt(h.netPnl)} tone={h.netPnl >= 0 ? 'profit' : 'loss'} />
       <Stat label="Max DD" value={formatSignedUsdt(h.maxDrawdown)} tone="loss" />
       <Stat label="Avg win" value={formatSignedUsdt(h.avgWin)} tone="profit" />
@@ -161,6 +180,18 @@ function HeadlineRow({ h }: { h: Headline }) {
         label="Consec losses"
         value={String(h.maxConsecutiveLosses)}
         tone={h.maxConsecutiveLosses >= 5 ? 'loss' : 'neutral'}
+      />
+      <Stat
+        label="Avg / trade"
+        value={avgPct != null ? `${avgPct >= 0 ? '+' : ''}${avgPct.toFixed(3)}%` : '—'}
+        tone={avgPct == null ? 'neutral' : avgPct >= 0 ? 'profit' : 'loss'}
+      />
+      <Stat
+        label="Compound @ 90%"
+        value={geomPct != null ? `${geomPct >= 0 ? '+' : ''}${geomPct.toFixed(2)}%` : '—'}
+        tone={
+          geomPct == null ? 'neutral' : geomPct <= -100 ? 'loss' : geomPct >= 0 ? 'profit' : 'loss'
+        }
       />
     </div>
   );

@@ -1,7 +1,18 @@
 import type { Interval, StrategyCode } from '@/lib/constants';
 import type { ISO8601, UUID } from './api';
 
-export type AccountStrategyStatus = 'LIVE' | 'PAUSED' | 'STOPPED';
+/**
+ * V66 — status union split so the dashboard never labels a paper-mode
+ * strategy as `LIVE`:
+ *   STOPPED  enabled=false  (orchestrator skips the row)
+ *   PAPER    enabled=true, simulated=true  (decisions land in paper_trade_run)
+ *   LIVE     enabled=true, simulated=false (real Binance orders)
+ *   PAUSED   reserved for future use
+ *
+ * "Active strategy" surfaces in the dashboard (counts, filters) should
+ * include LIVE only — paper rows are *running* but not *trading real money*.
+ */
+export type AccountStrategyStatus = 'LIVE' | 'PAUSED' | 'STOPPED' | 'PAPER';
 
 export interface AccountStrategy {
   id: UUID;
@@ -37,10 +48,25 @@ export interface AccountStrategy {
   regimeGateEnabled: boolean;
   allowedTrendRegimes: string | null;
   allowedVolatilityRegimes: string | null;
+  /** Kill-switch gate (V62) — when true, `isKillSwitchTripped` blocks new entries.
+   *  When false the trip flag is recorded but does not block trading. */
+  killSwitchGateEnabled: boolean;
+  /** Correlation / concentration gate (V62) — when true, CorrelationGuardService runs. */
+  correlationGateEnabled: boolean;
+  /** Account-level concurrent-position cap gate (V62) — when true, account
+   *  maxConcurrentLongs/Shorts/Trades apply at entry time. */
+  concurrentCapGateEnabled: boolean;
   /** Kelly/bankroll sizing (V45) — PSR-discounted half-Kelly position-size multiplier. */
   kellySizingEnabled: boolean;
   /** Hard cap on the Kelly fraction [0.05, 1.00]. Default 0.25. */
   kellyMaxFraction: number;
+  /** Risk-based sizing toggle (V55). When true, LONG entries on legacy
+   *  strategies size off `riskPct` with `capitalAllocationPct` acting as the
+   *  notional cap. When false, allocation is the direct trade size. */
+  useRiskBasedSizing: boolean;
+  /** Per-trade risk as a fraction of cash balance, range (0, 0.20]. Used only
+   *  when `useRiskBasedSizing` is true. Default 0.05 (5%). */
+  riskPct: number;
   /** Tenant visibility (V54). PRIVATE = listed only to the owner.
    *  PUBLIC  = listed to every user for browse-and-clone (the research-agent
    *            account seeds its rows as PUBLIC). Backtest/edit/enable still
@@ -275,4 +301,3 @@ export interface StrategyParamCreateRequest {
    *  library" button. Omit elsewhere. */
   sourceBacktestRunId?: string;
 }
-

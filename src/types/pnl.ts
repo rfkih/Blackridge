@@ -14,4 +14,9 @@ export interface StrategyPnl {
   totalPnl: number;
   winRate: number;
   tradeCount: number;
+  /** V60 — mean per-trade return rate (pnl / notional × 100). Null when this
+   *  strategy has no closed trades in the window. */
+  avgTradeReturnPct?: number | null;
+  /** V60 — compounded return assuming 90% of equity sized per trade. */
+  geometricReturnPctAtAlloc90?: number | null;
 }

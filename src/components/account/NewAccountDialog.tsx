@@ -37,12 +37,7 @@ interface NewAccountDialogProps {
  * sees the options instantly and the form stays synchronous.
  */
 const EXCHANGE_OPTIONS: Array<{ value: string; label: string; description: string }> = [
-  { value: 'BIN', label: 'Binance Spot', description: 'Spot trading — one position per symbol' },
-  {
-    value: 'BIF',
-    label: 'Binance Futures (USD-M)',
-    description: 'USD-margined perpetuals — long/short, leverage',
-  },
+  { value: 'BNC', label: 'Binance Spot', description: 'Spot trading — one position per symbol' },
 ];
 
 interface FormState {
@@ -55,7 +50,7 @@ interface FormState {
 
 const EMPTY_STATE: FormState = {
   username: '',
-  exchange: 'BIN',
+  exchange: 'BNC',
   apiKey: '',
   apiSecret: '',
   acknowledgedSafety: false,

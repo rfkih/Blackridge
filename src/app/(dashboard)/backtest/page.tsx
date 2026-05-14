@@ -361,10 +361,10 @@ function BacktestListContent() {
             </Link>
             <Link
               href="/backtest/new"
-              className="mm-btn mm-btn-mint"
+              className="mm-btn mm-btn-mint inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap"
               style={{ borderRadius: 9999, padding: '9px 16px', fontSize: 13 }}
             >
-              <Plus size={14} strokeWidth={2.2} />
+              <Plus size={14} strokeWidth={2.2} className="shrink-0" />
               New Backtest
             </Link>
           </>
@@ -541,9 +541,9 @@ function BacktestListContent() {
           action={
             <Link
               href="/backtest/new"
-              className="inline-flex items-center gap-1.5 rounded-sm bg-profit px-3 py-2 text-[12px] font-semibold text-text-inverse transition-opacity duration-fast hover:opacity-90"
+              className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-sm bg-profit px-3 py-2 text-[12px] font-semibold text-text-inverse transition-opacity duration-fast hover:opacity-90"
             >
-              <Plus size={13} strokeWidth={2} />
+              <Plus size={13} strokeWidth={2} className="shrink-0" />
               New Backtest
             </Link>
           }

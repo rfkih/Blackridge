@@ -29,6 +29,12 @@ export interface Headline {
   maxDrawdown: number;
   maxConsecutiveLosses: number;
   initialCapital: number;
+  /** V60 — mean per-trade return rate (pnl / notional × 100). Null on
+   *  zero-trade runs and on legacy snapshots produced before V60. */
+  avgTradeReturnPct?: number | null;
+  /** V60 — compounded return assuming every trade had been sized at 90%
+   *  of equity. Order-sensitive; clamps to ruin (-100%) on a -100%+ step. */
+  geometricReturnPctAtAlloc90?: number | null;
 }
 
 export interface MfeCapture {

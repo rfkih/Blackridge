@@ -1,3 +1,4 @@
+import { ALLOC_MAX_PCT } from '@/lib/constants';
 import type { BacktestRunPayload, BacktestWizardConfig } from '@/types/backtest';
 
 /**
@@ -152,6 +153,25 @@ export function buildBacktestPayload(
     // falls back to account_strategy.capital_allocation_pct).
     maxConcurrentStrategies: config.maxConcurrentStrategies,
     strategyAllocations: trimAllocations(config.strategyAllocations),
+    // V57 — per-strategy risk-pct override. Fractional scale matching
+    // account_strategy.risk_pct. Omitted when empty so the backend falls
+    // back to the persisted value (and the persisted toggle).
+    strategyRiskPcts: trimRiskPcts(config.strategyRiskPcts),
+    // V58 — per-strategy direction overrides. Omitted when empty so the
+    // backend falls back to the bound account_strategy's allow_long /
+    // allow_short for every strategy. Only populated when the operator
+    // flipped a direction from the persisted default in the wizard.
+    strategyAllowLong: trimBoolMap(config.strategyAllowLong),
+    strategyAllowShort: trimBoolMap(config.strategyAllowShort),
+    // V62 — per-strategy risk-gate overrides. Same trim shape as the V58
+    // direction overrides: present key = explicit override (true/false),
+    // missing key = use the bound account_strategy's persisted toggle.
+    // Omitted when empty so the JSONB blob on backtest_run stays NULL
+    // for runs that don't touch gates.
+    strategyKillSwitchOverrides: trimBoolMap(config.strategyKillSwitchOverrides),
+    strategyRegimeOverrides: trimBoolMap(config.strategyRegimeOverrides),
+    strategyCorrelationOverrides: trimBoolMap(config.strategyCorrelationOverrides),
+    strategyConcurrentCapOverrides: trimBoolMap(config.strategyConcurrentCapOverrides),
     // Phase B2 — per-strategy interval override. Omitted when empty so
     // the backend falls back to the primary interval for every strategy.
     strategyIntervals: trimIntervals(config.strategyIntervals),
@@ -176,9 +196,41 @@ function trimAllocations(
   if (!raw) return undefined;
   const out: Record<string, number> = {};
   for (const [code, pct] of Object.entries(raw)) {
-    if (typeof pct === 'number' && Number.isFinite(pct) && pct > 0 && pct <= 100) {
+    if (typeof pct === 'number' && Number.isFinite(pct) && pct > 0 && pct <= ALLOC_MAX_PCT) {
       out[code] = pct;
     }
+  }
+  return Object.keys(out).length ? out : undefined;
+}
+
+/**
+ * V57 — strip blank / out-of-range risk-pct entries. Backend
+ * canonicaliseStrategyRiskPcts enforces (0, 0.20] but trimming here keeps
+ * the JSONB blob compact and avoids round-tripping zeros.
+ */
+function trimRiskPcts(raw: Record<string, number> | undefined): Record<string, number> | undefined {
+  if (!raw) return undefined;
+  const out: Record<string, number> = {};
+  for (const [code, pct] of Object.entries(raw)) {
+    if (typeof pct === 'number' && Number.isFinite(pct) && pct > 0 && pct <= 0.2) {
+      out[code] = pct;
+    }
+  }
+  return Object.keys(out).length ? out : undefined;
+}
+
+/**
+ * V58 — strip non-boolean entries from a per-strategy direction override
+ * map. Both `true` and `false` are valid values (false = force off), so
+ * unlike the numeric trims we don't drop falsy values, only non-booleans.
+ */
+function trimBoolMap(
+  raw: Record<string, boolean> | undefined,
+): Record<string, boolean> | undefined {
+  if (!raw) return undefined;
+  const out: Record<string, boolean> = {};
+  for (const [code, v] of Object.entries(raw)) {
+    if (typeof v === 'boolean') out[code] = v;
   }
   return Object.keys(out).length ? out : undefined;
 }
