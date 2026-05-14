@@ -203,8 +203,8 @@ function StrategyCard({
               aria-hidden="true"
               className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl font-mono text-[15px] font-bold"
               style={{
-                background: 'var(--mm-mint-soft)',
-                color: 'var(--mm-mint)',
+                background: 'var(--accent-subtle)',
+                color: 'var(--brand-500)',
               }}
             >
               {strategy.symbol.slice(0, 1)}
@@ -467,7 +467,7 @@ function SizingStat({ strategy }: { strategy: AccountStrategy }) {
         className="mm-num"
         style={{
           fontSize: 16,
-          color: useRisk ? 'var(--mm-mint)' : 'var(--mm-ink-0)',
+          color: useRisk ? 'var(--brand-500)' : 'var(--mm-ink-0)',
           marginTop: 2,
           lineHeight: 1.1,
         }}
@@ -691,8 +691,8 @@ function MaxTradesPanel({
           aria-hidden="true"
           className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl"
           style={{
-            background: 'var(--mm-mint-soft)',
-            color: 'var(--mm-mint)',
+            background: 'var(--accent-subtle)',
+            color: 'var(--brand-500)',
             fontSize: 11,
             fontWeight: 700,
             fontFamily: 'var(--mm-mono)',
@@ -1162,7 +1162,7 @@ export default function StrategiesPage() {
               onClick={() => setShowActiveOnly((v) => !v)}
               className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
                 showActiveOnly
-                  ? 'border-[var(--color-mint)] bg-[var(--color-mint)]/10 text-[var(--color-mint)]'
+                  ? 'bg-[var(--color-mint)]/10 border-[var(--color-mint)] text-[var(--color-mint)]'
                   : 'border-[var(--border-default)] bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]'
               }`}
             >

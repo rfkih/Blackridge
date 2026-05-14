@@ -32,8 +32,8 @@ export default function StrategyParamPresetsPage({ params }: PageProps) {
       <header className="space-y-1">
         <h1 className="font-display text-2xl text-text-primary">Strategy param presets</h1>
         <p className="text-sm text-text-secondary">
-          Manage named override sets for this strategy. The active preset is what live trading
-          uses; backtests can pin any preset by ID for reproducibility.
+          Manage named override sets for this strategy. The active preset is what live trading uses;
+          backtests can pin any preset by ID for reproducibility.
         </p>
       </header>
 

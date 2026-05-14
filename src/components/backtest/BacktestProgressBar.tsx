@@ -83,10 +83,9 @@ export function BacktestProgressBar({ run, className }: BacktestProgressBarProps
               ? 'var(--color-loss)'
               : isPending
                 ? 'var(--color-warning)'
-                : 'linear-gradient(90deg, var(--color-profit) 0%, rgba(22,179,100, 0.6) 100%)',
-            boxShadow: isFailed || isPending
-              ? 'none'
-              : '0 0 12px rgba(22,179,100, 0.35)',
+                : 'linear-gradient(90deg, var(--brand-500) 0%, color-mix(in srgb, var(--brand-500) 60%, transparent) 100%)',
+            boxShadow:
+              isFailed || isPending ? 'none' : '0 0 12px var(--accent-glow)',
           }}
         />
       </div>

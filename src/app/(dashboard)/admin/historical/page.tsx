@@ -1203,12 +1203,14 @@ function RecomputeConfirmDialog(props: RecomputeConfirmDialogProps) {
 
 // ─── Backfill candle range card ──────────────────────────────────────────────
 
-function BackfillCandleRangeCard({ onJobsSubmitted }: { onJobsSubmitted: (ids: string[]) => void }) {
+function BackfillCandleRangeCard({
+  onJobsSubmitted,
+}: {
+  onJobsSubmitted: (ids: string[]) => void;
+}) {
   const [symbol, setSymbol] = useState('BTCUSDT');
   const [from, setFrom] = useState<string>('2020-01-01T00:00');
-  const [to, setTo] = useState<string>(
-    format(subYears(new Date(), 3), "yyyy-MM-dd'T'HH:mm"),
-  );
+  const [to, setTo] = useState<string>(format(subYears(new Date(), 3), "yyyy-MM-dd'T'HH:mm"));
   // Local flag because useMutation.isPending flips false after the first
   // mutateAsync settles — not after all parallel calls complete.
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -1280,10 +1282,7 @@ function BackfillCandleRangeCard({ onJobsSubmitted }: { onJobsSubmitted: (ids: s
           <p className="text-[11px] text-text-secondary">
             Fetch raw OHLCV candles from Binance for a custom date window across all active
             intervals&nbsp;
-            <span className="font-mono text-text-muted">
-              ({BACKTEST_INTERVALS.join(' · ')})
-            </span>
-            .
+            <span className="font-mono text-text-muted">({BACKTEST_INTERVALS.join(' · ')})</span>.
           </p>
         </div>
       </header>
@@ -1300,10 +1299,7 @@ function BackfillCandleRangeCard({ onJobsSubmitted }: { onJobsSubmitted: (ids: s
               autoComplete="off"
               spellCheck={false}
             />
-            <Select
-              value={COMMON_SYMBOLS.includes(symbol) ? symbol : ''}
-              onValueChange={setSymbol}
-            >
+            <Select value={COMMON_SYMBOLS.includes(symbol) ? symbol : ''} onValueChange={setSymbol}>
               <SelectTrigger className="w-[140px]">
                 <SelectValue placeholder="Common…" />
               </SelectTrigger>
@@ -1347,15 +1343,11 @@ function BackfillCandleRangeCard({ onJobsSubmitted }: { onJobsSubmitted: (ids: s
 
         <div className="flex items-center justify-between pt-1">
           <p className="text-[11px] text-text-muted">
-            Submits {BACKTEST_INTERVALS.length} jobs in parallel — one per interval. Idempotent; existing
-            candles are skipped.
+            Submits {BACKTEST_INTERVALS.length} jobs in parallel — one per interval. Idempotent;
+            existing candles are skipped.
           </p>
           <Button onClick={handleSubmit} disabled={!canSubmit || isSubmitting} className="gap-1.5">
-            {isSubmitting ? (
-              <Loader2 size={14} className="animate-spin" />
-            ) : (
-              <Database size={14} />
-            )}
+            {isSubmitting ? <Loader2 size={14} className="animate-spin" /> : <Database size={14} />}
             Fetch candles
           </Button>
         </div>

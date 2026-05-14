@@ -4,7 +4,15 @@ import { useCallback, useMemo, useState } from 'react';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
-import { AlertCircle, ArrowLeft, ExternalLink, PlayCircle, RefreshCw, Scale, Zap } from 'lucide-react';
+import {
+  AlertCircle,
+  ArrowLeft,
+  ExternalLink,
+  PlayCircle,
+  RefreshCw,
+  Scale,
+  Zap,
+} from 'lucide-react';
 import { format } from 'date-fns';
 import { StrategyBadge } from '@/components/trading/StrategyBadge';
 import { RunSourceBadge } from '@/components/backtest/RunSourceBadge';
@@ -336,7 +344,13 @@ interface ResultHeaderProps {
   liveSourceStrategies: AccountStrategy[];
 }
 
-function ResultHeader({ run, isLoading, onRerun, onActivate, liveSourceStrategies }: ResultHeaderProps) {
+function ResultHeader({
+  run,
+  isLoading,
+  onRerun,
+  onActivate,
+  liveSourceStrategies,
+}: ResultHeaderProps) {
   const codes = useMemo(
     () =>
       (run?.strategyCode ?? '')
@@ -396,12 +410,12 @@ function ResultHeader({ run, isLoading, onRerun, onActivate, liveSourceStrategie
         </div>
       </div>
       <div className="flex shrink-0 flex-wrap items-center gap-2">
-        {run?.status === 'COMPLETED' && (
-          liveSourceStrategies.length > 0 ? (
+        {run?.status === 'COMPLETED' &&
+          (liveSourceStrategies.length > 0 ? (
             /* Run is already bound to a live strategy — guide the user there
                instead of letting them create a duplicate preset. */
-            <div className="inline-flex items-center gap-2 rounded-full border border-[var(--color-profit)]/30 bg-[var(--color-profit)]/5 px-3 py-2">
-              <Zap size={13} strokeWidth={2} className="shrink-0 text-[var(--color-profit)]/70" />
+            <div className="border-[var(--color-profit)]/30 bg-[var(--color-profit)]/5 inline-flex items-center gap-2 rounded-full border px-3 py-2">
+              <Zap size={13} strokeWidth={2} className="text-[var(--color-profit)]/70 shrink-0" />
               <span className="text-[12px] text-[var(--text-secondary)]">Active strategy</span>
               <span className="h-3 w-px bg-[var(--border-subtle)]" aria-hidden />
               <Link
@@ -410,7 +424,7 @@ function ResultHeader({ run, isLoading, onRerun, onActivate, liveSourceStrategie
               >
                 {liveSourceStrategies[0].strategyCode} · {liveSourceStrategies[0].symbol}
                 {liveSourceStrategies.length > 1 && (
-                  <span className="ml-0.5 text-[var(--color-profit)]/70">
+                  <span className="text-[var(--color-profit)]/70 ml-0.5">
                     +{liveSourceStrategies.length - 1}
                   </span>
                 )}
@@ -429,8 +443,7 @@ function ResultHeader({ run, isLoading, onRerun, onActivate, liveSourceStrategie
               <Zap size={13} strokeWidth={2} />
               Activate as Strategy
             </button>
-          )
-        )}
+          ))}
         <button
           type="button"
           onClick={onRerun}
@@ -470,8 +483,7 @@ function RunConfigPanel({ run }: { run: BacktestRun }) {
 
   const hasAllocations =
     run.strategyAllocations != null && Object.keys(run.strategyAllocations).length > 0;
-  const hasRiskPcts =
-    run.strategyRiskPcts != null && Object.keys(run.strategyRiskPcts).length > 0;
+  const hasRiskPcts = run.strategyRiskPcts != null && Object.keys(run.strategyRiskPcts).length > 0;
   const hasDirections =
     (run.strategyAllowLong != null && Object.keys(run.strategyAllowLong).length > 0) ||
     (run.strategyAllowShort != null && Object.keys(run.strategyAllowShort).length > 0);
@@ -538,8 +550,7 @@ function RunConfigPanel({ run }: { run: BacktestRun }) {
               )}
               {dir && (
                 <span className="text-text-secondary">
-                  Direction{' '}
-                  <span className="font-mono font-semibold text-text-primary">{dir}</span>
+                  Direction <span className="font-mono font-semibold text-text-primary">{dir}</span>
                 </span>
               )}
             </div>

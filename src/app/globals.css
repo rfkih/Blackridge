@@ -716,10 +716,16 @@ pre {
   color: var(--mm-bg);
 }
 .mm-pill-mint {
-  background: var(--mm-mint);
-  color: var(--mm-mint-on);
-  border-color: var(--mm-mint);
+  /* Primary CTA pill — palette-driven so the active state follows
+     Midnight/Slate/Oxford/Emerald instead of pinning to profit-green. */
+  background: var(--brand-500);
+  color: #fff;
+  border-color: var(--brand-500);
   font-weight: 600;
+}
+.mm-pill-mint:hover {
+  background: var(--brand-600);
+  border-color: var(--brand-600);
 }
 
 .mm-chip {
@@ -819,15 +825,14 @@ pre {
   background: var(--mm-surface-2);
 }
 .mm-nav-active {
-  background: rgba(22, 179, 100, 0.16);
+  /* Active nav item — palette-driven tint so the highlight follows
+     the user's Midnight/Slate/Oxford/Emerald choice. */
+  background: var(--accent-subtle);
   color: var(--mm-ink-0);
   font-weight: 600;
 }
 .mm-nav-active:hover {
-  background: rgba(22, 179, 100, 0.2);
-}
-[data-theme='light'] .mm-nav-active {
-  background: rgba(22, 179, 100, 0.14);
+  background: var(--accent-glow);
 }
 
 .mm-btn {
@@ -849,14 +854,17 @@ pre {
   background: var(--mm-surface-2);
 }
 .mm-btn-mint {
-  background: var(--mm-mint);
-  color: var(--mm-mint-on);
-  border-color: var(--mm-mint);
+  /* Primary CTA — palette-driven so every "Run", "Save", "Continue" button
+     follows the user's Midnight/Slate/Oxford/Emerald pick. */
+  background: var(--brand-500);
+  color: #fff;
+  border-color: var(--brand-500);
 }
 .mm-btn-mint:hover {
-  background: var(--mm-mint-2);
-  color: var(--mm-mint-on);
-  box-shadow: 0 8px 28px rgba(22, 179, 100, 0.22);
+  background: var(--brand-600);
+  color: #fff;
+  border-color: var(--brand-600);
+  box-shadow: 0 8px 28px var(--accent-glow);
 }
 .mm-btn-ghost {
   background: transparent;
@@ -1034,4 +1042,676 @@ input[type='number'].no-native-spinners {
   .dashboard-main {
     padding: 20px 16px !important;
   }
+}
+
+/* ─────────────────────────────────────────────────────────────────────
+   Brand palettes (Midnight / Slate / Oxford / Emerald)
+   ─────────────────────────────────────────────────────────────────────
+   Selected by `[data-palette]` on <html>. Orthogonal to `[data-theme]`:
+   surfaces are theme-driven, brand/accent tokens are palette-driven.
+   Combinations:
+     data-theme=dark/light × data-palette=midnight/slate/oxford/emerald
+   Profit (green) and loss (red) always stay green/red regardless of
+   palette — semantics is sacred.
+   ───────────────────────────────────────────────────────────────────── */
+
+/* Midnight — deep institutional navy (default). JPM / IBM / Goldman feel. */
+:root,
+[data-palette='midnight'] {
+  --brand-50: #eef2f8;
+  --brand-100: #d6deec;
+  --brand-200: #a8b7d2;
+  --brand-300: #7388b0;
+  --brand-400: #4a608e;
+  --brand-500: #1e3a6b;
+  --brand-600: #16294e;
+  --brand-700: #0f1f3c;
+  --brand-800: #0a152a;
+  --brand-900: #060d1a;
+
+  --color-interactive: #1e3a6b;
+  --accent-primary: #1e3a6b;
+  --accent-subtle: rgba(30, 58, 107, 0.22);
+  --accent-glow: rgba(30, 58, 107, 0.16);
+  --shadow-focus-ring: 0 0 0 3px rgba(30, 58, 107, 0.22);
+
+  /* shadcn HSL — primary/accent/ring driven by palette */
+  --primary: 218 56% 27%;
+  --accent: 218 56% 27%;
+  --ring: 218 56% 27%;
+  --chart-3: 218 56% 38%;
+}
+
+/* Slate — charcoal + steel-blue. PE / consulting / Bloomberg-adjacent. */
+[data-palette='slate'] {
+  --brand-50: #eef1f4;
+  --brand-100: #d9dee5;
+  --brand-200: #b0bac8;
+  --brand-300: #7e8c9f;
+  --brand-400: #54637a;
+  --brand-500: #2c3a4e;
+  --brand-600: #1f2a38;
+  --brand-700: #141c26;
+  --brand-800: #0b1118;
+  --brand-900: #05080c;
+
+  --color-interactive: #2c3a4e;
+  --accent-primary: #2c3a4e;
+  --accent-subtle: rgba(44, 58, 78, 0.22);
+  --accent-glow: rgba(44, 58, 78, 0.16);
+  --shadow-focus-ring: 0 0 0 3px rgba(44, 58, 78, 0.22);
+
+  --primary: 215 27% 24%;
+  --accent: 215 27% 24%;
+  --ring: 215 27% 24%;
+  --chart-3: 215 27% 38%;
+}
+
+/* Oxford — deep teal-navy. Private bank / old-money premium. */
+[data-palette='oxford'] {
+  --brand-50: #e9efee;
+  --brand-100: #c9d5d3;
+  --brand-200: #91aca9;
+  --brand-300: #5b807d;
+  --brand-400: #345a57;
+  --brand-500: #143c3a;
+  --brand-600: #0e2d2c;
+  --brand-700: #091f1e;
+  --brand-800: #051413;
+  --brand-900: #020908;
+
+  --color-interactive: #143c3a;
+  --accent-primary: #143c3a;
+  --accent-subtle: rgba(20, 60, 58, 0.22);
+  --accent-glow: rgba(20, 60, 58, 0.16);
+  --shadow-focus-ring: 0 0 0 3px rgba(20, 60, 58, 0.22);
+
+  --primary: 177 49% 16%;
+  --accent: 177 49% 16%;
+  --ring: 177 49% 16%;
+  --chart-3: 177 49% 28%;
+}
+
+/* Emerald — original Machiavelli brand, kept available as an opt-in. */
+[data-palette='emerald'] {
+  --brand-50: #e8f8ee;
+  --brand-100: #c8eed5;
+  --brand-200: #97deb1;
+  --brand-300: #5fcb8b;
+  --brand-400: #2ebc72;
+  --brand-500: #16b364;
+  --brand-600: #0e9f50;
+  --brand-700: #0a7e3f;
+  --brand-800: #075e2f;
+  --brand-900: #054020;
+
+  --color-interactive: #16b364;
+  --accent-primary: #16b364;
+  --accent-subtle: rgba(22, 179, 100, 0.22);
+  --accent-glow: rgba(22, 179, 100, 0.14);
+  --shadow-focus-ring: 0 0 0 3px rgba(22, 179, 100, 0.25);
+
+  --primary: 152 78% 40%;
+  --accent: 152 78% 40%;
+  --ring: 152 78% 40%;
+  --chart-3: 217 91% 60%;
+}
+
+/* ─────────────────────────────────────────────────────────────────────
+   Blackridge superbank — shared visual primitives used by the new
+   marketing, onboarding, dashboard reskin, and settings appearance
+   section. Light-theme defaults; data-theme=dark overrides at the end.
+   ───────────────────────────────────────────────────────────────────── */
+
+.br {
+  --br-bg: var(--bg-base);
+  --br-surface: var(--bg-surface);
+  --br-elevated: var(--bg-elevated);
+  --br-hover: var(--bg-hover);
+  --br-hair: var(--border-subtle);
+  --br-hair-2: var(--border-default);
+  --br-text: var(--text-primary);
+  --br-text-2: var(--text-secondary);
+  --br-text-3: var(--text-muted);
+  --br-brand: var(--brand-500);
+  --br-brand-hover: var(--brand-600);
+  --br-brand-soft: var(--brand-50);
+  --br-brand-ink: var(--brand-700);
+  --br-radius-md: 12px;
+  --br-radius-lg: 20px;
+  --br-radius-xl: 28px;
+  --br-radius-pill: 9999px;
+}
+
+/* Buttons — pill-shaped, used across marketing, signup, dashboard topbar. */
+.br-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border-radius: var(--br-radius-pill);
+  font-weight: 600;
+  font-size: 14px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  white-space: nowrap;
+  text-decoration: none;
+  transition:
+    background var(--dur-fast) var(--ease-out-quart),
+    color var(--dur-fast) var(--ease-out-quart),
+    border-color var(--dur-fast) var(--ease-out-quart),
+    box-shadow var(--dur-fast) var(--ease-out-quart),
+    transform var(--dur-fast) var(--ease-out-quart);
+}
+.br-btn-primary {
+  background: var(--brand-500);
+  color: #fff;
+}
+.br-btn-primary:hover {
+  background: var(--brand-600);
+  box-shadow: 0 8px 28px var(--accent-glow);
+}
+.br-btn-primary:active {
+  transform: scale(0.98);
+}
+.br-btn-secondary {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  border-color: var(--border-default);
+}
+.br-btn-secondary:hover {
+  background: var(--bg-hover);
+  border-color: var(--border-strong);
+}
+.br-btn-ghost {
+  background: transparent;
+  color: var(--text-secondary);
+}
+.br-btn-ghost:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+.br-btn-dark {
+  background: var(--text-primary);
+  color: var(--text-inverse);
+}
+.br-btn-lg {
+  padding: 14px 24px;
+  font-size: 15px;
+}
+.br-btn-sm {
+  padding: 6px 12px;
+  font-size: 13px;
+}
+.br-btn-block {
+  width: 100%;
+}
+.br-btn[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Cards */
+.br-card {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--br-radius-lg);
+  padding: 24px;
+}
+.br-card-hero {
+  background: var(--bg-elevated);
+  border-radius: var(--br-radius-xl);
+  padding: 28px;
+  box-shadow: var(--shadow-panel);
+}
+
+/* Chips */
+.br-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: var(--br-radius-pill);
+  font-size: 12px;
+  font-weight: 600;
+  background: var(--bg-hover);
+  color: var(--text-secondary);
+}
+.br-chip-profit {
+  background: var(--tint-profit);
+  color: var(--color-profit);
+}
+.br-chip-loss {
+  background: var(--tint-loss);
+  color: var(--color-loss);
+}
+.br-chip-brand {
+  background: var(--brand-50);
+  color: var(--brand-700);
+}
+.br-chip-warn {
+  background: var(--tint-warning);
+  color: var(--color-warning);
+}
+.br-chip-info {
+  background: var(--tint-info);
+  color: var(--color-info);
+}
+.br-chip-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+/* Inputs */
+.br-input {
+  width: 100%;
+  padding: 12px 14px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-default);
+  border-radius: var(--br-radius-md);
+  font-family: inherit;
+  font-size: 15px;
+  color: var(--text-primary);
+  transition:
+    border-color var(--dur-fast),
+    box-shadow var(--dur-fast);
+}
+.br-input:focus {
+  outline: none;
+  border-color: var(--brand-500);
+  box-shadow: var(--shadow-focus-ring);
+}
+.br-input::placeholder {
+  color: var(--text-muted);
+}
+.br-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+}
+
+/* Hero balance card (gradient brand → brand-900) */
+.br-balance {
+  background: linear-gradient(135deg, var(--brand-700) 0%, var(--brand-500) 100%);
+  color: #fff;
+  border-radius: var(--br-radius-xl);
+  padding: 28px 32px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--shadow-panel);
+}
+.br-balance::after {
+  content: '';
+  position: absolute;
+  right: -80px;
+  top: -80px;
+  width: 280px;
+  height: 280px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.14) 0%, transparent 60%);
+}
+
+/* Promo tiles — Superbank-style colored squares */
+.br-promo {
+  border-radius: var(--br-radius-lg);
+  padding: 20px 22px;
+  color: #fff;
+  position: relative;
+  overflow: hidden;
+  min-height: 132px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  cursor: pointer;
+  transition:
+    transform var(--dur-fast),
+    box-shadow var(--dur-fast);
+}
+.br-promo:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-panel);
+}
+.br-promo-brand {
+  background: linear-gradient(135deg, var(--brand-600), var(--brand-800));
+}
+.br-promo-dark {
+  background: linear-gradient(135deg, #1b232a, #0e1116);
+}
+.br-promo-green {
+  background: linear-gradient(135deg, #0e9f50, #075e2f);
+}
+.br-promo-shape::before {
+  content: '';
+  position: absolute;
+  right: -40px;
+  bottom: -40px;
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+/* Live dot — green pulsing indicator */
+.br-live-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-profit);
+  box-shadow: 0 0 0 4px var(--tint-profit);
+  display: inline-block;
+  animation: br-live-pulse 1.6s infinite;
+}
+@keyframes br-live-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* Ticker tiles — small colored squares for asset symbols */
+.br-ticker {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: var(--brand-50);
+  color: var(--brand-700);
+  display: inline-grid;
+  place-items: center;
+  font-weight: 700;
+  font-size: 13px;
+  font-family: var(--font-display);
+  flex-shrink: 0;
+}
+.br-ticker.btc {
+  background: #fef1e0;
+  color: #b17409;
+}
+.br-ticker.eth {
+  background: #ebe9ff;
+  color: #4936b5;
+}
+.br-ticker.sol {
+  background: #f0e5ff;
+  color: #6e2bc8;
+}
+.br-ticker.bnb {
+  background: #fff6d6;
+  color: #8b6906;
+}
+.br-ticker.ada {
+  background: #e1ecff;
+  color: #1f4fb0;
+}
+.br-ticker.doge {
+  background: #f4ecdb;
+  color: #8a6418;
+}
+.br-ticker.xrp {
+  background: #e5e9ee;
+  color: #344050;
+}
+.br-ticker.matic {
+  background: #ebe3ff;
+  color: #6332c7;
+}
+.br-ticker.avax {
+  background: #fce5e6;
+  color: #b5232a;
+}
+.br-ticker.link {
+  background: #e2ebfe;
+  color: #1e4fcc;
+}
+.br-ticker.dot {
+  background: #fce6f0;
+  color: #b0327a;
+}
+
+/* Trust band — dark plate with halo */
+.br-trust-band {
+  background: var(--brand-900);
+  color: #fff;
+  border-radius: var(--br-radius-xl);
+  padding: 64px;
+  position: relative;
+  overflow: hidden;
+}
+.br-trust-band::after {
+  content: '';
+  position: absolute;
+  right: -120px;
+  bottom: -120px;
+  width: 360px;
+  height: 360px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+/* Card-stack hero (marketing) */
+.br-card-stack {
+  position: relative;
+  height: 480px;
+}
+.br-card-stack > .br-float {
+  position: absolute;
+  background: var(--bg-elevated);
+  border-radius: var(--br-radius-lg);
+  box-shadow: var(--shadow-float);
+  padding: 16px;
+  border: 1px solid var(--border-subtle);
+}
+.br-card-stack > .br-float.c1 {
+  top: 0;
+  right: 0;
+  width: 320px;
+  transform: rotate(2deg);
+}
+.br-card-stack > .br-float.c2 {
+  top: 130px;
+  left: 0;
+  width: 300px;
+  transform: rotate(-3deg);
+}
+.br-card-stack > .br-float.c3 {
+  bottom: 0;
+  right: 24px;
+  width: 340px;
+  transform: rotate(1.5deg);
+}
+
+/* Hero ambient blob (marketing) — light-only; muted in dark mode */
+.br-hero-blob {
+  position: absolute;
+  width: 720px;
+  height: 720px;
+  right: -160px;
+  top: -120px;
+  border-radius: 50%;
+  background: var(--brand-50);
+  z-index: 0;
+}
+[data-theme='dark'] .br-hero-blob {
+  background: var(--accent-glow);
+  opacity: 0.4;
+}
+
+/* ─────────────────────────────────────────────────────────────────────
+   Dark-mode palette overrides — lifted brand colors.
+   ─────────────────────────────────────────────────────────────────────
+   The light-mode palettes (Midnight #1E3A6B, Slate #2C3A4E, Oxford
+   #143C3A) read as black on a dark surface. In dark mode we shift the
+   brand to lifted mid-tones that have visual presence against the
+   near-black background. brand-50 also flips to a deep tinted color
+   (instead of the light pastel) so chip/badge backgrounds aren't
+   blinding bright. shadcn HSL primary/accent/ring update in lockstep
+   so buttons, focus rings, and chart series pick up the lifted tone.
+   ───────────────────────────────────────────────────────────────────── */
+
+/* Dual-selector: root-level dark+palette OR a nested element with
+   data-theme='dark' inside a root with the palette. The second form
+   covers always-dark chrome like the sidebar so its accent reads as
+   the lifted brand color even when the rest of the app is in light
+   mode. */
+[data-theme='dark'][data-palette='midnight'],
+[data-palette='midnight'] [data-theme='dark'] {
+  --brand-50: #1e2840;
+  --brand-100: #2a3856;
+  --brand-200: #3b4d74;
+  --brand-300: #5872a0;
+  --brand-400: #7e97c5;
+  --brand-500: #6f8fd8;
+  --brand-600: #5879c8;
+  --brand-700: #4664b5;
+  --brand-800: #34528d;
+  --brand-900: #1f3261;
+
+  --color-interactive: #6f8fd8;
+  --accent-primary: #6f8fd8;
+  --accent-subtle: rgba(111, 143, 216, 0.22);
+  --accent-glow: rgba(111, 143, 216, 0.18);
+  --shadow-focus-ring: 0 0 0 3px rgba(111, 143, 216, 0.28);
+
+  --primary: 220 56% 64%;
+  --accent: 220 56% 64%;
+  --ring: 220 56% 64%;
+  --chart-3: 220 56% 64%;
+}
+
+[data-theme='dark'][data-palette='slate'],
+[data-palette='slate'] [data-theme='dark'] {
+  --brand-50: #1f2630;
+  --brand-100: #2a323e;
+  --brand-200: #3d4757;
+  --brand-300: #5b6779;
+  --brand-400: #8090a4;
+  --brand-500: #94a6bd;
+  --brand-600: #7e92ac;
+  --brand-700: #647a96;
+  --brand-800: #4a5e78;
+  --brand-900: #2f4055;
+
+  --color-interactive: #94a6bd;
+  --accent-primary: #94a6bd;
+  --accent-subtle: rgba(148, 166, 189, 0.22);
+  --accent-glow: rgba(148, 166, 189, 0.16);
+  --shadow-focus-ring: 0 0 0 3px rgba(148, 166, 189, 0.26);
+
+  --primary: 214 22% 66%;
+  --accent: 214 22% 66%;
+  --ring: 214 22% 66%;
+  --chart-3: 214 22% 66%;
+}
+
+[data-theme='dark'][data-palette='oxford'],
+[data-palette='oxford'] [data-theme='dark'] {
+  --brand-50: #15282a;
+  --brand-100: #1d363a;
+  --brand-200: #2a4c50;
+  --brand-300: #406d6f;
+  --brand-400: #5e908f;
+  --brand-500: #7cb0ad;
+  --brand-600: #65a09d;
+  --brand-700: #4f8784;
+  --brand-800: #3a6c69;
+  --brand-900: #25504e;
+
+  --color-interactive: #7cb0ad;
+  --accent-primary: #7cb0ad;
+  --accent-subtle: rgba(124, 176, 173, 0.22);
+  --accent-glow: rgba(124, 176, 173, 0.16);
+  --shadow-focus-ring: 0 0 0 3px rgba(124, 176, 173, 0.28);
+
+  --primary: 177 24% 59%;
+  --accent: 177 24% 59%;
+  --ring: 177 24% 59%;
+  --chart-3: 177 24% 59%;
+}
+
+[data-theme='dark'][data-palette='emerald'],
+[data-palette='emerald'] [data-theme='dark'] {
+  /* Emerald already pops on dark — only nudge brand-50/100 darker so chips don't blind. */
+  --brand-50: #0f2e1d;
+  --brand-100: #134029;
+  --brand-200: #1a5535;
+  --brand-300: #2ebc72;
+  --brand-400: #5fcb8b;
+  --brand-500: #16b364;
+  --brand-600: #2ebc72;
+  --brand-700: #5fcb8b;
+
+  --color-interactive: #16b364;
+  --accent-primary: #16b364;
+  --accent-subtle: rgba(22, 179, 100, 0.22);
+  --accent-glow: rgba(22, 179, 100, 0.16);
+}
+
+/* ─────────────────────────────────────────────────────────────────────
+   Dark-mode component tweaks — promo tiles, hero blob, ticker tiles.
+   Each is gated by [data-theme='dark'] so light-mode visuals untouched.
+   ───────────────────────────────────────────────────────────────────── */
+
+[data-theme='dark'] .br-promo-brand {
+  background: linear-gradient(135deg, var(--brand-300), var(--brand-700));
+}
+[data-theme='dark'] .br-promo-dark {
+  background: linear-gradient(135deg, #1f242c, #0a0d12);
+}
+
+/* Ticker tiles — translucent colored backgrounds with light text in dark
+   so the asset colors stay legible without being neon-blinding. */
+[data-theme='dark'] .br-ticker {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-secondary);
+}
+[data-theme='dark'] .br-ticker.btc {
+  background: rgba(247, 147, 26, 0.16);
+  color: #f7a53d;
+}
+[data-theme='dark'] .br-ticker.eth {
+  background: rgba(98, 126, 234, 0.18);
+  color: #93a8f0;
+}
+[data-theme='dark'] .br-ticker.sol {
+  background: rgba(153, 69, 255, 0.18);
+  color: #b488ff;
+}
+[data-theme='dark'] .br-ticker.bnb {
+  background: rgba(243, 186, 47, 0.16);
+  color: #f0cb66;
+}
+[data-theme='dark'] .br-ticker.avax {
+  background: rgba(232, 65, 66, 0.18);
+  color: #f08b8c;
+}
+[data-theme='dark'] .br-ticker.link {
+  background: rgba(30, 79, 204, 0.22);
+  color: #7aa1f0;
+}
+[data-theme='dark'] .br-ticker.ada {
+  background: rgba(31, 79, 176, 0.2);
+  color: #88a8e5;
+}
+[data-theme='dark'] .br-ticker.doge {
+  background: rgba(138, 100, 24, 0.22);
+  color: #c9a567;
+}
+[data-theme='dark'] .br-ticker.xrp {
+  background: rgba(255, 255, 255, 0.06);
+  color: #c5ccd5;
+}
+[data-theme='dark'] .br-ticker.matic {
+  background: rgba(99, 50, 199, 0.22);
+  color: #a78ddf;
+}
+[data-theme='dark'] .br-ticker.dot {
+  background: rgba(176, 50, 122, 0.22);
+  color: #d789b0;
 }

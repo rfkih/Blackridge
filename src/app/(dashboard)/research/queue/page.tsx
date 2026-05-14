@@ -2,14 +2,7 @@
 
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
-import {
-  ChevronRight,
-  Inbox,
-  Loader2,
-  Plus,
-  ShieldCheck,
-  X,
-} from 'lucide-react';
+import { ChevronRight, Inbox, Loader2, Plus, ShieldCheck, X } from 'lucide-react';
 import { useIsAdmin } from '@/hooks/useIsAdmin';
 import {
   useCancelQueueItem,
@@ -55,7 +48,11 @@ export default function ResearchQueuePage() {
   const [creating, setCreating] = useState(false);
 
   const statusFilter = tab === 'ACTIVE' ? ['PENDING', 'RUNNING'] : [tab];
-  const { data: rows = [], isLoading, isError } = useResearchQueue({
+  const {
+    data: rows = [],
+    isLoading,
+    isError,
+  } = useResearchQueue({
     status: statusFilter,
   });
 
@@ -67,8 +64,8 @@ export default function ResearchQueuePage() {
           Admin only
         </h1>
         <p className="text-[13px] text-text-muted">
-          The research queue drives token spend and JVM CPU on the research
-          host. Sign in with an admin account to manage it.
+          The research queue drives token spend and JVM CPU on the research host. Sign in with an
+          admin account to manage it.
         </p>
       </div>
     );
@@ -83,8 +80,8 @@ export default function ResearchQueuePage() {
             Research queue
           </h1>
           <p className="mt-1 text-[12px] text-text-muted">
-            Schedule sweeps for the unattended-research orchestrator. Lower
-            priority numbers run sooner.
+            Schedule sweeps for the unattended-research orchestrator. Lower priority numbers run
+            sooner.
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -97,7 +94,7 @@ export default function ResearchQueuePage() {
           <button
             type="button"
             onClick={() => setCreating(true)}
-            className="inline-flex items-center gap-1.5 rounded-sm bg-[var(--accent-primary)] px-3 py-2 text-[12px] font-semibold text-white hover:bg-[var(--accent-primary)]/90"
+            className="hover:bg-[var(--accent-primary)]/90 inline-flex items-center gap-1.5 rounded-sm bg-[var(--accent-primary)] px-3 py-2 text-[12px] font-semibold text-white"
           >
             <Plus size={12} /> Queue strategy
           </button>
@@ -128,7 +125,7 @@ export default function ResearchQueuePage() {
       {isLoading ? (
         <Skeleton className="h-48 w-full" />
       ) : isError ? (
-        <div className="rounded-sm border border-bd-subtle bg-bg-base/40 p-8 text-center text-[12px] text-text-muted">
+        <div className="bg-bg-base/40 rounded-sm border border-bd-subtle p-8 text-center text-[12px] text-text-muted">
           Could not load queue. The research JVM may be down.
         </div>
       ) : rows.length === 0 ? (
@@ -195,8 +192,7 @@ function QueueRow({ row }: { row: ResearchQueueItem }) {
           description: `${row.strategyCode} ${row.intervalName} marked CANCELLED.`,
           variant: 'success',
         }),
-      onError: (err) =>
-        toast.error({ title: 'Cancel failed', description: normalizeError(err) }),
+      onError: (err) => toast.error({ title: 'Cancel failed', description: normalizeError(err) }),
     });
   };
 
@@ -243,7 +239,7 @@ function QueueRow({ row }: { row: ResearchQueueItem }) {
               type="button"
               onClick={handleSavePriority}
               disabled={update.isPending}
-              className="rounded-sm border border-bd-default px-1.5 py-0.5 font-mono text-[10px] text-text-secondary hover:bg-bg-hover disabled:opacity-40"
+              className="border-bd-default rounded-sm border px-1.5 py-0.5 font-mono text-[10px] text-text-secondary hover:bg-bg-hover disabled:opacity-40"
             >
               {update.isPending ? <Loader2 size={10} className="animate-spin" /> : 'Save'}
             </button>
@@ -283,7 +279,10 @@ function QueueRow({ row }: { row: ResearchQueueItem }) {
       <Td align="right" className="num">
         {row.iterBudget}
       </Td>
-      <Td className="max-w-[220px] truncate text-text-secondary" title={row.hypothesis ?? undefined}>
+      <Td
+        className="max-w-[220px] truncate text-text-secondary"
+        title={row.hypothesis ?? undefined}
+      >
         {row.hypothesis || <span className="text-text-muted">—</span>}
       </Td>
       <Td className="font-mono text-text-muted">
@@ -294,7 +293,7 @@ function QueueRow({ row }: { row: ResearchQueueItem }) {
           type="button"
           onClick={handleCancel}
           disabled={cancel.isPending || isTerminal}
-          className="rounded-sm border border-bd-default bg-bg-surface px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-text-secondary hover:bg-bg-hover disabled:cursor-not-allowed disabled:opacity-40"
+          className="border-bd-default rounded-sm border bg-bg-surface px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-text-secondary hover:bg-bg-hover disabled:cursor-not-allowed disabled:opacity-40"
           title={isTerminal ? 'Already terminal' : 'Soft-cancel — preserves audit trail'}
         >
           {cancel.isPending && cancel.variables === row.queueId ? (
@@ -308,13 +307,7 @@ function QueueRow({ row }: { row: ResearchQueueItem }) {
   );
 }
 
-function StatusBadge({
-  status,
-  verdict,
-}: {
-  status: string;
-  verdict: string | null;
-}) {
+function StatusBadge({ status, verdict }: { status: string; verdict: string | null }) {
   const tone =
     status === 'PENDING'
       ? 'muted'
@@ -348,7 +341,7 @@ function EmptyState({ onCreate }: { onCreate: () => void }) {
       <button
         type="button"
         onClick={onCreate}
-        className="inline-flex items-center gap-1.5 rounded-sm bg-[var(--accent-primary)] px-3 py-2 text-[12px] font-semibold text-white hover:bg-[var(--accent-primary)]/90"
+        className="hover:bg-[var(--accent-primary)]/90 inline-flex items-center gap-1.5 rounded-sm bg-[var(--accent-primary)] px-3 py-2 text-[12px] font-semibold text-white"
       >
         <Plus size={12} /> Queue strategy
       </button>
@@ -429,8 +422,8 @@ function NewQueueItemDialog({ onClose }: { onClose: () => void }) {
         <DialogHeader>
           <DialogTitle>Queue strategy for research</DialogTitle>
           <DialogDescription>
-            Mirrors <code>queue-strategy.sh</code>. The orchestrator picks rows
-            in priority order on its next tick.
+            Mirrors <code>queue-strategy.sh</code>. The orchestrator picks rows in priority order on
+            its next tick.
           </DialogDescription>
         </DialogHeader>
         <div className="grid grid-cols-2 gap-3">
@@ -440,7 +433,7 @@ function NewQueueItemDialog({ onClose }: { onClose: () => void }) {
               value={strategyCode}
               onChange={(e) => setStrategyCode(e.target.value)}
               placeholder="e.g. VCB"
-              className="w-full rounded-sm border border-bd-subtle bg-bg-base px-2.5 py-1.5 font-mono text-[12px] text-text-primary uppercase placeholder:text-text-muted focus:border-[var(--accent-primary)] focus:outline-none"
+              className="w-full rounded-sm border border-bd-subtle bg-bg-base px-2.5 py-1.5 font-mono text-[12px] uppercase text-text-primary placeholder:text-text-muted focus:border-[var(--accent-primary)] focus:outline-none"
             />
           </Field>
           <Field label="Interval">
@@ -463,7 +456,7 @@ function NewQueueItemDialog({ onClose }: { onClose: () => void }) {
               onChange={(e) => setInstrument(e.target.value)}
               placeholder="BTCUSDT"
               list="research-instrument-options"
-              className="w-full rounded-sm border border-bd-subtle bg-bg-base px-2.5 py-1.5 font-mono text-[12px] text-text-primary uppercase placeholder:text-text-muted focus:border-[var(--accent-primary)] focus:outline-none"
+              className="w-full rounded-sm border border-bd-subtle bg-bg-base px-2.5 py-1.5 font-mono text-[12px] uppercase text-text-primary placeholder:text-text-muted focus:border-[var(--accent-primary)] focus:outline-none"
             />
             <datalist id="research-instrument-options">
               <option value="BTCUSDT" />
@@ -541,7 +534,7 @@ function NewQueueItemDialog({ onClose }: { onClose: () => void }) {
             type="button"
             onClick={submit}
             disabled={create.isPending}
-            className="inline-flex items-center gap-1.5 rounded-sm bg-[var(--accent-primary)] px-3 py-1.5 text-[12px] font-semibold text-white hover:bg-[var(--accent-primary)]/90 disabled:cursor-not-allowed disabled:opacity-60"
+            className="hover:bg-[var(--accent-primary)]/90 inline-flex items-center gap-1.5 rounded-sm bg-[var(--accent-primary)] px-3 py-1.5 text-[12px] font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
           >
             {create.isPending && <Loader2 size={11} className="animate-spin" />}
             Queue
@@ -594,11 +587,7 @@ function Td({
   title?: string;
 }) {
   return (
-    <td
-      className={`px-2.5 py-1.5 ${className}`}
-      style={{ textAlign: align }}
-      title={title}
-    >
+    <td className={`px-2.5 py-1.5 ${className}`} style={{ textAlign: align }} title={title}>
       {children}
     </td>
   );

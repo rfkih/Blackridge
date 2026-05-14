@@ -25,12 +25,10 @@ export default function AuditLogPage() {
     <div className="flex flex-col gap-4 px-6 py-6">
       <header className="flex items-baseline justify-between gap-4">
         <div>
-          <h1 className="font-display text-2xl font-semibold text-text-primary">
-            Audit log
-          </h1>
+          <h1 className="font-display text-2xl font-semibold text-text-primary">Audit log</h1>
           <p className="text-sm text-text-secondary">
-            Every security-sensitive action you&apos;ve taken — strategy CRUD,
-            kill-switch rearm, account risk-config updates.
+            Every security-sensitive action you&apos;ve taken — strategy CRUD, kill-switch rearm,
+            account risk-config updates.
           </p>
         </div>
         <button
@@ -51,11 +49,7 @@ export default function AuditLogPage() {
         </div>
       ) : rows.length === 0 ? (
         <div className="rounded-xl border border-bd-subtle bg-bg-surface px-6 py-12 text-center text-text-secondary">
-          <ScrollText
-            size={20}
-            strokeWidth={1.5}
-            className="mx-auto mb-2 text-text-muted"
-          />
+          <ScrollText size={20} strokeWidth={1.5} className="mx-auto mb-2 text-text-muted" />
           No actions logged yet.
         </div>
       ) : (
@@ -131,9 +125,7 @@ function AuditRow({ event }: { event: AuditEvent }) {
         {event.entityId ? (
           <>
             <span className="text-text-muted"> · </span>
-            <span className="text-text-muted">
-              {event.entityId.slice(0, 8)}…
-            </span>
+            <span className="text-text-muted">{event.entityId.slice(0, 8)}…</span>
           </>
         ) : null}
       </td>

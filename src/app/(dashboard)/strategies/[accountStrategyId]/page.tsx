@@ -46,7 +46,12 @@ import { useAccountStrategyPromote } from '@/hooks/useStrategyPromotion';
 import { useTradesList } from '@/hooks/useTrades';
 import { toast } from '@/hooks/useToast';
 import { normalizeError } from '@/lib/api/client';
-import { ALLOC_MAX_PCT, ALLOC_OPTIONS, RISK_OPTIONS, strategyControlsRiskSizing } from '@/lib/constants';
+import {
+  ALLOC_MAX_PCT,
+  ALLOC_OPTIONS,
+  RISK_OPTIONS,
+  strategyControlsRiskSizing,
+} from '@/lib/constants';
 
 import { useAccounts } from '@/hooks/useAccounts';
 import { useBacktestParamStore } from '@/store/backtestParamStore';
@@ -203,8 +208,7 @@ function StrategyDetail({ strategy }: { strategy: AccountStrategy }) {
         {/* Action strip — preset label + mode toggle + run backtest CTA */}
         <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-[var(--border-subtle)] pt-3">
           <span className="font-mono text-[10px] text-[var(--text-muted)]">
-            Preset ·{' '}
-            <span className="text-[var(--text-secondary)]">{strategy.presetName}</span>
+            Preset · <span className="text-[var(--text-secondary)]">{strategy.presetName}</span>
           </span>
           <div className="flex items-center gap-2">
             <StrategyModeToggle strategy={strategy} />
@@ -237,10 +241,7 @@ function StrategyDetail({ strategy }: { strategy: AccountStrategy }) {
         instrument={strategy.symbol}
       />
 
-      <PaperTradePanel
-        accountStrategyId={strategy.id}
-        isPaperTrade={strategy.status === 'PAPER'}
-      />
+      <PaperTradePanel accountStrategyId={strategy.id} isPaperTrade={strategy.status === 'PAPER'} />
 
       <Tabs defaultValue="live" className="space-y-4">
         <TabsList className="bg-[var(--bg-surface)]">
@@ -355,7 +356,8 @@ function DirectionPanel({ strategy }: { strategy: AccountStrategy }) {
       // Descriptive toast — tell the user exactly what changed.
       const changed: string[] = [];
       if (newLong !== strategy.allowLong) changed.push(newLong ? 'Long enabled' : 'Long disabled');
-      if (newShort !== strategy.allowShort) changed.push(newShort ? 'Short enabled' : 'Short disabled');
+      if (newShort !== strategy.allowShort)
+        changed.push(newShort ? 'Short enabled' : 'Short disabled');
       toast.success({ title: changed.join(' · ') || 'Direction updated' });
     } catch (err) {
       toast.error({ title: 'Could not update direction', description: normalizeError(err) });
@@ -380,7 +382,7 @@ function DirectionPanel({ strategy }: { strategy: AccountStrategy }) {
         className={cn(
           'inline-flex items-center gap-1.5 rounded-sm border px-2.5 py-1 font-mono text-[11px] uppercase tracking-wider transition-colors disabled:cursor-not-allowed',
           strategy.allowLong
-            ? 'border-[var(--color-profit)]/40 bg-[var(--color-profit)]/10 text-[var(--color-profit)] hover:bg-[var(--color-profit)]/20 disabled:opacity-60'
+            ? 'border-[var(--color-profit)]/40 bg-[var(--color-profit)]/10 hover:bg-[var(--color-profit)]/20 text-[var(--color-profit)] disabled:opacity-60'
             : 'border-bd-subtle bg-bg-base text-text-muted hover:border-text-muted hover:text-text-primary disabled:opacity-50',
         )}
       >
@@ -396,7 +398,7 @@ function DirectionPanel({ strategy }: { strategy: AccountStrategy }) {
         className={cn(
           'inline-flex items-center gap-1.5 rounded-sm border px-2.5 py-1 font-mono text-[11px] uppercase tracking-wider transition-colors disabled:cursor-not-allowed',
           strategy.allowShort
-            ? 'border-[var(--color-loss)]/40 bg-[var(--color-loss)]/10 text-[var(--color-loss)] hover:bg-[var(--color-loss)]/20 disabled:opacity-60'
+            ? 'border-[var(--color-loss)]/40 bg-[var(--color-loss)]/10 hover:bg-[var(--color-loss)]/20 text-[var(--color-loss)] disabled:opacity-60'
             : 'border-bd-subtle bg-bg-base text-text-muted hover:border-text-muted hover:text-text-primary disabled:opacity-50',
         )}
       >
@@ -503,7 +505,7 @@ function RiskGatesPanel({ strategy }: { strategy: AccountStrategy }) {
               className={cn(
                 'inline-flex items-center gap-1.5 rounded-sm border px-2.5 py-1 font-mono text-[11px] uppercase tracking-wider transition-colors disabled:cursor-not-allowed disabled:opacity-60',
                 active
-                  ? 'border-[var(--color-profit)]/40 bg-[var(--color-profit)]/10 text-[var(--color-profit)] hover:bg-[var(--color-profit)]/20'
+                  ? 'border-[var(--color-profit)]/40 bg-[var(--color-profit)]/10 hover:bg-[var(--color-profit)]/20 text-[var(--color-profit)]'
                   : 'border-bd-subtle bg-bg-base text-text-muted hover:border-text-muted hover:text-text-primary',
               )}
               aria-pressed={active}
@@ -519,8 +521,8 @@ function RiskGatesPanel({ strategy }: { strategy: AccountStrategy }) {
       </div>
       {allOff && !updateMut.isPending && (
         <span className="font-mono text-[10px] text-text-muted">
-          · all gates off — live and backtest behave identically (V62 default).
-          Enable each gate as you validate it.
+          · all gates off — live and backtest behave identically (V62 default). Enable each gate as
+          you validate it.
         </span>
       )}
     </div>
@@ -701,9 +703,7 @@ function PositionSizingPanel({ strategy }: { strategy: AccountStrategy }) {
   const [allocationInput, setAllocationInput] = React.useState(() =>
     formatAllocStr(strategy.capitalAllocationPct),
   );
-  const [riskInput, setRiskInput] = React.useState(() =>
-    formatRiskStr(strategy.riskPct),
-  );
+  const [riskInput, setRiskInput] = React.useState(() => formatRiskStr(strategy.riskPct));
 
   // Bug 3: keep inputs in sync with background refetches while NOT editing.
   // When another panel save triggers invalidateQueries, `strategy` updates.
@@ -934,7 +934,7 @@ function PositionSizingPanel({ strategy }: { strategy: AccountStrategy }) {
           <button
             type="button"
             onClick={openEdit}
-            className="shrink-0 inline-flex items-center rounded-sm border border-bd-subtle bg-bg-base px-2.5 py-1 font-mono text-[10px] uppercase tracking-wider text-text-primary hover:bg-bg-hover"
+            className="inline-flex shrink-0 items-center rounded-sm border border-bd-subtle bg-bg-base px-2.5 py-1 font-mono text-[10px] uppercase tracking-wider text-text-primary hover:bg-bg-hover"
           >
             Edit
           </button>
@@ -986,8 +986,10 @@ function StrategyModeToggle({ strategy }: { strategy: AccountStrategy }) {
     );
     if (!ok) return;
     activate.mutate(strategy.id, {
-      onSuccess: () => toast.success({ title: 'Switched to LIVE — real orders will fire on next bar close' }),
-      onError: (err) => toast.error({ title: 'Could not switch to LIVE', description: normalizeError(err) }),
+      onSuccess: () =>
+        toast.success({ title: 'Switched to LIVE — real orders will fire on next bar close' }),
+      onError: (err) =>
+        toast.error({ title: 'Could not switch to LIVE', description: normalizeError(err) }),
     });
   };
 
@@ -1014,7 +1016,7 @@ function StrategyModeToggle({ strategy }: { strategy: AccountStrategy }) {
         onClick={handleSwitchToLive}
         disabled={isMutating}
         title="Flip this row to real Binance orders. Auto-promotes the strategy definition too."
-        className="inline-flex items-center gap-1.5 rounded-sm border border-[var(--color-profit)]/60 bg-[var(--bg-base)] px-3 py-1.5 font-mono text-[10px] uppercase tracking-wider text-[var(--color-profit)] transition-colors hover:bg-[rgba(22,179,100,0.08)] disabled:cursor-not-allowed disabled:opacity-50"
+        className="border-[var(--color-profit)]/60 inline-flex items-center gap-1.5 rounded-sm border bg-[var(--bg-base)] px-3 py-1.5 font-mono text-[10px] uppercase tracking-wider text-[var(--color-profit)] transition-colors hover:bg-[rgba(22,179,100,0.08)] disabled:cursor-not-allowed disabled:opacity-50"
       >
         <TrendingUp size={11} strokeWidth={1.75} />
         {isMutating ? 'Switching…' : 'Switch to live'}
@@ -1028,7 +1030,7 @@ function StrategyModeToggle({ strategy }: { strategy: AccountStrategy }) {
       onClick={handleSwitchToPaper}
       disabled={isMutating}
       title="Demote this row to paper. Existing open positions still close real — only NEW entries divert."
-      className="inline-flex items-center gap-1.5 rounded-sm border border-[var(--color-warning)]/60 bg-[var(--bg-base)] px-3 py-1.5 font-mono text-[10px] uppercase tracking-wider text-[var(--color-warning)] transition-colors hover:bg-[rgba(245,166,35,0.08)] disabled:cursor-not-allowed disabled:opacity-50"
+      className="border-[var(--color-warning)]/60 inline-flex items-center gap-1.5 rounded-sm border bg-[var(--bg-base)] px-3 py-1.5 font-mono text-[10px] uppercase tracking-wider text-[var(--color-warning)] transition-colors hover:bg-[rgba(245,166,35,0.08)] disabled:cursor-not-allowed disabled:opacity-50"
     >
       <ShieldCheck size={11} strokeWidth={1.75} />
       {isMutating ? 'Switching…' : 'Switch to paper'}

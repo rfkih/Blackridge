@@ -88,7 +88,8 @@ function getActivityStyle(
     return { color: 'var(--text-secondary)', bg: 'rgba(170,170,170,0.10)', dot: '#888' };
   }
   if (activityType === 'ITERATION_COMPLETED') {
-    const verdict = typeof details?.statistical_verdict === 'string' ? details.statistical_verdict : '';
+    const verdict =
+      typeof details?.statistical_verdict === 'string' ? details.statistical_verdict : '';
     if (verdict === 'SIGNIFICANT_EDGE') {
       return { color: 'var(--color-profit)', bg: 'rgba(46,196,138,0.14)', dot: '#2ec48a' };
     }
@@ -219,7 +220,7 @@ function ActivityItem({
             </span>
           )}
 
-          <span className="font-mono tabular-nums text-[11px] text-text-muted">
+          <span className="font-mono text-[11px] tabular-nums text-text-muted">
             {relativeOffset(sessionStart, activity.createdAt)}
           </span>
         </div>
@@ -237,9 +238,7 @@ function ActivityItem({
           </button>
         )}
 
-        {expanded && hasDetails && activity.details && (
-          <DetailsBlock details={activity.details} />
-        )}
+        {expanded && hasDetails && activity.details && <DetailsBlock details={activity.details} />}
       </div>
     </div>
   );
@@ -292,9 +291,7 @@ function SessionTimeline({
           <h1 className="mt-1 font-display text-[24px] font-semibold tracking-tighter text-text-primary">
             Session Timeline
           </h1>
-          <p className="mt-1 font-mono tabular-nums text-[12px] text-text-muted">
-            {sessionId}
-          </p>
+          <p className="mt-1 font-mono text-[12px] tabular-nums text-text-muted">{sessionId}</p>
         </div>
         <button
           type="button"
@@ -373,9 +370,7 @@ function SessionTimeline({
             <p className="text-[11px] text-text-secondary">
               {activities.length} event{activities.length !== 1 ? 's' : ''}
               {newLive.length > 0 && (
-                <span className="ml-1.5 text-[var(--color-profit)]">
-                  +{newLive.length} live
-                </span>
+                <span className="ml-1.5 text-[var(--color-profit)]">+{newLive.length} live</span>
               )}
               {' · oldest first'}
             </p>
@@ -450,7 +445,9 @@ function MetaStat({
   return (
     <div>
       <dt className="text-[10px] uppercase tracking-widest text-text-muted">{label}</dt>
-      <dd className={`mt-0.5 text-[13px] font-semibold ${mono ? 'font-mono tabular-nums' : ''} ${colorClass}`}>
+      <dd
+        className={`mt-0.5 text-[13px] font-semibold ${mono ? 'font-mono tabular-nums' : ''} ${colorClass}`}
+      >
         {value}
       </dd>
     </div>
@@ -490,7 +487,7 @@ function SessionCard({
 
           {/* Session ID + copy */}
           <div className="flex items-center gap-1">
-            <span className="font-mono tabular-nums text-[12px] text-text-muted">{shortId}…</span>
+            <span className="font-mono text-[12px] tabular-nums text-text-muted">{shortId}…</span>
             <button
               type="button"
               onClick={handleCopyId}
@@ -515,7 +512,7 @@ function SessionCard({
         </div>
 
         {/* Timestamps */}
-        <div className="font-mono tabular-nums text-[11px] text-text-muted">
+        <div className="font-mono text-[11px] tabular-nums text-text-muted">
           <span title={session.startedAt}>
             {format(parseISO(session.startedAt), 'MMM d, HH:mm')}
           </span>
@@ -596,7 +593,9 @@ function Stat({
           : 'text-text-primary';
   return (
     <div className="text-center">
-      <div className={`text-[14px] font-semibold ${mono ? 'font-mono tabular-nums' : ''} ${colorClass}`}>
+      <div
+        className={`text-[14px] font-semibold ${mono ? 'font-mono tabular-nums' : ''} ${colorClass}`}
+      >
         {value}
       </div>
       <div className="text-[10px] uppercase tracking-widest text-text-muted">{label}</div>
@@ -655,12 +654,7 @@ function PaginationBar({
         Page {page + 1} of {totalPages} · {total} session{total !== 1 ? 's' : ''}
       </span>
       <div className="flex items-center gap-2">
-        <Button
-          size="sm"
-          variant="outline"
-          disabled={page === 0}
-          onClick={() => onPage(page - 1)}
-        >
+        <Button size="sm" variant="outline" disabled={page === 0} onClick={() => onPage(page - 1)}>
           Previous
         </Button>
         <Button
@@ -712,7 +706,8 @@ function SessionsList({
               Research Agent Activity
             </h1>
             {wsConnected && (
-              <span className="inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide"
+              <span
+                className="inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide"
                 style={{ background: 'rgba(46,196,138,0.14)', color: 'var(--color-profit)' }}
               >
                 <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-[var(--color-profit)]" />
@@ -782,12 +777,7 @@ function SessionsList({
 
       {/* Pagination */}
       {!query.isLoading && total > 0 && (
-        <PaginationBar
-          page={page}
-          total={total}
-          pageSize={SESSIONS_PAGE_SIZE}
-          onPage={setPage}
-        />
+        <PaginationBar page={page} total={total} pageSize={SESSIONS_PAGE_SIZE} onPage={setPage} />
       )}
     </div>
   );
@@ -842,14 +832,10 @@ export default function ResearchActivityPage() {
   useResearchActivityStream(handleLiveActivity);
 
   // Activities relevant to the currently open session detail view.
-  const sessionLiveActivities = liveActivities.filter(
-    (a) => a.sessionId === selectedSessionId,
-  );
+  const sessionLiveActivities = liveActivities.filter((a) => a.sessionId === selectedSessionId);
 
   if (!isAdmin) {
-    return (
-      <div className="px-6 py-12 text-center text-text-secondary">Admin access required.</div>
-    );
+    return <div className="px-6 py-12 text-center text-text-secondary">Admin access required.</div>;
   }
 
   if (selectedSessionId !== null && selectedSession !== null) {

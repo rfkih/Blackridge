@@ -173,8 +173,8 @@ export default function MonteCarloPage() {
             <span
               className="mm-chip"
               style={{
-                background: 'var(--mm-mint-soft)',
-                color: 'var(--mm-mint)',
+                background: 'var(--accent-subtle)',
+                color: 'var(--brand-500)',
                 padding: '3px 10px',
                 fontSize: 11,
                 letterSpacing: '0.12em',
@@ -828,7 +828,7 @@ function RunningSkeleton() {
   return (
     <section className="mm-card" style={{ padding: '22px 26px' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-        <Loader2 size={14} className="animate-spin" style={{ color: 'var(--mm-mint)' }} />
+        <Loader2 size={14} className="animate-spin" style={{ color: 'var(--brand-500)' }} />
         <span
           className="font-mono"
           style={{

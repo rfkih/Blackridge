@@ -3,13 +3,28 @@
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
-import { KeyRound, Loader2, LogOut, Plus, ShieldCheck } from 'lucide-react';
+import {
+  Activity,
+  Bell,
+  Gauge,
+  HelpCircle,
+  KeyRound,
+  Loader2,
+  LogOut,
+  Moon,
+  Plus,
+  ShieldCheck,
+  Sun,
+  User,
+  Wallet,
+  Zap,
+} from 'lucide-react';
 import { formatDate } from '@/lib/formatters';
 import { useAuth } from '@/hooks/useAuth';
 import { useAccounts, useUpdateAccountRiskConfig } from '@/hooks/useAccounts';
-import { useIsAdmin } from '@/hooks/useIsAdmin';
 import { useUpdateMyProfile } from '@/hooks/useProfile';
 import { useTheme } from '@/components/theme/ThemeProvider';
+import { usePalette, PALETTE_META, type Palette } from '@/components/theme/PaletteProvider';
 import { RotateCredentialsDialog } from '@/components/account/RotateCredentialsDialog';
 import { ServerIpCard } from '@/components/account/ServerIpCard';
 import { normalizeError } from '@/lib/api/client';
@@ -21,151 +36,82 @@ import {
 } from '@/store/currencyStore';
 import type { AccountSummary } from '@/types/account';
 
-// `wired` flag: only items backed by real endpoints render in the nav;
-// the rest are collected into the "Coming later" group below.
-interface NavItem {
-  k: string;
-  label: string;
-  wired: boolean;
-}
-interface NavGroup {
-  group: string;
-  items: NavItem[];
-}
-
-const NAV: NavGroup[] = [
-  {
-    group: 'ACCOUNT',
-    items: [
-      { k: 'profile', label: 'Profile', wired: true },
-      { k: 'security', label: 'Security', wired: true },
-      { k: 'activity', label: 'Recent activity', wired: true },
-      { k: 'api', label: 'API keys', wired: false },
-      { k: 'sessions', label: 'Active sessions', wired: false },
-    ],
-  },
-  {
-    group: 'TRADING',
-    items: [
-      { k: 'risk', label: 'Risk guardrails', wired: true },
-      { k: 'brokers', label: 'Brokers & wallets', wired: true },
-      { k: 'fees', label: 'Fees & commissions', wired: false },
-      { k: 'tax', label: 'Tax preferences', wired: false },
-    ],
-  },
-  {
-    group: 'NOTIFY',
-    items: [
-      { k: 'alerts', label: 'Alerts', wired: false },
-      { k: 'reports', label: 'Scheduled reports', wired: false },
-    ],
-  },
-  {
-    group: 'BILLING',
-    items: [
-      { k: 'plan', label: 'Plan', wired: false },
-      { k: 'invoices', label: 'Invoices', wired: false },
-      { k: 'referrals', label: 'Referrals', wired: false },
-    ],
-  },
-  {
-    group: 'HELP',
-    items: [{ k: 'support', label: 'Help & support', wired: true }],
-  },
-];
-
 type SectionKey = string;
+
+// Flat 6+ section nav mirroring the prototype's settings layout: icon +
+// label, no groups, sticky in column. Order matches the prototype.
+const SETTINGS_NAV: { k: string; label: string; icon: React.ElementType }[] = [
+  { k: 'profile', label: 'Profile', icon: User },
+  { k: 'appearance', label: 'Appearance', icon: Sun },
+  { k: 'notifications', label: 'Notifications', icon: Bell },
+  { k: 'security', label: 'Security', icon: ShieldCheck },
+  { k: 'api', label: 'API & exchanges', icon: Zap },
+  { k: 'brokers', label: 'Brokers & wallets', icon: Wallet },
+  { k: 'risk', label: 'Risk guardrails', icon: Gauge },
+  { k: 'activity', label: 'Recent activity', icon: Activity },
+  { k: 'support', label: 'Help & support', icon: HelpCircle },
+];
 
 export default function SettingsPage() {
   const [active, setActive] = useState<SectionKey>('profile');
 
   return (
     <div
-      className="mm settings-grid"
+      className="br settings-grid"
       style={{
         display: 'grid',
-        // Two-column on tablet+, stack vertically on phones. The
-        // tailwind-friendly approach would be `md:grid-cols-[260px_1fr]`,
-        // but the existing layout uses inline styles — we flip them via
-        // a container query class defined in globals.css.
-        gridTemplateColumns: '260px 1fr',
-        gap: 20,
+        gridTemplateColumns: '240px 1fr',
+        gap: 24,
         minHeight: 0,
         flex: 1,
       }}
     >
-      {/* ── Left settings nav ── */}
-      <aside
-        className="mm-card"
-        style={{ padding: '20px 18px', display: 'flex', flexDirection: 'column', minHeight: 540 }}
+      {/* ── Left settings nav (flat, sticky) ── */}
+      <nav
+        aria-label="Settings sections"
+        className="self-start sticky top-5"
+        style={{ display: 'flex', flexDirection: 'column', gap: 2 }}
       >
-        <div className="mm-kicker" style={{ padding: '0 8px', marginBottom: 8 }}>
-          SETTINGS
-        </div>
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 18,
-            flex: 1,
-            minHeight: 0,
-            overflowY: 'auto',
-          }}
-        >
-          {NAV.map((group) => {
-            // Filter to only the items we actually ship today. Empty groups
-            // disappear entirely — better than rendering a header followed
-            // by zero buttons.
-            const wired = group.items.filter((it) => it.wired);
-            if (wired.length === 0) return null;
-            return (
-              <div key={group.group}>
-                <div
-                  className="mm-kicker"
-                  style={{
-                    padding: '0 8px',
-                    marginBottom: 6,
-                    fontSize: 9,
-                    letterSpacing: '0.18em',
-                    color: 'var(--mm-ink-3)',
-                  }}
-                >
-                  {group.group}
-                </div>
-                {wired.map((it) => {
-                  const isActive = it.k === active;
-                  return (
-                    <button
-                      type="button"
-                      key={it.k}
-                      onClick={() => setActive(it.k)}
-                      style={{
-                        width: '100%',
-                        textAlign: 'left',
-                        padding: '9px 10px',
-                        borderRadius: 10,
-                        fontSize: 13,
-                        color: isActive ? 'var(--mm-ink-0)' : 'var(--mm-ink-1)',
-                        background: isActive ? 'var(--mm-surface-2)' : 'transparent',
-                        borderLeft: isActive ? '2px solid var(--mm-mint)' : '2px solid transparent',
-                        cursor: 'pointer',
-                        fontFamily: 'var(--font-body)',
-                        transition: 'background 120ms, color 120ms',
-                      }}
-                    >
-                      {it.label}
-                    </button>
-                  );
-                })}
-              </div>
-            );
-          })}
-
-          <ComingLaterGroup nav={NAV} />
-        </div>
-
-        <PlanCard />
-      </aside>
+        {SETTINGS_NAV.map((it) => {
+          const Icon = it.icon;
+          const isActive = it.k === active;
+          return (
+            <button
+              type="button"
+              key={it.k}
+              onClick={() => setActive(it.k)}
+              aria-current={isActive ? 'page' : undefined}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 12,
+                width: '100%',
+                textAlign: 'left',
+                padding: '9px 12px',
+                borderRadius: 10,
+                fontSize: 14,
+                fontWeight: 500,
+                color: isActive ? 'var(--brand-700)' : 'var(--text-secondary)',
+                background: isActive ? 'var(--brand-50)' : 'transparent',
+                border: 'none',
+                cursor: 'pointer',
+                fontFamily: 'var(--font-body)',
+                transition: 'background var(--dur-fast), color var(--dur-fast)',
+              }}
+            >
+              <Icon
+                size={18}
+                strokeWidth={1.75}
+                style={{
+                  flexShrink: 0,
+                  color: isActive ? 'var(--brand-600)' : 'var(--text-muted)',
+                }}
+              />
+              <span>{it.label}</span>
+            </button>
+          );
+        })}
+      </nav>
 
       {/* ── Right content ── */}
       <div
@@ -179,6 +125,9 @@ export default function SettingsPage() {
         }}
       >
         {active === 'profile' && <ProfileSection />}
+        {active === 'appearance' && <AppearanceSection />}
+        {active === 'notifications' && <NotificationsSection />}
+        {active === 'api' && <ApiSection />}
         {active === 'security' && <SecuritySection />}
         {active === 'activity' && <RecentActivitySection />}
         {active === 'brokers' && <BrokersSection />}
@@ -186,115 +135,17 @@ export default function SettingsPage() {
         {active === 'support' && <SupportSection />}
         {/* Profile view is the landing one — when there's no match we fall
             back to it rather than showing an empty canvas. */}
-        {!['profile', 'security', 'activity', 'brokers', 'risk', 'support'].includes(active) && (
-          <ProfileSection />
-        )}
-      </div>
-    </div>
-  );
-}
-
-// Collapsed bucket of every {wired: false} nav item — one click to peek
-// at the roadmap, never in the way.
-function ComingLaterGroup({ nav }: { nav: NavGroup[] }) {
-  const upcoming = nav.flatMap((g) => g.items.filter((i) => !i.wired));
-  const [open, setOpen] = useState(false);
-  if (upcoming.length === 0) return null;
-  return (
-    <div>
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        className="mm-kicker"
-        style={{
-          width: '100%',
-          textAlign: 'left',
-          padding: '4px 8px',
-          marginBottom: 6,
-          fontSize: 9,
-          letterSpacing: '0.18em',
-          color: 'var(--mm-ink-3)',
-          background: 'transparent',
-          border: 'none',
-          cursor: 'pointer',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-        }}
-        aria-expanded={open}
-      >
-        <span>COMING LATER · {upcoming.length}</span>
-        <span aria-hidden="true">{open ? '−' : '+'}</span>
-      </button>
-      {open && (
-        <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-          {upcoming.map((it) => (
-            <li
-              key={it.k}
-              style={{
-                padding: '7px 10px',
-                fontSize: 12,
-                color: 'var(--mm-ink-3)',
-                fontFamily: 'var(--font-body)',
-              }}
-              title="Not implemented yet — backend endpoint pending"
-            >
-              {it.label}
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
-  );
-}
-
-// ─── Plan card (bottom of nav) ──────────────────────────────────────────────
-
-function PlanCard() {
-  const { user } = useAuth();
-  const isAdmin = useIsAdmin();
-  const planLabel = isAdmin ? 'ADMIN · UNLIMITED' : 'PLAN · DESK PRO';
-  const planName = isAdmin ? 'Full access' : 'Desk Pro';
-
-  return (
-    <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
-      <div
-        style={{
-          padding: '12px 10px',
-          borderRadius: 12,
-          background: 'var(--mm-surface-2)',
-          fontSize: 11,
-          color: 'var(--mm-ink-2)',
-          lineHeight: 1.5,
-        }}
-      >
-        <div
-          className="font-mono"
-          style={{ fontSize: 9, letterSpacing: '0.15em', color: 'var(--mm-ink-3)' }}
-        >
-          {planLabel}
-        </div>
-        <div style={{ color: 'var(--mm-ink-0)', fontWeight: 500, marginTop: 4 }}>{planName}</div>
-        <div style={{ marginTop: 4 }}>{user?.email ?? '—'}</div>
-      </div>
-      <div
-        style={{
-          display: 'flex',
-          gap: 12,
-          padding: '0 10px',
-          fontSize: 10,
-          color: 'var(--mm-ink-3)',
-        }}
-      >
-        <Link href="/privacy" style={{ color: 'var(--mm-ink-2)', textDecoration: 'none' }}>
-          Privacy
-        </Link>
-        <Link href="/terms" style={{ color: 'var(--mm-ink-2)', textDecoration: 'none' }}>
-          Terms
-        </Link>
-        <Link href="/cookies" style={{ color: 'var(--mm-ink-2)', textDecoration: 'none' }}>
-          Cookies
-        </Link>
+        {![
+          'profile',
+          'appearance',
+          'notifications',
+          'api',
+          'security',
+          'activity',
+          'brokers',
+          'risk',
+          'support',
+        ].includes(active) && <ProfileSection />}
       </div>
     </div>
   );
@@ -783,8 +634,8 @@ function ProfileSection() {
             width: 72,
             height: 72,
             borderRadius: 20,
-            background: 'linear-gradient(135deg, var(--mm-mint) 0%, var(--mm-ink-0) 100%)',
-            color: 'var(--mm-bg)',
+            background: 'linear-gradient(135deg, var(--brand-500) 0%, var(--brand-800) 100%)',
+            color: '#fff',
             display: 'grid',
             placeItems: 'center',
             fontSize: 28,
@@ -1187,7 +1038,7 @@ function ToggleSwitch({ on, ...aria }: { on: boolean; 'aria-label'?: string }) {
         width: 34,
         height: 20,
         borderRadius: 999,
-        background: on ? 'var(--mm-mint)' : 'var(--mm-hair-2)',
+        background: on ? 'var(--brand-500)' : 'var(--mm-hair-2)',
         position: 'relative',
         flexShrink: 0,
       }}
@@ -1587,4 +1438,454 @@ function formatJoinDate(iso: string): string {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return '';
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+// ─── Appearance section ────────────────────────────────────────────────────
+// Theme (dark/light) + Brand palette (Midnight/Slate/Oxford/Emerald). Both
+// persist to localStorage via their respective providers; <html> attributes
+// are updated optimistically so the swap reads instantly.
+
+const PALETTE_ORDER: Palette[] = ['midnight', 'slate', 'oxford', 'emerald'];
+const NUMBER_FORMATS = [
+  { v: 'en-US', l: '1,234.56' },
+  { v: 'de-DE', l: '1.234,56' },
+  { v: 'fr-FR', l: '1 234,56' },
+];
+
+const MODE_PREVIEWS: Record<
+  'light' | 'dark',
+  { label: string; desc: string; bg: string; card: string }
+> = {
+  light: {
+    label: 'Light',
+    desc: 'Default. Generous whitespace.',
+    bg: '#FFFFFF',
+    card: '#F4F6F9',
+  },
+  dark: {
+    label: 'Dark',
+    desc: 'Soft dark — not pure black.',
+    bg: '#0E1116',
+    card: '#171B22',
+  },
+};
+
+function AppearanceSection() {
+  const { theme, setTheme } = useTheme();
+  const { palette, setPalette } = usePalette();
+  const [density, setDensity] = useState<'cozy' | 'compact'>('cozy');
+  const [numberFmt, setNumberFmt] = useState<string>('en-US');
+
+  return (
+    <section className="br flex flex-col gap-4">
+      {/* ── Mode: light / dark with mini layout previews ── */}
+      <SettingCard
+        title="Mode"
+        desc="Light is friendlier for daytime. Dark is easier on the eyes for late-night sessions."
+      >
+        <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
+          {(['light', 'dark'] as const).map((id) => {
+            const m = MODE_PREVIEWS[id];
+            const on = theme === id;
+            return (
+              <button
+                key={id}
+                type="button"
+                onClick={() => setTheme(id)}
+                className="flex flex-col gap-3 rounded-2xl p-4 text-left transition-colors"
+                style={{
+                  border: `1.5px solid ${on ? 'var(--brand-500)' : 'var(--border-default)'}`,
+                  background: on ? 'var(--accent-subtle)' : 'var(--bg-elevated)',
+                }}
+              >
+                <ModePreview bg={m.bg} card={m.card} />
+                <div>
+                  <div className="flex items-center gap-2">
+                    {id === 'light' ? <Sun size={16} /> : <Moon size={16} />}
+                    <span
+                      className="text-[15px] font-bold"
+                      style={{ color: 'var(--text-primary)' }}
+                    >
+                      {m.label}
+                    </span>
+                    {on && (
+                      <span className="br-chip br-chip-brand ml-auto text-[10px]">Active</span>
+                    )}
+                  </div>
+                  <div className="mt-1 text-[12px]" style={{ color: 'var(--text-muted)' }}>
+                    {m.desc}
+                  </div>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </SettingCard>
+
+      {/* ── Theme (brand palette) ── */}
+      <SettingCard
+        title="Theme"
+        desc="The accent color across every screen. Profit-green and loss-red stay fixed regardless of palette."
+      >
+        <div className="grid grid-cols-2 gap-3.5 md:grid-cols-4">
+          {PALETTE_ORDER.map((id) => {
+            const meta = PALETTE_META[id];
+            const on = palette === id;
+            return (
+              <button
+                key={id}
+                type="button"
+                onClick={() => setPalette(id)}
+                className="flex flex-col gap-2.5 rounded-2xl p-4 text-left transition-colors"
+                style={{
+                  border: `1.5px solid ${on ? meta.swatch : 'var(--border-default)'}`,
+                  background: on
+                    ? 'color-mix(in srgb, ' + meta.swatch + ' 8%, var(--bg-elevated))'
+                    : 'var(--bg-elevated)',
+                }}
+              >
+                <div
+                  className="relative h-[72px] overflow-hidden rounded-[10px]"
+                  style={{
+                    background: `linear-gradient(135deg, ${meta.swatch}, ${meta.accent})`,
+                  }}
+                >
+                  <div
+                    aria-hidden="true"
+                    style={{
+                      position: 'absolute',
+                      right: -16,
+                      top: -16,
+                      width: 80,
+                      height: 80,
+                      borderRadius: '50%',
+                      background: 'rgba(255,255,255,0.14)',
+                    }}
+                  />
+                  <div
+                    className="absolute bottom-2.5 left-3 text-[11px] font-semibold uppercase tracking-[0.1em]"
+                    style={{ color: '#fff', opacity: 0.9 }}
+                  >
+                    Balance
+                  </div>
+                  <div
+                    className="absolute bottom-[22px] left-3 font-display"
+                    style={{ color: '#fff', fontWeight: 700, fontSize: 16 }}
+                  >
+                    $124,460
+                  </div>
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span
+                      className="block rounded-full"
+                      style={{ width: 16, height: 16, background: meta.swatch }}
+                    />
+                    <span
+                      className="text-[15px] font-bold"
+                      style={{ color: 'var(--text-primary)' }}
+                    >
+                      {meta.label}
+                    </span>
+                    {on && (
+                      <span className="br-chip br-chip-brand ml-auto text-[10px]">Active</span>
+                    )}
+                  </div>
+                  <div className="mt-1 text-[12px]" style={{ color: 'var(--text-muted)' }}>
+                    {meta.desc}
+                  </div>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </SettingCard>
+
+      <SettingCard title="Density" desc="How tightly the dashboard packs information.">
+        <Segmented
+          value={density}
+          onChange={(v) => setDensity(v as 'cozy' | 'compact')}
+          options={[
+            { v: 'cozy', l: 'Cozy' },
+            { v: 'compact', l: 'Compact' },
+          ]}
+        />
+      </SettingCard>
+
+      <SettingCard title="Number format" desc="How prices and quantities are displayed.">
+        <Segmented value={numberFmt} onChange={setNumberFmt} options={NUMBER_FORMATS} />
+      </SettingCard>
+    </section>
+  );
+}
+
+// Mini layout preview — sidebar tile + content blocks. Pure CSS divs so it
+// re-renders instantly when palette/theme change.
+function ModePreview({ bg, card }: { bg: string; card: string }) {
+  return (
+    <div
+      className="flex gap-2 rounded-[10px] p-2.5"
+      style={{
+        height: 96,
+        background: bg,
+        border: '1px solid rgba(0,0,0,0.06)',
+      }}
+    >
+      <div className="rounded-md" style={{ width: 28, background: card }} />
+      <div className="flex flex-1 flex-col gap-1">
+        <div className="rounded" style={{ height: 8, width: '60%', background: card }} />
+        <div className="rounded-md" style={{ height: 28, background: card }} />
+        <div className="rounded" style={{ height: 6, width: '40%', background: card }} />
+        <div className="rounded" style={{ height: 6, width: '50%', background: card }} />
+      </div>
+    </div>
+  );
+}
+
+function SettingCard({
+  title,
+  desc,
+  children,
+}: {
+  title: string;
+  desc?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="br-card" style={{ padding: 24 }}>
+      <div className="mb-4">
+        <h2
+          className="font-display"
+          style={{
+            fontSize: 18,
+            fontWeight: 700,
+            letterSpacing: '-0.01em',
+            margin: 0,
+            color: 'var(--text-primary)',
+          }}
+        >
+          {title}
+        </h2>
+        {desc && (
+          <p className="m-0 mt-1.5 text-[14px]" style={{ color: 'var(--text-muted)' }}>
+            {desc}
+          </p>
+        )}
+      </div>
+      {children}
+    </div>
+  );
+}
+
+function Segmented({
+  value,
+  onChange,
+  options,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  options: { v: string; l: string }[];
+}) {
+  return (
+    <div
+      className="inline-flex gap-0.5 rounded-[10px] p-1"
+      style={{ background: 'var(--bg-hover)' }}
+    >
+      {options.map((o) => (
+        <button
+          key={o.v}
+          type="button"
+          onClick={() => onChange(o.v)}
+          className="rounded-lg px-4 py-2 text-[13px] font-semibold transition-colors"
+          style={{
+            background: value === o.v ? 'var(--bg-elevated)' : 'transparent',
+            color: value === o.v ? 'var(--text-primary)' : 'var(--text-muted)',
+            boxShadow: value === o.v ? 'var(--shadow-panel)' : 'none',
+          }}
+        >
+          {o.l}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+// ─── Notifications section ─────────────────────────────────────────────────
+
+function NotificationsSection() {
+  const [notif, setNotif] = useState({
+    fills: true,
+    dailyDigest: true,
+    drawdown: true,
+    news: false,
+    productUpdates: false,
+  });
+  const flip = (k: keyof typeof notif) => setNotif((n) => ({ ...n, [k]: !n[k] }));
+
+  return (
+    <section className="br flex flex-col gap-4">
+      <SettingCard title="Notifications" desc="How and when we ping you.">
+        <ToggleRow
+          on={notif.fills}
+          onChange={() => flip('fills')}
+          title="Order fills"
+          sub="Email + push when an order fills, partials included."
+        />
+        <ToggleRow
+          on={notif.dailyDigest}
+          onChange={() => flip('dailyDigest')}
+          title="Daily P&L digest"
+          sub="One email per day at 23:00 SGT with realized & unrealized P&L."
+        />
+        <ToggleRow
+          on={notif.drawdown}
+          onChange={() => flip('drawdown')}
+          title="Drawdown alert"
+          sub="Push notification when any strategy hits −3% intraday."
+          badge="Recommended"
+        />
+        <ToggleRow
+          on={notif.news}
+          onChange={() => flip('news')}
+          title="Market news"
+          sub="Curated headlines for symbols you trade."
+        />
+        <ToggleRow
+          on={notif.productUpdates}
+          onChange={() => flip('productUpdates')}
+          title="Product updates"
+          sub="New strategies, features, and changelog."
+        />
+      </SettingCard>
+    </section>
+  );
+}
+
+// ─── API & exchanges section ───────────────────────────────────────────────
+
+const EXCHANGE_ROWS = [
+  { ex: 'Binance Futures', label: 'Production · BR-Main', status: 'live', lastUsed: '3s ago' },
+  { ex: 'Binance Spot', label: 'Production · BR-Cash', status: 'live', lastUsed: '4m ago' },
+  { ex: 'OKX', label: 'Paper trading', status: 'paper', lastUsed: '2d ago' },
+] as const;
+
+function ApiSection() {
+  return (
+    <section className="br flex flex-col gap-4">
+      <SettingCard
+        title="Connected exchanges"
+        desc="API keys live encrypted in our vault. Withdrawals must be disabled."
+      >
+        {EXCHANGE_ROWS.map((k, i) => (
+          <div
+            key={k.ex}
+            className="flex items-center gap-3.5 py-3.5"
+            style={{ borderTop: i ? '1px solid var(--border-subtle)' : 'none' }}
+          >
+            <div
+              className="font-display grid place-items-center"
+              style={{
+                width: 38,
+                height: 38,
+                borderRadius: 10,
+                background: 'var(--bg-hover)',
+                fontWeight: 700,
+                fontSize: 12,
+                color: 'var(--text-primary)',
+              }}
+            >
+              {k.ex.slice(0, 2).toUpperCase()}
+            </div>
+            <div className="flex-1">
+              <div className="text-[14px] font-semibold" style={{ color: 'var(--text-primary)' }}>
+                {k.ex}
+              </div>
+              <div className="text-[12px]" style={{ color: 'var(--text-muted)' }}>
+                {k.label} · last used {k.lastUsed}
+              </div>
+            </div>
+            <span className={`br-chip ${k.status === 'live' ? 'br-chip-profit' : 'br-chip-info'}`}>
+              {k.status === 'live' ? 'LIVE' : 'PAPER'}
+            </span>
+            <button type="button" className="br-btn br-btn-ghost br-btn-sm">
+              Manage
+            </button>
+          </div>
+        ))}
+        <button type="button" className="br-btn br-btn-secondary mt-3.5">
+          <Plus size={14} /> Add exchange
+        </button>
+      </SettingCard>
+    </section>
+  );
+}
+
+// Shared toggle row used by NotificationsSection.
+
+function ToggleRow({
+  on,
+  onChange,
+  title,
+  sub,
+  badge,
+}: {
+  on: boolean;
+  onChange: () => void;
+  title: string;
+  sub: string;
+  badge?: string;
+}) {
+  return (
+    <div
+      className="flex items-center gap-3.5 py-3.5"
+      style={{ borderTop: '1px solid var(--border-subtle)' }}
+    >
+      <div className="flex-1">
+        <div className="flex items-center gap-2">
+          <span className="text-[14px] font-semibold" style={{ color: 'var(--text-primary)' }}>
+            {title}
+          </span>
+          {badge && <span className="br-chip br-chip-brand text-[10px]">{badge}</span>}
+        </div>
+        <div className="mt-0.5 text-[13px]" style={{ color: 'var(--text-muted)' }}>
+          {sub}
+        </div>
+      </div>
+      <Toggle on={on} onChange={onChange} />
+    </div>
+  );
+}
+
+function Toggle({ on, onChange }: { on: boolean; onChange: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onChange}
+      aria-pressed={on}
+      className="relative shrink-0 transition-colors"
+      style={{
+        width: 44,
+        height: 24,
+        borderRadius: 999,
+        background: on ? 'var(--brand-500)' : 'var(--border-default)',
+        border: 'none',
+        cursor: 'pointer',
+      }}
+    >
+      <span
+        aria-hidden="true"
+        style={{
+          position: 'absolute',
+          top: 2,
+          left: on ? 22 : 2,
+          width: 20,
+          height: 20,
+          borderRadius: '50%',
+          background: '#fff',
+          transition: 'left var(--dur-fast)',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.18)',
+        }}
+      />
+    </button>
+  );
 }

@@ -2023,9 +2023,7 @@ function PromoteDialog({ target, onClose }: { target: StrategyDefinition; onClos
                 placeholder='{"sweepId":"…","sharpe":1.4,"trades":42}'
                 className="w-full rounded-sm border bg-bg-base px-2.5 py-1.5 font-mono text-[11px] text-text-primary placeholder:text-text-muted focus:outline-none"
                 style={{
-                  borderColor: evidenceParse.error
-                    ? 'rgba(229,72,77,0.5)'
-                    : 'var(--border-subtle)',
+                  borderColor: evidenceParse.error ? 'rgba(229,72,77,0.5)' : 'var(--border-subtle)',
                 }}
               />
             </label>
@@ -2835,10 +2833,10 @@ const JOURNAL_TYPE_TONE: Record<string, Tone> = {
 type JournalSortKey = 'newest' | 'oldest' | 'strategy' | 'status' | 'entry_type';
 
 const SORT_PARAMS: Record<JournalSortKey, { sortBy: string; sortDir: string }> = {
-  newest:     { sortBy: 'created_time', sortDir: 'desc' },
-  oldest:     { sortBy: 'created_time', sortDir: 'asc' },
-  strategy:   { sortBy: 'strategy_code', sortDir: 'asc' },
-  status:     { sortBy: 'status', sortDir: 'asc' },
+  newest: { sortBy: 'created_time', sortDir: 'desc' },
+  oldest: { sortBy: 'created_time', sortDir: 'asc' },
+  strategy: { sortBy: 'strategy_code', sortDir: 'asc' },
+  status: { sortBy: 'status', sortDir: 'asc' },
   entry_type: { sortBy: 'entry_type', sortDir: 'asc' },
 };
 
@@ -2861,21 +2859,16 @@ function JournalPanel() {
   }, [searchInput]);
 
   const { sortBy, sortDir } = SORT_PARAMS[sortKey];
-  const {
-    data,
-    isLoading,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-  } = useJournalListInfinite({
-    entryType: typeFilter === 'ALL' ? undefined : typeFilter,
-    status: statusFilter === 'ALL' ? undefined : statusFilter,
-    strategyCode: debouncedStrategy || undefined,
-    search: debouncedSearch || undefined,
-    sortBy,
-    sortDir,
-    limit: 25,
-  });
+  const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } =
+    useJournalListInfinite({
+      entryType: typeFilter === 'ALL' ? undefined : typeFilter,
+      status: statusFilter === 'ALL' ? undefined : statusFilter,
+      strategyCode: debouncedStrategy || undefined,
+      search: debouncedSearch || undefined,
+      sortBy,
+      sortDir,
+      limit: 25,
+    });
 
   const rows = useMemo(() => data?.pages.flatMap((p) => p.items) ?? [], [data]);
 
@@ -2926,19 +2919,19 @@ function JournalPanel() {
           placeholder="Strategy…"
           value={strategyInput}
           onChange={(e) => setStrategyInput(e.target.value)}
-          className="h-6 w-24 rounded-sm border border-bd-subtle bg-bg-base px-2 font-mono text-[10px] text-text-secondary placeholder:text-text-muted focus:border-accent-primary/50 focus:outline-none"
+          className="focus:border-accent-primary/50 h-6 w-24 rounded-sm border border-bd-subtle bg-bg-base px-2 font-mono text-[10px] text-text-secondary placeholder:text-text-muted focus:outline-none"
         />
         <input
           type="text"
           placeholder="Search…"
           value={searchInput}
           onChange={(e) => setSearchInput(e.target.value)}
-          className="h-6 w-32 rounded-sm border border-bd-subtle bg-bg-base px-2 font-mono text-[10px] text-text-secondary placeholder:text-text-muted focus:border-accent-primary/50 focus:outline-none"
+          className="focus:border-accent-primary/50 h-6 w-32 rounded-sm border border-bd-subtle bg-bg-base px-2 font-mono text-[10px] text-text-secondary placeholder:text-text-muted focus:outline-none"
         />
         <select
           value={sortKey}
           onChange={(e) => setSortKey(e.target.value as JournalSortKey)}
-          className="h-6 rounded-sm border border-bd-subtle bg-bg-base px-1 font-mono text-[10px] text-text-secondary focus:border-accent-primary/50 focus:outline-none"
+          className="focus:border-accent-primary/50 h-6 rounded-sm border border-bd-subtle bg-bg-base px-1 font-mono text-[10px] text-text-secondary focus:outline-none"
         >
           <option value="newest">Newest</option>
           <option value="oldest">Oldest</option>

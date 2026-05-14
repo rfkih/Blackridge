@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 
-const APP_NAME = 'Machiavelli Technology';
+const APP_NAME = 'Blackridge';
 
 // No restore-on-unmount: with multiple short-lived instances, one cleanup
 // would stomp another's just-set title. Every dashboard route invokes

@@ -33,12 +33,9 @@ import {
   Bot,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { LogoMark } from '@/components/brand/Logo';
+import { BlackridgeMark } from '@/components/brand/BlackridgeMark';
 import { useAuth } from '@/hooks/useAuth';
 import { useIsAdmin } from '@/hooks/useIsAdmin';
-import { usePnlSummary } from '@/hooks/useTrades';
-import { usePortfolio } from '@/hooks/usePortfolio';
-import { useCurrencyFormatter } from '@/hooks/useCurrency';
 
 interface NavItem {
   label: string;
@@ -46,19 +43,41 @@ interface NavItem {
   icon: React.ElementType;
 }
 
-const NAV_ITEMS: NavItem[] = [
-  { label: 'Home', href: '/', icon: Home },
-  { label: 'Portfolio', href: '/portfolio', icon: Wallet },
-  { label: 'Markets', href: '/market', icon: CandlestickChart },
-  { label: 'Strategies', href: '/strategies', icon: Zap },
-  { label: 'Backtest', href: '/backtest', icon: FlaskConical },
-  { label: 'Sweeps', href: '/research/sweeps', icon: Grid3x3 },
-  { label: 'Forward Projections', href: '/montecarlo', icon: Dices },
-  { label: 'P&L', href: '/pnl', icon: BarChart3 },
-  { label: 'Journal', href: '/trades', icon: Book },
-  { label: 'Audit Log', href: '/audit', icon: ScrollText },
-  { label: 'Settings', href: '/settings', icon: Settings },
-  { label: 'Help', href: '/help', icon: HelpCircle },
+interface NavGroup {
+  label: string;
+  items: NavItem[];
+}
+
+// Grouped to match the Blackridge prototype's Trade / Research / Account
+// sections. Keeps existing routes verbatim so deep links don't break.
+const NAV_GROUPS: NavGroup[] = [
+  {
+    label: 'TRADE',
+    items: [
+      { label: 'Dashboard', href: '/', icon: Home },
+      { label: 'Portfolio', href: '/portfolio', icon: Wallet },
+      { label: 'Trades', href: '/trades', icon: Book },
+      { label: 'Strategies', href: '/strategies', icon: Zap },
+    ],
+  },
+  {
+    label: 'RESEARCH',
+    items: [
+      { label: 'Backtest', href: '/backtest', icon: FlaskConical },
+      { label: 'Markets', href: '/market', icon: CandlestickChart },
+      { label: 'Sweeps', href: '/research/sweeps', icon: Grid3x3 },
+      { label: 'Forward Projections', href: '/montecarlo', icon: Dices },
+      { label: 'P&L', href: '/pnl', icon: BarChart3 },
+    ],
+  },
+  {
+    label: 'ACCOUNT',
+    items: [
+      { label: 'Audit Log', href: '/audit', icon: ScrollText },
+      { label: 'Settings', href: '/settings', icon: Settings },
+      { label: 'Help', href: '/help', icon: HelpCircle },
+    ],
+  },
 ];
 
 const ADMIN_NAV_ITEMS: NavItem[] = [
@@ -86,13 +105,6 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const { user, logout } = useAuth();
   const isAdmin = useIsAdmin();
 
-  const { data: pnlSummary } = usePnlSummary('today');
-  const { data: portfolio } = usePortfolio();
-  const formatCurrency = useCurrencyFormatter();
-
-  const equity = portfolio?.totalUsdt ?? 0;
-  const realizedToday = pnlSummary?.realizedPnl ?? 0;
-
   function isActive(href: string) {
     if (href === '/') return pathname === '/';
     return pathname.startsWith(href);
@@ -113,27 +125,28 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
   return (
     <>
       {isOpen && (
-        <div
+        <button
+          type="button"
+          aria-label="Close menu"
           className="fixed inset-0 z-30 bg-black/60 lg:hidden"
           onClick={onClose}
-          aria-hidden="true"
         />
       )}
 
       <aside
         data-theme="dark"
         className={cn(
-          'mm fixed left-0 top-0 z-40 flex h-full w-[240px] flex-col',
+          'br-sidebar fixed left-0 top-0 z-40 flex h-full w-[240px] flex-col',
           'transition-transform duration-base ease-out-quart',
           isOpen ? 'translate-x-0' : '-translate-x-full',
           'lg:static lg:z-auto lg:translate-x-0',
         )}
         style={{
-          padding: '24px 18px 20px',
-          // Sidebar is always dark — page body switches with theme, but the
-          // chrome stays consistent so the emerald active state reads
-          // identically in both modes. data-theme="dark" + .mm pin the
-          // sidebar's mm-* tokens to the dark scale regardless of root theme.
+          padding: '20px 14px',
+          // Sidebar is always dark — chrome stays consistent so the brand
+          // active state reads identically across themes. data-theme="dark"
+          // forces the dark surface scale regardless of root theme; the
+          // palette is inherited from root so Midnight/Slate/Oxford propagate.
           background: '#0E1116',
           color: '#F2F5F8',
           borderRight: '1px solid rgba(255,255,255,0.06)',
@@ -142,154 +155,148 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         aria-label="Navigation"
       >
         {/* Wordmark */}
-        <div className="flex items-center gap-2.5" style={{ padding: '0 6px 22px' }}>
+        <div className="flex items-center gap-2.5" style={{ padding: '6px 10px 22px' }}>
           <Link
             href="/"
             onClick={onClose}
             className="flex items-center gap-2.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            aria-label="Machiavelli Technology — home"
+            aria-label="Blackridge — home"
           >
-            <LogoMark size={34} />
+            <BlackridgeMark size={34} />
             <div>
               <div
-                className="mm-display"
+                className="font-display"
                 style={{
                   fontSize: 17,
                   lineHeight: 1,
-                  color: 'var(--mm-ink-0)',
+                  color: '#F2F5F8',
                   letterSpacing: '-0.01em',
                   fontWeight: 800,
                 }}
               >
-                Machiavelli
-              </div>
-              <div
-                style={{
-                  fontSize: 9,
-                  color: 'var(--mm-ink-2)',
-                  marginTop: 3,
-                  letterSpacing: '0.2em',
-                  textTransform: 'uppercase',
-                  fontWeight: 600,
-                }}
-              >
-                Technology
+                Blackridge
               </div>
             </div>
           </Link>
           <button
             type="button"
             onClick={onClose}
-            className="ml-auto flex size-7 items-center justify-center rounded-md text-[color:var(--mm-ink-2)] transition-colors duration-fast hover:bg-[color:var(--mm-surface-2)] hover:text-[color:var(--mm-ink-0)] lg:hidden"
+            className="ml-auto flex size-7 items-center justify-center rounded-md transition-colors duration-fast lg:hidden"
+            style={{ color: '#8C95A2' }}
             aria-label="Close sidebar"
           >
             <X size={14} strokeWidth={1.75} />
           </button>
         </div>
 
-        {/* Balance card */}
-        <div className="mm-card-2" style={{ padding: '14px 16px', margin: '0 0 16px' }}>
-          <div style={{ fontSize: 11, color: 'var(--mm-ink-2)' }}>Balance</div>
-          {(() => {
-            const balanceText = equity > 0 ? formatCurrency(equity) : '—';
-            // Step the font down with length so 8-decimal BTC values
-            // (e.g. "₿0.12345678") don't overflow the 240px sidebar card.
-            const len = balanceText.length;
-            const balanceFontSize =
-              len <= 8 ? 22 : len <= 11 ? 19 : len <= 14 ? 16 : len <= 17 ? 14 : 12;
-            return (
-              <div
-                className="mm-display"
-                title={balanceText}
-                style={{
-                  fontSize: balanceFontSize,
-                  marginTop: 4,
-                  letterSpacing: '-0.03em',
-                  color: 'var(--mm-ink-0)',
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                }}
-              >
-                {balanceText}
-              </div>
-            );
-          })()}
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
-              marginTop: 6,
-              fontSize: 11,
-              minWidth: 0,
-            }}
-          >
-            <span
-              style={{
-                color: realizedToday >= 0 ? 'var(--mm-up)' : 'var(--mm-dn)',
-                fontFamily: 'var(--mm-num)',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
-                minWidth: 0,
-              }}
-              title={formatCurrency(realizedToday, { withSign: true })}
-            >
-              {formatCurrency(realizedToday, { withSign: true })}
-            </span>
-            <span style={{ color: 'var(--mm-ink-3)', flexShrink: 0 }}>today</span>
-          </div>
-        </div>
-
         {/* Nav */}
         <nav
           aria-label="Main navigation"
-          style={{ display: 'flex', flexDirection: 'column', gap: 2, flex: 1, minHeight: 0 }}
+          style={{ display: 'flex', flexDirection: 'column', gap: 8, flex: 1, minHeight: 0 }}
           className="overflow-y-auto"
         >
-          {NAV_ITEMS.map(({ label, href, icon: Icon }) => {
-            const active = isActive(href);
-            return (
-              <Link
-                key={href}
-                href={href}
-                onClick={onClose}
-                aria-current={active ? 'page' : undefined}
-                className={cn('mm-nav', active && 'mm-nav-active')}
+          {NAV_GROUPS.map((group) => (
+            <div key={group.label}>
+              <div
+                style={{
+                  fontSize: 10,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.12em',
+                  color: '#8C95A2',
+                  fontWeight: 700,
+                  padding: '0 10px 6px',
+                }}
               >
-                <span
-                  style={{
-                    display: 'inline-flex',
-                    width: 18,
-                    color: active ? 'var(--mm-mint)' : 'var(--mm-ink-2)',
-                  }}
-                >
-                  <Icon size={18} strokeWidth={1.6} />
-                </span>
-                <span>{label}</span>
-              </Link>
-            );
-          })}
+                {group.label}
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                {group.items.map(({ label, href, icon: Icon }) => {
+                  const active = isActive(href);
+                  return (
+                    <Link
+                      key={href}
+                      href={href}
+                      onClick={onClose}
+                      aria-current={active ? 'page' : undefined}
+                      className={cn('br-sb-link', active && 'br-sb-link-on')}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 12,
+                        padding: '9px 12px',
+                        borderRadius: 10,
+                        color: active ? 'var(--brand-50)' : '#C5CCD5',
+                        background: active
+                          ? 'color-mix(in srgb, var(--brand-500) 28%, transparent)'
+                          : 'transparent',
+                        fontSize: 14,
+                        fontWeight: 500,
+                        textDecoration: 'none',
+                        transition: 'background var(--dur-fast), color var(--dur-fast)',
+                      }}
+                    >
+                      <Icon
+                        size={18}
+                        strokeWidth={1.75}
+                        style={{
+                          flexShrink: 0,
+                          opacity: 0.9,
+                          color: active ? 'var(--brand-200)' : '#8C95A2',
+                        }}
+                      />
+                      <span>{label}</span>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
 
           {isAdmin && (
-            <>
+            <div>
+              <div
+                style={{
+                  fontSize: 10,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.12em',
+                  color: '#8C95A2',
+                  fontWeight: 700,
+                  padding: '0 10px 6px',
+                }}
+              >
+                ADMIN
+              </div>
               <button
                 type="button"
                 onClick={() => setAdminOpen((o) => !o)}
-                className="mm-nav"
-                style={{ width: '100%', textAlign: 'left' }}
                 aria-expanded={adminOpen}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 12,
+                  padding: '9px 12px',
+                  borderRadius: 10,
+                  width: '100%',
+                  textAlign: 'left',
+                  color: '#C5CCD5',
+                  background: 'transparent',
+                  border: 0,
+                  fontSize: 14,
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                  fontFamily: 'inherit',
+                }}
               >
-                <span style={{ display: 'inline-flex', width: 18, color: 'var(--mm-ink-2)' }}>
-                  <ShieldCheck size={18} strokeWidth={1.6} />
-                </span>
-                <span>Admin</span>
+                <ShieldCheck
+                  size={18}
+                  strokeWidth={1.75}
+                  style={{ flexShrink: 0, color: '#8C95A2' }}
+                />
+                <span>Admin tools</span>
                 <span
                   style={{
                     marginLeft: 'auto',
-                    display: 'inline-flex',
-                    color: 'var(--mm-ink-3)',
+                    color: '#8C95A2',
                     transition: 'transform 160ms',
                     transform: adminOpen ? 'rotate(90deg)' : 'none',
                   }}
@@ -306,34 +313,47 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                       href={href}
                       onClick={onClose}
                       aria-current={active ? 'page' : undefined}
-                      className={cn('mm-nav', active && 'mm-nav-active')}
-                      style={{ paddingLeft: 36 }}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 10,
+                        padding: '7px 12px 7px 32px',
+                        borderRadius: 8,
+                        color: active ? 'var(--brand-50)' : '#A8B0BC',
+                        background: active
+                          ? 'color-mix(in srgb, var(--brand-500) 24%, transparent)'
+                          : 'transparent',
+                        fontSize: 13,
+                        textDecoration: 'none',
+                      }}
                     >
-                      <span
+                      <Icon
+                        size={15}
+                        strokeWidth={1.6}
                         style={{
-                          display: 'inline-flex',
-                          width: 18,
-                          color: active ? 'var(--mm-mint)' : 'var(--mm-ink-2)',
+                          flexShrink: 0,
+                          color: active ? 'var(--brand-200)' : '#8C95A2',
                         }}
-                      >
-                        <Icon size={16} strokeWidth={1.6} />
-                      </span>
+                      />
                       <span>{label}</span>
                     </Link>
                   );
                 })}
-            </>
+            </div>
           )}
         </nav>
 
+        {/* User card */}
         <div
           style={{
+            marginTop: 'auto',
+            padding: 12,
+            background: '#14181F',
+            borderRadius: 12,
+            border: '1px solid rgba(255,255,255,0.06)',
             display: 'flex',
             alignItems: 'center',
             gap: 10,
-            padding: '14px 6px 0',
-            marginTop: 12,
-            borderTop: '1px solid var(--mm-hair)',
           }}
         >
           <div
@@ -341,23 +361,25 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             style={{
               width: 32,
               height: 32,
-              borderRadius: 999,
-              background: 'var(--mm-surface-3)',
-              color: 'var(--mm-ink-1)',
+              borderRadius: '50%',
+              background: 'var(--brand-500)',
+              color: '#fff',
               display: 'grid',
               placeItems: 'center',
-              fontFamily: 'var(--mm-display)',
-              fontSize: 14,
-              fontWeight: 500,
+              fontWeight: 700,
+              fontSize: 13,
+              fontFamily: 'var(--font-display)',
+              flexShrink: 0,
             }}
           >
-            {initials.slice(0, 1)}
+            {initials.slice(0, 2)}
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div
               style={{
                 fontSize: 13,
-                color: 'var(--mm-ink-0)',
+                fontWeight: 600,
+                color: '#F2F5F8',
                 whiteSpace: 'nowrap',
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
@@ -365,14 +387,21 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             >
               {firstName}
             </div>
-            <div style={{ fontSize: 11, color: 'var(--mm-ink-2)' }}>
-              {isAdmin ? 'Admin' : 'Pro member'}
+            <div style={{ fontSize: 11, color: '#8C95A2' }}>
+              {isAdmin ? 'Admin' : 'Live · Binance'}
             </div>
           </div>
+          <span
+            aria-hidden="true"
+            className="br-live-dot"
+            title="Connected"
+            style={{ flexShrink: 0 }}
+          />
           <button
             type="button"
             onClick={logout}
-            className="mm-signout-btn flex size-7 items-center justify-center rounded-md transition-colors duration-fast"
+            className="flex size-7 items-center justify-center rounded-md transition-colors duration-fast"
+            style={{ color: '#8C95A2' }}
             aria-label="Sign out"
             title="Sign out"
           >

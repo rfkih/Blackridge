@@ -6,7 +6,7 @@ export default function TermsPage() {
   return (
     <LegalPage title="Terms of service" subtitle={EFFECTIVE_DATE}>
       <p>
-        Use of Machiavelli Technology is governed by these terms. By signing in you agree to them.
+        Use of Blackridge is governed by these terms. By signing in you agree to them.
       </p>
 
       <H2>Trading risk</H2>
@@ -14,7 +14,7 @@ export default function TermsPage() {
         Algorithmic trading carries the risk of substantial loss. Past performance, including
         backtest results, is not indicative of future returns. You are solely responsible for the
         strategies you deploy, the capital you allocate, and the losses any trade incurs.
-        Machiavelli Technology provides software; we do not provide investment advice and we are not
+        Blackridge provides software; we do not provide investment advice and we are not
         a broker, dealer, or fiduciary.
       </p>
 
@@ -43,7 +43,7 @@ export default function TermsPage() {
 
       <H2>Limitation of liability</H2>
       <p>
-        To the extent permitted by law, Machiavelli Technology is not liable for losses arising from
+        To the extent permitted by law, Blackridge is not liable for losses arising from
         market movement, strategy behavior, exchange downtime, or your own configuration choices.
         Our maximum liability for any claim is limited to the fees you have paid us in the prior 12
         months.

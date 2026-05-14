@@ -30,7 +30,6 @@ interface RangeEntry {
   step: string;
 }
 
-
 const TODAY = new Date().toISOString().slice(0, 10);
 const ONE_YEAR_AGO = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
 
@@ -79,8 +78,7 @@ export default function ResearchPage() {
   const [label, setLabel] = useState('');
   const [rounds, setRounds] = useState('3');
   const [elitePct, setElitePct] = useState('0.25');
-  const [rankMetric, setRankMetric] =
-    useState<NonNullable<SweepSpec['rankMetric']>>('avgR');
+  const [rankMetric, setRankMetric] = useState<NonNullable<SweepSpec['rankMetric']>>('avgR');
   const [ranges, setRanges] = useState<RangeEntry[]>([]);
   // Pinned overrides — keyed map of {paramName → user-typed value}. Every
   // available param is rendered in the editor pre-populated with its default;
@@ -115,8 +113,7 @@ export default function ResearchPage() {
       .map((k) => ({ key: k, ...deriveRangeFromDefault(defaults[k]) }));
 
     const formIsEmpty = ranges.length === 0;
-    const matchesPrevAuto =
-      prevAutoRef.current && rangesEqual(ranges, prevAutoRef.current);
+    const matchesPrevAuto = prevAutoRef.current && rangesEqual(ranges, prevAutoRef.current);
 
     if (formIsEmpty || matchesPrevAuto) {
       setRanges(built);
@@ -154,7 +151,13 @@ export default function ResearchPage() {
       const min = Number(r.min);
       const max = Number(r.max);
       const step = Number(r.step);
-      if (!key || !Number.isFinite(min) || !Number.isFinite(max) || !Number.isFinite(step) || step <= 0) {
+      if (
+        !key ||
+        !Number.isFinite(min) ||
+        !Number.isFinite(max) ||
+        !Number.isFinite(step) ||
+        step <= 0
+      ) {
         continue;
       }
       paramRanges[key] = { min, max, step };
@@ -221,13 +224,13 @@ export default function ResearchPage() {
           >
             <ArrowLeft size={12} /> Back to backtests
           </Link>
-          <div className="mt-1 label-caps">BACKTEST · RESEARCH MODE</div>
+          <div className="label-caps mt-1">BACKTEST · RESEARCH MODE</div>
           <h1 className="font-display text-[24px] font-semibold tracking-tighter text-text-primary">
             Iterative research sweep
           </h1>
           <p className="mt-1 max-w-2xl text-[12px] text-text-muted">
-            Define a <strong>range</strong> per parameter (min / max / step) and a number of
-            rounds. The system runs round 1 across the full grid, keeps the top{' '}
+            Define a <strong>range</strong> per parameter (min / max / step) and a number of rounds.
+            The system runs round 1 across the full grid, keeps the top{' '}
             <strong>{Math.round(Number(elitePct || 0.25) * 100)}%</strong> by {rankMetric}, refines
             around each elite, and repeats. Losing param combinations get eliminated automatically.
           </p>
@@ -271,9 +274,8 @@ export default function ResearchPage() {
             </select>
             {eligibleStrategies.length === 0 && (
               <span className="mt-1 text-[11px] text-[var(--color-warning)]">
-                No eligible strategies. You need an AccountStrategy whose
-                strategyCode is both registered (ACTIVE in /admin/strategies)
-                and research-capable (TPR today).
+                No eligible strategies. You need an AccountStrategy whose strategyCode is both
+                registered (ACTIVE in /admin/strategies) and research-capable (TPR today).
               </span>
             )}
           </Field>
@@ -352,7 +354,10 @@ export default function ResearchPage() {
             </div>
             {ranges.map((r, idx) => {
               const usedElsewhere = new Set(
-                ranges.filter((_, i) => i !== idx).map((x) => x.key).filter(Boolean),
+                ranges
+                  .filter((_, i) => i !== idx)
+                  .map((x) => x.key)
+                  .filter(Boolean),
               );
               const def = Number.isFinite(defaults[r.key]) ? defaults[r.key] : null;
               return (
@@ -364,9 +369,7 @@ export default function ResearchPage() {
                       disabled={!selectedCode || availableKeys.length === 0}
                       onChange={(e) => {
                         const newKey = e.target.value;
-                        const dv = Number.isFinite(defaults[newKey])
-                          ? defaults[newKey]
-                          : null;
+                        const dv = Number.isFinite(defaults[newKey]) ? defaults[newKey] : null;
                         setRanges((prev) =>
                           prev.map((x, i) => {
                             if (i !== idx) return x;
@@ -436,17 +439,13 @@ export default function ResearchPage() {
           <button
             type="button"
             disabled={!selectedCode || defaultsQ.isLoading}
-            onClick={() =>
-              setRanges((prev) => [...prev, { key: '', min: '', max: '', step: '' }])
-            }
+            onClick={() => setRanges((prev) => [...prev, { key: '', min: '', max: '', step: '' }])}
             className="mt-2 inline-flex items-center gap-1.5 rounded-sm border border-bd-subtle bg-bg-base px-3 py-1 text-[11px] text-text-secondary hover:bg-bg-hover disabled:opacity-50"
           >
             <Plus size={12} /> Add param
           </button>
           {selectedCode && defaultsQ.isLoading && (
-            <div className="mt-2 text-[11px] text-text-muted">
-              Loading {selectedCode} defaults…
-            </div>
+            <div className="mt-2 text-[11px] text-text-muted">Loading {selectedCode} defaults…</div>
           )}
           {selectedCode && defaultsQ.isError && (
             <div className="mt-2 text-[11px] text-[var(--color-loss)]">
@@ -464,9 +463,7 @@ export default function ResearchPage() {
           >
             <div className="flex items-center gap-2">
               {pinOpen ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
-              <span className="label-caps !text-[10px]">
-                Pinned overrides (optional)
-              </span>
+              <span className="label-caps !text-[10px]">Pinned overrides (optional)</span>
               {Object.keys(pinValues).filter((k) => {
                 const typed = pinValues[k];
                 if (typed === undefined || typed.trim() === '') return false;
@@ -481,13 +478,16 @@ export default function ResearchPage() {
                     color: 'var(--color-warning)',
                   }}
                 >
-                  {Object.keys(pinValues).filter((k) => {
-                    const typed = pinValues[k];
-                    if (typed === undefined || typed.trim() === '') return false;
-                    const v = Number(typed);
-                    const def = defaults[k];
-                    return Number.isFinite(v) && Number.isFinite(def) && Math.abs(v - def) > 1e-9;
-                  }).length} overridden
+                  {
+                    Object.keys(pinValues).filter((k) => {
+                      const typed = pinValues[k];
+                      if (typed === undefined || typed.trim() === '') return false;
+                      const v = Number(typed);
+                      const def = defaults[k];
+                      return Number.isFinite(v) && Number.isFinite(def) && Math.abs(v - def) > 1e-9;
+                    }).length
+                  }{' '}
+                  overridden
                 </span>
               )}
             </div>
@@ -502,118 +502,115 @@ export default function ResearchPage() {
 
           {pinOpen && (
             <div className="mt-3">
-          <div className="flex items-end justify-between gap-3">
-            <div>
-              <p className="text-[11px] text-text-muted">
-                Every param starts at its strategy default. Edit any value to
-                pin it across all combos. Untouched params stay at default.
-                Swept params are hidden (sweep value would override the pin).
-              </p>
-            </div>
-            {Object.keys(pinValues).length > 0 && (
-              <button
-                type="button"
-                onClick={() => setPinValues({})}
-                className="text-[11px] text-text-muted underline-offset-2 hover:text-text-primary hover:underline"
-              >
-                reset all to defaults
-              </button>
-            )}
-          </div>
-
-          {selectedCode && availableKeys.length > 0 && (
-            <input
-              className="mm-input font-mono mt-2 w-full md:w-72"
-              placeholder="filter params…"
-              value={pinFilter}
-              onChange={(e) => setPinFilter(e.target.value)}
-            />
-          )}
-
-          <div className="mt-2 grid grid-cols-1 gap-1 md:grid-cols-2">
-            {(() => {
-              const swept = new Set(ranges.map((r) => r.key).filter(Boolean));
-              const filter = pinFilter.trim().toLowerCase();
-              const visible = availableKeys
-                .filter((k) => !swept.has(k))
-                .filter((k) => !filter || k.toLowerCase().includes(filter));
-              if (selectedCode && visible.length === 0) {
-                return (
-                  <div className="text-[11px] text-text-muted">
-                    No params match the filter.
-                  </div>
-                );
-              }
-              return visible.map((k) => {
-                const def = defaults[k];
-                const typed = pinValues[k];
-                const numeric = typed === undefined ? def : Number(typed);
-                const dirty =
-                  typed !== undefined &&
-                  typed.trim() !== '' &&
-                  Number.isFinite(numeric) &&
-                  Math.abs(numeric - def) > 1e-9;
-                return (
-                  <div
-                    key={k}
-                    className="grid grid-cols-[1fr_auto_auto] items-center gap-2 rounded-sm border border-bd-subtle bg-bg-base px-2 py-1.5"
+              <div className="flex items-end justify-between gap-3">
+                <div>
+                  <p className="text-[11px] text-text-muted">
+                    Every param starts at its strategy default. Edit any value to pin it across all
+                    combos. Untouched params stay at default. Swept params are hidden (sweep value
+                    would override the pin).
+                  </p>
+                </div>
+                {Object.keys(pinValues).length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setPinValues({})}
+                    className="text-[11px] text-text-muted underline-offset-2 hover:text-text-primary hover:underline"
                   >
-                    <div className="flex items-center gap-1.5 truncate">
-                      {dirty && (
-                        <span
-                          className="inline-block h-1.5 w-1.5 rounded-full"
-                          style={{ background: 'var(--color-warning)' }}
-                          title="overridden"
-                        />
-                      )}
-                      <span className="truncate font-mono text-[12px] text-text-primary">
-                        {k}
-                      </span>
-                    </div>
-                    <input
-                      className="mm-input font-mono w-24 text-right"
-                      value={typed ?? formatDefault(def)}
-                      onChange={(e) =>
-                        setPinValues((prev) => ({ ...prev, [k]: e.target.value }))
-                      }
-                      placeholder={formatDefault(def)}
-                    />
-                    {dirty ? (
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setPinValues((prev) => {
-                            const next = { ...prev };
-                            delete next[k];
-                            return next;
-                          })
-                        }
-                        className="text-[10px] text-text-muted hover:text-text-primary"
-                        title="reset to default"
+                    reset all to defaults
+                  </button>
+                )}
+              </div>
+
+              {selectedCode && availableKeys.length > 0 && (
+                <input
+                  className="mm-input mt-2 w-full font-mono md:w-72"
+                  placeholder="filter params…"
+                  value={pinFilter}
+                  onChange={(e) => setPinFilter(e.target.value)}
+                />
+              )}
+
+              <div className="mt-2 grid grid-cols-1 gap-1 md:grid-cols-2">
+                {(() => {
+                  const swept = new Set(ranges.map((r) => r.key).filter(Boolean));
+                  const filter = pinFilter.trim().toLowerCase();
+                  const visible = availableKeys
+                    .filter((k) => !swept.has(k))
+                    .filter((k) => !filter || k.toLowerCase().includes(filter));
+                  if (selectedCode && visible.length === 0) {
+                    return (
+                      <div className="text-[11px] text-text-muted">No params match the filter.</div>
+                    );
+                  }
+                  return visible.map((k) => {
+                    const def = defaults[k];
+                    const typed = pinValues[k];
+                    const numeric = typed === undefined ? def : Number(typed);
+                    const dirty =
+                      typed !== undefined &&
+                      typed.trim() !== '' &&
+                      Number.isFinite(numeric) &&
+                      Math.abs(numeric - def) > 1e-9;
+                    return (
+                      <div
+                        key={k}
+                        className="grid grid-cols-[1fr_auto_auto] items-center gap-2 rounded-sm border border-bd-subtle bg-bg-base px-2 py-1.5"
                       >
-                        <X size={12} />
-                      </button>
-                    ) : (
-                      <span className="w-3" />
-                    )}
-                  </div>
-                );
-              });
-            })()}
-          </div>
-          {selectedCode && defaultsQ.isLoading && (
-            <div className="mt-2 text-[11px] text-text-muted">
-              Loading {selectedCode} defaults…
-            </div>
-          )}
+                        <div className="flex items-center gap-1.5 truncate">
+                          {dirty && (
+                            <span
+                              className="inline-block h-1.5 w-1.5 rounded-full"
+                              style={{ background: 'var(--color-warning)' }}
+                              title="overridden"
+                            />
+                          )}
+                          <span className="truncate font-mono text-[12px] text-text-primary">
+                            {k}
+                          </span>
+                        </div>
+                        <input
+                          className="mm-input w-24 text-right font-mono"
+                          value={typed ?? formatDefault(def)}
+                          onChange={(e) =>
+                            setPinValues((prev) => ({ ...prev, [k]: e.target.value }))
+                          }
+                          placeholder={formatDefault(def)}
+                        />
+                        {dirty ? (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setPinValues((prev) => {
+                                const next = { ...prev };
+                                delete next[k];
+                                return next;
+                              })
+                            }
+                            className="text-[10px] text-text-muted hover:text-text-primary"
+                            title="reset to default"
+                          >
+                            <X size={12} />
+                          </button>
+                        ) : (
+                          <span className="w-3" />
+                        )}
+                      </div>
+                    );
+                  });
+                })()}
+              </div>
+              {selectedCode && defaultsQ.isLoading && (
+                <div className="mt-2 text-[11px] text-text-muted">
+                  Loading {selectedCode} defaults…
+                </div>
+              )}
             </div>
           )}
         </div>
 
         <div className="flex items-center justify-between border-t border-bd-subtle pt-3">
           <div className="text-[12px] text-text-muted">
-            Round 1 size:{' '}
-            <span className="font-mono text-text-primary">{round1Combos}</span>
+            Round 1 size: <span className="font-mono text-text-primary">{round1Combos}</span>
             {round1Combos > 128 && round1Combos <= 256 && (
               <span className="ml-2 text-[var(--color-warning)]">
                 big grid — expect ~{Math.round((round1Combos * 30) / 60)} min for round 1
@@ -627,13 +624,9 @@ export default function ResearchPage() {
             type="button"
             onClick={onSubmit}
             disabled={create.isPending || round1Combos > 256 || round1Combos === 0}
-            className="inline-flex items-center gap-1.5 rounded-sm bg-[var(--accent-primary)] px-4 py-2 text-[12px] font-semibold text-white transition-colors hover:bg-[var(--accent-primary)]/90 disabled:opacity-60"
+            className="hover:bg-[var(--accent-primary)]/90 inline-flex items-center gap-1.5 rounded-sm bg-[var(--accent-primary)] px-4 py-2 text-[12px] font-semibold text-white transition-colors disabled:opacity-60"
           >
-            {create.isPending ? (
-              <Loader2 size={12} className="animate-spin" />
-            ) : (
-              <Play size={12} />
-            )}
+            {create.isPending ? <Loader2 size={12} className="animate-spin" /> : <Play size={12} />}
             Start research session
           </button>
         </div>

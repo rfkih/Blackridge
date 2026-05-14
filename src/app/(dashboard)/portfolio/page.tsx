@@ -54,7 +54,7 @@ export default function PortfolioPage() {
     const lockedCash = Math.max(0, lockedUsdt);
     const total = Math.max(1, cryptoValue + stableValue + lockedCash);
     return [
-      { label: 'Crypto', pct: (cryptoValue / total) * 100, color: 'var(--mm-mint)' },
+      { label: 'Crypto', pct: (cryptoValue / total) * 100, color: 'var(--brand-500)' },
       { label: 'Stable', pct: (stableValue / total) * 100, color: 'var(--mm-ink-0)' },
       { label: 'Locked', pct: (lockedCash / total) * 100, color: 'var(--mm-ink-3)' },
     ].filter((s) => s.pct > 0);
@@ -476,7 +476,7 @@ function RiskCard({
                     r.tone === 'warn'
                       ? 'var(--mm-warn)'
                       : r.tone === 'mint'
-                        ? 'var(--mm-mint)'
+                        ? 'var(--brand-500)'
                         : 'var(--mm-ink-0)',
                 }}
               >
@@ -493,7 +493,7 @@ function RiskCard({
                     r.tone === 'warn'
                       ? 'var(--mm-warn)'
                       : r.tone === 'mint'
-                        ? 'var(--mm-mint)'
+                        ? 'var(--brand-500)'
                         : 'var(--mm-ink-1)',
                   transition: 'width 160ms ease-out',
                 }}
@@ -547,11 +547,7 @@ function PerformanceCard() {
           ? `${month.avgTradeReturnPct >= 0 ? '+' : ''}${month.avgTradeReturnPct.toFixed(3)}%`
           : '—',
       t:
-        month?.avgTradeReturnPct == null
-          ? undefined
-          : month.avgTradeReturnPct >= 0
-            ? 'mint'
-            : 'dn',
+        month?.avgTradeReturnPct == null ? undefined : month.avgTradeReturnPct >= 0 ? 'mint' : 'dn',
     },
     {
       l: 'Compound @ 90% · month',
@@ -595,7 +591,7 @@ function PerformanceCard() {
                 letterSpacing: '-0.02em',
                 color:
                   it.t === 'mint'
-                    ? 'var(--mm-mint)'
+                    ? 'var(--brand-500)'
                     : it.t === 'dn'
                       ? 'var(--mm-dn)'
                       : 'var(--mm-ink-0)',

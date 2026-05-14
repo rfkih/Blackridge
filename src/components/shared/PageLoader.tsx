@@ -1,4 +1,4 @@
-import { LogoMark } from '@/components/brand/Logo';
+import { BlackridgeMark } from '@/components/brand/BlackridgeMark';
 import { cn } from '@/lib/utils';
 
 interface PageLoaderProps {
@@ -50,9 +50,9 @@ export function PageLoader({ label = 'Loading', fullscreen = true, className }: 
           >
             <defs>
               <linearGradient id="mm-loader-ring" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0" stopColor="var(--color-profit)" stopOpacity="1" />
-                <stop offset="0.55" stopColor="var(--color-profit)" stopOpacity="0.25" />
-                <stop offset="1" stopColor="var(--color-profit)" stopOpacity="0" />
+                <stop offset="0" stopColor="var(--brand-500)" stopOpacity="1" />
+                <stop offset="0.55" stopColor="var(--brand-500)" stopOpacity="0.25" />
+                <stop offset="1" stopColor="var(--brand-500)" stopOpacity="0" />
               </linearGradient>
             </defs>
             <circle
@@ -86,7 +86,7 @@ export function PageLoader({ label = 'Loading', fullscreen = true, className }: 
               cy="50"
               r="38"
               fill="none"
-              stroke="var(--color-profit)"
+              stroke="var(--brand-500)"
               strokeOpacity="0.9"
               strokeWidth="1.5"
               strokeLinecap="round"
@@ -98,11 +98,11 @@ export function PageLoader({ label = 'Loading', fullscreen = true, className }: 
           <div
             className="absolute inset-0 flex items-center justify-center"
             style={{
-              filter: 'drop-shadow(0 0 10px rgba(22,179,100, 0.35))',
+              filter: 'drop-shadow(0 0 10px var(--accent-glow))',
             }}
           >
-            <span className="animate-[mm-pulse_2s_ease-in-out_infinite] text-[var(--color-profit)]">
-              <LogoMark size={28} tone="plain" />
+            <span className="animate-[mm-pulse_2s_ease-in-out_infinite] text-[var(--brand-500)]">
+              <BlackridgeMark size={28} />
             </span>
           </div>
         </div>
@@ -119,15 +119,15 @@ export function PageLoader({ label = 'Loading', fullscreen = true, className }: 
             <span>{label}</span>
             <span className="ml-1 inline-flex items-baseline gap-[3px] align-baseline">
               <span
-                className="inline-block h-[3px] w-[3px] rounded-full bg-[var(--color-profit)] animate-[mm-dot_1.2s_ease-in-out_infinite]"
+                className="inline-block h-[3px] w-[3px] rounded-full bg-[var(--brand-500)] animate-[mm-dot_1.2s_ease-in-out_infinite]"
                 style={{ animationDelay: '0ms' }}
               />
               <span
-                className="inline-block h-[3px] w-[3px] rounded-full bg-[var(--color-profit)] animate-[mm-dot_1.2s_ease-in-out_infinite]"
+                className="inline-block h-[3px] w-[3px] rounded-full bg-[var(--brand-500)] animate-[mm-dot_1.2s_ease-in-out_infinite]"
                 style={{ animationDelay: '200ms' }}
               />
               <span
-                className="inline-block h-[3px] w-[3px] rounded-full bg-[var(--color-profit)] animate-[mm-dot_1.2s_ease-in-out_infinite]"
+                className="inline-block h-[3px] w-[3px] rounded-full bg-[var(--brand-500)] animate-[mm-dot_1.2s_ease-in-out_infinite]"
                 style={{ animationDelay: '400ms' }}
               />
             </span>
@@ -142,8 +142,8 @@ export function PageLoader({ label = 'Loading', fullscreen = true, className }: 
               className="absolute inset-y-0 w-1/3 animate-[mm-scan_1.8s_cubic-bezier(0.65,0,0.35,1)_infinite] rounded-full"
               style={{
                 background:
-                  'linear-gradient(90deg, transparent, var(--color-profit), transparent)',
-                boxShadow: '0 0 8px rgba(22,179,100, 0.45)',
+                  'linear-gradient(90deg, transparent, var(--brand-500), transparent)',
+                boxShadow: '0 0 8px var(--accent-subtle)',
               }}
             />
           </div>

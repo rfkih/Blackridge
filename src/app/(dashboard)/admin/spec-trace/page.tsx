@@ -15,11 +15,7 @@ export default function SpecTracePage() {
   const [appliedStrategy, setAppliedStrategy] = useState('');
 
   if (!isAdmin) {
-    return (
-      <div className="px-6 py-12 text-center text-text-secondary">
-        Admin access required.
-      </div>
-    );
+    return <div className="px-6 py-12 text-center text-text-secondary">Admin access required.</div>;
   }
 
   const apply = () => {
@@ -36,21 +32,17 @@ export default function SpecTracePage() {
   return (
     <div className="flex flex-col gap-4 px-6 py-6">
       <header>
-        <h1 className="font-display text-2xl font-semibold text-text-primary">
-          Spec trace viewer
-        </h1>
+        <h1 className="font-display text-2xl font-semibold text-text-primary">Spec trace viewer</h1>
         <p className="text-sm text-text-secondary">
-          Forensic replay of spec-driven engine decisions. Backtest writes
-          dense traces (1 row per bar per active strategy); live samples at{' '}
+          Forensic replay of spec-driven engine decisions. Backtest writes dense traces (1 row per
+          bar per active strategy); live samples at{' '}
           <code className="font-mono">engine.trace.sample-rate</code> (default 1%).
         </p>
       </header>
 
       <div className="flex flex-wrap items-end gap-3 rounded-xl border border-bd-subtle bg-bg-surface px-3 py-3">
         <div className="flex flex-col gap-1">
-          <span className="text-[10px] uppercase tracking-widest text-text-muted">
-            Scope
-          </span>
+          <span className="text-[10px] uppercase tracking-widest text-text-muted">Scope</span>
           <div className="flex items-center gap-1">
             {(['backtest', 'live'] as const).map((s) => (
               <button
@@ -60,11 +52,9 @@ export default function SpecTracePage() {
                 className="rounded-sm px-2 py-1 text-[12px] transition-colors"
                 style={{
                   background: scope === s ? 'var(--bg-hover)' : 'transparent',
-                  color:
-                    scope === s ? 'var(--text-primary)' : 'var(--text-secondary)',
+                  color: scope === s ? 'var(--text-primary)' : 'var(--text-secondary)',
                   border: '1px solid',
-                  borderColor:
-                    scope === s ? 'var(--border-default)' : 'transparent',
+                  borderColor: scope === s ? 'var(--border-default)' : 'transparent',
                 }}
               >
                 {s === 'backtest' ? 'Backtest run' : 'Live strategy'}

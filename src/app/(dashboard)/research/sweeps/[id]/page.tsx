@@ -22,21 +22,16 @@ export default function SweepDetailPage({ params }: PageProps) {
   const sweepQ = useSweep(params.id);
   const s = sweepQ.data;
 
-  const rankMetric =
-    (s?.spec.rankMetric as keyof SweepResult | undefined) ?? 'avgR';
+  const rankMetric = (s?.spec.rankMetric as keyof SweepResult | undefined) ?? 'avgR';
 
   // ── Filter / sort / paginate state ─────────────────────────────────────
   // Filters are tracked as Sets so each pill is a toggle. Sort key defaults
   // to the sweep's rankMetric so the "winner is row 1" expectation holds
   // until the user clicks a column to override.
   type SortDir = 'asc' | 'desc';
-  const [statusFilter, setStatusFilter] = useState<Set<SweepResult['status']>>(
-    new Set(),
-  );
+  const [statusFilter, setStatusFilter] = useState<Set<SweepResult['status']>>(new Set());
   const [roundFilter, setRoundFilter] = useState<Set<number>>(new Set());
-  const [sortKey, setSortKey] = useState<keyof SweepResult>(
-    rankMetric as keyof SweepResult,
-  );
+  const [sortKey, setSortKey] = useState<keyof SweepResult>(rankMetric as keyof SweepResult);
   const [sortDir, setSortDir] = useState<SortDir>('desc');
   const [page, setPage] = useState(0);
   const PAGE_SIZE = 20;
@@ -52,8 +47,7 @@ export default function SweepDetailPage({ params }: PageProps) {
   const filteredResults = useMemo(() => {
     return allResults.filter((r) => {
       if (statusFilter.size > 0 && !statusFilter.has(r.status)) return false;
-      if (roundFilter.size > 0 && (r.round == null || !roundFilter.has(r.round)))
-        return false;
+      if (roundFilter.size > 0 && (r.round == null || !roundFilter.has(r.round))) return false;
       return true;
     });
   }, [allResults, statusFilter, roundFilter]);
@@ -172,10 +166,7 @@ export default function SweepDetailPage({ params }: PageProps) {
         <Stat label="Status" value={s.status} />
         <Stat label="Combos" value={`${s.finishedCombos}/${s.totalCombos}`} />
         {isResearchMode && (
-          <Stat
-            label="Round"
-            value={`${s.currentRound ?? '—'} of ${s.totalRounds ?? '—'}`}
-          />
+          <Stat label="Round" value={`${s.currentRound ?? '—'} of ${s.totalRounds ?? '—'}`} />
         )}
         <Stat label="Asset · Int" value={`${s.spec.asset} · ${s.spec.interval}`} />
         <Stat label="Rank by" value={String(rankMetric)} />
@@ -240,11 +231,7 @@ export default function SweepDetailPage({ params }: PageProps) {
         <div className="flex flex-wrap items-center gap-3 border-b border-bd-subtle bg-bg-base px-4 py-2.5">
           <FilterGroup label="Status">
             {(['PENDING', 'RUNNING', 'COMPLETED', 'FAILED'] as const).map((st) => (
-              <FilterPill
-                key={st}
-                active={statusFilter.has(st)}
-                onClick={() => toggleStatus(st)}
-              >
+              <FilterPill key={st} active={statusFilter.has(st)} onClick={() => toggleStatus(st)}>
                 {st}
               </FilterPill>
             ))}
@@ -252,11 +239,7 @@ export default function SweepDetailPage({ params }: PageProps) {
           {isResearchMode && availableRounds.length > 1 && (
             <FilterGroup label="Round">
               {availableRounds.map((r) => (
-                <FilterPill
-                  key={r}
-                  active={roundFilter.has(r)}
-                  onClick={() => toggleRound(r)}
-                >
+                <FilterPill key={r} active={roundFilter.has(r)} onClick={() => toggleRound(r)}>
                   R{r}
                 </FilterPill>
               ))}
@@ -408,19 +391,14 @@ export default function SweepDetailPage({ params }: PageProps) {
         {pageCount > 1 && (
           <div className="flex items-center justify-between gap-3 border-t border-bd-subtle px-4 py-2.5 font-mono text-[11px] text-text-muted">
             <span>
-              Page {safePage + 1} of {pageCount} · showing{' '}
-              {safePage * PAGE_SIZE + 1}–
-              {Math.min((safePage + 1) * PAGE_SIZE, rankedResults.length)} of{' '}
-              {rankedResults.length}
+              Page {safePage + 1} of {pageCount} · showing {safePage * PAGE_SIZE + 1}–
+              {Math.min((safePage + 1) * PAGE_SIZE, rankedResults.length)} of {rankedResults.length}
             </span>
             <div className="flex items-center gap-1">
               <PageBtn disabled={safePage === 0} onClick={() => setPage(safePage - 1)}>
                 <ChevronLeft size={12} /> Prev
               </PageBtn>
-              <PageBtn
-                disabled={safePage >= pageCount - 1}
-                onClick={() => setPage(safePage + 1)}
-              >
+              <PageBtn disabled={safePage >= pageCount - 1} onClick={() => setPage(safePage + 1)}>
                 Next <ChevronRight size={12} />
               </PageBtn>
             </div>
@@ -486,15 +464,19 @@ function SortableTh({
   return (
     <th
       onClick={() => onClick(sortKey)}
-      className={`label-caps cursor-pointer whitespace-nowrap select-none px-3 py-2 !text-[9px] hover:text-text-primary ${
+      className={`label-caps cursor-pointer select-none whitespace-nowrap px-3 py-2 !text-[9px] hover:text-text-primary ${
         align === 'right' ? 'text-right' : 'text-left'
       }`}
       style={{ color: isActive ? 'var(--text-primary)' : undefined }}
     >
       <span className="inline-flex items-center gap-1">
-        {align === 'right' && isActive && (dir === 'asc' ? <ArrowUp size={10} /> : <ArrowDown size={10} />)}
+        {align === 'right' &&
+          isActive &&
+          (dir === 'asc' ? <ArrowUp size={10} /> : <ArrowDown size={10} />)}
         {children}
-        {align !== 'right' && isActive && (dir === 'asc' ? <ArrowUp size={10} /> : <ArrowDown size={10} />)}
+        {align !== 'right' &&
+          isActive &&
+          (dir === 'asc' ? <ArrowUp size={10} /> : <ArrowDown size={10} />)}
       </span>
     </th>
   );
@@ -539,7 +521,7 @@ function SweepHeader({
         >
           <ArrowLeft size={12} /> Back to sweeps
         </Link>
-        <div className="mt-1 label-caps">RESEARCH · SWEEP</div>
+        <div className="label-caps mt-1">RESEARCH · SWEEP</div>
         <h1 className="font-display text-[22px] font-semibold tracking-tighter text-text-primary">
           {spec?.label || spec?.strategyCode || 'Sweep'}
         </h1>
@@ -571,12 +553,9 @@ function ResultRow({
   progress: number;
   dsrThreshold: number | null;
 }) {
-  const wrColor =
-    (result.winRate ?? 0) >= 0.5 ? 'var(--color-profit)' : 'var(--color-loss)';
+  const wrColor = (result.winRate ?? 0) >= 0.5 ? 'var(--color-profit)' : 'var(--color-loss)';
   const beatsThreshold =
-    dsrThreshold != null &&
-    result.sharpeRatio != null &&
-    result.sharpeRatio > dsrThreshold;
+    dsrThreshold != null && result.sharpeRatio != null && result.sharpeRatio > dsrThreshold;
   const sharpeColor =
     result.sharpeRatio == null
       ? 'var(--text-muted)'
@@ -609,14 +588,9 @@ function ResultRow({
   const rowBg = rank === 1 ? 'rgba(22,179,100,0.06)' : undefined;
 
   return (
-    <tr
-      className="border-b border-bd-subtle last:border-b-0"
-      style={{ background: rowBg }}
-    >
+    <tr className="border-b border-bd-subtle last:border-b-0" style={{ background: rowBg }}>
       <Td className="font-mono text-text-muted">#{rank}</Td>
-      {showRound && (
-        <Td className="font-mono text-text-muted">R{result.round ?? '—'}</Td>
-      )}
+      {showRound && <Td className="font-mono text-text-muted">R{result.round ?? '—'}</Td>}
       {paramKeys.map((k) => (
         <Td key={k} className="num">
           {formatParamValue(result.paramSet[k])}
@@ -635,9 +609,7 @@ function ResultRow({
         {result.avgR != null ? result.avgR.toFixed(3) : '—'}
       </Td>
       <Td align="right" className="num" style={{ color: pnlColor }}>
-        {result.netPnl != null
-          ? `${result.netPnl > 0 ? '+' : ''}${result.netPnl.toFixed(2)}`
-          : '—'}
+        {result.netPnl != null ? `${result.netPnl > 0 ? '+' : ''}${result.netPnl.toFixed(2)}` : '—'}
       </Td>
       <Td align="right" className="num text-[var(--color-loss)]">
         {result.maxDrawdown != null ? result.maxDrawdown.toFixed(2) : '—'}
@@ -649,9 +621,7 @@ function ResultRow({
         {result.sharpeRatio != null ? result.sharpeRatio.toFixed(2) : '—'}
       </Td>
       <Td align="right" className="num" style={stddevStyle(result)}>
-        {result.stddevOosSharpe != null
-          ? `±${result.stddevOosSharpe.toFixed(2)}`
-          : '—'}
+        {result.stddevOosSharpe != null ? `±${result.stddevOosSharpe.toFixed(2)}` : '—'}
       </Td>
       <Td align="right" className="num" style={{ color: psrColor }}>
         {result.psr != null ? `${(result.psr * 100).toFixed(1)}%` : '—'}
@@ -673,13 +643,7 @@ function ResultRow({
   );
 }
 
-function ProgressCell({
-  status,
-  progress,
-}: {
-  status: SweepResult['status'];
-  progress: number;
-}) {
+function ProgressCell({ status, progress }: { status: SweepResult['status']; progress: number }) {
   const pct = Math.round(progress * 100);
   const palette: Record<SweepResult['status'], { bar: string; label: string }> = {
     PENDING: { bar: 'var(--bg-overlay)', label: 'var(--text-muted)' },
@@ -690,18 +654,10 @@ function ProgressCell({
   const c = palette[status] ?? palette.PENDING;
   // Use the status label as primary text for terminal cases; show the
   // percentage for in-flight rows so the user sees concrete movement.
-  const label =
-    status === 'PENDING'
-      ? 'PENDING'
-      : status === 'RUNNING'
-        ? `${pct}%`
-        : status;
+  const label = status === 'PENDING' ? 'PENDING' : status === 'RUNNING' ? `${pct}%` : status;
   return (
     <div className="flex flex-col items-end gap-1">
-      <span
-        className="font-mono text-[10px] uppercase tracking-wider"
-        style={{ color: c.label }}
-      >
+      <span className="font-mono text-[10px] uppercase tracking-wider" style={{ color: c.label }}>
         {label}
       </span>
       <div className="h-1 w-24 overflow-hidden rounded-full bg-[var(--bg-overlay)]">
@@ -725,13 +681,7 @@ function ProgressCell({
  *  - already evaluated → show a link to the holdout backtest run; no
  *    re-evaluate option, that's the entire point of a holdout.
  */
-function HoldoutPanel({
-  state,
-  winner,
-}: {
-  state: SweepState;
-  winner: SweepResult | null;
-}) {
+function HoldoutPanel({ state, winner }: { state: SweepState; winner: SweepResult | null }) {
   const evalMutation = useEvaluateHoldout(state.sweepId);
   if (!state.holdoutFromDate || !state.holdoutToDate) return null;
 
@@ -761,18 +711,14 @@ function HoldoutPanel({
     <div
       className="rounded-md border px-4 py-3"
       style={{
-        borderColor: alreadyEvaluated
-          ? 'rgba(59,130,246,0.3)'
-          : 'var(--border-subtle)',
+        borderColor: alreadyEvaluated ? 'rgba(59,130,246,0.3)' : 'var(--border-subtle)',
         background: alreadyEvaluated ? 'rgba(59,130,246,0.06)' : undefined,
       }}
     >
       <div
         className="label-caps"
         style={{
-          color: alreadyEvaluated
-            ? 'var(--color-info)'
-            : 'var(--text-secondary)',
+          color: alreadyEvaluated ? 'var(--color-info)' : 'var(--text-secondary)',
         }}
       >
         Locked holdout
@@ -824,23 +770,18 @@ function HoldoutPanel({
             <button
               type="button"
               onClick={onEvaluate}
-              disabled={
-                !sweepCompleted || !winner || evalMutation.isPending
-              }
+              disabled={!sweepCompleted || !winner || evalMutation.isPending}
               className="self-start rounded-sm border border-bd-subtle bg-bg-base px-3 py-1.5 font-mono text-[10px] uppercase tracking-wider text-text-primary transition-colors duration-fast hover:bg-bg-hover disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {evalMutation.isPending
-                ? 'Submitting…'
-                : 'Evaluate winner on holdout'}
+              {evalMutation.isPending ? 'Submitting…' : 'Evaluate winner on holdout'}
             </button>
           )}
         </div>
       </div>
       {!alreadyEvaluated && (
         <p className="mt-2 text-[11px] text-text-muted">
-          One-shot by design. Once you click, the holdout is spent — no
-          second chance, no re-tune. That&apos;s how the result stays
-          unbiased.
+          One-shot by design. Once you click, the holdout is spent — no second chance, no re-tune.
+          That&apos;s how the result stays unbiased.
         </p>
       )}
     </div>
@@ -896,9 +837,7 @@ function DsrThresholdPanel({ state }: { state: SweepState }) {
 
   return (
     <div className="rounded-xl border border-bd-subtle bg-bg-surface px-4 py-3">
-      <div className="label-caps text-text-secondary">
-        Multiple-comparison context
-      </div>
+      <div className="label-caps text-text-secondary">Multiple-comparison context</div>
       <div className="mt-2 grid grid-cols-2 gap-4 text-[12px] sm:grid-cols-4">
         <div className="flex flex-col gap-0.5">
           <span className="font-mono text-[9px] uppercase tracking-wider text-text-muted">
@@ -916,8 +855,8 @@ function DsrThresholdPanel({ state }: { state: SweepState }) {
               color: passes
                 ? 'var(--color-profit)'
                 : topSharpe == null
-                ? 'var(--text-muted)'
-                : 'var(--color-warning)',
+                  ? 'var(--text-muted)'
+                  : 'var(--color-warning)',
             }}
           >
             {topSharpe != null ? topSharpe.toFixed(3) : '—'}
@@ -927,9 +866,7 @@ function DsrThresholdPanel({ state }: { state: SweepState }) {
           <span className="font-mono text-[9px] uppercase tracking-wider text-text-muted">
             Cohort σ(SR)
           </span>
-          <span className="num text-text-secondary">
-            {sigma != null ? sigma.toFixed(3) : '—'}
-          </span>
+          <span className="num text-text-secondary">{sigma != null ? sigma.toFixed(3) : '—'}</span>
         </div>
         <div className="flex flex-col gap-0.5">
           <span className="font-mono text-[9px] uppercase tracking-wider text-text-muted">
@@ -938,9 +875,7 @@ function DsrThresholdPanel({ state }: { state: SweepState }) {
           <span
             className="text-[11px]"
             style={{
-              color: passes
-                ? 'var(--color-profit)'
-                : 'var(--color-warning)',
+              color: passes ? 'var(--color-profit)' : 'var(--color-warning)',
             }}
           >
             {passes
@@ -957,9 +892,7 @@ function Stat({ label, value }: { label: string; value: string | number }) {
   return (
     <div className="rounded-sm border border-bd-subtle bg-bg-base px-3 py-2">
       <div className="label-caps !text-[9px]">{label}</div>
-      <div className="num mt-0.5 truncate text-[14px] font-semibold text-text-primary">
-        {value}
-      </div>
+      <div className="num mt-0.5 truncate text-[14px] font-semibold text-text-primary">{value}</div>
     </div>
   );
 }

@@ -53,11 +53,7 @@ export default function WalkForwardPage() {
   });
 
   if (!isAdmin) {
-    return (
-      <div className="px-6 py-12 text-center text-text-secondary">
-        Admin access required.
-      </div>
-    );
+    return <div className="px-6 py-12 text-center text-text-secondary">Admin access required.</div>;
   }
 
   const rows = query.data?.content ?? [];
@@ -68,13 +64,10 @@ export default function WalkForwardPage() {
     <div className="flex flex-col gap-4 px-6 py-6">
       <header className="flex items-baseline justify-between gap-4">
         <div>
-          <h1 className="font-display text-2xl font-semibold text-text-primary">
-            Walk-forward
-          </h1>
+          <h1 className="font-display text-2xl font-semibold text-text-primary">Walk-forward</h1>
           <p className="text-sm text-text-secondary">
-            Rolling-window validation runs from the research orchestrator.
-            ROBUST is the gate for promotion to PAPER_TRADE; the agent
-            triggers walk-forward after a SIGNIFICANT_EDGE tick.
+            Rolling-window validation runs from the research orchestrator. ROBUST is the gate for
+            promotion to PAPER_TRADE; the agent triggers walk-forward after a SIGNIFICANT_EDGE tick.
           </p>
         </div>
         <button
@@ -90,9 +83,7 @@ export default function WalkForwardPage() {
       </header>
 
       <div className="flex flex-wrap items-center gap-3 rounded-xl border border-bd-subtle bg-bg-surface px-3 py-2">
-        <span className="text-[11px] uppercase tracking-widest text-text-muted">
-          Verdict
-        </span>
+        <span className="text-[11px] uppercase tracking-widest text-text-muted">Verdict</span>
         {VERDICT_FILTERS.map((f) => {
           const active = verdict === f.value;
           return (
@@ -117,9 +108,7 @@ export default function WalkForwardPage() {
         })}
         <span className="mx-2 h-4 w-px bg-bd-subtle" />
         <label className="flex items-center gap-1.5 text-[12px] text-text-secondary">
-          <span className="text-[11px] uppercase tracking-widest text-text-muted">
-            Strategy
-          </span>
+          <span className="text-[11px] uppercase tracking-widest text-text-muted">Strategy</span>
           <input
             type="text"
             value={strategyCode}
@@ -179,11 +168,9 @@ export default function WalkForwardPage() {
       )}
 
       <p className="text-[11px] text-text-muted">
-        Triggering a new walk-forward from the dashboard is intentionally
-        out of scope — runs take up to ~3h synchronous. Use{' '}
-        <code className="font-mono">POST /walk-forward</code> on the
-        orchestrator (see CLAUDE.md → Research operations) or wait for the
-        autonomous loop.
+        Triggering a new walk-forward from the dashboard is intentionally out of scope — runs take
+        up to ~3h synchronous. Use <code className="font-mono">POST /walk-forward</code> on the
+        orchestrator (see CLAUDE.md → Research operations) or wait for the autonomous loop.
       </p>
     </div>
   );
@@ -228,9 +215,7 @@ function WalkForwardRow({ run }: { run: WalkForwardSummary }) {
         {run.stabilityVerdict === 'ROBUST' && (
           <ReadyToPromoteBadge strategyCode={run.strategyCode} />
         )}
-        <span className="font-mono text-[12px] text-text-primary">
-          {run.strategyCode}
-        </span>
+        <span className="font-mono text-[12px] text-text-primary">{run.strategyCode}</span>
         <span className="font-mono text-[11px] text-text-secondary">
           {run.instrument} · {run.intervalName}
         </span>
@@ -245,10 +230,7 @@ function WalkForwardRow({ run }: { run: WalkForwardSummary }) {
       <div className="grid grid-cols-2 gap-x-4 gap-y-1 sm:grid-cols-4 lg:grid-cols-6">
         <Metric label="PF mean" value={fmt(folds.pfMean, 3)} />
         <Metric label="PF std" value={fmt(folds.pfStd, 3)} />
-        <Metric
-          label="PF range"
-          value={`${fmt(folds.pfMin, 2)} – ${fmt(folds.pfMax, 2)}`}
-        />
+        <Metric label="PF range" value={`${fmt(folds.pfMin, 2)} – ${fmt(folds.pfMax, 2)}`} />
         <Metric
           label="% folds +"
           value={folds.positivePct == null ? '—' : `${folds.positivePct.toFixed(1)}%`}
@@ -292,9 +274,7 @@ function Metric({ label, value }: { label: string; value: string }) {
       <span className="font-mono text-[9px] uppercase tracking-widest text-text-muted">
         {label}
       </span>
-      <span className="font-mono tabular-nums text-[12px] text-text-primary">
-        {value}
-      </span>
+      <span className="font-mono text-[12px] tabular-nums text-text-primary">{value}</span>
     </div>
   );
 }

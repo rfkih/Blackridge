@@ -29,7 +29,7 @@ export function PageHeader({ eyebrow, title, description, actions, className }: 
               fontWeight: 600,
               letterSpacing: '0.12em',
               textTransform: 'uppercase',
-              color: 'var(--mm-mint)',
+              color: 'var(--brand-500)',
               fontFamily: 'var(--mm-mono)',
             }}
           >

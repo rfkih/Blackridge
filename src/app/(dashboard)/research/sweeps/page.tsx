@@ -43,7 +43,7 @@ export default function ResearchSweepsPage() {
         <button
           type="button"
           onClick={() => setFormOpen((v) => !v)}
-          className="inline-flex items-center gap-1.5 rounded-sm bg-[var(--accent-primary)] px-3 py-2 text-[12px] font-semibold text-white transition-colors hover:bg-[var(--accent-primary)]/90"
+          className="hover:bg-[var(--accent-primary)]/90 inline-flex items-center gap-1.5 rounded-sm bg-[var(--accent-primary)] px-3 py-2 text-[12px] font-semibold text-white transition-colors"
         >
           {formOpen ? <X size={12} /> : <Plus size={12} />}
           {formOpen ? 'Cancel' : 'New sweep'}
@@ -212,12 +212,10 @@ function NewSweepForm({ onSubmitted }: { onSubmitted: (sweepId: string) => void 
   const [initialCapital, setInitialCapital] = useState('10000');
   const [label, setLabel] = useState('');
   const [accountStrategyId, setAccountStrategyId] = useState<string>('');
-  const [rankMetric, setRankMetric] =
-    useState<NonNullable<SweepSpec['rankMetric']>>('avgR');
+  const [rankMetric, setRankMetric] = useState<NonNullable<SweepSpec['rankMetric']>>('avgR');
   // Default to TRAIN_OOS so new sweeps are honest by default. Users running
   // smoke tests or working with very short windows can flip back to NONE.
-  const [splitMode, setSplitMode] =
-    useState<NonNullable<SweepSpec['splitMode']>>('TRAIN_OOS');
+  const [splitMode, setSplitMode] = useState<NonNullable<SweepSpec['splitMode']>>('TRAIN_OOS');
   const [oosFractionPct, setOosFractionPct] = useState('30');
   // Default to 20% locked holdout — fund-grade default. Empty string =
   // "no holdout" so the user can opt out without a separate toggle.
@@ -244,8 +242,7 @@ function NewSweepForm({ onSubmitted }: { onSubmitted: (sweepId: string) => void 
       .map((k) => ({ key: k, values: deriveValuesFromDefault(defaults[k]) }));
 
     const formIsEmpty = grid.length === 0;
-    const matchesPrevAuto =
-      prevAutoRef.current && gridEqual(grid, prevAutoRef.current);
+    const matchesPrevAuto = prevAutoRef.current && gridEqual(grid, prevAutoRef.current);
 
     if (formIsEmpty || matchesPrevAuto) {
       setGrid(built);
@@ -307,14 +304,12 @@ function NewSweepForm({ onSubmitted }: { onSubmitted: (sweepId: string) => void 
           ? Number(oosFractionPct) || 30
           : undefined,
       holdoutFractionPct:
-        (splitMode === 'TRAIN_OOS' || splitMode === 'WALK_FORWARD_K')
-          && holdoutFractionPct.trim() !== ''
+        (splitMode === 'TRAIN_OOS' || splitMode === 'WALK_FORWARD_K') &&
+        holdoutFractionPct.trim() !== ''
           ? Number(holdoutFractionPct)
           : undefined,
       walkForwardWindows:
-        splitMode === 'WALK_FORWARD_K'
-          ? Number(walkForwardWindows) || 4
-          : undefined,
+        splitMode === 'WALK_FORWARD_K' ? Number(walkForwardWindows) || 4 : undefined,
     };
 
     try {
@@ -367,8 +362,8 @@ function NewSweepForm({ onSubmitted }: { onSubmitted: (sweepId: string) => void 
           </select>
           {eligibleStrategies.length === 0 && (
             <span className="mt-1 text-[11px] text-[var(--color-warning)]">
-              No eligible strategies. Need an AccountStrategy whose code is both
-              ACTIVE in /admin/strategies and research-capable (TPR today).
+              No eligible strategies. Need an AccountStrategy whose code is both ACTIVE in
+              /admin/strategies and research-capable (TPR today).
             </span>
           )}
         </Field>
@@ -390,9 +385,7 @@ function NewSweepForm({ onSubmitted }: { onSubmitted: (sweepId: string) => void 
           <select
             className="mm-input"
             value={rankMetric}
-            onChange={(e) =>
-              setRankMetric(e.target.value as NonNullable<SweepSpec['rankMetric']>)
-            }
+            onChange={(e) => setRankMetric(e.target.value as NonNullable<SweepSpec['rankMetric']>)}
           >
             <option value="avgR">avg R</option>
             <option value="profitFactor">profit factor</option>
@@ -412,18 +405,16 @@ function NewSweepForm({ onSubmitted }: { onSubmitted: (sweepId: string) => void 
           <select
             className="mm-input"
             value={splitMode}
-            onChange={(e) =>
-              setSplitMode(e.target.value as NonNullable<SweepSpec['splitMode']>)
-            }
+            onChange={(e) => setSplitMode(e.target.value as NonNullable<SweepSpec['splitMode']>)}
           >
             <option value="WALK_FORWARD_K">K-fold walk-forward (fund-grade)</option>
             <option value="TRAIN_OOS">Train / OOS split</option>
             <option value="NONE">Single window (in-sample only)</option>
           </select>
           <span className="mt-1 text-[11px] text-text-muted">
-            Walk-forward runs K rolling folds per combo — averages OOS
-            Sharpe across regimes, exposes regime sensitivity. Train/OOS is
-            cheaper but blind to regime. Single is for smoke tests only.
+            Walk-forward runs K rolling folds per combo — averages OOS Sharpe across regimes,
+            exposes regime sensitivity. Train/OOS is cheaper but blind to regime. Single is for
+            smoke tests only.
           </span>
         </Field>
         {(splitMode === 'TRAIN_OOS' || splitMode === 'WALK_FORWARD_K') && (
@@ -456,9 +447,8 @@ function NewSweepForm({ onSubmitted }: { onSubmitted: (sweepId: string) => void 
               onChange={(e) => setWalkForwardWindows(e.target.value)}
             />
             <span className="mt-1 text-[11px] text-text-muted">
-              Number of rolling train→OOS folds per combo. Higher K = better
-              regime coverage but K× wall time. Default 4. Run cap: 2000
-              total backtests across all folds + combos.
+              Number of rolling train→OOS folds per combo. Higher K = better regime coverage but K×
+              wall time. Default 4. Run cap: 2000 total backtests across all folds + combos.
             </span>
           </Field>
         )}
@@ -475,9 +465,8 @@ function NewSweepForm({ onSubmitted }: { onSubmitted: (sweepId: string) => void 
               placeholder="leave blank to disable"
             />
             <span className="mt-1 text-[11px] text-text-muted">
-              Tail of the window the sweep will <b>never</b> touch. After
-              results land, evaluate your winner on this slice for the one
-              unbiased estimate. Default 20%.
+              Tail of the window the sweep will <b>never</b> touch. After results land, evaluate
+              your winner on this slice for the one unbiased estimate. Default 20%.
             </span>
           </Field>
         )}
@@ -492,7 +481,10 @@ function NewSweepForm({ onSubmitted }: { onSubmitted: (sweepId: string) => void 
         <div className="mt-2 space-y-2">
           {grid.map((g, idx) => {
             const usedElsewhere = new Set(
-              grid.filter((_, i) => i !== idx).map((x) => x.key).filter(Boolean),
+              grid
+                .filter((_, i) => i !== idx)
+                .map((x) => x.key)
+                .filter(Boolean),
             );
             const def = Number.isFinite(defaults[g.key]) ? defaults[g.key] : null;
             return (
@@ -504,9 +496,7 @@ function NewSweepForm({ onSubmitted }: { onSubmitted: (sweepId: string) => void 
                     disabled={!selectedCode || availableKeys.length === 0}
                     onChange={(e) => {
                       const newKey = e.target.value;
-                      const dv = Number.isFinite(defaults[newKey])
-                        ? defaults[newKey]
-                        : null;
+                      const dv = Number.isFinite(defaults[newKey]) ? defaults[newKey] : null;
                       setGrid((prev) =>
                         prev.map((x, i) => {
                           if (i !== idx) return x;
@@ -563,9 +553,7 @@ function NewSweepForm({ onSubmitted }: { onSubmitted: (sweepId: string) => void 
           <Plus size={12} /> Add param
         </button>
         {selectedCode && defaultsQ.isLoading && (
-          <div className="mt-2 text-[11px] text-text-muted">
-            Loading {selectedCode} defaults…
-          </div>
+          <div className="mt-2 text-[11px] text-text-muted">Loading {selectedCode} defaults…</div>
         )}
         {selectedCode && defaultsQ.isError && (
           <div className="mt-2 text-[11px] text-[var(--color-loss)]">
@@ -585,7 +573,7 @@ function NewSweepForm({ onSubmitted }: { onSubmitted: (sweepId: string) => void 
           type="button"
           onClick={onSubmit}
           disabled={create.isPending || totalCombos > 64}
-          className="inline-flex items-center gap-1.5 rounded-sm bg-[var(--accent-primary)] px-3 py-2 text-[12px] font-semibold text-white transition-colors hover:bg-[var(--accent-primary)]/90 disabled:opacity-60"
+          className="hover:bg-[var(--accent-primary)]/90 inline-flex items-center gap-1.5 rounded-sm bg-[var(--accent-primary)] px-3 py-2 text-[12px] font-semibold text-white transition-colors disabled:opacity-60"
         >
           {create.isPending ? <Loader2 size={12} className="animate-spin" /> : <Play size={12} />}
           Start sweep

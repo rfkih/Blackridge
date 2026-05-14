@@ -43,11 +43,7 @@ export default function StrategyHistoryPage() {
   });
 
   if (!isAdmin) {
-    return (
-      <div className="px-6 py-12 text-center text-text-secondary">
-        Admin access required.
-      </div>
-    );
+    return <div className="px-6 py-12 text-center text-text-secondary">Admin access required.</div>;
   }
 
   const rows = query.data?.content ?? [];
@@ -61,9 +57,8 @@ export default function StrategyHistoryPage() {
           Strategy spec history
         </h1>
         <p className="text-sm text-text-secondary">
-          Append-only audit of every spec mutation. Each revision can be
-          expanded to see the spec snapshot and the diff against the prior
-          revision for the same strategy.
+          Append-only audit of every spec mutation. Each revision can be expanded to see the spec
+          snapshot and the diff against the prior revision for the same strategy.
         </p>
       </header>
 
@@ -113,11 +108,7 @@ export default function StrategyHistoryPage() {
       ) : (
         <ul className="divide-y divide-bd-subtle rounded-xl border border-bd-subtle bg-bg-surface">
           {rows.map((r) => (
-            <RevisionRow
-              key={r.historyId}
-              row={r}
-              priorId={r.priorHistoryId ?? undefined}
-            />
+            <RevisionRow key={r.historyId} row={r} priorId={r.priorHistoryId ?? undefined} />
           ))}
         </ul>
       )}
@@ -159,9 +150,7 @@ function RevisionRow({
   priorId: string | undefined;
 }) {
   const [expanded, setExpanded] = useState(false);
-  const [mode, setMode] = useState<'snapshot' | 'diff'>(
-    priorId ? 'diff' : 'snapshot',
-  );
+  const [mode, setMode] = useState<'snapshot' | 'diff'>(priorId ? 'diff' : 'snapshot');
   const meta = operationMeta(row.operation);
   const Icon = meta.icon;
   const ts = row.changedAt ? new Date(row.changedAt).getTime() : null;
@@ -193,16 +182,12 @@ function RevisionRow({
         >
           {row.operation}
         </span>
-        <span className="font-mono text-[12px] text-text-primary">
-          {row.archetype}
-        </span>
+        <span className="font-mono text-[12px] text-text-primary">{row.archetype}</span>
         <span className="font-mono text-[10px] text-text-muted">
           v{row.archetypeVersion} · schema v{row.specSchemaVersion}
         </span>
         {row.changeReason && (
-          <span className="truncate text-[12px] text-text-secondary">
-            {row.changeReason}
-          </span>
+          <span className="truncate text-[12px] text-text-secondary">{row.changeReason}</span>
         )}
         <span className="ml-auto font-mono text-[10px] text-text-muted">
           {ts ? formatDate(ts) : '—'}
@@ -216,17 +201,10 @@ function RevisionRow({
               onClick={() => setMode('snapshot')}
               className="rounded-sm px-2 py-1 text-[12px] transition-colors"
               style={{
-                background:
-                  mode === 'snapshot' ? 'var(--bg-hover)' : 'transparent',
-                color:
-                  mode === 'snapshot'
-                    ? 'var(--text-primary)'
-                    : 'var(--text-secondary)',
+                background: mode === 'snapshot' ? 'var(--bg-hover)' : 'transparent',
+                color: mode === 'snapshot' ? 'var(--text-primary)' : 'var(--text-secondary)',
                 border: '1px solid',
-                borderColor:
-                  mode === 'snapshot'
-                    ? 'var(--border-default)'
-                    : 'transparent',
+                borderColor: mode === 'snapshot' ? 'var(--border-default)' : 'transparent',
               }}
             >
               Snapshot
@@ -238,13 +216,9 @@ function RevisionRow({
               className="rounded-sm px-2 py-1 text-[12px] transition-colors disabled:cursor-not-allowed disabled:opacity-40"
               style={{
                 background: mode === 'diff' ? 'var(--bg-hover)' : 'transparent',
-                color:
-                  mode === 'diff'
-                    ? 'var(--text-primary)'
-                    : 'var(--text-secondary)',
+                color: mode === 'diff' ? 'var(--text-primary)' : 'var(--text-secondary)',
                 border: '1px solid',
-                borderColor:
-                  mode === 'diff' ? 'var(--border-default)' : 'transparent',
+                borderColor: mode === 'diff' ? 'var(--border-default)' : 'transparent',
               }}
               title={priorId ? 'Diff vs previous revision' : 'No prior revision'}
             >
@@ -276,11 +250,7 @@ function SnapshotPanel({ historyId }: { historyId: string }) {
     );
   }
   if (query.isError || !query.data) {
-    return (
-      <div className="text-[12px] text-text-secondary">
-        Failed to load revision detail.
-      </div>
-    );
+    return <div className="text-[12px] text-text-secondary">Failed to load revision detail.</div>;
   }
   return (
     <pre className="max-h-[400px] overflow-auto rounded-sm border border-bd-subtle bg-bg-surface px-3 py-2 font-mono text-[11px] leading-relaxed text-text-primary">
@@ -289,13 +259,7 @@ function SnapshotPanel({ historyId }: { historyId: string }) {
   );
 }
 
-function DiffPanel({
-  currentId,
-  priorId,
-}: {
-  currentId: string;
-  priorId: string;
-}) {
+function DiffPanel({ currentId, priorId }: { currentId: string; priorId: string }) {
   const current = useQuery({
     queryKey: ['strategy-definition-history', currentId],
     queryFn: () => getStrategyDefinitionHistory(currentId),
@@ -320,17 +284,13 @@ function DiffPanel({
     );
   }
   if (!diff) {
-    return (
-      <div className="text-[12px] text-text-secondary">
-        Failed to load both revisions.
-      </div>
-    );
+    return <div className="text-[12px] text-text-secondary">Failed to load both revisions.</div>;
   }
   if (diff.length === 0) {
     return (
       <div className="rounded-sm border border-bd-subtle bg-bg-surface px-3 py-2 font-mono text-[11px] text-text-secondary">
-        No spec field changes — operation may be metadata-only (archetype
-        upgrade, soft-delete, etc.).
+        No spec field changes — operation may be metadata-only (archetype upgrade, soft-delete,
+        etc.).
       </div>
     );
   }
@@ -342,23 +302,17 @@ function DiffPanel({
           <div className="flex items-baseline gap-2">
             <span style={{ color: changeColor(d.kind) }}>{changeGlyph(d.kind)}</span>
             <span className="text-text-primary">{d.path}</span>
-            <span className="text-[9px] uppercase tracking-widest text-text-muted">
-              {d.kind}
-            </span>
+            <span className="text-[9px] uppercase tracking-widest text-text-muted">{d.kind}</span>
           </div>
           <div className="grid grid-cols-2 gap-2 pl-5">
             <div>
-              <div className="text-[9px] uppercase tracking-widest text-text-muted">
-                before
-              </div>
+              <div className="text-[9px] uppercase tracking-widest text-text-muted">before</div>
               <div className="whitespace-pre-wrap break-all text-text-secondary">
                 {formatVal(d.before)}
               </div>
             </div>
             <div>
-              <div className="text-[9px] uppercase tracking-widest text-text-muted">
-                after
-              </div>
+              <div className="text-[9px] uppercase tracking-widest text-text-muted">after</div>
               <div className="whitespace-pre-wrap break-all text-text-primary">
                 {formatVal(d.after)}
               </div>
@@ -387,17 +341,10 @@ function computeSpecDiff(
   return out.sort((a, b) => a.path.localeCompare(b.path));
 }
 
-function walk(
-  prefix: string,
-  before: unknown,
-  after: unknown,
-  out: SpecDiffEntry[],
-) {
+function walk(prefix: string, before: unknown, after: unknown, out: SpecDiffEntry[]) {
   if (deepEqual(before, after)) return;
   if (isPlainObject(before) && isPlainObject(after)) {
-    const keys = Array.from(
-      new Set([...Object.keys(before), ...Object.keys(after)]),
-    );
+    const keys = Array.from(new Set([...Object.keys(before), ...Object.keys(after)]));
     for (const k of keys) {
       const path = prefix ? `${prefix}.${k}` : k;
       walk(path, before[k], after[k], out);

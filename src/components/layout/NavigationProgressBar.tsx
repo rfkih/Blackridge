@@ -114,8 +114,8 @@ export function NavigationProgressBar() {
           height: '100%',
           width: `${progress}%`,
           background:
-            'linear-gradient(90deg, var(--color-profit) 0%, rgba(22,179,100,0.85) 70%, rgba(22,179,100,0.0) 100%)',
-          boxShadow: '0 0 10px rgba(22,179,100, 0.55), 0 0 2px rgba(22,179,100, 0.9)',
+            'linear-gradient(90deg, var(--brand-500) 0%, color-mix(in srgb, var(--brand-500) 85%, transparent) 70%, transparent 100%)',
+          boxShadow: '0 0 10px var(--accent-glow), 0 0 2px var(--accent-subtle)',
           transition:
             'width 180ms cubic-bezier(0.25, 1, 0.5, 1), opacity 220ms ease-out',
           opacity: active || progress < 100 ? 1 : 0,

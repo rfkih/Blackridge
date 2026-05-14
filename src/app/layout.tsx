@@ -3,6 +3,7 @@ import { Plus_Jakarta_Sans, JetBrains_Mono } from 'next/font/google';
 import { Providers } from './providers';
 import { ThemeScript } from '@/components/theme/ThemeScript';
 import { ThemeProvider } from '@/components/theme/ThemeProvider';
+import { PaletteProvider } from '@/components/theme/PaletteProvider';
 import './globals.css';
 
 const jakarta = Plus_Jakarta_Sans({
@@ -21,11 +22,11 @@ const jetbrainsMono = JetBrains_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: 'Machiavelli Technology',
-    template: '%s · Machiavelli Technology',
+    default: 'Blackridge',
+    template: '%s · Blackridge',
   },
-  description: 'Algorithmic & automated crypto trading — Machiavelli Technology.',
-  applicationName: 'Machiavelli Technology',
+  description: 'Algorithmic crypto trading. Run your strategies on Binance Futures while you sleep.',
+  applicationName: 'Blackridge',
 };
 
 export default function RootLayout({
@@ -44,7 +45,9 @@ export default function RootLayout({
       </head>
       <body className="antialiased">
         <ThemeProvider>
-          <Providers>{children}</Providers>
+          <PaletteProvider>
+            <Providers>{children}</Providers>
+          </PaletteProvider>
         </ThemeProvider>
       </body>
     </html>

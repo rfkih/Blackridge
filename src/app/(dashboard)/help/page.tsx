@@ -159,13 +159,11 @@ export default function HelpPage() {
   return (
     <div className="flex flex-col gap-5">
       <header>
-        <p className="font-mono text-[10px] uppercase tracking-widest text-text-muted">
-          Help
-        </p>
+        <p className="font-mono text-[10px] uppercase tracking-widest text-text-muted">Help</p>
         <h1 className="mt-1 font-display text-2xl text-text-primary">What is this thing?</h1>
         <p className="mt-1 max-w-2xl text-sm text-text-secondary">
-          Quick-explain entries for the metrics, methodology, and engine constraints surfaced
-          across the app. If something here is unclear or missing, mention it via{' '}
+          Quick-explain entries for the metrics, methodology, and engine constraints surfaced across
+          the app. If something here is unclear or missing, mention it via{' '}
           <a
             href="/settings"
             className="font-semibold text-[var(--accent-primary)] hover:underline"
@@ -199,9 +197,8 @@ export default function HelpPage() {
 
       {filtered.length === 0 ? (
         <div className="rounded-md border border-dashed border-bd-subtle px-6 py-12 text-center text-sm text-text-muted">
-          No entries match{' '}
-          <span className="font-mono text-text-primary">&quot;{query}&quot;</span>. Try a shorter
-          query or browse the categories.
+          No entries match <span className="font-mono text-text-primary">&quot;{query}&quot;</span>.
+          Try a shorter query or browse the categories.
         </div>
       ) : (
         ALL_CATEGORIES.map((cat) => {

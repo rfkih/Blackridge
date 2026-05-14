@@ -19,28 +19,6 @@ const loginSchema = z.object({
 
 type LoginValues = z.infer<typeof loginSchema>;
 
-const FIELD_LABEL_STYLE: React.CSSProperties = {
-  display: 'block',
-  fontSize: 11,
-  fontWeight: 600,
-  color: 'var(--mm-ink-1, #384151)',
-  marginBottom: 6,
-  textTransform: 'uppercase',
-  letterSpacing: '0.04em',
-};
-
-const FIELD_INPUT_STYLE: React.CSSProperties = {
-  width: '100%',
-  padding: '12px 14px',
-  border: '1px solid var(--mm-hair-2, rgba(14,17,22,0.1))',
-  borderRadius: 10,
-  fontSize: 14,
-  fontFamily: 'inherit',
-  boxSizing: 'border-box',
-  background: '#FFFFFF',
-  color: 'var(--mm-ink-0, #0E1116)',
-  outline: 'none',
-};
 
 function LoginPageContent() {
   const search = useSearchParams();
@@ -99,20 +77,20 @@ function LoginPageContent() {
           <h1
             className="font-display"
             style={{
-              fontSize: 28,
+              fontSize: 32,
               fontWeight: 800,
-              letterSpacing: '-0.025em',
+              letterSpacing: '-0.02em',
               lineHeight: 1.1,
-              margin: '0 0 6px',
-              color: 'var(--mm-ink-0, #0E1116)',
+              margin: '0 0 8px',
+              color: 'var(--text-primary)',
             }}
           >
-            Sign in to Machiavelli
+            Sign in to Blackridge
           </h1>
           <p
             style={{
-              fontSize: 14,
-              color: 'var(--mm-ink-1, #384151)',
+              fontSize: 15,
+              color: 'var(--text-secondary)',
               margin: '0 0 24px',
               lineHeight: 1.5,
             }}
@@ -121,55 +99,48 @@ function LoginPageContent() {
           </p>
 
           {/* Email */}
-          <div style={{ marginBottom: 12 }}>
-            <label htmlFor="email" style={FIELD_LABEL_STYLE}>
-              Email
+          <div className="mb-3.5">
+            <label htmlFor="email" className="br-label">
+              Work email
             </label>
             <input
               id="email"
               type="email"
               autoComplete="email"
-              placeholder="you@example.com"
+              placeholder="you@firm.com"
               disabled={isSubmitting}
               onKeyDown={onEnter}
               aria-invalid={Boolean(errors.email)}
               {...register('email', { onBlur: () => trigger('email') })}
-              style={FIELD_INPUT_STYLE}
+              className="br-input"
             />
             {errors.email && (
-              <p role="alert" style={{ marginTop: 6, fontSize: 11, color: 'var(--color-loss)' }}>
+              <p
+                role="alert"
+                className="mt-1.5 text-[12px]"
+                style={{ color: 'var(--color-loss)' }}
+              >
                 {errors.email.message}
               </p>
             )}
           </div>
 
           {/* Password */}
-          <div style={{ marginBottom: 12 }}>
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'baseline',
-                marginBottom: 6,
-              }}
-            >
-              <label htmlFor="password" style={{ ...FIELD_LABEL_STYLE, marginBottom: 0 }}>
+          <div className="mb-3.5">
+            <div className="mb-1.5 flex items-baseline justify-between">
+              <label htmlFor="password" className="br-label" style={{ marginBottom: 0 }}>
                 Password
               </label>
               <Link
                 href="/forgot-password"
                 tabIndex={-1}
-                style={{
-                  fontSize: 11,
-                  color: 'var(--brand-700, #0A7E3F)',
-                  fontWeight: 600,
-                  textDecoration: 'none',
-                }}
+                className="text-[12px] font-semibold"
+                style={{ color: 'var(--brand-700)', textDecoration: 'none' }}
               >
                 Forgot?
               </Link>
             </div>
-            <div style={{ position: 'relative' }}>
+            <div className="relative">
               <input
                 id="password"
                 type={showPassword ? 'text' : 'password'}
@@ -179,26 +150,21 @@ function LoginPageContent() {
                 onKeyDown={onEnter}
                 aria-invalid={Boolean(errors.password)}
                 {...register('password', { onBlur: () => trigger('password') })}
-                style={{ ...FIELD_INPUT_STYLE, paddingRight: 56 }}
+                className="br-input"
+                style={{ paddingRight: 64 }}
               />
               <button
                 type="button"
                 tabIndex={-1}
                 onClick={() => setShowPassword((v) => !v)}
                 aria-label={showPassword ? 'Hide password' : 'Show password'}
+                className="absolute top-1/2 -translate-y-1/2 inline-flex items-center gap-1 text-[12px]"
                 style={{
-                  position: 'absolute',
                   right: 12,
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                  fontSize: 12,
                   background: 'transparent',
                   border: 'none',
-                  color: 'var(--mm-ink-2, #6B7280)',
+                  color: 'var(--text-muted)',
                   cursor: 'pointer',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 4,
                 }}
               >
                 {showPassword ? <EyeOff size={12} /> : <Eye size={12} />}
@@ -206,7 +172,11 @@ function LoginPageContent() {
               </button>
             </div>
             {errors.password && (
-              <p role="alert" style={{ marginTop: 6, fontSize: 11, color: 'var(--color-loss)' }}>
+              <p
+                role="alert"
+                className="mt-1.5 text-[12px]"
+                style={{ color: 'var(--color-loss)' }}
+              >
                 {errors.password.message}
               </p>
             )}
@@ -214,17 +184,12 @@ function LoginPageContent() {
 
           {/* Keep me signed in */}
           <label
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 10,
-              fontSize: 12,
-              color: 'var(--mm-ink-1, #384151)',
-              margin: '12px 0 18px',
-              cursor: 'pointer',
-            }}
+            htmlFor="keep-signed-in"
+            className="my-3 flex cursor-pointer items-center gap-2.5 text-[13px]"
+            style={{ color: 'var(--text-secondary)' }}
           >
             <input
+              id="keep-signed-in"
               type="checkbox"
               checked={keepSignedIn}
               onChange={(e) => setKeepSignedIn(e.target.checked)}
@@ -232,7 +197,7 @@ function LoginPageContent() {
               style={{
                 width: 15,
                 height: 15,
-                accentColor: 'var(--brand-500, #16B364)',
+                accentColor: 'var(--brand-500)',
                 margin: 0,
                 cursor: 'pointer',
               }}
@@ -241,60 +206,30 @@ function LoginPageContent() {
           </label>
 
           {sessionExpired && !submitError && (
-            <p
+            <div
               role="status"
-              style={{
-                padding: '10px 12px',
-                fontSize: 12,
-                borderRadius: 10,
-                border: '1px solid rgba(245,166,35,0.45)',
-                background: 'rgba(245,166,35,0.10)',
-                color: 'var(--color-warning)',
-                margin: '0 0 12px',
-              }}
+              className="mb-3 flex gap-2.5 rounded-xl p-3 text-[13px]"
+              style={{ background: 'var(--tint-warning)', color: 'var(--text-secondary)' }}
             >
               Your session expired. Please sign in again to continue where you left off.
-            </p>
+            </div>
           )}
 
           {submitError && (
-            <p
+            <div
               role="alert"
-              style={{
-                padding: '10px 12px',
-                fontSize: 12,
-                borderRadius: 10,
-                border: '1px solid rgba(229,72,77,0.4)',
-                background: 'rgba(229,72,77,0.08)',
-                color: 'var(--color-loss)',
-                margin: '0 0 12px',
-              }}
+              className="mb-3 flex gap-2.5 rounded-xl p-3 text-[13px]"
+              style={{ background: 'var(--tint-loss)', color: 'var(--color-loss)' }}
             >
               {submitError}
-            </p>
+            </div>
           )}
 
           <button
             type="button"
             disabled={isSubmitting}
             onClick={() => void submit()}
-            style={{
-              width: '100%',
-              padding: '14px',
-              background: 'var(--mm-ink-0, #0E1116)',
-              color: '#FFFFFF',
-              border: 'none',
-              borderRadius: 12,
-              fontSize: 14,
-              fontWeight: 700,
-              cursor: isSubmitting ? 'not-allowed' : 'pointer',
-              fontFamily: 'inherit',
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 8,
-              opacity: isSubmitting ? 0.7 : 1,
-            }}
+            className="br-btn br-btn-primary br-btn-lg br-btn-block"
           >
             {isSubmitting ? (
               <>
@@ -304,8 +239,8 @@ function LoginPageContent() {
               <>
                 Sign in
                 <svg
-                  width="13"
-                  height="13"
+                  width="14"
+                  height="14"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
@@ -319,35 +254,24 @@ function LoginPageContent() {
           </button>
 
           <div
-            style={{
-              textAlign: 'center',
-              fontSize: 11,
-              color: 'var(--mm-ink-2, #6B7280)',
-              marginTop: 16,
-              lineHeight: 1.5,
-            }}
+            className="mt-4 text-center text-[12px]"
+            style={{ color: 'var(--text-muted)', lineHeight: 1.5 }}
           >
             Protected by 2FA. We never custody funds.
             <br />
             By continuing you agree to our{' '}
             <Link
               href="/terms"
-              style={{
-                color: 'var(--mm-ink-1, #384151)',
-                textDecoration: 'underline',
-                textDecorationColor: 'var(--mm-hair-2, rgba(14,17,22,0.1))',
-              }}
+              className="underline"
+              style={{ color: 'var(--text-secondary)' }}
             >
               Terms
             </Link>{' '}
             and{' '}
             <Link
               href="/privacy"
-              style={{
-                color: 'var(--mm-ink-1, #384151)',
-                textDecoration: 'underline',
-                textDecorationColor: 'var(--mm-hair-2, rgba(14,17,22,0.1))',
-              }}
+              className="underline"
+              style={{ color: 'var(--text-secondary)' }}
             >
               Privacy Policy
             </Link>

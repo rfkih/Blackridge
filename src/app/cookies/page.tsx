@@ -6,7 +6,7 @@ export default function CookiesPage() {
   return (
     <LegalPage title="Cookies" subtitle={EFFECTIVE_DATE}>
       <p>
-        Machiavelli Technology uses a small set of cookies and browser-storage entries. We
+        Blackridge uses a small set of cookies and browser-storage entries. We
         don&apos;t use advertising trackers and don&apos;t share cookie data with third parties.
       </p>
 

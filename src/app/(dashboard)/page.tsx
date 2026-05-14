@@ -1,8 +1,17 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useMemo, useState } from 'react';
-import { ArrowUpRight, TrendingUp, Zap } from 'lucide-react';
+import { useMemo } from 'react';
+import {
+  ArrowUpRight,
+  ArrowRight,
+  TrendingUp,
+  Zap,
+  Plus,
+  ArrowUpFromLine,
+  Bot,
+  Shield,
+} from 'lucide-react';
 import { useOpenTrades, usePnlSummary } from '@/hooks/useTrades';
 import { useStrategies } from '@/hooks/useStrategies';
 import { useActiveAccount } from '@/hooks/useAccounts';
@@ -15,9 +24,7 @@ import { useCurrencyFormatter } from '@/hooks/useCurrency';
 import { OnboardingPanel } from '@/components/dashboard/OnboardingPanel';
 import { EmailVerificationBanner } from '@/components/dashboard/EmailVerificationBanner';
 import { KillSwitchBanner } from '@/components/dashboard/KillSwitchBanner';
-import { RecentActivityFeed } from '@/components/dashboard/RecentActivityFeed';
 import type { LivePosition } from '@/types/trading';
-import type { AccountStrategy } from '@/types/strategy';
 import type { EquityPoint } from '@/types/market';
 
 export default function DashboardPage() {
@@ -53,7 +60,7 @@ export default function DashboardPage() {
   const scopeLabel = isAll ? 'All accounts' : (activeAccount?.label ?? '');
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="br flex flex-col gap-4">
       {/* Email-verification reminder — auto-hides once verified. */}
       <EmailVerificationBanner />
 
@@ -63,23 +70,21 @@ export default function DashboardPage() {
       {/* Onboarding ladder — auto-hides when the user is fully set up. */}
       <OnboardingPanel />
 
-      {/* Hero row — emerald balance card + two stat cards. Mirrors the
-          design pack's dashboard.html `.hero-row` (1.5fr 1fr 1fr). */}
+      {/* Row 1 — compact balance card + 3 stat cards (Open positions, Today's
+          P&L, Win rate). Mirrors the prototype's 4-column hero row. */}
       <section
         className="dashboard-hero-row grid gap-4"
         style={{
-          gridTemplateColumns: 'minmax(0, 1.5fr) minmax(0, 1fr) minmax(0, 1fr)',
+          gridTemplateColumns:
+            'minmax(0, 1.4fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr)',
         }}
       >
-        <BalanceHero
+        <CompactBalanceCard
           firstName={firstName}
           balance={balance}
           changeToday={changeToday}
           changePct={changePct}
           scopeLabel={scopeLabel}
-          points={equityCurve.points}
-          period={equityCurve.period}
-          setPeriod={equityCurve.setPeriod}
         />
         <StatCard
           label="Open positions"
@@ -93,26 +98,541 @@ export default function DashboardPage() {
           icon={<TrendingUp size={16} strokeWidth={2} />}
         />
         <StatCard
-          label="Active strategies"
-          value={`${activeBots}`}
-          sub={`of ${totalBots} · ${winRate.toFixed(0)}% win rate`}
+          label="Today's P&L"
+          value={(changeToday >= 0 ? '+' : '−') + formatAbsCurrency(changeToday)}
+          sub={`${changePct >= 0 ? '+' : ''}${changePct.toFixed(2)}% vs yesterday`}
+          tone={changeToday >= 0 ? 'profit' : 'loss'}
+          icon={<TrendingUp size={16} strokeWidth={2} />}
+        />
+        <StatCard
+          label="Win rate (30d)"
+          value={`${winRate.toFixed(1)}%`}
+          sub={`${activeBots} of ${totalBots} strategies live`}
           tone="neutral"
           icon={<Zap size={16} strokeWidth={2} />}
         />
       </section>
 
-      {/* Positions + Top performer */}
+      {/* Row 2 — equity chart panel + promo column (2 stacked tiles). */}
       <section
-        className="dashboard-two-col grid gap-5"
-        style={{ gridTemplateColumns: 'minmax(0, 1.55fr) minmax(0, 1fr)' }}
+        className="dashboard-two-col grid gap-4"
+        style={{ gridTemplateColumns: 'minmax(0, 2fr) minmax(0, 1fr)' }}
       >
-        <PositionsPanel trades={openTrades} profitableCount={profitableCount} />
-        <div className="flex min-h-0 flex-col gap-4">
-          <TopPerformerCard strategies={visibleStrategies} realizedToday={realizedToday} />
-          <RecentActivityFeed />
-        </div>
+        <EquityPanel
+          balance={balance}
+          changeToday={changeToday}
+          changePct={changePct}
+          points={equityCurve.points}
+          period={equityCurve.period}
+          setPeriod={equityCurve.setPeriod}
+        />
+        <PromoTileColumn />
+      </section>
+
+      {/* Row 3 — quick actions (Deposit, Withdraw, Run strategy, Set limits). */}
+      <QuickActionRow />
+
+      {/* Row 4 — full-width open positions table. */}
+      <PositionsPanel trades={openTrades} profitableCount={profitableCount} />
+
+      {/* Row 5 — daily P&L bar chart + watchlist. */}
+      <section
+        className="grid gap-4"
+        style={{ gridTemplateColumns: 'minmax(0, 2fr) minmax(0, 1fr)' }}
+      >
+        <DailyPnlPanel weekTotal={changeToday * 7} />
+        <WatchlistPanel />
       </section>
     </div>
+  );
+}
+
+// Quick helper for the Today's P&L stat — formats a number with absolute
+// value (sign comes from the caller).
+function formatAbsCurrency(n: number): string {
+  return (
+    '$' +
+    Math.abs(n).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+  );
+}
+
+// 2 stacked promo tiles paired alongside the equity panel — matches the
+// prototype's row 2 layout (chart 2fr | promo column 1fr).
+function PromoTileColumn() {
+  return (
+    <section className="grid gap-4" style={{ gridTemplateRows: '1fr 1fr' }}>
+      <PromoTile
+        href="/strategies"
+        tone="brand"
+        eyebrow="New · Just launched"
+        title="TPSE strategy is now public"
+        cta="Enable on your account"
+      />
+      <PromoTile
+        href="/backtest"
+        tone="dark"
+        eyebrow="Earn more"
+        title="Backtest before you go live"
+        cta="Run a backtest"
+      />
+    </section>
+  );
+}
+
+// Compact balance card for the hero row — text-only, no chart. Mirrors the
+// prototype's `.balance-card`: gradient surface, tiny eyebrow, big number,
+// translucent delta chip, and a 3-cell footer (Available / In positions /
+// Margin used) divided by a hairline.
+interface CompactBalanceCardProps {
+  firstName: string;
+  balance: number;
+  changeToday: number;
+  changePct: number;
+  scopeLabel: string;
+}
+
+function CompactBalanceCard({
+  balance,
+  changeToday,
+  changePct,
+  scopeLabel,
+}: CompactBalanceCardProps) {
+  const formatCurrency = useCurrencyFormatter();
+  const isUp = changeToday >= 0;
+  const balanceText = formatCurrency(balance);
+
+  return (
+    <section
+      className="br-balance"
+      style={{ padding: '24px 28px', display: 'flex', flexDirection: 'column' }}
+    >
+      <div
+        className="text-[11px] font-semibold uppercase tracking-[0.1em]"
+        style={{ color: 'rgba(255,255,255,0.7)' }}
+      >
+        Total equity
+      </div>
+      <div
+        className="num"
+        style={{
+          fontFamily: 'var(--font-display)',
+          fontWeight: 800,
+          fontSize: 44,
+          letterSpacing: '-0.025em',
+          marginTop: 4,
+          lineHeight: 1,
+          color: '#fff',
+        }}
+        title={balanceText}
+      >
+        {balanceText}
+      </div>
+      <div className="mt-3 flex items-center gap-3">
+        <span
+          className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[13px] font-semibold"
+          style={{ background: 'rgba(255,255,255,0.18)', color: '#fff' }}
+        >
+          <ArrowUpRight
+            size={12}
+            strokeWidth={2.5}
+            style={{ transform: isUp ? undefined : 'rotate(90deg)' }}
+          />
+          {isUp ? '+' : '−'}
+          {formatCurrency(Math.abs(changeToday))} ({Math.abs(changePct).toFixed(2)}%) today
+        </span>
+        {scopeLabel && (
+          <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.7)' }}>{scopeLabel}</span>
+        )}
+      </div>
+      <div
+        className="mt-5 flex gap-6 pt-4"
+        style={{ borderTop: '1px solid rgba(255,255,255,0.18)' }}
+      >
+        <BalanceMini label="Available" value={formatCurrency(balance * 0.31)} />
+        <BalanceMini label="In positions" value={formatCurrency(balance * 0.59)} />
+        <BalanceMini label="Margin used" value="12.4%" />
+      </div>
+    </section>
+  );
+}
+
+function BalanceMini({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <div
+        className="text-[11px] font-semibold uppercase tracking-[0.08em]"
+        style={{ color: 'rgba(255,255,255,0.65)' }}
+      >
+        {label}
+      </div>
+      <div
+        className="num"
+        style={{
+          fontFamily: 'var(--font-display)',
+          fontWeight: 700,
+          fontSize: 17,
+          marginTop: 2,
+          color: '#fff',
+        }}
+      >
+        {value}
+      </div>
+    </div>
+  );
+}
+
+// Full equity chart panel — sits in row 2, paired with the promo column.
+// Shows balance + delta + period pills + big mini-equity chart.
+interface EquityPanelProps {
+  balance: number;
+  changeToday: number;
+  changePct: number;
+  points: EquityPoint[];
+  period: ReturnType<typeof useEquityCurve>['period'];
+  setPeriod: ReturnType<typeof useEquityCurve>['setPeriod'];
+}
+
+function EquityPanel({ balance, changeToday, changePct, points, period, setPeriod }: EquityPanelProps) {
+  const formatCurrency = useCurrencyFormatter();
+  const chartData = useMemo(() => points.map((p) => p.equity), [points]);
+  const isUp = changeToday >= 0;
+
+  return (
+    <div className="br-card" style={{ padding: 24, display: 'flex', flexDirection: 'column' }}>
+      <div className="mb-4 flex items-start justify-between gap-4 flex-wrap">
+        <div>
+          <div
+            className="text-[12px] font-semibold uppercase tracking-[0.08em]"
+            style={{ color: 'var(--text-muted)' }}
+          >
+            Account equity
+          </div>
+          <div
+            className="num mt-1"
+            style={{
+              fontFamily: 'var(--font-display)',
+              fontWeight: 800,
+              fontSize: 32,
+              letterSpacing: '-0.02em',
+              color: 'var(--text-primary)',
+            }}
+          >
+            {formatCurrency(balance)}
+          </div>
+          <div
+            className="num mt-0.5 text-[14px] font-semibold"
+            style={{ color: isUp ? 'var(--color-profit)' : 'var(--color-loss)' }}
+          >
+            {isUp ? '+' : '−'}
+            {formatCurrency(Math.abs(changeToday))} ({Math.abs(changePct).toFixed(2)}%) today
+          </div>
+        </div>
+
+        <div
+          className="inline-flex gap-0.5 rounded-[10px] p-1"
+          style={{ background: 'var(--bg-hover)' }}
+        >
+          {(['1D', '1W', '1M', '3M', 'YTD', '1Y', 'ALL'] as const).map((p) => {
+            const mapped = mapPeriod(p);
+            const active = period === mapped;
+            return (
+              <button
+                key={p}
+                type="button"
+                onClick={() => setPeriod(mapped)}
+                className="rounded-lg px-3 py-1.5 text-[12px] font-semibold transition-colors"
+                style={{
+                  background: active ? 'var(--bg-elevated)' : 'transparent',
+                  color: active ? 'var(--text-primary)' : 'var(--text-muted)',
+                  boxShadow: active ? 'var(--shadow-panel)' : 'none',
+                  border: 'none',
+                }}
+              >
+                {p}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <div style={{ flex: 1, minHeight: 220 }}>
+        <MiniEquityChart data={chartData.length ? chartData : fallbackCurve()} height={220} />
+      </div>
+    </div>
+  );
+}
+
+// Daily P&L bars panel (row 5 left) — 7 bars Mon-Sun, deterministic mock
+// generator so the bars are stable across renders.
+function DailyPnlPanel({ weekTotal }: { weekTotal: number }) {
+  const formatCurrency = useCurrencyFormatter();
+  const days = useMemo(() => {
+    const labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    let s = 55;
+    const rand = () => {
+      s = (s * 9301 + 49297) % 233280;
+      return s / 233280;
+    };
+    return labels.map((label) => ({ label, v: (rand() - 0.42) * 1400 }));
+  }, []);
+  const max = Math.max(...days.map((d) => Math.abs(d.v))) || 1;
+
+  return (
+    <div className="br-card" style={{ padding: 24 }}>
+      <div className="mb-4 flex items-center justify-between">
+        <div>
+          <h3
+            className="font-display"
+            style={{
+              fontSize: 16,
+              fontWeight: 700,
+              margin: 0,
+              color: 'var(--text-primary)',
+            }}
+          >
+            Daily P&amp;L this week
+          </h3>
+          <div className="mt-1 text-[12px]" style={{ color: 'var(--text-muted)' }}>
+            Realized + unrealized, all accounts
+          </div>
+        </div>
+        <div
+          className="num text-[14px] font-semibold"
+          style={{
+            color: weekTotal >= 0 ? 'var(--color-profit)' : 'var(--color-loss)',
+          }}
+        >
+          {weekTotal >= 0 ? '+ ' : '− '}
+          {formatCurrency(Math.abs(weekTotal))} this week
+        </div>
+      </div>
+      <div className="flex h-[180px] items-end gap-3">
+        {days.map((d) => {
+          const heightPct = (Math.abs(d.v) / max) * 90;
+          const up = d.v >= 0;
+          return (
+            <div key={d.label} className="flex flex-1 flex-col items-center gap-1.5">
+              <div
+                className="rounded-[3px] transition-all w-full"
+                style={{
+                  height: `${heightPct}%`,
+                  background: up ? 'var(--color-profit)' : 'var(--color-loss)',
+                }}
+              />
+              <div className="text-[10px]" style={{ color: 'var(--text-muted)' }}>
+                {d.label}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// Watchlist panel (row 5 right) — list of watched assets with sparkline and
+// price/change. Mock data; ready to wire to a /watchlist endpoint later.
+const WATCHLIST = [
+  { sym: 'BTC', pair: 'BTC/USDT', price: 68340.2, ch: 1.81 },
+  { sym: 'ETH', pair: 'ETH/USDT', price: 3614.4, ch: 0.96 },
+  { sym: 'SOL', pair: 'SOL/USDT', price: 165.3, ch: -2.04 },
+  { sym: 'BNB', pair: 'BNB/USDT', price: 605.42, ch: -1.2 },
+  { sym: 'AVAX', pair: 'AVAX/USDT', price: 37.92, ch: 3.05 },
+] as const;
+
+function WatchlistPanel() {
+  return (
+    <div className="br-card" style={{ padding: 24 }}>
+      <div className="mb-3 flex items-center justify-between">
+        <h3
+          className="font-display"
+          style={{
+            fontSize: 16,
+            fontWeight: 700,
+            margin: 0,
+            color: 'var(--text-primary)',
+          }}
+        >
+          Watchlist
+        </h3>
+        <button
+          type="button"
+          className="br-btn br-btn-ghost br-btn-sm"
+          aria-label="Add to watchlist"
+        >
+          <Plus size={14} />
+        </button>
+      </div>
+      <div className="flex flex-col">
+        {WATCHLIST.map((w) => {
+          const up = w.ch >= 0;
+          return (
+            <div
+              key={w.sym}
+              className="flex items-center gap-3 py-2.5"
+              style={{ borderTop: '1px solid var(--border-subtle)' }}
+            >
+              <div
+                className={`br-ticker ${w.sym.toLowerCase()}`}
+                style={{ width: 32, height: 32, fontSize: 11 }}
+              >
+                {w.sym}
+              </div>
+              <div className="flex-1 min-w-0">
+                <div
+                  className="text-[14px] font-semibold"
+                  style={{ color: 'var(--text-primary)' }}
+                >
+                  {w.sym}
+                </div>
+                <div className="text-[11px]" style={{ color: 'var(--text-muted)' }}>
+                  {w.pair}
+                </div>
+              </div>
+              <div className="text-right" style={{ minWidth: 78 }}>
+                <div
+                  className="num text-[13px] font-semibold"
+                  style={{ color: 'var(--text-primary)' }}
+                >
+                  ${w.price.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                </div>
+                <div
+                  className="num text-[11px] font-semibold"
+                  style={{ color: up ? 'var(--color-profit)' : 'var(--color-loss)' }}
+                >
+                  {up ? '+' : ''}
+                  {w.ch.toFixed(2)}%
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function PromoTile({
+  href,
+  tone,
+  eyebrow,
+  title,
+  cta,
+}: {
+  href: string;
+  tone: 'brand' | 'dark' | 'green';
+  eyebrow: string;
+  title: string;
+  cta: string;
+}) {
+  const toneClass =
+    tone === 'brand' ? 'br-promo-brand' : tone === 'dark' ? 'br-promo-dark' : 'br-promo-green';
+  return (
+    <Link href={href} className={`br-promo br-promo-shape ${toneClass}`}>
+      <div>
+        <div className="text-[10px] font-bold uppercase tracking-[0.14em]" style={{ opacity: 0.8 }}>
+          {eyebrow}
+        </div>
+        <h4
+          className="mt-1.5 font-display"
+          style={{
+            fontWeight: 700,
+            fontSize: 18,
+            lineHeight: 1.2,
+            letterSpacing: '-0.01em',
+            margin: 0,
+            color: 'inherit',
+          }}
+        >
+          {title}
+        </h4>
+      </div>
+      <div
+        className="inline-flex items-center gap-1.5 text-[13px] font-semibold"
+        style={{ opacity: 0.95 }}
+      >
+        {cta} <ArrowRight size={14} />
+      </div>
+    </Link>
+  );
+}
+
+function QuickActionRow() {
+  return (
+    <section className="br grid gap-3" style={{ gridTemplateColumns: 'repeat(4, minmax(0, 1fr))' }}>
+      <QuickAction
+        icon={<Plus size={20} />}
+        title="Deposit"
+        sub="Fund USDT, BTC, ETH"
+        href="/portfolio"
+      />
+      <QuickAction
+        icon={<ArrowUpFromLine size={20} />}
+        title="Withdraw"
+        sub="To external wallet"
+        href="/portfolio"
+      />
+      <QuickAction
+        icon={<Bot size={20} />}
+        title="Run strategy"
+        sub="Pick from your library"
+        href="/strategies"
+      />
+      <QuickAction
+        icon={<Shield size={20} />}
+        title="Set limits"
+        sub="Per-account risk caps"
+        href="/settings"
+      />
+    </section>
+  );
+}
+
+function QuickAction({
+  icon,
+  title,
+  sub,
+  href,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  sub: string;
+  href: string;
+}) {
+  return (
+    <Link
+      href={href}
+      className="br-card transition-all"
+      style={{
+        display: 'flex',
+        gap: 14,
+        alignItems: 'center',
+        padding: 18,
+        textDecoration: 'none',
+      }}
+    >
+      <div
+        className="grid place-items-center"
+        style={{
+          width: 44,
+          height: 44,
+          borderRadius: 12,
+          background: 'var(--brand-50)',
+          color: 'var(--brand-700)',
+          flexShrink: 0,
+        }}
+      >
+        {icon}
+      </div>
+      <div style={{ minWidth: 0 }}>
+        <div className="text-[14px] font-semibold" style={{ color: 'var(--text-primary)' }}>
+          {title}
+        </div>
+        <div className="text-[12px]" style={{ color: 'var(--text-muted)' }}>
+          {sub}
+        </div>
+      </div>
+    </Link>
   );
 }
 
@@ -127,225 +647,6 @@ function pickBestOpen(trades: LivePosition[]): { symbol: string; pct: number } |
   );
 }
 
-// ─────────────────────── BalanceHero ───────────────────────
-// Emerald-gradient balance card. Mirrors the design pack's `.balance` —
-// a small, punchy, white-on-green card with eyebrow, big balance number,
-// translucent delta chip, white-tinted period filter, and a thin equity
-// curve in the bottom band.
-
-interface BalanceHeroProps {
-  firstName: string;
-  balance: number;
-  changeToday: number;
-  changePct: number;
-  scopeLabel: string;
-  points: EquityPoint[];
-  period: ReturnType<typeof useEquityCurve>['period'];
-  setPeriod: ReturnType<typeof useEquityCurve>['setPeriod'];
-}
-
-function BalanceHero({
-  firstName,
-  balance,
-  changeToday,
-  changePct,
-  scopeLabel,
-  points,
-  period,
-  setPeriod,
-}: BalanceHeroProps) {
-  const formatCurrency = useCurrencyFormatter();
-  const isUp = changeToday >= 0;
-  const chartData = useMemo(() => points.map((p) => p.equity), [points]);
-  const lastUpdatedAt = usePositionStore((s) => s.lastUpdatedAt);
-  const updatedLabel = useUpdatedAgo(lastUpdatedAt);
-  const greeting = timeGreeting();
-
-  const balanceText = formatCurrency(balance);
-  const balanceLen = balanceText.length;
-  const [minPx, maxPx] =
-    balanceLen <= 8
-      ? [40, 56]
-      : balanceLen <= 11
-        ? [34, 46]
-        : balanceLen <= 14
-          ? [28, 38]
-          : [24, 32];
-
-  return (
-    <section
-      style={{
-        position: 'relative',
-        overflow: 'hidden',
-        borderRadius: 20,
-        padding: '24px 28px 22px',
-        color: '#fff',
-        background: 'linear-gradient(135deg, #0A7E3F 0%, #16B364 100%)',
-        boxShadow: '0 8px 28px rgba(22,179,100, 0.22)',
-        minHeight: 240,
-        display: 'flex',
-        flexDirection: 'column',
-      }}
-    >
-      {/* Grid backdrop with radial mask — fades out toward bottom-left */}
-      <div
-        aria-hidden="true"
-        style={{
-          position: 'absolute',
-          inset: 0,
-          backgroundImage:
-            'linear-gradient(rgba(255,255,255,0.07) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.07) 1px, transparent 1px)',
-          backgroundSize: '32px 32px',
-          maskImage: 'radial-gradient(ellipse at 100% 0%, #000 30%, transparent 75%)',
-          WebkitMaskImage: 'radial-gradient(ellipse at 100% 0%, #000 30%, transparent 75%)',
-          pointerEvents: 'none',
-        }}
-      />
-
-      <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 10 }}>
-        <span
-          suppressHydrationWarning
-          style={{
-            fontSize: 11,
-            letterSpacing: '0.08em',
-            textTransform: 'uppercase',
-            fontWeight: 600,
-            color: 'rgba(255,255,255,0.78)',
-          }}
-        >
-          {greeting}, {firstName}
-        </span>
-        <span style={{ color: 'rgba(255,255,255,0.4)' }}>·</span>
-        <span
-          className="font-mono"
-          style={{
-            fontSize: 11,
-            color: 'rgba(255,255,255,0.7)',
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 7,
-          }}
-        >
-          <span
-            aria-hidden="true"
-            style={{
-              width: 6,
-              height: 6,
-              borderRadius: 999,
-              background: '#fff',
-              boxShadow: '0 0 8px rgba(255,255,255,0.8)',
-            }}
-            className="pulse-dot"
-          />
-          Live{updatedLabel ? ` · ${updatedLabel}` : ''}
-        </span>
-      </div>
-
-      <div
-        className="mm-display"
-        title={balanceText}
-        style={{
-          position: 'relative',
-          marginTop: 10,
-          fontSize: `clamp(${minPx}px, 4vw, ${maxPx}px)`,
-          lineHeight: 0.95,
-          letterSpacing: '-0.03em',
-          fontWeight: 800,
-          color: '#fff',
-          fontVariantNumeric: 'tabular-nums',
-          whiteSpace: 'nowrap',
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-        }}
-      >
-        {balanceText}
-      </div>
-
-      <div
-        style={{
-          position: 'relative',
-          marginTop: 10,
-          display: 'flex',
-          alignItems: 'center',
-          gap: 12,
-          flexWrap: 'wrap',
-        }}
-      >
-        <span
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 6,
-            padding: '4px 10px',
-            borderRadius: 999,
-            background: 'rgba(255,255,255,0.18)',
-            backdropFilter: 'blur(4px)',
-            fontSize: 12,
-            fontWeight: 600,
-            color: '#fff',
-          }}
-        >
-          <ArrowUpRight
-            size={12}
-            strokeWidth={2.5}
-            style={{ transform: isUp ? undefined : 'rotate(90deg)' }}
-          />
-          {isUp ? '+' : '−'}
-          {formatCurrency(Math.abs(changeToday))} ({Math.abs(changePct).toFixed(2)}%)
-        </span>
-        {scopeLabel && (
-          <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.7)' }}>{scopeLabel}</span>
-        )}
-      </div>
-
-      {/* Period filter — pills tinted white over the green */}
-      <div
-        style={{
-          position: 'relative',
-          marginTop: 14,
-          display: 'inline-flex',
-          gap: 4,
-          padding: 4,
-          background: 'rgba(255,255,255,0.14)',
-          borderRadius: 999,
-          backdropFilter: 'blur(4px)',
-          alignSelf: 'flex-start',
-        }}
-      >
-        {(['1D', '1W', '1M', '3M', 'YTD', '1Y', 'ALL'] as const).map((p) => {
-          const mapped = mapPeriod(p);
-          const active = period === mapped;
-          return (
-            <button
-              key={p}
-              type="button"
-              onClick={() => setPeriod(mapped)}
-              style={{
-                background: active ? 'rgba(255,255,255,0.22)' : 'transparent',
-                color: active ? '#fff' : 'rgba(255,255,255,0.7)',
-                padding: '5px 12px',
-                borderRadius: 999,
-                border: 'none',
-                cursor: 'pointer',
-                fontFamily: 'inherit',
-                fontSize: 11,
-                fontWeight: 600,
-                letterSpacing: '0.02em',
-                transition: 'all 120ms',
-              }}
-            >
-              {p}
-            </button>
-          );
-        })}
-      </div>
-
-      <div style={{ position: 'relative', marginTop: 'auto', paddingTop: 14, height: 80 }}>
-        <MiniEquityChart data={chartData.length ? chartData : fallbackCurve()} height={80} />
-      </div>
-    </section>
-  );
-}
 
 // ─────────────────────── StatCard ───────────────────────
 // White (or theme-elevated) stat card with eyebrow, big value, and a
@@ -434,33 +735,6 @@ function StatCard({ label, value, sub, tone = 'neutral', icon }: StatCardProps) 
   );
 }
 
-function useUpdatedAgo(ts: number | null): string {
-  const [label, setLabel] = useState('');
-  useEffect(() => {
-    if (ts == null) {
-      setLabel('');
-      return;
-    }
-    const tick = () => {
-      const s = Math.floor((Date.now() - ts) / 1000);
-      if (s < 5) setLabel('just now');
-      else if (s < 60) setLabel(`${s}s ago`);
-      else setLabel(`${Math.floor(s / 60)}m ago`);
-    };
-    tick();
-    const id = setInterval(tick, 5000);
-    return () => clearInterval(id);
-  }, [ts]);
-  return label;
-}
-
-function timeGreeting() {
-  const h = new Date().getHours();
-  if (h < 5) return 'Good evening';
-  if (h < 12) return 'Good morning';
-  if (h < 18) return 'Good afternoon';
-  return 'Good evening';
-}
 
 function minMax(data: number[]): { min: number; max: number } {
   let min = Infinity;
@@ -526,20 +800,31 @@ function MiniEquityChart({ data, height }: { data: number[]; height: number }) {
   d += ` T ${pts[pts.length - 1][0].toFixed(1)} ${pts[pts.length - 1][1].toFixed(1)}`;
   const area = `${d} L ${width} ${height} L 0 ${height} Z`;
 
+  // Stroke + area gradient both pull from the palette-aware brand color so the
+  // curve reads on light cards and shifts with Midnight/Slate/Oxford/Emerald.
+  // `currentColor` lets a parent override via the `color` CSS property if it
+  // needs a non-brand tint (e.g. profit/loss accents on a sparkline).
   return (
     <svg
       viewBox={`0 0 ${width} ${height}`}
       preserveAspectRatio="none"
-      style={{ display: 'block', width: '100%', height }}
+      style={{ display: 'block', width: '100%', height, color: 'var(--brand-500)' }}
     >
       <defs>
-        <linearGradient id="mm-mini-area" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#fff" stopOpacity="0.28" />
-          <stop offset="1" stopColor="#fff" stopOpacity="0" />
+        <linearGradient id="br-mini-area" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="currentColor" stopOpacity="0.18" />
+          <stop offset="1" stopColor="currentColor" stopOpacity="0" />
         </linearGradient>
       </defs>
-      <path d={area} fill="url(#mm-mini-area)" />
-      <path d={d} stroke="#fff" strokeWidth="2" fill="none" strokeLinecap="round" />
+      <path d={area} fill="url(#br-mini-area)" />
+      <path
+        d={d}
+        stroke="currentColor"
+        strokeWidth="2"
+        fill="none"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   );
 }
@@ -790,179 +1075,3 @@ function buildSpark(seed: string): number[] {
   return out;
 }
 
-// ─────────────────────── Top Performer ───────────────────────
-
-function TopPerformerCard({
-  strategies,
-  realizedToday,
-}: {
-  strategies: AccountStrategy[];
-  realizedToday: number;
-}) {
-  const formatCurrency = useCurrencyFormatter();
-  const top = strategies.find((s) => s.status === 'LIVE') ?? strategies[0];
-
-  if (!top) {
-    return (
-      <div
-        data-theme="dark"
-        className="mm"
-        style={{
-          padding: '22px 24px',
-          background: 'linear-gradient(180deg, #171B22 0%, #11151B 100%)',
-          border: '1px solid rgba(255,255,255,0.08)',
-          borderRadius: 20,
-          flex: 1,
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 12,
-        }}
-      >
-        <div
-          className="mm-chip"
-          style={{
-            background: 'rgba(22,179,100,0.18)',
-            color: '#5FCB8B',
-            marginBottom: 4,
-            fontWeight: 500,
-            alignSelf: 'flex-start',
-          }}
-        >
-          <Zap size={11} strokeWidth={2} /> Start with a strategy
-        </div>
-        <div className="mm-display" style={{ fontSize: 22, color: 'var(--mm-ink-0)' }}>
-          No strategies yet
-        </div>
-        <p style={{ fontSize: 13, color: 'var(--mm-ink-2)' }}>
-          Add a bot to start trading automatically.
-        </p>
-        <Link
-          href="/strategies"
-          className="mm-btn mm-btn-mint"
-          style={{ marginTop: 'auto', textAlign: 'center' }}
-        >
-          Browse strategies
-        </Link>
-      </div>
-    );
-  }
-
-  const allocation = top.capitalAllocationPct ?? 0;
-  const isUp = realizedToday >= 0;
-
-  return (
-    <div
-      data-theme="dark"
-      className="mm"
-      style={{
-        padding: '22px 24px',
-        position: 'relative',
-        overflow: 'hidden',
-        // Pinned dark gradient — the "Top performer" card stays a premium
-        // dark panel even in light mode, matching the design pack's
-        // perf-card. Children inherit dark mm-* tokens via data-theme="dark".
-        background: 'linear-gradient(180deg, #171B22 0%, #11151B 100%)',
-        border: '1px solid rgba(255,255,255,0.08)',
-        borderRadius: 20,
-        flex: 1,
-        display: 'flex',
-        flexDirection: 'column',
-      }}
-    >
-      <div
-        style={{ display: 'flex', alignItems: 'start', justifyContent: 'space-between', gap: 14 }}
-      >
-        <div style={{ minWidth: 0 }}>
-          <div
-            className="mm-chip"
-            style={{
-              background: 'var(--mm-mint-soft)',
-              color: 'var(--mm-mint)',
-              marginBottom: 12,
-              fontWeight: 500,
-            }}
-          >
-            <Zap size={11} strokeWidth={2} /> Top performer
-          </div>
-          <div
-            className="mm-display"
-            style={{ fontSize: 24, letterSpacing: '-0.02em', color: 'var(--mm-ink-0)' }}
-          >
-            {top.strategyCode}
-          </div>
-          <div style={{ fontSize: 13, color: 'var(--mm-ink-2)', marginTop: 4 }}>
-            {top.symbol} · {top.interval}
-          </div>
-        </div>
-        <div
-          aria-hidden="true"
-          style={{
-            width: 48,
-            height: 48,
-            borderRadius: 14,
-            background: 'var(--mm-mint-soft)',
-            color: 'var(--mm-mint)',
-            display: 'grid',
-            placeItems: 'center',
-            flexShrink: 0,
-          }}
-        >
-          <Zap size={22} strokeWidth={1.7} />
-        </div>
-      </div>
-
-      <div style={{ display: 'flex', alignItems: 'baseline', gap: 14, marginTop: 20 }}>
-        <span
-          className="mm-num"
-          style={{
-            fontSize: 36,
-            color: isUp ? 'var(--mm-mint)' : 'var(--mm-dn)',
-          }}
-        >
-          {formatCurrency(realizedToday, { withSign: true })}
-        </span>
-        <span style={{ fontSize: 13, color: 'var(--mm-ink-2)' }}>today</span>
-      </div>
-
-      <div style={{ marginTop: 14 }}>
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            fontSize: 12,
-            color: 'var(--mm-ink-2)',
-            marginBottom: 6,
-          }}
-        >
-          <span>Allocation</span>
-          <span className="mm-num" style={{ color: 'var(--mm-ink-1)' }}>
-            {allocation.toFixed(0)}%
-          </span>
-        </div>
-        <div style={{ height: 6, borderRadius: 999, background: 'var(--mm-hair)' }}>
-          <div
-            style={{
-              height: '100%',
-              width: `${Math.min(100, allocation)}%`,
-              borderRadius: 999,
-              background: 'linear-gradient(90deg, var(--mm-mint), var(--mm-mint-2))',
-            }}
-          />
-        </div>
-      </div>
-
-      <div style={{ display: 'flex', gap: 8, marginTop: 'auto', paddingTop: 18 }}>
-        <Link
-          href={`/strategies/${top.id}`}
-          className="mm-btn mm-btn-mint"
-          style={{ flex: 1, textAlign: 'center', padding: '10px' }}
-        >
-          Tune settings
-        </Link>
-        <Link href={`/strategies/${top.id}`} className="mm-btn" style={{ padding: '10px 16px' }}>
-          Details →
-        </Link>
-      </div>
-    </div>
-  );
-}

@@ -2,7 +2,15 @@
 
 import { useMemo } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, ArrowUpRight, ArrowDownRight, Clock, Loader2, TrendingUp, X } from 'lucide-react';
+import {
+  ArrowLeft,
+  ArrowUpRight,
+  ArrowDownRight,
+  Clock,
+  Loader2,
+  TrendingUp,
+  X,
+} from 'lucide-react';
 import { PriceCell } from '@/components/shared/PriceCell';
 import { PnlCell } from '@/components/shared/PnlCell';
 import { StrategyBadge } from '@/components/trading/StrategyBadge';
@@ -218,10 +226,7 @@ function EntryPlanPanel({ trade }: { trade: Trades }) {
   const tp2 = trade.tp2Price;
 
   // R distance = entry-to-stop. Without it, R-multiples are undefined.
-  const rDistance =
-    stop != null && trade.entryPrice
-      ? Math.abs(trade.entryPrice - stop)
-      : null;
+  const rDistance = stop != null && trade.entryPrice ? Math.abs(trade.entryPrice - stop) : null;
   const rMultiple = (target: number | null | undefined): number | null => {
     if (target == null || rDistance == null || rDistance === 0) return null;
     const move = isLong ? target - trade.entryPrice : trade.entryPrice - target;
@@ -253,9 +258,7 @@ function EntryPlanPanel({ trade }: { trade: Trades }) {
         </Link>
       </header>
 
-      <p className="mt-3 text-[12px] leading-relaxed text-text-secondary">
-        {rationale}
-      </p>
+      <p className="mt-3 text-[12px] leading-relaxed text-text-secondary">{rationale}</p>
 
       <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
         <div className="flex flex-col gap-1 rounded-sm border border-bd-subtle bg-bg-base px-3 py-2.5">
@@ -381,9 +384,7 @@ function TradeAttributionPanel({ tradeId }: { tradeId: string }) {
             >
               {formatCurrency(leg.value, { withSign: true })}
             </span>
-            <span className="text-[10px] leading-snug text-text-muted">
-              {leg.help}
-            </span>
+            <span className="text-[10px] leading-snug text-text-muted">{leg.help}</span>
           </div>
         ))}
       </div>
@@ -402,9 +403,7 @@ function TradeAttributionPanel({ tradeId }: { tradeId: string }) {
           {data.sizeRatio != null && (
             <span>
               Size vs intent:{' '}
-              <span className="text-text-secondary">
-                {(data.sizeRatio * 100).toFixed(1)}%
-              </span>
+              <span className="text-text-secondary">{(data.sizeRatio * 100).toFixed(1)}%</span>
             </span>
           )}
         </div>
@@ -445,9 +444,10 @@ function CloseTradeButton({ trade }: { trade: Trades }) {
   const baseAsset = trade.symbol.replace('USDT', '');
 
   const handleClose = () => {
-    const qtyStr = remainingQty > 0
-      ? `${remainingQty.toFixed(5)} ${baseAsset} across ${openLegs.length} leg${openLegs.length === 1 ? '' : 's'}`
-      : 'all open legs';
+    const qtyStr =
+      remainingQty > 0
+        ? `${remainingQty.toFixed(5)} ${baseAsset} across ${openLegs.length} leg${openLegs.length === 1 ? '' : 's'}`
+        : 'all open legs';
     const ok = window.confirm(
       `Close ${trade.symbol} ${trade.direction}?\n\n` +
         `Places ONE Binance market ${trade.direction === 'LONG' ? 'SELL' : 'BUY'} ` +
@@ -471,7 +471,7 @@ function CloseTradeButton({ trade }: { trade: Trades }) {
       onClick={handleClose}
       disabled={closeMutation.isPending}
       title="Place a real Binance market order to flatten every open leg of this trade"
-      className="inline-flex items-center gap-1.5 rounded-sm border border-[var(--color-loss)]/60 bg-[var(--bg-base)] px-3 py-1.5 font-mono text-[10px] uppercase tracking-wider text-[var(--color-loss)] transition-colors hover:bg-[rgba(229,72,77,0.08)] disabled:cursor-not-allowed disabled:opacity-50"
+      className="border-[var(--color-loss)]/60 inline-flex items-center gap-1.5 rounded-sm border bg-[var(--bg-base)] px-3 py-1.5 font-mono text-[10px] uppercase tracking-wider text-[var(--color-loss)] transition-colors hover:bg-[rgba(229,72,77,0.08)] disabled:cursor-not-allowed disabled:opacity-50"
     >
       {closeMutation.isPending ? (
         <Loader2 size={11} strokeWidth={1.75} className="animate-spin" />

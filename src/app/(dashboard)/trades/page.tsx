@@ -301,7 +301,13 @@ function TradesPageContent() {
         <div>
           <div className="mm-kicker">TRADE LEDGER</div>
           <div
-            style={{ display: 'flex', alignItems: 'baseline', gap: 14, marginTop: 6, flexWrap: 'wrap' }}
+            style={{
+              display: 'flex',
+              alignItems: 'baseline',
+              gap: 14,
+              marginTop: 6,
+              flexWrap: 'wrap',
+            }}
           >
             <h1
               className="font-display"
@@ -316,10 +322,18 @@ function TradesPageContent() {
           </div>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
-          <button type="button" className="mm-btn" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+          <button
+            type="button"
+            className="mm-btn"
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
+          >
             <Download size={12} strokeWidth={1.75} /> CSV
           </button>
-          <button type="button" className="mm-btn" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+          <button
+            type="button"
+            className="mm-btn"
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
+          >
             <Receipt size={12} strokeWidth={1.75} /> FIFO · tax
           </button>
           <button
@@ -674,10 +688,7 @@ function JournalStatsStrip({ trades }: { trades: Trades[] }) {
   const cumUp = stats.cumulativePnl >= 0;
 
   return (
-    <section
-      className="grid gap-3.5"
-      style={{ gridTemplateColumns: '1.6fr 1fr 1fr 1fr 1fr' }}
-    >
+    <section className="grid gap-3.5" style={{ gridTemplateColumns: '1.6fr 1fr 1fr 1fr 1fr' }}>
       <div className="mm-card" style={{ padding: '18px 22px' }}>
         <div className="mm-kicker">CUMULATIVE P&amp;L</div>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginTop: 6 }}>
@@ -694,15 +705,21 @@ function JournalStatsStrip({ trades }: { trades: Trades[] }) {
           </span>
         </div>
         <div style={{ marginTop: 8 }}>
-          <StatsSparkline values={stats.cumSeries} color={cumUp ? 'var(--mm-up)' : 'var(--mm-dn)'} />
+          <StatsSparkline
+            values={stats.cumSeries}
+            color={cumUp ? 'var(--mm-up)' : 'var(--mm-dn)'}
+          />
         </div>
       </div>
 
-      <StatCard label="WIN RATE" value={stats.winRate != null ? `${(stats.winRate * 100).toFixed(1)}%` : '—'} />
+      <StatCard
+        label="WIN RATE"
+        value={stats.winRate != null ? `${(stats.winRate * 100).toFixed(1)}%` : '—'}
+      />
       <StatCard
         label="PROFIT FACTOR"
         value={stats.profitFactor != null ? stats.profitFactor.toFixed(2) : '—'}
-        color="var(--mm-mint)"
+        color="var(--brand-500)"
       />
       <StatCard
         label="AVG WINNER"

@@ -138,8 +138,8 @@ export function NewAccountDialog({ open, onOpenChange }: NewAccountDialogProps) 
             <DialogTitle className="font-display text-lg">Connect exchange account</DialogTitle>
           </div>
           <DialogDescription className="text-[var(--text-secondary)]">
-            Paste a Binance API key and secret to let Machiavelli Technology place and monitor
-            trades on your behalf.
+            Paste a Binance API key and secret to let Blackridge place and monitor trades on your
+            behalf.
           </DialogDescription>
         </DialogHeader>
 
