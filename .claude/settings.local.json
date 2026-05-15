@@ -146,7 +146,16 @@
       "Bash(powershell -NoProfile -Command \"\\(Get-Content src/lib/api/backtest.ts -Raw\\) -replace '\\\\bnumOr\\\\\\(', 'toNum\\(' -replace '\\\\bnum\\\\\\(', 'toNumOrNull\\(' | Set-Content -NoNewline -Encoding utf8 src/lib/api/backtest.ts\")",
       "Bash(echo \"exit=$?\")",
       "Bash(awk '/^\\\\.\\\\/src\\\\/lib\\\\/api\\\\/backtest\\\\.ts/,/^$/')",
-      "Bash(awk '/^\\\\.\\\\/src\\\\/lib\\\\/api\\\\/pnl\\\\.ts/,/^$/')"
+      "Bash(awk '/^\\\\.\\\\/src\\\\/lib\\\\/api\\\\/pnl\\\\.ts/,/^$/')",
+      "Bash(file src/lib/api/pnl.ts)",
+      "Bash(r)",
+      "Bash(powershell -NoProfile -Command \"if \\(\\(Get-Content src/lib/api/pnl.ts -Raw\\) -match \\\\\"`r`n\\\\\"\\) { 'CRLF' } else { 'LF' }\")",
+      "PowerShell($path = 'src/lib/api/backtest.ts'; $content = [System.IO.File]::ReadAllText\\($path\\); if \\($content[0] -eq [char]0xFEFF\\) { [System.IO.File]::WriteAllText\\($path, $content.Substring\\(1\\), \\(New-Object System.Text.UTF8Encoding $false\\)\\); 'BOM stripped' } else { 'No BOM' })",
+      "PowerShell($bytes = [System.IO.File]::ReadAllBytes\\('src/lib/api/backtest.ts'\\); \"First 3 bytes: $\\($bytes[0..2] -join ','\\)\"; if \\($bytes[0] -eq 0xEF -and $bytes[1] -eq 0xBB -and $bytes[2] -eq 0xBF\\) { $newBytes = $bytes[3..\\($bytes.Length-1\\)]; [System.IO.File]::WriteAllBytes\\('src/lib/api/backtest.ts', $newBytes\\); 'BOM removed' } else { 'No BOM bytes' })",
+      "Bash(awk '/^\\\\.\\\\/src\\\\/lib\\\\/backtest\\\\/buildBacktestPayload\\\\.ts/,/^$/')",
+      "Bash(tar xzf *)",
+      "Bash(gunzip -c webfetch-1778776616602-gtr3xl.bin)",
+      "Bash(awk '/^\\\\.\\\\/src\\\\/components\\\\/brand\\\\/BlackridgeMark\\\\.tsx/,/^$/')"
     ]
   }
 }

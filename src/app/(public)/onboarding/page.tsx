@@ -97,10 +97,9 @@ export default function OnboardingPage() {
           <BlackridgeMark size={36} tone="inverse" />
           <span
             className="font-display"
-            style={{ fontWeight: 800, fontSize: 20, letterSpacing: '-0.02em' }}
+            style={{ fontWeight: 800, fontSize: 20, letterSpacing: '-0.02em', color: '#fff' }}
           >
-            <span style={{ color: '#fff' }}>Black</span>
-            <span style={{ color: '#16B364' }}>ridge</span>
+            Blackridge
           </span>
         </Link>
 

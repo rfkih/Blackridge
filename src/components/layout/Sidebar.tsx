@@ -173,10 +173,10 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                   lineHeight: 1,
                   letterSpacing: '-0.02em',
                   fontWeight: 800,
+                  color: '#F2F5F8',
                 }}
               >
-                <span style={{ color: '#F2F5F8' }}>Black</span>
-                <span style={{ color: '#16B364' }}>ridge</span>
+                Blackridge
               </div>
             </div>
           </Link>

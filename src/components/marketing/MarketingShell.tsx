@@ -104,10 +104,9 @@ function MarketingFooter() {
               <BlackridgeMark size={28} />
               <div
                 className="font-display text-[17px] font-extrabold"
-                style={{ letterSpacing: '-0.02em' }}
+                style={{ letterSpacing: '-0.02em', color: 'var(--text-primary)' }}
               >
-                <span style={{ color: 'var(--text-primary)' }}>Black</span>
-                <span style={{ color: '#16B364' }}>ridge</span>
+                Blackridge
               </div>
             </div>
             <p style={{ maxWidth: 280, fontSize: 13, color: 'var(--text-muted)' }}>

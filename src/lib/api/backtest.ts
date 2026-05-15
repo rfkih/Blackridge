@@ -1,4 +1,4 @@
-﻿import type { BackendAccountStrategy, PageResponse, UUID } from '@/types/api';
+import type { BackendAccountStrategy, PageResponse, UUID } from '@/types/api';
 import type {
   BacktestEquityPoint,
   BacktestMetrics,

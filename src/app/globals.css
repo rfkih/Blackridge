@@ -171,6 +171,14 @@
   --sidebar-accent-foreground: 215 18% 96%;
   --sidebar-border: 217 12% 17%;
   --sidebar-ring: 152 78% 40%;
+
+  /* Brand mark (Ridge Stack) — dark theme uses a white tile with the
+     brand-color mountain. Light theme inverts to ink tile + white
+     mountain below. `--brand-mark-fg` tracks the active palette's
+     `--brand-500` so swapping palette (midnight / slate / oxford /
+     emerald) recolors the mountain to match. */
+  --brand-mark-tile: #ffffff;
+  --brand-mark-fg: var(--brand-500);
 }
 
 /* ── LIGHT THEME — Machiavelli daylight ──────────────────────────────
@@ -264,6 +272,12 @@
   --sidebar-accent-foreground: 215 18% 96%;
   --sidebar-border: 217 12% 17%;
   --sidebar-ring: 152 78% 40%;
+
+  /* Brand mark (Ridge Stack) — light theme uses the literal "Black" in
+     Blackridge: ink tile, white mountain. Pair with the dark-theme
+     overrides above. */
+  --brand-mark-tile: #0e1116;
+  --brand-mark-fg: #ffffff;
 }
 
 /* First-paint respect for OS preference when the user hasn't explicitly
