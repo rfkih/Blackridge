@@ -24,6 +24,13 @@ import { DeleteStrategyDialog } from '@/components/strategy/DeleteStrategyDialog
 import { CloneStrategyDialog } from '@/components/strategy/CloneStrategyDialog';
 import { RearmKillSwitchDialog } from '@/components/strategy/RearmKillSwitchDialog';
 import { Skeleton } from '@/components/ui/skeleton';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { PageHeader } from '@/components/shared/PageHeader';
 import {
@@ -659,26 +666,15 @@ function MaxTradesPanel({
   disabled: boolean;
   onChange: (value: number | null) => void;
 }) {
-  const initial = account.maxConcurrentTrades == null ? '' : String(account.maxConcurrentTrades);
-  const [draft, setDraft] = useState<string>(initial);
+  const value = account.maxConcurrentTrades == null ? 'none' : String(account.maxConcurrentTrades);
 
-  useEffect(() => {
-    setDraft(initial);
-  }, [initial]);
-
-  const commit = () => {
-    if (draft.trim() === '') {
-      // Empty input = clear the cap (null on the entity, sentinel 0 on wire).
+  const handleChange = (v: string) => {
+    if (v === 'none') {
       if (account.maxConcurrentTrades != null) onChange(null);
-      return;
+    } else {
+      const n = Number(v);
+      if (n !== account.maxConcurrentTrades) onChange(n);
     }
-    const n = Number(draft);
-    if (!Number.isFinite(n) || n < 1 || n > 20) {
-      setDraft(initial); // bounce back
-      return;
-    }
-    if (Math.trunc(n) === account.maxConcurrentTrades) return;
-    onChange(Math.trunc(n));
   };
 
   return (
@@ -721,28 +717,25 @@ function MaxTradesPanel({
           </div>
         </div>
       </div>
-      <div className="flex items-center gap-2">
-        <input
-          type="number"
-          min={1}
-          max={20}
-          step={1}
-          value={draft}
-          disabled={disabled}
-          placeholder="—"
-          onChange={(e) => setDraft(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
-          }}
-          onBlur={commit}
-          className="mm-input w-16 text-center font-mono tabular-nums disabled:cursor-not-allowed disabled:opacity-50"
-          style={{ padding: '8px 10px', fontSize: 13 }}
+      <Select value={value} onValueChange={handleChange} disabled={disabled}>
+        <SelectTrigger
+          className="w-28 font-mono tabular-nums"
+          style={{ fontSize: 13 }}
           aria-label={`Max concurrent trades for ${account.label}`}
-        />
-        <span className="font-mono text-[10px]" style={{ color: 'var(--mm-ink-3)' }}>
-          {account.maxConcurrentTrades == null ? 'no cap' : `1-20`}
-        </span>
-      </div>
+        >
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="none" className="font-mono">
+            No cap
+          </SelectItem>
+          {Array.from({ length: 5 }, (_, i) => i + 1).map((n) => (
+            <SelectItem key={n} value={String(n)} className="font-mono tabular-nums">
+              {n}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
     </div>
   );
 }
