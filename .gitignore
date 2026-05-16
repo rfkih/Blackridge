@@ -24,6 +24,10 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+/logs/
+
+# design handoff bundles — reference material, not source
+/.design-handoff/
 
 # local env files
 .env*.local
