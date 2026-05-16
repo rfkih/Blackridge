@@ -5,6 +5,7 @@ import type {
   UpdateStrategyDefinitionPayload,
 } from '@/types/strategyDefinition';
 import { apiClient } from './client';
+import { addOptionalParam, buildPageParams } from './queryParams';
 
 interface BackendStrategyDefinition {
   strategyDefinitionId: string | null;
@@ -69,12 +70,9 @@ export interface StrategyDefinitionsQuery {
 export async function searchStrategyDefinitions(
   q: StrategyDefinitionsQuery = {},
 ): Promise<Page<StrategyDefinition>> {
-  const params: Record<string, string | number> = {
-    page: q.page ?? 0,
-    size: q.size ?? 25,
-  };
-  if (q.query && q.query.trim()) params.query = q.query.trim();
-  if (q.sort && q.sort.trim()) params.sort = q.sort.trim();
+  const params: Record<string, string | number | boolean> = buildPageParams(q, 25);
+  addOptionalParam(params, 'query', q.query);
+  addOptionalParam(params, 'sort', q.sort);
   const { data } = await apiClient.get<Page<BackendStrategyDefinition>>(BASE, { params });
   return {
     content: (data.content ?? []).map(map),

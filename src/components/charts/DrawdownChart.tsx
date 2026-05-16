@@ -3,6 +3,7 @@
 import { useMemo } from 'react';
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { formatDate } from '@/lib/formatters';
+import type { ChartTooltipItem } from '@/lib/charts/rechartsTheme';
 
 export interface DrawdownPoint {
   ts: number;
@@ -15,11 +16,13 @@ interface DrawdownChartProps {
   height?: number;
 }
 
-interface TooltipItem {
-  payload: { ts: number; drawdownPct: number };
-}
-
-function DrawdownTooltip({ active, payload }: { active?: boolean; payload?: TooltipItem[] }) {
+function DrawdownTooltip({
+  active,
+  payload,
+}: {
+  active?: boolean;
+  payload?: ChartTooltipItem<DrawdownPoint>[];
+}) {
   if (!active || !payload?.length) return null;
   const d = payload[0]?.payload;
   if (!d) return null;

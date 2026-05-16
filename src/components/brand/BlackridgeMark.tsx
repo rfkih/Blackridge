@@ -15,8 +15,6 @@ import { cn } from '@/lib/utils';
  * without prop plumbing.
  */
 
-const BR_INK = '#0E1116';
-
 interface BlackridgeMarkProps {
   size?: number;
   className?: string;
@@ -95,5 +93,3 @@ export function BlackridgeWordmark({
     </span>
   );
 }
-
-export { BR_INK };

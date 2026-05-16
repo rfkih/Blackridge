@@ -1,5 +1,6 @@
 import { apiClient } from './client';
 import { toNum, toNumOrNull } from './coerce';
+import { addOptionalParam } from './queryParams';
 import type { PnlSummary } from '@/types/trading';
 import type { DailyPnl, StrategyPnl } from '@/types/pnl';
 
@@ -61,8 +62,8 @@ export async function getDailyPnl(
   to: string,
   strategyCode?: string,
 ): Promise<DailyPnl[]> {
-  const params: Record<string, unknown> = { from, to };
-  if (strategyCode) params.strategyCode = strategyCode;
+  const params: Record<string, string | number | boolean> = { from, to };
+  addOptionalParam(params, 'strategyCode', strategyCode);
   const { data } = await apiClient.get<BackendDailyPnl[]>('/api/v1/pnl/daily', { params });
   return (data ?? [])
     .map((d) => ({
@@ -75,9 +76,9 @@ export async function getDailyPnl(
 }
 
 export async function getPnlByStrategy(from?: string, to?: string): Promise<StrategyPnl[]> {
-  const params: Record<string, unknown> = {};
-  if (from) params.from = from;
-  if (to) params.to = to;
+  const params: Record<string, string | number | boolean> = {};
+  addOptionalParam(params, 'from', from);
+  addOptionalParam(params, 'to', to);
   const { data } = await apiClient.get<BackendStrategyPnl[]>('/api/v1/pnl/by-strategy', { params });
   return (data ?? []).map((s) => ({
     strategyCode: s.strategyCode ?? '',

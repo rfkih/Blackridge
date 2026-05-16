@@ -48,16 +48,16 @@
      anywhere a brand-tinted surface, edge, or text colour is needed.
      Profit shares `--brand-500`; the semantic tokens above remain the
      correct hook for P&L cells (so dark/light WCAG tuning still applies). */
-  --brand-50: #e8f8ee;
-  --brand-100: #c8eed5;
-  --brand-200: #97deb1;
-  --brand-300: #5fcb8b;
-  --brand-400: #2ebc72;
-  --brand-500: #16b364; /* primary */
-  --brand-600: #0e9f50; /* hover */
-  --brand-700: #0a7e3f; /* press */
-  --brand-800: #075e2f;
-  --brand-900: #054020;
+  --brand-50: #e8eaef;
+  --brand-100: #c5c9d4;
+  --brand-200: #8e94a5;
+  --brand-300: #5a6173;
+  --brand-400: #2d3443;
+  --brand-500: #121924; /* primary — ink-navy (replaces emerald) */
+  --brand-600: #0a0e16; /* hover */
+  --brand-700: #060911; /* press */
+  --brand-800: #03050a;
+  --brand-900: #010306;
 
   /* Ink scale — neutral text + borders for light surfaces. The auth cards
      sit on a cream stage and these are the values they expect; the dark
@@ -73,7 +73,7 @@
   --ink-50: #f2f5f7;
 
   /* Auth-stage focus halo — soft brand glow used by inputs on focus. */
-  --shadow-focus-ring: 0 0 0 3px rgba(22, 179, 100, 0.25);
+  --shadow-focus-ring: 0 0 0 3px rgba(18, 25, 36, 0.22);
 }
 
 /* ── DARK THEME (default) ────────────────────────────────────────────
@@ -121,43 +121,46 @@
   --flash-profit: rgba(22, 179, 100, 0.28);
   --flash-loss: rgba(229, 72, 77, 0.22);
 
-  /* Interactive — emerald. Brand-led product, not a generic blue CTA. */
-  --color-interactive: #16b364;
+  /* Interactive — literal ink-navy in both modes. Brand-led product, not a
+     generic blue CTA. Components that need a visible cue against the
+     #14181f dashboard surface should reach for white / translucent-white,
+     not the brand var — the brand is deliberately near-invisible on dark. */
+  --color-interactive: #121924;
   --color-bot: #a855f7;
 
   --accent-primary: var(--color-interactive);
-  --accent-subtle: rgba(22, 179, 100, 0.22);
-  --accent-glow: rgba(22, 179, 100, 0.14);
+  --accent-subtle: rgba(18, 25, 36, 0.18);
+  --accent-glow: rgba(18, 25, 36, 0.12);
 
   --shadow-panel: 0 0 0 1px var(--border-subtle), 0 1px 2px rgba(0, 0, 0, 0.4);
   --shadow-float: 0 0 0 1px var(--border-default), 0 8px 32px rgba(0, 0, 0, 0.48);
   --shadow-glow-profit: 0 0 18px rgba(22, 179, 100, 0.34);
   --shadow-glow-loss: 0 0 16px rgba(229, 72, 77, 0.22);
 
-  --ring: 152 78% 40%;
+  --ring: 218 33% 11%;
 
-  /* ── shadcn/ui HSL vars — emerald-led ─────────── */
+  /* ── shadcn/ui HSL vars — ink-navy literal, same across modes ────── */
   --background: 218 23% 7%;
   --foreground: 215 18% 96%;
   --card: 217 19% 11%;
   --card-foreground: 215 18% 96%;
   --popover: 217 19% 13%;
   --popover-foreground: 215 18% 96%;
-  --primary: 152 78% 40%;
+  --primary: 218 33% 11%;
   --primary-foreground: 0 0% 100%;
   --secondary: 217 14% 17%;
   --secondary-foreground: 215 18% 96%;
   --muted: 217 14% 15%;
   --muted-foreground: 217 11% 60%;
-  --accent: 152 78% 40%;
+  --accent: 218 33% 11%;
   --accent-foreground: 0 0% 100%;
   --destructive: 358 75% 59%;
   --destructive-foreground: 0 0% 100%;
   --border: 217 12% 20%;
   --input: 217 12% 20%;
 
-  /* Charts — Recharts/TV series colors paired to the Machiavelli palette. */
-  --chart-1: 152 78% 40%; /* profit · emerald */
+  /* Charts — Recharts/TV series colors. chart-1 is profit (semantic green). */
+  --chart-1: 152 78% 40%; /* profit · stays green */
   --chart-2: 358 75% 59%; /* loss · coral */
   --chart-3: 217 91% 60%; /* info · blue */
   --chart-4: 36 91% 55%; /* warning · amber */
@@ -165,12 +168,12 @@
 
   --sidebar: 218 23% 7%;
   --sidebar-foreground: 215 18% 96%;
-  --sidebar-primary: 152 78% 40%;
+  --sidebar-primary: 218 33% 11%;
   --sidebar-primary-foreground: 0 0% 100%;
   --sidebar-accent: 217 14% 15%;
   --sidebar-accent-foreground: 215 18% 96%;
   --sidebar-border: 217 12% 17%;
-  --sidebar-ring: 152 78% 40%;
+  --sidebar-ring: 218 33% 11%;
 
   /* Brand mark (Ridge Stack) — dark theme uses a white tile with the
      brand-color mountain. Light theme inverts to ink tile + white
@@ -225,19 +228,19 @@
   --flash-profit: rgba(22, 179, 100, 0.22);
   --flash-loss: rgba(229, 72, 77, 0.16);
 
-  --color-interactive: #16b364;
+  --color-interactive: #121924;
   --color-bot: #7c3aed;
 
   --accent-primary: var(--color-interactive);
-  --accent-subtle: rgba(22, 179, 100, 0.16);
-  --accent-glow: rgba(22, 179, 100, 0.1);
+  --accent-subtle: rgba(18, 25, 36, 0.14);
+  --accent-glow: rgba(18, 25, 36, 0.1);
 
   --shadow-panel: 0 1px 2px rgba(15, 23, 42, 0.04), 0 1px 1px rgba(15, 23, 42, 0.03);
   --shadow-float: 0 12px 32px rgba(15, 23, 42, 0.08), 0 2px 8px rgba(15, 23, 42, 0.04);
   --shadow-glow-profit: 0 8px 28px rgba(22, 179, 100, 0.18);
   --shadow-glow-loss: 0 8px 28px rgba(229, 72, 77, 0.18);
 
-  --ring: 152 78% 40%;
+  --ring: 218 35% 10%;
 
   --background: 0 0% 100%;
   --foreground: 220 16% 8%;
@@ -245,13 +248,13 @@
   --card-foreground: 220 16% 8%;
   --popover: 0 0% 100%;
   --popover-foreground: 220 16% 8%;
-  --primary: 152 78% 40%;
+  --primary: 218 35% 10%;
   --primary-foreground: 0 0% 100%;
-  --secondary: 150 18% 97%;
+  --secondary: 220 14% 96%;
   --secondary-foreground: 220 16% 8%;
-  --muted: 150 14% 95%;
+  --muted: 220 14% 95%;
   --muted-foreground: 220 9% 45%;
-  --accent: 152 78% 40%;
+  --accent: 218 35% 10%;
   --accent-foreground: 0 0% 100%;
   --destructive: 358 75% 59%;
   --destructive-foreground: 0 0% 100%;
@@ -266,12 +269,12 @@
 
   --sidebar: 220 16% 8%;
   --sidebar-foreground: 215 18% 96%;
-  --sidebar-primary: 152 78% 40%;
+  --sidebar-primary: 218 18% 56%;
   --sidebar-primary-foreground: 0 0% 100%;
   --sidebar-accent: 217 14% 15%;
   --sidebar-accent-foreground: 215 18% 96%;
   --sidebar-border: 217 12% 17%;
-  --sidebar-ring: 152 78% 40%;
+  --sidebar-ring: 218 18% 56%;
 
   /* Brand mark (Ridge Stack) — light theme uses the literal "Black" in
      Blackridge: ink tile, white mountain. Pair with the dark-theme
@@ -568,8 +571,8 @@ pre {
   --mm-warn: #f5a623;
   --mm-warn-soft: rgba(245, 166, 35, 0.16);
 
-  --mm-interactive: #16b364;
-  --mm-interactive-soft: rgba(22, 179, 100, 0.18);
+  --mm-interactive: #121924;
+  --mm-interactive-soft: rgba(18, 25, 36, 0.18);
   --mm-bot: #a855f7;
   --mm-bot-soft: rgba(168, 85, 247, 0.15);
 }
@@ -602,8 +605,8 @@ pre {
   --mm-warn: #d68910;
   --mm-warn-soft: rgba(245, 166, 35, 0.14);
 
-  --mm-interactive: #16b364;
-  --mm-interactive-soft: rgba(22, 179, 100, 0.12);
+  --mm-interactive: #121924;
+  --mm-interactive-soft: rgba(18, 25, 36, 0.1);
   --mm-bot: #7c3aed;
   --mm-bot-soft: rgba(124, 58, 237, 0.1);
 }
@@ -639,8 +642,8 @@ pre {
   --mm-warn: #f5a623;
   --mm-warn-soft: rgba(245, 166, 35, 0.16);
 
-  --mm-interactive: #16b364;
-  --mm-interactive-soft: rgba(22, 179, 100, 0.18);
+  --mm-interactive: #121924;
+  --mm-interactive-soft: rgba(18, 25, 36, 0.18);
   --mm-bot: #a855f7;
   --mm-bot-soft: rgba(168, 85, 247, 0.15);
 }
@@ -671,7 +674,9 @@ pre {
 .mm-card {
   background: var(--mm-surface);
   border: 1px solid var(--mm-hair);
-  border-radius: 24px;
+  /* 20px matches `.br-card`, `--radius-lg`, and the design pack's `.card`
+     so dashboard rows aren't a mix of 20px and 24px corners. */
+  border-radius: 20px;
 }
 .mm-card-2 {
   background: var(--mm-surface-2);
@@ -1072,28 +1077,32 @@ input[type='number'].no-native-spinners {
 /* Midnight — deep institutional navy (default). JPM / IBM / Goldman feel. */
 :root,
 [data-palette='midnight'] {
-  --brand-50: #eef2f8;
-  --brand-100: #d6deec;
-  --brand-200: #a8b7d2;
-  --brand-300: #7388b0;
-  --brand-400: #4a608e;
-  --brand-500: #1e3a6b;
-  --brand-600: #16294e;
-  --brand-700: #0f1f3c;
-  --brand-800: #0a152a;
-  --brand-900: #060d1a;
+  /* Brand refresh: ink-navy #121924. The `midnight` selector is kept so
+     stored prefs and `data-palette='midnight'` continue to resolve, but
+     the values are now the ink ramp. Profit/loss stay green/red — those
+     are semantic, not brand. */
+  --brand-50: #e8eaef;
+  --brand-100: #c5c9d4;
+  --brand-200: #8e94a5;
+  --brand-300: #5a6173;
+  --brand-400: #2d3443;
+  --brand-500: #121924;
+  --brand-600: #0a0e16;
+  --brand-700: #060911;
+  --brand-800: #03050a;
+  --brand-900: #010306;
 
-  --color-interactive: #1e3a6b;
-  --accent-primary: #1e3a6b;
-  --accent-subtle: rgba(30, 58, 107, 0.22);
-  --accent-glow: rgba(30, 58, 107, 0.16);
-  --shadow-focus-ring: 0 0 0 3px rgba(30, 58, 107, 0.22);
+  --color-interactive: #121924;
+  --accent-primary: #121924;
+  --accent-subtle: rgba(18, 25, 36, 0.18);
+  --accent-glow: rgba(18, 25, 36, 0.12);
+  --shadow-focus-ring: 0 0 0 3px rgba(18, 25, 36, 0.22);
 
-  /* shadcn HSL — primary/accent/ring driven by palette */
-  --primary: 218 56% 27%;
-  --accent: 218 56% 27%;
-  --ring: 218 56% 27%;
-  --chart-3: 218 56% 38%;
+  /* shadcn HSL — driven by palette */
+  --primary: 218 33% 11%;
+  --accent: 218 33% 11%;
+  --ring: 218 33% 11%;
+  --chart-3: 218 18% 56%;
 }
 
 /* Slate — charcoal + steel-blue. PE / consulting / Bloomberg-adjacent. */
@@ -1146,30 +1155,6 @@ input[type='number'].no-native-spinners {
   --chart-3: 177 49% 28%;
 }
 
-/* Emerald — original Machiavelli brand, kept available as an opt-in. */
-[data-palette='emerald'] {
-  --brand-50: #e8f8ee;
-  --brand-100: #c8eed5;
-  --brand-200: #97deb1;
-  --brand-300: #5fcb8b;
-  --brand-400: #2ebc72;
-  --brand-500: #16b364;
-  --brand-600: #0e9f50;
-  --brand-700: #0a7e3f;
-  --brand-800: #075e2f;
-  --brand-900: #054020;
-
-  --color-interactive: #16b364;
-  --accent-primary: #16b364;
-  --accent-subtle: rgba(22, 179, 100, 0.22);
-  --accent-glow: rgba(22, 179, 100, 0.14);
-  --shadow-focus-ring: 0 0 0 3px rgba(22, 179, 100, 0.25);
-
-  --primary: 152 78% 40%;
-  --accent: 152 78% 40%;
-  --ring: 152 78% 40%;
-  --chart-3: 217 91% 60%;
-}
 
 /* ─────────────────────────────────────────────────────────────────────
    Blackridge superbank — shared visual primitives used by the new
@@ -1349,28 +1334,28 @@ input[type='number'].no-native-spinners {
   margin-bottom: 6px;
 }
 
-/* Hero balance card (gradient brand → brand-900) */
+/* Hero balance card — flat ink plate in light, lifted navy plate in dark.
+   Design pack explicitly de-slopped the gradient + radial halo; we keep
+   that intent. Hairline border carries weight when the plate is dark
+   against the dark dashboard surface. */
 .br-balance {
-  background: linear-gradient(135deg, var(--brand-700) 0%, var(--brand-500) 100%);
+  background: var(--brand-500);
   color: #fff;
-  border-radius: var(--br-radius-xl);
+  border-radius: var(--br-radius-lg);
   padding: 28px 32px;
   position: relative;
   overflow: hidden;
-  box-shadow: var(--shadow-panel);
+  border: 1px solid var(--border-subtle);
 }
-.br-balance::after {
-  content: '';
-  position: absolute;
-  right: -80px;
-  top: -80px;
-  width: 280px;
-  height: 280px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.14) 0%, transparent 60%);
+[data-theme='dark'] .br-balance {
+  /* Literal #121924 disappears against #14181f. Step one shade lighter
+     than the page so the hero card still reads, keeping the ink-navy
+     family. */
+  background: #1f2733;
+  border-color: rgba(255, 255, 255, 0.08);
 }
 
-/* Promo tiles — Superbank-style colored squares */
+/* Promo tiles — flat solids (design pack pattern). No gradient, no blob. */
 .br-promo {
   border-radius: var(--br-radius-lg);
   padding: 20px 22px;
@@ -1391,23 +1376,13 @@ input[type='number'].no-native-spinners {
   box-shadow: var(--shadow-panel);
 }
 .br-promo-brand {
-  background: linear-gradient(135deg, var(--brand-600), var(--brand-800));
+  background: var(--brand-500);
 }
 .br-promo-dark {
-  background: linear-gradient(135deg, #1b232a, #0e1116);
+  background: #0e1116;
 }
 .br-promo-green {
-  background: linear-gradient(135deg, #0e9f50, #075e2f);
-}
-.br-promo-shape::before {
-  content: '';
-  position: absolute;
-  right: -40px;
-  bottom: -40px;
-  width: 160px;
-  height: 160px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.12);
+  background: #0a7e3f;
 }
 
 /* Live dot — green pulsing indicator */
@@ -1498,16 +1473,7 @@ input[type='number'].no-native-spinners {
   position: relative;
   overflow: hidden;
 }
-.br-trust-band::after {
-  content: '';
-  position: absolute;
-  right: -120px;
-  bottom: -120px;
-  width: 360px;
-  height: 360px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.05);
-}
+/* Trust band — solid dark plate, no decorative halo (de-slopped). */
 
 /* Card-stack hero (marketing) */
 .br-card-stack {
@@ -1522,39 +1488,22 @@ input[type='number'].no-native-spinners {
   padding: 16px;
   border: 1px solid var(--border-subtle);
 }
+/* Untilted card stack — Stripe-clone tilt is a known AI-slop tell. The
+   design pack's marketing pass explicitly untilted these. */
 .br-card-stack > .br-float.c1 {
   top: 0;
   right: 0;
   width: 320px;
-  transform: rotate(2deg);
 }
 .br-card-stack > .br-float.c2 {
   top: 130px;
   left: 0;
   width: 300px;
-  transform: rotate(-3deg);
 }
 .br-card-stack > .br-float.c3 {
   bottom: 0;
   right: 24px;
   width: 340px;
-  transform: rotate(1.5deg);
-}
-
-/* Hero ambient blob (marketing) — light-only; muted in dark mode */
-.br-hero-blob {
-  position: absolute;
-  width: 720px;
-  height: 720px;
-  right: -160px;
-  top: -120px;
-  border-radius: 50%;
-  background: var(--brand-50);
-  z-index: 0;
-}
-[data-theme='dark'] .br-hero-blob {
-  background: var(--accent-glow);
-  opacity: 0.4;
 }
 
 /* ─────────────────────────────────────────────────────────────────────
@@ -1576,27 +1525,13 @@ input[type='number'].no-native-spinners {
    mode. */
 [data-theme='dark'][data-palette='midnight'],
 [data-palette='midnight'] [data-theme='dark'] {
-  --brand-50: #1e2840;
-  --brand-100: #2a3856;
-  --brand-200: #3b4d74;
-  --brand-300: #5872a0;
-  --brand-400: #7e97c5;
-  --brand-500: #6f8fd8;
-  --brand-600: #5879c8;
-  --brand-700: #4664b5;
-  --brand-800: #34528d;
-  --brand-900: #1f3261;
-
-  --color-interactive: #6f8fd8;
-  --accent-primary: #6f8fd8;
-  --accent-subtle: rgba(111, 143, 216, 0.22);
-  --accent-glow: rgba(111, 143, 216, 0.18);
-  --shadow-focus-ring: 0 0 0 3px rgba(111, 143, 216, 0.28);
-
-  --primary: 220 56% 64%;
-  --accent: 220 56% 64%;
-  --ring: 220 56% 64%;
-  --chart-3: 220 56% 64%;
+  /* Literal-brand alignment: brand-500+ stay at #121924 across modes. Only
+     the chip-tint stops darken in dark mode so brand-50/100 backgrounds
+     don't blind on the dark dashboard. Components that need a visible
+     active cue on dark surfaces should pick a non-brand token (white text,
+     translucent white tint) rather than var(--brand-500). */
+  --brand-50: #1a2030;
+  --brand-100: #232a3a;
 }
 
 [data-theme='dark'][data-palette='slate'],
@@ -1649,34 +1584,20 @@ input[type='number'].no-native-spinners {
   --chart-3: 177 24% 59%;
 }
 
-[data-theme='dark'][data-palette='emerald'],
-[data-palette='emerald'] [data-theme='dark'] {
-  /* Emerald already pops on dark — only nudge brand-50/100 darker so chips don't blind. */
-  --brand-50: #0f2e1d;
-  --brand-100: #134029;
-  --brand-200: #1a5535;
-  --brand-300: #2ebc72;
-  --brand-400: #5fcb8b;
-  --brand-500: #16b364;
-  --brand-600: #2ebc72;
-  --brand-700: #5fcb8b;
-
-  --color-interactive: #16b364;
-  --accent-primary: #16b364;
-  --accent-subtle: rgba(22, 179, 100, 0.22);
-  --accent-glow: rgba(22, 179, 100, 0.16);
-}
-
 /* ─────────────────────────────────────────────────────────────────────
    Dark-mode component tweaks — promo tiles, hero blob, ticker tiles.
    Each is gated by [data-theme='dark'] so light-mode visuals untouched.
    ───────────────────────────────────────────────────────────────────── */
 
 [data-theme='dark'] .br-promo-brand {
-  background: linear-gradient(135deg, var(--brand-300), var(--brand-700));
+  /* Literal brand-500 (#121924) vanishes against the #14181f page — same
+     lift trick as .br-balance but a step lighter so the tile still feels
+     primary in the promo column. */
+  background: #2a3344;
 }
 [data-theme='dark'] .br-promo-dark {
-  background: linear-gradient(135deg, #1f242c, #0a0d12);
+  /* One step lighter than #0e1116 so the tile reads against the page. */
+  background: #1f242c;
 }
 
 /* Ticker tiles — translucent colored backgrounds with light text in dark
@@ -1728,4 +1649,954 @@ input[type='number'].no-native-spinners {
 [data-theme='dark'] .br-ticker.dot {
   background: rgba(176, 50, 122, 0.22);
   color: #d789b0;
+}
+
+/* ─────────────────────────────────────────────────────────────────────
+   Product marketing page (.qp-*) — quant-firm credibility direction.
+   Ported from the design pack's product.css. Class names are namespaced
+   so they only affect the /product route. Surface and accent tokens map
+   to the active palette + light/dark theme; the "brand" risk band stays
+   dark in both modes intentionally.
+   ───────────────────────────────────────────────────────────────────── */
+.qp-page {
+  /* Pin the marketing page's surfaces to the design-pack values rather than
+     chaining through `--bg-base`/`--bg-surface` — the project's light theme
+     has those two swapped relative to the design pack (page tinted, cards
+     white), which flips `.qp-section` vs `.qp-section.paper` and breaks the
+     intended rhythm. Brand/profit/loss still chain to the palette so theme +
+     palette switches keep working. */
+  --qp-paper: #ffffff;
+  --qp-surface: #f7faf8;
+  --qp-elevated: #ffffff;
+  --qp-hair: #f2f5f7;
+  --qp-line: #e5e8ec;
+  --qp-edge: #0e1116;
+  --qp-ink: #0e1116;
+  --qp-ink-soft: #384151;
+  --qp-ink-muted: #6b7280;
+  --qp-ink-faint: #a8b0bc;
+  --qp-brand: var(--brand-500);
+  --qp-brand-deep: var(--brand-700);
+  --qp-brand-soft: var(--brand-50);
+  --qp-loss: var(--color-loss);
+  --qp-loss-soft: var(--tint-loss);
+  --qp-chart-area: rgba(14, 17, 22, 0.05);
+  --qp-chart-axis: #6b7280;
+
+  background: var(--qp-paper);
+  color: var(--qp-ink);
+  font-family: var(--font-display);
+}
+
+[data-theme='dark'] .qp-page {
+  --qp-paper: #0e1116;
+  --qp-surface: #14181f;
+  --qp-elevated: #171b22;
+  --qp-hair: #1e232c;
+  --qp-line: #2a2f3a;
+  --qp-edge: #2a2f3a;
+  --qp-ink: #f2f5f8;
+  --qp-ink-soft: #c5ccd5;
+  --qp-ink-muted: #8c95a2;
+  --qp-ink-faint: #5a6371;
+  --qp-chart-area: rgba(255, 255, 255, 0.06);
+  --qp-chart-axis: #8c95a2;
+}
+
+.qp-wrap {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 32px;
+}
+
+/* ── Hero ──────────────────────────────────────────────────────────── */
+.qp-hero {
+  padding: 72px 0 80px;
+}
+.qp-hero-grid {
+  display: grid;
+  grid-template-columns: 1.05fr 0.95fr;
+  gap: 72px;
+  align-items: start;
+}
+.qp-hero-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--qp-ink-muted);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 36px;
+  font-weight: 600;
+}
+.qp-hero-eyebrow .dot {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--qp-ink-faint);
+}
+.qp-hero h1 {
+  font-family: var(--font-display);
+  font-size: 60px;
+  line-height: 1.02;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  margin: 0 0 28px;
+  max-width: 620px;
+  text-wrap: balance;
+  color: var(--qp-ink);
+}
+.qp-hero .lede {
+  font-size: 18px;
+  line-height: 1.55;
+  color: var(--qp-ink-soft);
+  max-width: 520px;
+  margin: 0 0 36px;
+  text-wrap: pretty;
+}
+.qp-hero-cta {
+  display: flex;
+  gap: 24px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+/* ── Buttons (page-local; complements .br-btn elsewhere) ───────────── */
+.qp-btn-primary {
+  background: var(--qp-ink);
+  color: var(--qp-paper);
+  border: 0;
+  padding: 11px 18px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 4px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  letter-spacing: 0.01em;
+  text-decoration: none;
+  transition: opacity var(--dur-fast) var(--ease-out-quart);
+}
+.qp-btn-primary:hover {
+  opacity: 0.88;
+}
+.qp-btn-primary.lg {
+  padding: 14px 22px;
+}
+.qp-btn-textlink {
+  background: transparent;
+  border: 0;
+  padding: 0 0 2px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--qp-ink-soft);
+  cursor: pointer;
+  border-bottom: 1px solid var(--qp-ink-faint);
+  white-space: nowrap;
+  text-decoration: none;
+  transition: color var(--dur-fast) var(--ease-out-quart), border-color var(--dur-fast) var(--ease-out-quart);
+}
+.qp-btn-textlink:hover {
+  color: var(--qp-ink);
+  border-color: var(--qp-ink);
+}
+
+/* ── Hero fact-sheet card ──────────────────────────────────────────── */
+.qp-fact-card {
+  background: var(--qp-elevated);
+  border: 1px solid var(--qp-edge);
+  border-radius: 6px;
+  overflow: hidden;
+}
+.qp-fact-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 22px 26px 14px;
+  border-bottom: 1px solid var(--qp-hair);
+}
+.qp-fact-lbl {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--qp-ink-muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+.qp-fact-val {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 38px;
+  letter-spacing: -0.025em;
+  color: var(--qp-ink);
+  line-height: 1;
+}
+.qp-fact-suf {
+  font-size: 22px;
+  color: var(--qp-ink-muted);
+  font-weight: 500;
+  margin-left: 2px;
+}
+.qp-fact-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  text-align: right;
+}
+.qp-fact-meta > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.qp-fact-meta span {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--qp-ink-muted);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+.qp-fact-meta strong {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--qp-ink);
+  font-weight: 600;
+}
+.qp-fact-svg {
+  display: block;
+  padding: 12px 12px 4px;
+  background: var(--qp-elevated);
+}
+.qp-fact-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  border-top: 1px solid var(--qp-hair);
+}
+.qp-fact-grid > div {
+  padding: 16px 18px;
+  border-right: 1px solid var(--qp-hair);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.qp-fact-grid > div:last-child {
+  border-right: 0;
+}
+.qp-fact-grid span {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--qp-ink-muted);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+.qp-fact-grid strong {
+  font-family: var(--font-display);
+  font-size: 19px;
+  letter-spacing: -0.015em;
+  color: var(--qp-ink);
+  font-weight: 700;
+}
+.qp-fact-grid strong.dn {
+  color: var(--qp-loss);
+}
+.qp-fact-foot {
+  padding: 12px 26px 16px;
+  border-top: 1px solid var(--qp-hair);
+  font-size: 11px;
+  color: var(--qp-ink-muted);
+  line-height: 1.5;
+  font-family: var(--font-body);
+}
+.qp-chart-area {
+  fill: var(--qp-chart-area);
+}
+.qp-chart-line {
+  fill: none;
+  stroke: var(--qp-ink);
+  stroke-width: 1.4;
+  stroke-linejoin: round;
+}
+.qp-chart-grid {
+  stroke: var(--qp-hair);
+  stroke-width: 0.5;
+}
+.qp-chart-axis {
+  fill: var(--qp-chart-axis);
+  font-family: var(--font-mono);
+  font-size: 9px;
+}
+
+/* ── Venues band ───────────────────────────────────────────────────── */
+.qp-venues {
+  background: var(--qp-elevated);
+  border-top: 1px solid var(--qp-edge);
+  border-bottom: 1px solid var(--qp-line);
+  padding: 24px 0;
+}
+.qp-venues-inner {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  flex-wrap: wrap;
+}
+.qp-venues-lbl {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--qp-ink-muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+.qp-venues-list {
+  display: flex;
+  gap: 32px;
+  flex-wrap: wrap;
+  align-items: center;
+  flex: 1;
+}
+.qp-venues-list span {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--qp-ink);
+  letter-spacing: -0.01em;
+}
+.qp-venues-aux {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--qp-ink-muted);
+  letter-spacing: 0.04em;
+}
+
+/* ── Section scaffolding ───────────────────────────────────────────── */
+.qp-section {
+  padding: 96px 0 88px;
+  background: var(--qp-paper);
+}
+.qp-section.paper {
+  background: var(--qp-surface);
+}
+.qp-section.brand {
+  background: #0e1116;
+  color: #fff;
+}
+.qp-section.brand .qp-section-eye {
+  /* brand-500 is now near-black ink — use the lighter brand-300 so the
+     eyebrow remains readable on the always-dark Risk band in both modes. */
+  color: var(--brand-300);
+}
+.qp-section.brand h2 {
+  color: #fff;
+}
+.qp-section.brand .qp-section-lede {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.qp-section-head {
+  display: grid;
+  grid-template-columns: 1.05fr 0.95fr;
+  gap: 56px;
+  align-items: end;
+  margin-bottom: 48px;
+  border-top: 1px solid var(--qp-edge);
+  padding-top: 24px;
+}
+.qp-section.brand .qp-section-head {
+  border-color: rgba(255, 255, 255, 0.2);
+}
+.qp-section-eye {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--qp-ink-muted);
+  margin-bottom: 14px;
+}
+.qp-section-head h2 {
+  font-family: var(--font-display);
+  font-size: 44px;
+  font-weight: 700;
+  line-height: 1.06;
+  letter-spacing: -0.028em;
+  margin: 0;
+  color: var(--qp-ink);
+  text-wrap: balance;
+  max-width: 540px;
+}
+.qp-section-lede {
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--qp-ink-soft);
+  max-width: 480px;
+  margin: 0;
+}
+
+/* ── Monthly returns matrix ────────────────────────────────────────── */
+.qp-monthly {
+  background: var(--qp-elevated);
+  border: 1px solid var(--qp-edge);
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+}
+.qp-monthly-head,
+.qp-monthly-row {
+  display: grid;
+  grid-template-columns: 56px repeat(12, 1fr) 76px;
+  align-items: stretch;
+}
+.qp-monthly-head {
+  background: var(--qp-ink);
+  color: var(--qp-paper);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.qp-monthly-head > span {
+  padding: 10px 8px;
+  text-align: center;
+  border-right: 1px solid rgba(255, 255, 255, 0.12);
+}
+[data-theme='dark'] .qp-monthly-head > span {
+  border-right-color: rgba(0, 0, 0, 0.18);
+}
+.qp-monthly-head > span:last-child {
+  border-right: 0;
+}
+.qp-monthly-head > span:first-child {
+  text-align: left;
+  padding-left: 16px;
+}
+.qp-monthly-head .r {
+  text-align: right;
+  padding-right: 16px;
+}
+.qp-monthly-row {
+  border-top: 1px solid var(--qp-hair);
+}
+.qp-monthly-row .yr {
+  padding: 14px 16px;
+  font-weight: 700;
+  color: var(--qp-ink);
+  font-family: var(--font-display);
+  font-size: 13.5px;
+  border-right: 1px solid var(--qp-hair);
+  display: flex;
+  align-items: center;
+}
+.qp-monthly-row .cell {
+  padding: 14px 8px;
+  text-align: center;
+  border-right: 1px solid var(--qp-hair);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-variant-numeric: tabular-nums;
+  color: var(--qp-ink);
+}
+.qp-monthly-row .cell:last-child {
+  border-right: 0;
+}
+.qp-monthly-row .cell.empty {
+  color: var(--qp-ink-faint);
+}
+.qp-monthly-row .cell.up {
+  color: var(--color-profit);
+}
+.qp-monthly-row .cell.dn {
+  color: var(--qp-loss);
+}
+.qp-monthly-row .cell.ytd {
+  background: var(--qp-surface);
+  font-weight: 700;
+  font-size: 13px;
+}
+[data-theme='dark'] .qp-monthly-row .cell.ytd {
+  background: rgba(255, 255, 255, 0.04);
+}
+.qp-monthly-row .cell.r {
+  justify-content: flex-end;
+  padding-right: 16px;
+}
+.qp-monthly-foot {
+  margin-top: 14px;
+  font-size: 12px;
+  color: var(--qp-ink-muted);
+  font-family: var(--font-body);
+}
+
+/* ── Discipline (3 cols) ───────────────────────────────────────────── */
+.qp-disc-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0;
+  border-top: 1px solid var(--qp-edge);
+  border-bottom: 1px solid var(--qp-edge);
+}
+.qp-disc-grid > article {
+  padding: 40px 36px 32px;
+  border-right: 1px solid var(--qp-hair);
+  display: flex;
+  flex-direction: column;
+}
+.qp-disc-grid > article:last-child {
+  border-right: 0;
+}
+.qp-disc-num {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 20px;
+  color: var(--qp-ink-muted);
+  font-weight: 400;
+  margin-bottom: 24px;
+}
+.qp-disc-grid h3 {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.018em;
+  margin: 0 0 14px;
+  color: var(--qp-ink);
+}
+.qp-disc-grid p {
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: var(--qp-ink-soft);
+  margin: 0 0 28px;
+}
+.qp-disc-stat {
+  margin-top: auto;
+  padding-top: 18px;
+  border-top: 1px solid var(--qp-hair);
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+}
+.qp-disc-stat span {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--qp-ink-muted);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+.qp-disc-stat strong {
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  color: var(--qp-ink);
+}
+
+/* ── Strategy spotlight ────────────────────────────────────────────── */
+.qp-strat-spot {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+.qp-strat-card {
+  background: var(--qp-elevated);
+  border: 1px solid var(--qp-line);
+  border-radius: 6px;
+  padding: 24px 26px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.qp-strat-card .top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+.qp-strat-card .top > div:first-child {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+.qp-strat-card .code {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--qp-ink-muted);
+}
+.qp-strat-card h3 {
+  font-family: var(--font-display);
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  margin: 0;
+  text-wrap: balance;
+  color: var(--qp-ink);
+}
+.qp-strat-card .meta {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  text-align: right;
+  flex-shrink: 0;
+}
+.qp-strat-card .meta > div {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.qp-strat-card .meta span {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  color: var(--qp-ink-muted);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+.qp-strat-card .meta strong {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--qp-ink);
+  font-weight: 600;
+}
+.qp-strat-card .desc {
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--qp-ink-soft);
+  margin: 0;
+}
+.qp-strat-card .chart {
+  margin: 0;
+  padding: 12px 0;
+  border-top: 1px solid var(--qp-hair);
+  border-bottom: 1px solid var(--qp-hair);
+  color: var(--qp-ink);
+}
+.qp-strat-card .stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  gap: 0;
+}
+.qp-strat-card .stats > div {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.qp-strat-card .stats > div + div {
+  padding-left: 12px;
+  border-left: 1px solid var(--qp-hair);
+}
+.qp-strat-card .stats span {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  color: var(--qp-ink-muted);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+.qp-strat-card .stats strong {
+  font-family: var(--font-display);
+  font-size: 16px;
+  letter-spacing: -0.015em;
+  color: var(--qp-ink);
+  font-weight: 700;
+}
+.qp-strat-card .stats strong.up {
+  color: var(--color-profit);
+}
+.qp-strat-card .stats strong.dn {
+  color: var(--qp-loss);
+}
+.qp-strat-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 24px;
+  padding-top: 18px;
+  border-top: 1px solid var(--qp-hair);
+  font-size: 13px;
+  color: var(--qp-ink-muted);
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.qp-strat-foot a {
+  color: var(--qp-ink);
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+}
+.qp-strat-foot a:hover {
+  text-decoration: underline;
+}
+
+/* ── Letter from the desk ──────────────────────────────────────────── */
+.qp-letter-section {
+  padding: 88px 0 80px;
+}
+.qp-letter-grid {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 56px;
+  align-items: start;
+  border-top: 1px solid var(--qp-edge);
+  padding-top: 32px;
+}
+.qp-letter-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.qp-letter-author {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+.qp-letter-author .avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--qp-ink);
+  color: var(--qp-paper);
+  display: grid;
+  place-items: center;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 0.04em;
+}
+.qp-letter-author strong {
+  display: block;
+  font-size: 14px;
+  color: var(--qp-ink);
+}
+.qp-letter-author span {
+  display: block;
+  font-size: 12px;
+  color: var(--qp-ink-muted);
+  margin-top: 2px;
+}
+.qp-letter-date {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--qp-ink-muted);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+.qp-letter-quote {
+  margin: 0;
+}
+.qp-letter-quote p {
+  font-family: var(--font-display);
+  font-size: 28px;
+  line-height: 1.35;
+  font-weight: 500;
+  letter-spacing: -0.018em;
+  color: var(--qp-ink);
+  margin: 0 0 24px;
+  text-wrap: balance;
+}
+.qp-letter-link {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--qp-ink);
+  cursor: pointer;
+  border-bottom: 1px solid var(--qp-ink-faint);
+  padding-bottom: 2px;
+  text-decoration: none;
+}
+.qp-letter-link:hover {
+  border-color: var(--qp-ink);
+}
+
+/* ── Risk band (always dark) ───────────────────────────────────────── */
+.qp-risk-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+.qp-risk-grid > article {
+  padding: 36px 32px 32px;
+  border-right: 1px solid rgba(255, 255, 255, 0.12);
+}
+.qp-risk-grid > article:last-child {
+  border-right: 0;
+}
+.qp-risk-grid .num {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  /* See `.qp-section.brand .qp-section-eye` — brand-300 stays readable on the
+     fixed-dark Risk band whether the rest of the app is in light or dark. */
+  color: var(--brand-300);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 18px;
+}
+.qp-risk-grid h3 {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.018em;
+  margin: 0 0 12px;
+  color: #fff;
+}
+.qp-risk-grid p {
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.72);
+  margin: 0;
+}
+
+/* ── Contact block ─────────────────────────────────────────────────── */
+.qp-contact-grid {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  gap: 80px;
+  align-items: end;
+  border-top: 1px solid var(--qp-edge);
+  padding-top: 32px;
+}
+.qp-contact-copy h2 {
+  font-family: var(--font-display);
+  font-size: 44px;
+  font-weight: 700;
+  line-height: 1.06;
+  letter-spacing: -0.028em;
+  margin: 14px 0 18px;
+  color: var(--qp-ink);
+  text-wrap: balance;
+  max-width: 620px;
+}
+.qp-contact-copy p {
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--qp-ink-soft);
+  margin: 0 0 32px;
+  max-width: 540px;
+}
+.qp-contact-meta {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 32px;
+  padding-top: 24px;
+  border-top: 1px solid var(--qp-hair);
+}
+.qp-contact-meta > div {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.qp-contact-meta span {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--qp-ink-muted);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+.qp-contact-meta strong {
+  font-size: 14px;
+  color: var(--qp-ink);
+  font-weight: 600;
+  line-height: 1.4;
+}
+.qp-contact-action {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  align-items: flex-start;
+}
+.qp-contact-action .qp-btn-primary {
+  width: 100%;
+  justify-content: center;
+}
+.qp-contact-note {
+  font-size: 11.5px;
+  color: var(--qp-ink-muted);
+  line-height: 1.55;
+}
+
+/* ── Responsive collapse — tablet/phone ────────────────────────────── */
+@media (max-width: 1024px) {
+  .qp-hero-grid,
+  .qp-section-head,
+  .qp-letter-grid,
+  .qp-contact-grid {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+  .qp-hero h1 {
+    font-size: 44px;
+  }
+  .qp-strat-spot,
+  .qp-disc-grid {
+    grid-template-columns: 1fr;
+  }
+  .qp-disc-grid > article {
+    border-right: 0;
+    border-bottom: 1px solid var(--qp-hair);
+  }
+  .qp-disc-grid > article:last-child {
+    border-bottom: 0;
+  }
+  .qp-risk-grid {
+    grid-template-columns: 1fr;
+  }
+  .qp-risk-grid > article {
+    border-right: 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  }
+  .qp-risk-grid > article:last-child {
+    border-bottom: 0;
+  }
+  .qp-monthly {
+    overflow-x: auto;
+  }
+  .qp-monthly-head,
+  .qp-monthly-row {
+    min-width: 880px;
+  }
+}
+@media (max-width: 640px) {
+  .qp-wrap {
+    padding: 0 20px;
+  }
+  .qp-hero {
+    padding: 48px 0 56px;
+  }
+  .qp-hero h1 {
+    font-size: 34px;
+  }
+  .qp-section {
+    padding: 64px 0;
+  }
+  .qp-section-head h2,
+  .qp-contact-copy h2 {
+    font-size: 32px;
+  }
+  .qp-fact-val {
+    font-size: 30px;
+  }
+  .qp-fact-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .qp-fact-grid > div {
+    border-bottom: 1px solid var(--qp-hair);
+  }
+  .qp-fact-grid > div:nth-child(2n) {
+    border-right: 0;
+  }
+  .qp-contact-meta {
+    grid-template-columns: 1fr;
+  }
 }

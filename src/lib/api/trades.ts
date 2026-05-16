@@ -1,6 +1,7 @@
 import { apiClient } from './client';
 import { toNum, toNumOrNull } from './coerce';
 import { extractList } from './pageUtils';
+import { addOptionalParam } from './queryParams';
 import type {
   LivePosition,
   PositionExitReason,
@@ -153,8 +154,8 @@ function tradeToLivePosition(t: Trades): LivePosition {
 }
 
 export async function getOpenTrades(accountId?: string): Promise<LivePosition[]> {
-  const params: Record<string, unknown> = { status: 'OPEN' };
-  if (accountId) params.accountId = accountId;
+  const params: Record<string, string | number | boolean> = { status: 'OPEN' };
+  addOptionalParam(params, 'accountId', accountId);
   const { data } = await apiClient.get<BackendTrade[] | PageResponse<BackendTrade>>(
     '/api/v1/trades',
     { params },
@@ -188,13 +189,16 @@ export interface TradesPage {
  * consistent `{ content, page, size, total }` shape.
  */
 export async function getTradesPage(filters: TradesPageFilters = {}): Promise<TradesPage> {
-  const params: Record<string, unknown> = {};
+  // Pagination is only sent when explicitly set — omitting it tells the
+  // backend to return a bare array, which the synthesised return below
+  // restores into a page envelope for the caller.
+  const params: Record<string, string | number | boolean> = {};
   if (filters.status && filters.status !== 'ALL') params.status = filters.status;
-  if (filters.strategyCode) params.strategyCode = filters.strategyCode;
-  if (filters.symbol) params.symbol = filters.symbol.toUpperCase();
-  if (filters.from) params.from = filters.from;
-  if (filters.to) params.to = filters.to;
-  if (filters.accountId) params.accountId = filters.accountId;
+  addOptionalParam(params, 'strategyCode', filters.strategyCode);
+  addOptionalParam(params, 'symbol', filters.symbol?.toUpperCase());
+  addOptionalParam(params, 'from', filters.from);
+  addOptionalParam(params, 'to', filters.to);
+  addOptionalParam(params, 'accountId', filters.accountId);
   if (filters.page != null) params.page = filters.page;
   if (filters.size != null) params.size = filters.size;
 

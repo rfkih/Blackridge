@@ -34,12 +34,14 @@ export const TOOLTIP_CONTENT_STYLE = {
   padding: '8px 12px',
 } as const;
 
-export const TOOLTIP_ITEM_STYLE = {
-  color: CHART_COLORS.textPrimary,
-};
-
-export const TOOLTIP_LABEL_STYLE = {
-  color: CHART_COLORS.neutral,
-  fontSize: 10,
-  marginBottom: 4,
-};
+/**
+ * Custom-tooltip payload entry as Recharts hands it to a `content={...}`
+ * renderer. Recharts wraps each series' datum in `{ payload, name, color, … }`;
+ * we only type the fields our tooltips actually read. Multi-series tooltips
+ * (e.g. MonteCarloChart) use `name` and `color` to render the swatch row.
+ */
+export interface ChartTooltipItem<T> {
+  payload: T;
+  name?: string;
+  color?: string;
+}

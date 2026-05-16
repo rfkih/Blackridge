@@ -1445,7 +1445,7 @@ function formatJoinDate(iso: string): string {
 // persist to localStorage via their respective providers; <html> attributes
 // are updated optimistically so the swap reads instantly.
 
-const PALETTE_ORDER: Palette[] = ['midnight', 'slate', 'oxford', 'emerald'];
+const PALETTE_ORDER: Palette[] = ['midnight', 'slate', 'oxford'];
 const NUMBER_FORMATS = [
   { v: 'en-US', l: '1,234.56' },
   { v: 'de-DE', l: '1.234,56' },

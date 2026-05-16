@@ -15,7 +15,7 @@ const STATUS_CONFIG: Record<
     label: 'LIVE',
     dot: 'var(--color-profit)',
     text: 'var(--color-profit)',
-    bg: 'rgba(22,179,100,0.12)',
+    bg: 'var(--tint-profit)',
   },
   // V66 — PAPER uses the warning/amber tone so the operator can never
   // mistake it for LIVE at a glance. The label also explicitly says
@@ -25,19 +25,19 @@ const STATUS_CONFIG: Record<
     label: 'PAPER',
     dot: 'var(--color-warning)',
     text: 'var(--color-warning)',
-    bg: 'rgba(245,166,35,0.12)',
+    bg: 'var(--tint-warning)',
   },
   PAUSED: {
     label: 'PAUSED',
     dot: 'var(--color-warning)',
     text: 'var(--color-warning)',
-    bg: 'rgba(245,166,35,0.12)',
+    bg: 'var(--tint-warning)',
   },
   STOPPED: {
     label: 'STOPPED',
     dot: 'var(--color-loss)',
     text: 'var(--color-loss)',
-    bg: 'rgba(229,72,77,0.12)',
+    bg: 'var(--tint-loss)',
   },
 };
 

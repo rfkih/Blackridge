@@ -12,7 +12,12 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
-import { AXIS_TICK, CHART_COLORS, TOOLTIP_CONTENT_STYLE } from '@/lib/charts/rechartsTheme';
+import {
+  AXIS_TICK,
+  CHART_COLORS,
+  TOOLTIP_CONTENT_STYLE,
+  type ChartTooltipItem,
+} from '@/lib/charts/rechartsTheme';
 import { useCurrencyFormatter } from '@/hooks/useCurrency';
 import type { DailyPnl } from '@/types/pnl';
 
@@ -21,15 +26,16 @@ interface PnlBarChartProps {
   height?: number;
 }
 
-interface TooltipItem {
-  payload: DailyPnl;
-  value: number;
-}
-
 export function PnlBarChart({ data, height = 260 }: PnlBarChartProps) {
   const memoData = useMemo(() => data, [data]);
   const formatCurrency = useCurrencyFormatter();
-  const PnlBarTooltip = ({ active, payload }: { active?: boolean; payload?: TooltipItem[] }) => {
+  const PnlBarTooltip = ({
+    active,
+    payload,
+  }: {
+    active?: boolean;
+    payload?: ChartTooltipItem<DailyPnl>[];
+  }) => {
     if (!active || !payload?.length) return null;
     const d = payload[0]?.payload;
     if (!d) return null;

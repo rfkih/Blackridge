@@ -2,9 +2,9 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 
-export type Palette = 'midnight' | 'slate' | 'oxford' | 'emerald';
+export type Palette = 'midnight' | 'slate' | 'oxford';
 
-const PALETTES: Palette[] = ['midnight', 'slate', 'oxford', 'emerald'];
+const PALETTES: Palette[] = ['midnight', 'slate', 'oxford'];
 const STORAGE_KEY = 'br.palette';
 
 export const PALETTE_META: Record<
@@ -13,9 +13,9 @@ export const PALETTE_META: Record<
 > = {
   midnight: {
     label: 'Midnight',
-    desc: 'Deep institutional navy. The default.',
-    swatch: '#1E3A6B',
-    accent: '#16294E',
+    desc: 'Ink-navy brand. The default.',
+    swatch: '#121924',
+    accent: '#0A0E16',
   },
   slate: {
     label: 'Slate',
@@ -28,12 +28,6 @@ export const PALETTE_META: Record<
     desc: 'Premium deep teal-navy.',
     swatch: '#143C3A',
     accent: '#0E2D2C',
-  },
-  emerald: {
-    label: 'Emerald',
-    desc: 'Original Blackridge accent.',
-    swatch: '#16B364',
-    accent: '#0A7E3F',
   },
 };
 

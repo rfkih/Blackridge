@@ -42,7 +42,6 @@ export default function WelcomePage() {
         className="relative overflow-hidden"
         style={{ padding: '72px 0 56px', background: 'var(--bg-base)' }}
       >
-        <div className="br-hero-blob" aria-hidden="true" />
         <div className="relative z-[1] mx-auto grid max-w-[1180px] grid-cols-1 items-center gap-12 px-5 sm:px-8 lg:grid-cols-[1.1fr_1fr] lg:gap-[60px]">
           <div>
             <span

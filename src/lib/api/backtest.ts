@@ -14,6 +14,7 @@ import type { AccountStrategy } from '@/types/strategy';
 import { researchClient as apiClient } from './client';
 import { toNum, toNumOrNull } from './coerce';
 import { extractList } from './pageUtils';
+import { addOptionalParam } from './queryParams';
 import { mapAccountStrategy } from './strategies';
 
 const BASE = '/api/v1/backtest';
@@ -279,18 +280,21 @@ export interface BacktestRunsPage {
 export async function listBacktestRuns(
   filters: BacktestListFilters = {},
 ): Promise<BacktestRunsPage> {
-  const params: Record<string, unknown> = {};
-  if (filters.status) params.status = filters.status;
-  if (filters.strategyCode) params.strategyCode = filters.strategyCode;
-  if (filters.symbol) params.symbol = filters.symbol.toUpperCase();
-  if (filters.interval) params.interval = filters.interval;
-  if (filters.from) params.from = filters.from;
-  if (filters.to) params.to = filters.to;
-  if (filters.sortBy) params.sortBy = filters.sortBy;
-  if (filters.sortDir) params.sortDir = filters.sortDir;
+  // Pagination is only sent when explicitly set — omitting it tells the
+  // backend to return a bare array, which the synthesised return below
+  // restores into a page envelope for the caller.
+  const params: Record<string, string | number | boolean> = {};
+  addOptionalParam(params, 'status', filters.status);
+  addOptionalParam(params, 'strategyCode', filters.strategyCode);
+  addOptionalParam(params, 'symbol', filters.symbol?.toUpperCase());
+  addOptionalParam(params, 'interval', filters.interval);
+  addOptionalParam(params, 'from', filters.from);
+  addOptionalParam(params, 'to', filters.to);
+  addOptionalParam(params, 'sortBy', filters.sortBy);
+  addOptionalParam(params, 'sortDir', filters.sortDir);
   if (filters.page != null) params.page = filters.page;
   if (filters.size != null) params.size = filters.size;
-  if (filters.triggeredBy) params.triggeredBy = filters.triggeredBy;
+  addOptionalParam(params, 'triggeredBy', filters.triggeredBy);
 
   const { data } = await apiClient.get<
     | BackendBacktestRun[]

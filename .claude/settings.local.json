@@ -155,7 +155,27 @@
       "Bash(awk '/^\\\\.\\\\/src\\\\/lib\\\\/backtest\\\\/buildBacktestPayload\\\\.ts/,/^$/')",
       "Bash(tar xzf *)",
       "Bash(gunzip -c webfetch-1778776616602-gtr3xl.bin)",
-      "Bash(awk '/^\\\\.\\\\/src\\\\/components\\\\/brand\\\\/BlackridgeMark\\\\.tsx/,/^$/')"
+      "Bash(awk '/^\\\\.\\\\/src\\\\/components\\\\/brand\\\\/BlackridgeMark\\\\.tsx/,/^$/')",
+      "PowerShell(pnpm tsc *)",
+      "PowerShell(pnpm lint *)",
+      "PowerShell(npx eslint src/lib/api/support.ts src/lib/api/pnl.ts src/lib/api/spec-trace.ts src/lib/api/walk-forward.ts src/lib/api/strategy-definitions.ts src/lib/api/strategy-promotion.ts src/lib/api/strategies.ts src/lib/api/trades.ts src/lib/api/backtest.ts src/lib/api/historical.ts 2>&1 | Select-Object -Last 30)",
+      "PowerShell(git stash *)",
+      "Bash(Select-Object FullName)",
+      "Bash(sort -t: -k3)",
+      "Bash(awk '{print $3}')",
+      "Bash(awk '$1 > 1')",
+      "Bash(awk '{print $NF}')",
+      "Bash(ls -la knip* .knip*)",
+      "Bash(cat knip.json knip.config.*)",
+      "PowerShell(npx knip --no-progress --reporter compact 2>&1 | Select-Object -First 200)",
+      "PowerShell(Out-File *)",
+      "Bash(rm .knip-report.txt .knip-files.txt)",
+      "Bash(ls .knip*)",
+      "Bash(mkdir -p /tmp/blackridge-design)",
+      "Bash(cp \"C:\\\\Users\\\\rifki\\\\.claude\\\\projects\\\\C--Project-Blackridge\\\\24866024-5586-432c-9e2f-5888c99a8c02\\\\tool-results\\\\webfetch-1778916565586-twxvq7.bin\" /tmp/blackridge-design/design.tar.gz)",
+      "Bash(tar -xzf design.tar.gz)",
+      "Bash(cp \"C:\\\\Users\\\\rifki\\\\.claude\\\\projects\\\\C--Project-blackridge\\\\0a409897-98e0-439c-b9be-4ef3dc38bf4b\\\\tool-results\\\\webfetch-1778918344916-ydjiyi.bin\" /tmp/design.tar.gz)",
+      "Bash(tar -xzf /tmp/design.tar.gz -C /tmp/design)"
     ]
   }
 }

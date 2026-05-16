@@ -3,6 +3,7 @@
 // All endpoints route through the research JVM (8081). The trading JVM
 // reverse-proxies /api/v1/historical/** so both clients hit the same origin.
 import { researchClient as apiClient } from './client';
+import { addOptionalParam } from './queryParams';
 
 const BASE = '/api/v1/historical';
 
@@ -63,14 +64,10 @@ export async function getCoverageReport(
   from?: string,
   to?: string,
 ): Promise<CoverageReport> {
-  const { data } = await apiClient.get<CoverageReport>(`${BASE}/coverage`, {
-    params: {
-      symbol,
-      interval,
-      ...(from ? { from } : {}),
-      ...(to ? { to } : {}),
-    },
-  });
+  const params: Record<string, string | number | boolean> = { symbol, interval };
+  addOptionalParam(params, 'from', from);
+  addOptionalParam(params, 'to', to);
+  const { data } = await apiClient.get<CoverageReport>(`${BASE}/coverage`, { params });
   return data;
 }
 
@@ -148,12 +145,10 @@ export async function listJobs(opts?: {
   status?: JobStatus;
   limit?: number;
 }): Promise<HistoricalBackfillJob[]> {
-  const { data } = await apiClient.get<HistoricalBackfillJob[]>(`${BASE}/jobs`, {
-    params: {
-      ...(opts?.status ? { status: opts.status } : {}),
-      ...(opts?.limit ? { limit: opts.limit } : {}),
-    },
-  });
+  const params: Record<string, string | number | boolean> = {};
+  addOptionalParam(params, 'status', opts?.status);
+  addOptionalParam(params, 'limit', opts?.limit);
+  const { data } = await apiClient.get<HistoricalBackfillJob[]>(`${BASE}/jobs`, { params });
   return data;
 }
 

@@ -3,6 +3,7 @@
 // evaluate() call (dense in backtest, 1% sample in live). Drives the
 // SpecTraceViewer admin UI for forensic decision replay.
 import { apiClient } from './client';
+import { addOptionalParam, buildPageParams } from './queryParams';
 import type { PageEnvelope } from '@/types/api';
 
 export interface SpecTraceRow {
@@ -47,15 +48,12 @@ export interface ListSpecTraceParams {
 }
 
 export async function listSpecTraces(opts: ListSpecTraceParams = {}): Promise<SpecTracePage> {
-  const params: Record<string, string | number | boolean> = {
-    page: opts.page ?? 0,
-    size: opts.size ?? 50,
-  };
-  if (opts.backtestRunId) params.backtestRunId = opts.backtestRunId;
-  if (opts.accountStrategyId) params.accountStrategyId = opts.accountStrategyId;
-  if (opts.strategyCode) params.strategyCode = opts.strategyCode;
-  if (opts.phase) params.phase = opts.phase;
-  if (opts.decision) params.decision = opts.decision;
+  const params: Record<string, string | number | boolean> = buildPageParams(opts, 50);
+  addOptionalParam(params, 'backtestRunId', opts.backtestRunId);
+  addOptionalParam(params, 'accountStrategyId', opts.accountStrategyId);
+  addOptionalParam(params, 'strategyCode', opts.strategyCode);
+  addOptionalParam(params, 'phase', opts.phase);
+  addOptionalParam(params, 'decision', opts.decision);
   if (opts.errorsOnly) params.errorsOnly = true;
   const { data } = await apiClient.get<SpecTracePage>('/api/v1/spec-trace', {
     params,

@@ -1,6 +1,7 @@
 import { apiClient } from './client';
 import { toNum } from './coerce';
 import { extractList } from './pageUtils';
+import { addOptionalParam } from './queryParams';
 import type { AccountStrategy, AccountStrategyStatus, KellyStatus } from '@/types/strategy';
 import type { BackendAccountStrategy, PageResponse } from '@/types/api';
 
@@ -67,8 +68,8 @@ export function mapAccountStrategy(s: BackendAccountStrategy): AccountStrategy {
 }
 
 export async function getAccountStrategies(userId?: string): Promise<AccountStrategy[]> {
-  const params: Record<string, unknown> = {};
-  if (userId) params.userId = userId;
+  const params: Record<string, string | number | boolean> = {};
+  addOptionalParam(params, 'userId', userId);
   const { data } = await apiClient.get<
     BackendAccountStrategy[] | PageResponse<BackendAccountStrategy>
   >('/api/v1/account-strategies', { params });

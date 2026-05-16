@@ -3,6 +3,7 @@
 // rows after every POST /walk-forward. Triggering a new run from the UI
 // is intentionally out of scope — see WalkForwardController javadoc.
 import { apiClient } from './client';
+import { addOptionalParam, buildPageParams } from './queryParams';
 import type { PageEnvelope } from '@/types/api';
 
 export type StabilityVerdict =
@@ -52,14 +53,11 @@ export interface ListWalkForwardParams {
 export async function listWalkForwardRuns(
   opts: ListWalkForwardParams = {},
 ): Promise<WalkForwardPage> {
-  const params: Record<string, string | number> = {
-    page: opts.page ?? 0,
-    size: opts.size ?? 25,
-  };
-  if (opts.strategyCode) params.strategyCode = opts.strategyCode;
-  if (opts.instrument) params.instrument = opts.instrument;
-  if (opts.intervalName) params.intervalName = opts.intervalName;
-  if (opts.verdict) params.verdict = opts.verdict;
+  const params: Record<string, string | number | boolean> = buildPageParams(opts, 25);
+  addOptionalParam(params, 'strategyCode', opts.strategyCode);
+  addOptionalParam(params, 'instrument', opts.instrument);
+  addOptionalParam(params, 'intervalName', opts.intervalName);
+  addOptionalParam(params, 'verdict', opts.verdict);
   const { data } = await apiClient.get<WalkForwardPage>('/api/v1/walk-forward', {
     params,
   });

@@ -5,6 +5,7 @@
 // Routes through `apiClient` because StrategyPromotionController lives
 // on the trading JVM (it mutates account_strategy state).
 import { apiClient } from './client';
+import { addOptionalParam, buildPageParams } from './queryParams';
 import type { ISO8601, Page, UUID } from '@/types/api';
 
 export type PromotionState = 'RESEARCH' | 'PAPER_TRADE' | 'PROMOTED' | 'DEMOTED' | 'REJECTED';
@@ -81,12 +82,9 @@ export interface RecentPromotionsQuery {
 export async function searchRecentPromotions(
   q: RecentPromotionsQuery = {},
 ): Promise<Page<StrategyPromotionLog>> {
-  const params: Record<string, string | number> = {
-    page: q.page ?? 0,
-    size: q.size ?? 25,
-  };
-  if (q.strategyCode && q.strategyCode.trim()) params.strategyCode = q.strategyCode.trim();
-  if (q.toState) params.toState = q.toState;
+  const params: Record<string, string | number | boolean> = buildPageParams(q, 25);
+  addOptionalParam(params, 'strategyCode', q.strategyCode);
+  addOptionalParam(params, 'toState', q.toState);
   const { data } = await apiClient.get<Page<StrategyPromotionLog>>(`${BASE}/recent/search`, {
     params,
   });

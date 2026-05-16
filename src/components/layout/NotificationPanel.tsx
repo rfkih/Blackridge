@@ -20,18 +20,11 @@ import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { useStrategies } from '@/hooks/useStrategies';
 import { useBacktestRuns } from '@/hooks/useBacktest';
-import { apiClient } from '@/lib/api/client';
 import { useQuery } from '@tanstack/react-query';
 import { formatDate } from '@/lib/formatters';
 import { useIsAdmin } from '@/hooks/useIsAdmin';
 import { listAlerts, type AlertEvent } from '@/lib/api/alerts';
-
-interface ServerIpStatus {
-  currentIp?: string | null;
-  previousIp?: string | null;
-  event?: string | null; // 'INITIAL' | 'UNCHANGED' | 'CHANGED'
-  recordedAt?: string | null;
-}
+import { getServerIpStatus } from '@/lib/api/server';
 
 type NotificationKind = 'killSwitch' | 'ipChange' | 'backtestDone' | 'systemAlert';
 
@@ -70,12 +63,9 @@ function writeLastSeenTs(ts: number) {
 
 export function NotificationPanel() {
   const { data: strategies = [] } = useStrategies();
-  const ipStatus = useQuery<ServerIpStatus>({
+  const ipStatus = useQuery({
     queryKey: ['server', 'ip-status'],
-    queryFn: async () => {
-      const { data } = await apiClient.get<ServerIpStatus>('/api/v1/server/ip/status');
-      return data;
-    },
+    queryFn: getServerIpStatus,
     staleTime: 60_000,
     retry: 0,
   });

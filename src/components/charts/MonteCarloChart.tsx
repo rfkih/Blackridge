@@ -12,7 +12,12 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
-import { AXIS_TICK, CHART_COLORS, TOOLTIP_CONTENT_STYLE } from '@/lib/charts/rechartsTheme';
+import {
+  AXIS_TICK,
+  CHART_COLORS,
+  TOOLTIP_CONTENT_STYLE,
+  type ChartTooltipItem,
+} from '@/lib/charts/rechartsTheme';
 import { useCurrencyFormatter } from '@/hooks/useCurrency';
 import type { MonteCarloResult } from '@/types/montecarlo';
 
@@ -28,12 +33,6 @@ interface ChartRow {
   worst: number | null;
 }
 
-interface TooltipItem {
-  payload: ChartRow;
-  name: string;
-  color: string;
-}
-
 /**
  * "Fan chart" of the three representative simulation paths. The backend only
  * returns best/median/worst equity curves (not per-trade percentile bands),
@@ -43,7 +42,13 @@ interface TooltipItem {
 export function MonteCarloChart({ result, height = 320 }: MonteCarloChartProps) {
   const formatCurrency = useCurrencyFormatter();
 
-  const MonteCarloTooltip = ({ active, payload }: { active?: boolean; payload?: TooltipItem[] }) => {
+  const MonteCarloTooltip = ({
+    active,
+    payload,
+  }: {
+    active?: boolean;
+    payload?: ChartTooltipItem<ChartRow>[];
+  }) => {
     if (!active || !payload?.length) return null;
     const row = payload[0]?.payload;
     if (!row) return null;
@@ -53,17 +58,21 @@ export function MonteCarloChart({ result, height = 320 }: MonteCarloChartProps) 
         style={{ background: 'var(--bg-elevated)', minWidth: 180 }}
       >
         <p className="mb-1 font-mono text-[10px] text-[var(--text-muted)]">Trade #{row.trade}</p>
-        {payload.map((p) => (
-          <div key={p.name} className="flex items-center justify-between gap-3">
-            <span className="flex items-center gap-1.5 text-[11px]" style={{ color: p.color }}>
-              <span aria-hidden className="h-2 w-2 rounded-full" style={{ background: p.color }} />
-              {p.name}
-            </span>
-            <span className="num text-[11px] text-[var(--text-primary)]">
-              {formatCurrency(p.payload[p.name.toLowerCase() as keyof ChartRow] as number)}
-            </span>
-          </div>
-        ))}
+        {payload.map((p) => {
+          if (!p.name) return null;
+          const key = p.name.toLowerCase() as keyof ChartRow;
+          return (
+            <div key={p.name} className="flex items-center justify-between gap-3">
+              <span className="flex items-center gap-1.5 text-[11px]" style={{ color: p.color }}>
+                <span aria-hidden className="h-2 w-2 rounded-full" style={{ background: p.color }} />
+                {p.name}
+              </span>
+              <span className="num text-[11px] text-[var(--text-primary)]">
+                {formatCurrency(p.payload[key] as number)}
+              </span>
+            </div>
+          );
+        })}
       </div>
     );
   };

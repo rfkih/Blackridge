@@ -22,6 +22,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from '@/hooks/useToast';
 import { normalizeError } from '@/lib/api/client';
 import { formatDate } from '@/lib/formatters';
+import { toneColor, type Tone } from '@/lib/tones';
 import type {
   CreateQueueItemRequest,
   ResearchQueueItem,
@@ -593,19 +594,3 @@ function Td({
   );
 }
 
-type Tone = 'profit' | 'loss' | 'warning' | 'info' | 'muted';
-
-function toneColor(tone: Tone): string {
-  switch (tone) {
-    case 'profit':
-      return 'var(--color-profit)';
-    case 'loss':
-      return 'var(--color-loss)';
-    case 'warning':
-      return 'var(--color-warning)';
-    case 'info':
-      return 'var(--color-info)';
-    default:
-      return 'var(--text-muted)';
-  }
-}

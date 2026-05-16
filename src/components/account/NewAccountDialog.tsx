@@ -11,7 +11,6 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
@@ -20,11 +19,11 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
+import { FieldRow } from '@/components/shared/FieldRow';
 import { useCreateAccount } from '@/hooks/useAccounts';
 import { normalizeError } from '@/lib/api/client';
 import { toast } from '@/hooks/useToast';
 import { ServerIpCard } from './ServerIpCard';
-import { cn } from '@/lib/utils';
 
 interface NewAccountDialogProps {
   open: boolean;
@@ -289,30 +288,6 @@ export function NewAccountDialog({ open, onOpenChange }: NewAccountDialogProps) 
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
-
-interface FieldRowProps {
-  label: string;
-  error?: string;
-  hint?: string;
-  className?: string;
-  children: React.ReactNode;
-}
-
-function FieldRow({ label, error, hint, className, children }: FieldRowProps) {
-  return (
-    <div className={cn('flex flex-col gap-1.5', className)}>
-      <Label className="text-[10px] uppercase tracking-[0.18em] text-text-secondary">{label}</Label>
-      {children}
-      {error ? (
-        <p role="alert" className="text-[11px] text-[var(--color-loss)]">
-          {error}
-        </p>
-      ) : hint ? (
-        <p className="text-[11px] text-text-muted">{hint}</p>
-      ) : null}
-    </div>
-  );
-}
 
 /**
  * Always-visible safety banner. Exchange API keys are the most sensitive

@@ -563,9 +563,9 @@ function FilterPill({
 }) {
   const activeBg =
     tone === 'profit'
-      ? 'rgba(22,179,100,0.15)'
+      ? 'var(--tint-profit)'
       : tone === 'loss'
-        ? 'rgba(229,72,77,0.15)'
+        ? 'var(--tint-loss)'
         : 'var(--accent-glow)';
   const activeFg =
     tone === 'profit'
@@ -680,7 +680,7 @@ function VirtualRow({ trade, index, isSelected, top, onClick }: VirtualRowProps)
         <span
           className="rounded-sm px-1.5 py-0.5 font-mono text-[10px] font-semibold tracking-wider"
           style={{
-            background: isLong ? 'rgba(22,179,100,0.15)' : 'rgba(229,72,77,0.15)',
+            background: isLong ? 'var(--tint-profit)' : 'var(--tint-loss)',
             color: isLong ? 'var(--color-profit)' : 'var(--color-loss)',
           }}
         >
@@ -810,9 +810,9 @@ function OutcomePill({ outcome }: { outcome: TradeOutcome }) {
 function outcomePillColors(tone: OutcomeTone): { bg: string; fg: string } {
   switch (tone) {
     case 'profit':
-      return { bg: 'rgba(22,179,100,0.15)', fg: 'var(--color-profit)' };
+      return { bg: 'var(--tint-profit)', fg: 'var(--color-profit)' };
     case 'loss':
-      return { bg: 'rgba(229,72,77,0.15)', fg: 'var(--color-loss)' };
+      return { bg: 'var(--tint-loss)', fg: 'var(--color-loss)' };
     case 'warning':
       return { bg: 'rgba(245,166,35,0.15)', fg: 'var(--color-warning)' };
     case 'info':

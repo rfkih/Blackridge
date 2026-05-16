@@ -1,529 +1,610 @@
 import Link from 'next/link';
 import type { Metadata } from 'next';
-import {
-  ArrowRight,
-  Beaker,
-  Bot,
-  LineChart,
-  Shield,
-  Zap,
-  List,
-  ArrowUpRight,
-} from 'lucide-react';
-import { MarketingShell, SectionHead, MarketingCta } from '@/components/marketing/MarketingShell';
+import { MarketingShell } from '@/components/marketing/MarketingShell';
 import { Sparkline, makeSpark } from '@/components/marketing/Sparkline';
 
 export const metadata: Metadata = {
-  title: 'Product',
+  title: 'Product — A quantitative manager for digital asset markets',
   description:
-    'Live P&L, walk-forward backtests, multi-account orchestration, kill-switch risk caps. Every tool you need to ship algorithmic strategies on real money.',
+    'Blackridge Capital runs a bounded library of systematic strategies on regulated venues for accredited and institutional investors. We hold no client capital.',
 };
 
-interface FeatureSection {
-  eyebrow: string;
-  title: string;
-  body: string;
-  bullets: string[];
-  visual: 'live-pnl' | 'backtest' | 'risk' | 'orchestration' | 'audit';
-  reverse?: boolean;
-}
+const HERO_EQUITY = makeSpark(101, 60).map((v) => v * 100);
 
-const SECTIONS: FeatureSection[] = [
-  {
-    eyebrow: 'Live trading',
-    title: 'P&L that updates as fast as your exchange.',
-    body:
-      'A persistent WebSocket feeds every position, mark, and unrealized P&L cell. Cells flash green or red on the tick that moved them, so you can see where your money came from at a glance.',
-    bullets: [
-      'Sub-second tick-driven cell updates',
-      'Aggregated P&L across all sub-accounts',
-      'Reconnect storms handled — last-known state survives',
-    ],
-    visual: 'live-pnl',
-  },
-  {
-    eyebrow: 'Backtest',
-    title: 'Walk-forward, Monte-Carlo, and slippage — built in.',
-    body:
-      'Run a strategy against historical data with the same engine that prices live orders. Fee tier, slippage curve, and funding rate all baked in by default. No survivorship, no look-ahead.',
-    bullets: [
-      'Walk-forward analysis with rolling windows',
-      'Monte-Carlo over fills, slippage, and re-orderings',
-      'Re-run a backtest with one click — exact params replayed',
-    ],
-    visual: 'backtest',
-    reverse: true,
-  },
-  {
-    eyebrow: 'Risk',
-    title: 'Kill switches that actually fire.',
-    body:
-      'Per-strategy drawdown caps, account-level daily-loss limits, and position-concentration limits — all enforced by the trading engine, not just shown in the UI. If a cap trips, orders stop within milliseconds.',
-    bullets: [
-      'Per-strategy and per-account drawdown ceilings',
-      'Position-concentration limits across sub-accounts',
-      'Kill switch arms on first overnight breach',
-    ],
-    visual: 'risk',
-  },
-  {
-    eyebrow: 'Multi-account',
-    title: 'One strategy, many sub-accounts.',
-    body:
-      'Allocate the same model to multiple sub-accounts with separate capital budgets and risk profiles. Useful for prop desks running pooled strategies behind individual books.',
-    bullets: [
-      'Independent risk policies per sub-account',
-      'Single dashboard, multi-account roll-up',
-      'Per-account API key rotation',
-    ],
-    visual: 'orchestration',
-    reverse: true,
-  },
-  {
-    eyebrow: 'Audit',
-    title: 'Every order, fill, and parameter change — logged.',
-    body:
-      'An immutable audit log captures every order, fill, parameter override, and rebalance. Filter by strategy, account, or time window. Export to CSV in two clicks.',
-    bullets: [
-      'Immutable, timestamped order + fill trail',
-      'Parameter override history per strategy run',
-      'CSV export with one click for tax + compliance',
-    ],
-    visual: 'audit',
-  },
+const MONTHS = [
+  'Jan',
+  'Feb',
+  'Mar',
+  'Apr',
+  'May',
+  'Jun',
+  'Jul',
+  'Aug',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dec',
+] as const;
+type Month = (typeof MONTHS)[number];
+
+const MONTHLY: { m: Month; y: '24' | '25' | '26'; v: number | null }[] = [
+  { m: 'Jan', y: '24', v: null },
+  { m: 'Feb', y: '24', v: 0.0 },
+  { m: 'Mar', y: '24', v: 2.1 },
+  { m: 'Apr', y: '24', v: 1.3 },
+  { m: 'May', y: '24', v: -0.4 },
+  { m: 'Jun', y: '24', v: 1.8 },
+  { m: 'Jul', y: '24', v: 0.9 },
+  { m: 'Aug', y: '24', v: 2.7 },
+  { m: 'Sep', y: '24', v: -1.1 },
+  { m: 'Oct', y: '24', v: 1.4 },
+  { m: 'Nov', y: '24', v: -2.4 },
+  { m: 'Dec', y: '24', v: 3.2 },
+  { m: 'Jan', y: '25', v: 1.1 },
+  { m: 'Feb', y: '25', v: 0.6 },
+  { m: 'Mar', y: '25', v: 5.8 },
+  { m: 'Apr', y: '25', v: 0.3 },
+  { m: 'May', y: '25', v: 2.4 },
+  { m: 'Jun', y: '25', v: -0.7 },
+  { m: 'Jul', y: '25', v: 1.9 },
+  { m: 'Aug', y: '25', v: 0.4 },
+  { m: 'Sep', y: '25', v: 2.2 },
+  { m: 'Oct', y: '25', v: 1.6 },
+  { m: 'Nov', y: '25', v: -0.9 },
+  { m: 'Dec', y: '25', v: 3.4 },
+  { m: 'Jan', y: '26', v: 2.0 },
+  { m: 'Feb', y: '26', v: 1.3 },
+  { m: 'Mar', y: '26', v: 4.1 },
+  { m: 'Apr', y: '26', v: 0.8 },
+  { m: 'May', y: '26', v: 1.2 },
 ];
 
-const QUICK_FEATURES = [
+const DISCIPLINE = [
   {
-    icon: <Beaker />,
-    title: 'Honest backtests',
-    body: 'Walk-forward + Monte-Carlo with realistic slippage. No survivorship bias.',
+    n: 'I.',
+    h: 'Research',
+    p: 'Every strategy begins with a written thesis: which microstructure inefficiency it exploits, why it persists, and which regimes degrade it. The thesis is the contract.',
+    k: 'Median strategy lifespan in research',
+    v: '11 months',
   },
   {
-    icon: <Bot />,
-    title: '7 production strategies',
-    body: 'LSR, VCB, VBO, TPSE and more — battle-tested on live capital. Fork them, tune them, run yours alongside.',
+    n: 'II.',
+    h: 'Construction',
+    p: 'Backtests use point-in-time data with realistic slippage, funding, and venue fees. Out-of-sample windows are reserved before parameter selection. Monte-Carlo on timing establishes a confidence interval, not a single curve.',
+    k: 'Strategies retired before live',
+    v: '14 of 21',
   },
   {
-    icon: <LineChart />,
-    title: 'Live P&L, calm UI',
-    body: 'WebSocket-driven cells flash on every tick. Same numbers your accountant will see.',
+    n: 'III.',
+    h: 'Execution',
+    p: 'Strategies run on the client’s own exchange account via scoped API keys. Every order, fill, and parameter change is timestamped to our ledger and reconcilable against the venue.',
+    k: 'Mean time-to-reconcile',
+    v: '< 60 s',
+  },
+] as const;
+
+const STRATEGIES = [
+  {
+    code: 'LSR-V2',
+    inception: 'May 2024',
+    name: 'Long-Short Reversal v2',
+    desc: 'Mean reversion on overextended candles in BTC and ETH spot & perpetual.',
+    sharpe: 1.84,
+    dd: -4.62,
+    vol: 8.2,
+    pnl: 12.48,
+    sparkSeed: 31,
+    capacity: '$80M',
   },
   {
-    icon: <Shield />,
-    title: 'Risk caps that fire',
-    body: 'Per-account daily loss limits, kill-switch on drawdown. No surprises overnight.',
+    code: 'VCB',
+    inception: 'Aug 2024',
+    name: 'Volatility Compression',
+    desc: 'Enters Bollinger squeezes confirmed by rising relative volume. 15-minute perpetual.',
+    sharpe: 1.42,
+    dd: -3.1,
+    vol: 6.8,
+    pnl: 6.72,
+    sparkSeed: 32,
+    capacity: '$45M',
   },
   {
-    icon: <Zap />,
-    title: 'Multi-account orchestration',
-    body: 'Run the same strategy across sub-accounts with separate risk budgets.',
+    code: 'TPSE',
+    inception: 'Nov 2024',
+    name: 'Trend Pullback Single-Exit',
+    desc: 'Buys pullbacks within established 4-hour trends. Single take-profit, no scaling.',
+    sharpe: 2.04,
+    dd: -2.4,
+    vol: 5.4,
+    pnl: 4.91,
+    sparkSeed: 33,
+    capacity: '$30M',
+  },
+] as const;
+
+const RISK = [
+  {
+    num: '01 — Custody',
+    h: 'Capital remains with the client.',
+    p: 'Strategies trade through scoped exchange API keys with withdrawal permissions explicitly denied. Funds remain in the client’s account at all times. Reconciled against the venue every sixty seconds.',
   },
   {
-    icon: <List />,
-    title: 'Audit trail forever',
-    body: 'Every order, fill, parameter change, and rebalance is logged. Export to CSV.',
+    num: '02 — Limits',
+    h: 'Pre-trade enforcement.',
+    p: 'Per-account daily-loss caps, per-instrument concentration limits, portfolio drawdown kill-switch. Breaches halt the strategy and page the on-call engineer. No discretionary override.',
   },
-];
+  {
+    num: '03 — Audit',
+    h: 'Append-only ledger.',
+    p: 'Every order, fill, cancel, and parameter change is timestamped to an append-only ledger and exported nightly to the client’s storage. Complete reproducible trace for any compliance review.',
+  },
+] as const;
 
 export default function ProductPage() {
   return (
     <MarketingShell activeNav="product">
-      {/* Hero */}
-      <section style={{ padding: '72px 0 48px' }}>
-        <div className="mx-auto max-w-[1180px] px-5 sm:px-8 text-center">
-          <span
-            className="text-[12px] font-bold uppercase tracking-[0.14em]"
-            style={{ color: 'var(--brand-600)' }}
-          >
-            The product
-          </span>
-          <h1
-            className="font-display"
-            style={{
-              fontSize: "clamp(36px, 6vw, 56px)",
-              lineHeight: 1.05,
-              fontWeight: 800,
-              letterSpacing: '-0.03em',
-              margin: '14px 0 16px',
-              color: 'var(--text-primary)',
-            }}
-          >
-            A trading desk that runs itself.
-          </h1>
-          <p
-            className="mx-auto"
-            style={{
-              fontSize: 19,
-              lineHeight: 1.55,
-              color: 'var(--text-secondary)',
-              maxWidth: 620,
-              margin: '0 auto 28px',
-            }}
-          >
-            Six tools, one product: turn an idea into a strategy, prove it on history, ship it to
-            your live account, and watch it without watching it.
-          </p>
-          <div className="flex items-center justify-center gap-3">
-            <Link href="/onboarding" className="br-btn br-btn-primary br-btn-lg">
-              Open account <ArrowRight size={16} />
-            </Link>
-            <Link href="/pricing" className="br-btn br-btn-secondary br-btn-lg">
-              See pricing
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* Feature deep-dives — alternating sides */}
-      {SECTIONS.map((section) => (
-        <FeatureRow key={section.title} section={section} />
-      ))}
-
-      {/* Quick-glance feature grid */}
-      <section style={{ padding: '96px 0', background: 'var(--bg-surface)' }}>
-        <div className="mx-auto max-w-[1180px] px-5 sm:px-8">
-          <SectionHead
-            eyebrow="Everything else"
-            title="Plus the things you’d expect."
-            sub="Production-grade glue so you don’t reinvent the wheel."
-          />
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-            {QUICK_FEATURES.map((f) => (
-              <div key={f.title} className="br-card" style={{ borderRadius: 28, padding: 28 }}>
-                <div
-                  className="mb-4 grid h-11 w-11 place-items-center rounded-xl"
-                  style={{ background: 'var(--brand-50)', color: 'var(--brand-700)' }}
-                >
-                  {f.icon}
-                </div>
-                <h3
-                  className="font-display"
-                  style={{
-                    fontSize: 18,
-                    fontWeight: 700,
-                    letterSpacing: '-0.015em',
-                    margin: '0 0 8px',
-                    color: 'var(--text-primary)',
-                  }}
-                >
-                  {f.title}
-                </h3>
-                <p
-                  style={{
-                    fontSize: 14,
-                    lineHeight: 1.55,
-                    color: 'var(--text-secondary)',
-                    margin: 0,
-                  }}
-                >
-                  {f.body}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <MarketingCta />
+      <div className="qp-page">
+        <Hero />
+        <Venues />
+        <FactSheet />
+        <Discipline />
+        <StrategySpot />
+        <Letter />
+        <Risk />
+        <Contact />
+      </div>
     </MarketingShell>
   );
 }
 
-function FeatureRow({ section }: { section: FeatureSection }) {
-  const copy = (
-    <div className="flex flex-col gap-5">
-      <span
-        className="text-[12px] font-bold uppercase tracking-[0.14em]"
-        style={{ color: 'var(--brand-600)' }}
-      >
-        {section.eyebrow}
-      </span>
-      <h2
-        className="font-display"
-        style={{
-          fontSize: 36,
-          lineHeight: 1.12,
-          fontWeight: 800,
-          letterSpacing: '-0.025em',
-          margin: 0,
-          color: 'var(--text-primary)',
-        }}
-      >
-        {section.title}
-      </h2>
-      <p
-        style={{
-          fontSize: 17,
-          lineHeight: 1.55,
-          color: 'var(--text-secondary)',
-          margin: 0,
-          maxWidth: 460,
-        }}
-      >
-        {section.body}
-      </p>
-      <ul className="m-0 flex list-none flex-col gap-2 p-0">
-        {section.bullets.map((b) => (
-          <li key={b} className="flex items-start gap-2 text-[14px]">
-            <ArrowUpRight
-              size={14}
-              strokeWidth={2.5}
-              style={{ color: 'var(--brand-600)', marginTop: 4, flexShrink: 0 }}
-            />
-            <span style={{ color: 'var(--text-secondary)' }}>{b}</span>
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-
-  const visual = <FeatureVisual kind={section.visual} />;
-
+/* ── Hero ──────────────────────────────────────────────────────────── */
+function Hero() {
   return (
-    <section style={{ padding: '64px 0' }}>
-      <div
-        className="mx-auto grid max-w-[1180px] items-center gap-12 px-8 md:grid-cols-2"
-        style={{}}
-      >
-        {section.reverse ? (
-          <>
-            {visual}
-            {copy}
-          </>
-        ) : (
-          <>
-            {copy}
-            {visual}
-          </>
-        )}
+    <section className="qp-hero">
+      <div className="qp-wrap qp-hero-grid">
+        <div className="qp-hero-copy">
+          <div className="qp-hero-eyebrow">
+            <span>Singapore</span>
+            <span className="dot" />
+            <span>MAS&nbsp;CMS-LR-202407</span>
+            <span className="dot" />
+            <span>Est. 2024</span>
+          </div>
+          <h1>A small, focused quantitative manager for digital&nbsp;asset&nbsp;markets.</h1>
+          <p className="lede">
+            Blackridge runs a bounded library of systematic strategies on regulated venues, on
+            behalf of accredited and institutional investors. We hold no client capital. New
+            mandates are accepted twice a quarter.
+          </p>
+          <div className="qp-hero-cta">
+            <Link href="/onboarding" className="qp-btn-primary lg">
+              Request a meeting
+            </Link>
+            <Link href="/docs" className="qp-btn-textlink">
+              Download Q1 2026 letter (PDF) &nbsp;↓
+            </Link>
+          </div>
+        </div>
+        <HeroFactsheet />
       </div>
     </section>
   );
 }
 
-function FeatureVisual({ kind }: { kind: FeatureSection['visual'] }) {
-  if (kind === 'live-pnl') {
-    return (
-      <div
-        className="br-card"
-        style={{
-          padding: 24,
-          borderRadius: 24,
-          background: 'var(--bg-elevated)',
-        }}
-      >
-        <div
-          className="mb-3 text-[11px] font-semibold uppercase tracking-[0.08em]"
-          style={{ color: 'var(--text-muted)' }}
-        >
-          Open positions · live
-        </div>
-        {[
-          { sym: 'BTC', side: 'LONG', pnl: '+$512.39', pct: '+1.81%', up: true },
-          { sym: 'ETH', side: 'LONG', pnl: '+$233.10', pct: '+0.96%', up: true },
-          { sym: 'SOL', side: 'SHORT', pnl: '+$309.60', pct: '+2.04%', up: true },
-          { sym: 'BNB', side: 'LONG', pnl: '−$206.64', pct: '−1.20%', up: false },
-        ].map((row, i) => (
-          <div
-            key={row.sym}
-            className="flex items-center gap-3 py-2.5"
-            style={{ borderTop: i ? '1px solid var(--border-subtle)' : 'none' }}
-          >
-            <div
-              className={`br-ticker ${row.sym.toLowerCase()}`}
-              style={{ width: 32, height: 32, fontSize: 11 }}
-            >
-              {row.sym}
-            </div>
-            <div className="flex-1">
-              <div className="text-[14px] font-semibold" style={{ color: 'var(--text-primary)' }}>
-                {row.sym}/USDT
-              </div>
-              <div className="text-[11px]" style={{ color: 'var(--text-muted)' }}>
-                {row.side}
-              </div>
-            </div>
-            <div className="text-right">
-              <div
-                className="num text-[13px] font-semibold"
-                style={{ color: row.up ? 'var(--color-profit)' : 'var(--color-loss)' }}
-              >
-                {row.pnl}
-              </div>
-              <div
-                className="num text-[11px]"
-                style={{ color: row.up ? 'var(--color-profit)' : 'var(--color-loss)' }}
-              >
-                {row.pct}
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-    );
-  }
-
-  if (kind === 'backtest') {
-    return (
-      <div className="br-card" style={{ padding: 24, borderRadius: 24 }}>
-        <div
-          className="mb-3 text-[11px] font-semibold uppercase tracking-[0.08em]"
-          style={{ color: 'var(--text-muted)' }}
-        >
-          Equity · walk-forward
-        </div>
-        <Sparkline data={makeSpark(42, 60)} color="var(--brand-500)" width={420} height={140} />
-        <div className="mt-4 grid grid-cols-3 gap-4">
-          <Stat label="CAGR" value="+24.5%" tone="profit" />
-          <Stat label="Sharpe" value="1.84" />
-          <Stat label="Max DD" value="−4.62%" tone="loss" />
-        </div>
-      </div>
-    );
-  }
-
-  if (kind === 'risk') {
-    return (
-      <div className="br-card" style={{ padding: 24, borderRadius: 24 }}>
-        <div
-          className="mb-3 text-[11px] font-semibold uppercase tracking-[0.08em]"
-          style={{ color: 'var(--text-muted)' }}
-        >
-          Risk caps · LSR-V2
-        </div>
-        {[
-          { label: 'Daily loss limit', value: '$1,500 / day', pct: 38 },
-          { label: 'Drawdown cap', value: '−6.0% trailing', pct: 72 },
-          { label: 'Position notional', value: '$50k max', pct: 54 },
-        ].map((row) => (
-          <div key={row.label} className="mb-3 last:mb-0">
-            <div className="mb-1 flex items-center justify-between">
-              <span className="text-[13px]" style={{ color: 'var(--text-secondary)' }}>
-                {row.label}
-              </span>
-              <span
-                className="num text-[12px] font-semibold"
-                style={{ color: 'var(--text-primary)' }}
-              >
-                {row.value}
-              </span>
-            </div>
-            <div
-              className="h-1.5 overflow-hidden rounded-full"
-              style={{ background: 'var(--bg-hover)' }}
-            >
-              <div
-                className="h-full rounded-full"
-                style={{
-                  width: `${row.pct}%`,
-                  background: 'var(--brand-500)',
-                }}
-              />
-            </div>
-          </div>
-        ))}
-      </div>
-    );
-  }
-
-  if (kind === 'orchestration') {
-    return (
-      <div className="grid grid-cols-2 gap-3">
-        {[
-          { name: 'BR-Main', value: '$78,420', strategies: 4, live: true },
-          { name: 'BR-Cash', value: '$32,810', strategies: 2, live: true },
-          { name: 'BR-Vol', value: '$13,230', strategies: 1, live: true },
-          { name: 'BR-Paper', value: '$10,000', strategies: 3, live: false },
-        ].map((acct) => (
-          <div key={acct.name} className="br-card" style={{ padding: 16 }}>
-            <div className="flex items-center justify-between">
-              <div className="text-[13px] font-semibold" style={{ color: 'var(--text-primary)' }}>
-                {acct.name}
-              </div>
-              <span
-                className={`br-chip ${acct.live ? 'br-chip-profit' : 'br-chip-info'}`}
-                style={{ fontSize: 10 }}
-              >
-                {acct.live ? 'LIVE' : 'PAPER'}
-              </span>
-            </div>
-            <div
-              className="num font-display mt-1"
-              style={{ fontWeight: 700, fontSize: 20, color: 'var(--text-primary)' }}
-            >
-              {acct.value}
-            </div>
-            <div className="text-[11px]" style={{ color: 'var(--text-muted)' }}>
-              {acct.strategies} strategies
-            </div>
-          </div>
-        ))}
-      </div>
-    );
-  }
-
-  // audit
+function HeroFactsheet() {
+  const data = HERO_EQUITY;
+  const ret = data.length ? (data[data.length - 1]! / data[0]! - 1) * 100 : 0;
+  const last = data[data.length - 1] ?? 0;
   return (
-    <div className="br-card" style={{ padding: 24, borderRadius: 24 }}>
-      <div
-        className="mb-3 text-[11px] font-semibold uppercase tracking-[0.08em]"
-        style={{ color: 'var(--text-muted)' }}
-      >
-        Audit trail
-      </div>
-      {[
-        { time: '14:02:31', label: 'Order filled', detail: 'BTC/USDT LONG · 0.42 @ 67120.50' },
-        { time: '14:02:30', label: 'Order placed', detail: 'BTC/USDT LIMIT · 0.42 @ 67120.50' },
-        { time: '13:48:12', label: 'Param updated', detail: 'LSR-V2 atr_mult 2.0 → 2.4' },
-        { time: '11:30:00', label: 'Strategy enabled', detail: 'TPSE on BR-Main' },
-        { time: '09:15:44', label: 'Kill switch armed', detail: 'BR-Main · drawdown 4.2%' },
-      ].map((row, i) => (
-        <div
-          key={i}
-          className="flex items-baseline gap-3 py-2 font-mono text-[12px]"
-          style={{
-            borderTop: i ? '1px solid var(--border-subtle)' : 'none',
-            color: 'var(--text-secondary)',
-          }}
-        >
-          <span style={{ color: 'var(--text-muted)', minWidth: 64 }}>{row.time}</span>
-          <span
-            className="font-semibold"
-            style={{ color: 'var(--text-primary)', minWidth: 120 }}
-          >
-            {row.label}
-          </span>
-          <span className="truncate" style={{ flex: 1, color: 'var(--text-muted)' }}>
-            {row.detail}
-          </span>
+    <div className="qp-fact-card">
+      <div className="qp-fact-head">
+        <div>
+          <div className="qp-fact-lbl">Composite — NAV per unit</div>
+          <div className="qp-fact-val">
+            ${(last / 10).toFixed(2)}
+            <span className="qp-fact-suf">k</span>
+          </div>
         </div>
-      ))}
+        <div className="qp-fact-meta">
+          <div>
+            <span>As of</span>
+            <strong>14&nbsp;May&nbsp;2026</strong>
+          </div>
+          <div>
+            <span>Inception</span>
+            <strong>Feb&nbsp;2024</strong>
+          </div>
+        </div>
+      </div>
+      <EquityChart data={data} height={180} />
+      <div className="qp-fact-grid">
+        <div>
+          <span>Return ITD</span>
+          <strong>+{ret.toFixed(1)}%</strong>
+        </div>
+        <div>
+          <span>Realised Sharpe</span>
+          <strong>1.62</strong>
+        </div>
+        <div>
+          <span>Annualised vol</span>
+          <strong>9.4%</strong>
+        </div>
+        <div>
+          <span>Max drawdown</span>
+          <strong className="dn">−4.6%</strong>
+        </div>
+      </div>
+      <div className="qp-fact-foot">
+        <span>
+          Composite is an equal-volatility blend of all live strategies, rebalanced weekly. Gross of
+          fees. Past performance is not indicative of future results.
+        </span>
+      </div>
     </div>
   );
 }
 
-function Stat({ label, value, tone }: { label: string; value: string; tone?: 'profit' | 'loss' }) {
-  const color =
-    tone === 'profit'
-      ? 'var(--color-profit)'
-      : tone === 'loss'
-        ? 'var(--color-loss)'
-        : 'var(--text-primary)';
+function EquityChart({ data, height = 180 }: { data: number[]; height?: number }) {
+  if (!data || data.length === 0) return null;
+  const w = 600;
+  const h = height;
+  const pl = 40;
+  const pr = 16;
+  const pt = 14;
+  const pb = 24;
+  const min = Math.min(...data) * 0.995;
+  const max = Math.max(...data) * 1.005;
+  const xs = data.map((_, i) => pl + (i / (data.length - 1)) * (w - pl - pr));
+  const ys = data.map((v) => pt + (1 - (v - min) / (max - min)) * (h - pt - pb));
+  const path = data
+    .map((_, i) => `${i === 0 ? 'M' : 'L'} ${xs[i]!.toFixed(2)} ${ys[i]!.toFixed(2)}`)
+    .join(' ');
+  const lastX = xs[xs.length - 1]!;
+  const area = `${path} L ${lastX.toFixed(2)} ${(h - pb).toFixed(2)} L ${pl} ${(h - pb).toFixed(2)} Z`;
+  const yTicks = 4;
+  const yLabels = Array.from({ length: yTicks }, (_, i) => {
+    const v = min + (max - min) * (i / (yTicks - 1));
+    const y = pt + (1 - i / (yTicks - 1)) * (h - pt - pb);
+    return { v, y };
+  });
+  const xMarks = [
+    { idx: 0, label: "Feb '24" },
+    { idx: Math.floor(data.length * 0.5), label: "Feb '25" },
+    { idx: data.length - 1, label: "May '26" },
+  ];
   return (
-    <div>
-      <div
-        className="text-[11px] font-semibold uppercase tracking-[0.08em]"
-        style={{ color: 'var(--text-muted)' }}
-      >
-        {label}
+    <svg
+      viewBox={`0 0 ${w} ${h}`}
+      width="100%"
+      preserveAspectRatio="xMidYMid meet"
+      className="qp-fact-svg"
+      aria-hidden="true"
+    >
+      {yLabels.map(({ v, y }, i) => (
+        <g key={i}>
+          <line x1={pl} y1={y} x2={w - pr} y2={y} className="qp-chart-grid" />
+          <text x={pl - 6} y={y + 3} textAnchor="end" className="qp-chart-axis">
+            ${(v / 10).toFixed(0)}k
+          </text>
+        </g>
+      ))}
+      <path d={area} className="qp-chart-area" />
+      <path d={path} className="qp-chart-line" />
+      {xMarks.map((m) => (
+        <text key={m.label} x={xs[m.idx]} y={h - 8} textAnchor="middle" className="qp-chart-axis">
+          {m.label}
+        </text>
+      ))}
+    </svg>
+  );
+}
+
+/* ── Venues ────────────────────────────────────────────────────────── */
+function Venues() {
+  return (
+    <section className="qp-venues">
+      <div className="qp-wrap qp-venues-inner">
+        <div className="qp-venues-lbl">Executes on</div>
+        <div className="qp-venues-list">
+          <span>Binance</span>
+          <span>OKX</span>
+          <span>Bybit</span>
+          <span>Coinbase&nbsp;Prime</span>
+          <span>Kraken</span>
+          <span>Deribit</span>
+        </div>
+        <div className="qp-venues-aux">Audited by BDO&nbsp;Singapore</div>
       </div>
-      <div
-        className="num font-display"
-        style={{ fontSize: 22, fontWeight: 700, color, marginTop: 2 }}
-      >
-        {value}
+    </section>
+  );
+}
+
+/* ── Composite track record ────────────────────────────────────────── */
+function FactSheet() {
+  return (
+    <section className="qp-section paper">
+      <div className="qp-wrap">
+        <header className="qp-section-head">
+          <div>
+            <div className="qp-section-eye">Composite track record</div>
+            <h2>Monthly returns, since inception.</h2>
+          </div>
+          <p className="qp-section-lede">
+            Gross of management fee, net of all transaction costs (slippage, funding, exchange
+            fees). Calculated and reported in accordance with our internal performance manual;
+            methodology pack available on request.
+          </p>
+        </header>
+
+        <div className="qp-monthly">
+          <div className="qp-monthly-head">
+            <span />
+            {MONTHS.map((m) => (
+              <span key={m}>{m}</span>
+            ))}
+            <span className="r">YTD</span>
+          </div>
+          {(['24', '25', '26'] as const).map((yr) => {
+            const months = MONTHLY.filter((x) => x.y === yr);
+            const ytd = months.reduce((acc, x) => acc + (x.v ?? 0), 0);
+            return (
+              <div className="qp-monthly-row" key={yr}>
+                <span className="yr">20{yr}</span>
+                {MONTHS.map((m) => {
+                  const cell = months.find((x) => x.m === m);
+                  if (!cell || cell.v === null) {
+                    return (
+                      <span key={m} className="cell empty">
+                        —
+                      </span>
+                    );
+                  }
+                  const cls = cell.v >= 0 ? 'up' : 'dn';
+                  return (
+                    <span key={m} className={`cell ${cls}`}>
+                      {cell.v >= 0 ? '+' : ''}
+                      {cell.v.toFixed(1)}
+                    </span>
+                  );
+                })}
+                <span className={`cell r ytd ${ytd >= 0 ? 'up' : 'dn'}`}>
+                  {ytd >= 0 ? '+' : ''}
+                  {ytd.toFixed(1)}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="qp-monthly-foot">
+          <span>
+            All figures in %. Negative months shown in red. Composite inception February 2024.
+          </span>
+        </div>
       </div>
-    </div>
+    </section>
+  );
+}
+
+/* ── Discipline ────────────────────────────────────────────────────── */
+function Discipline() {
+  return (
+    <section className="qp-section">
+      <div className="qp-wrap">
+        <header className="qp-section-head">
+          <div>
+            <div className="qp-section-eye">How we operate</div>
+            <h2>Discipline, in three movements.</h2>
+          </div>
+          <p className="qp-section-lede">
+            We are not building a platform for retail traders. We are running a small desk for a
+            small number of allocators, with the operational habits of one.
+          </p>
+        </header>
+
+        <div className="qp-disc-grid">
+          {DISCIPLINE.map((it) => (
+            <article key={it.n}>
+              <div className="qp-disc-num">{it.n}</div>
+              <h3>{it.h}</h3>
+              <p>{it.p}</p>
+              <div className="qp-disc-stat">
+                <span>{it.k}</span>
+                <strong>{it.v}</strong>
+              </div>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ── Strategy spotlight ────────────────────────────────────────────── */
+function StrategySpot() {
+  return (
+    <section className="qp-section paper">
+      <div className="qp-wrap">
+        <header className="qp-section-head">
+          <div>
+            <div className="qp-section-eye">Active strategies</div>
+            <h2>Three of seven live programmes.</h2>
+          </div>
+          <p className="qp-section-lede">
+            Each strategy is bounded by an explicit capacity figure — the dollar value above which
+            the inefficiency it trades becomes uneconomic. We close to new capital before we close
+            to the market.
+          </p>
+        </header>
+
+        <div className="qp-strat-spot">
+          {STRATEGIES.map((s) => (
+            <article key={s.code} className="qp-strat-card">
+              <div className="top">
+                <div>
+                  <div className="code">{s.code}</div>
+                  <h3>{s.name}</h3>
+                </div>
+                <div className="meta">
+                  <div>
+                    <span>Inception</span>
+                    <strong>{s.inception}</strong>
+                  </div>
+                  <div>
+                    <span>Capacity</span>
+                    <strong>{s.capacity}</strong>
+                  </div>
+                </div>
+              </div>
+              <p className="desc">{s.desc}</p>
+              <div className="chart">
+                <Sparkline
+                  data={makeSpark(s.sparkSeed, 32)}
+                  color="currentColor"
+                  width={320}
+                  height={48}
+                  fill={false}
+                />
+              </div>
+              <div className="stats">
+                <div>
+                  <span>ITD return</span>
+                  <strong className="up">+{s.pnl.toFixed(2)}%</strong>
+                </div>
+                <div>
+                  <span>Sharpe</span>
+                  <strong>{s.sharpe.toFixed(2)}</strong>
+                </div>
+                <div>
+                  <span>Ann. vol</span>
+                  <strong>{s.vol.toFixed(1)}%</strong>
+                </div>
+                <div>
+                  <span>Max DD</span>
+                  <strong className="dn">{s.dd.toFixed(2)}%</strong>
+                </div>
+              </div>
+            </article>
+          ))}
+        </div>
+
+        <div className="qp-strat-foot">
+          <span>
+            Live programmes only. The four additional strategies and three decommissioned ones are
+            documented in the methodology pack.
+          </span>
+          <Link href="/docs">Methodology pack (PDF) &nbsp;↓</Link>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ── Partner letter ────────────────────────────────────────────────── */
+function Letter() {
+  return (
+    <section className="qp-section paper qp-letter-section">
+      <div className="qp-wrap qp-letter-grid">
+        <div className="qp-letter-meta">
+          <div className="qp-section-eye">From the desk</div>
+          <div className="qp-letter-author">
+            <div className="avatar">RA</div>
+            <div>
+              <strong>Rafi Adi</strong>
+              <span>Managing Partner</span>
+            </div>
+          </div>
+          <div className="qp-letter-date">Q1 2026 partner letter</div>
+        </div>
+        <blockquote className="qp-letter-quote">
+          <p>
+            “We added no new strategies in the first quarter. Two were studied at length; both
+            failed the out-of-sample test for reasons consistent with their thesis. We will continue
+            to add slowly, retire promptly, and report honestly. The job is to compound capital —
+            not to ship product.”
+          </p>
+          <Link href="/docs" className="qp-letter-link">
+            Read the full letter (PDF) &nbsp;↓
+          </Link>
+        </blockquote>
+      </div>
+    </section>
+  );
+}
+
+/* ── Risk band ─────────────────────────────────────────────────────── */
+function Risk() {
+  return (
+    <section className="qp-section brand">
+      <div className="qp-wrap">
+        <header className="qp-section-head">
+          <div>
+            <div className="qp-section-eye">Risk &amp; controls</div>
+            <h2>Three guarantees we put in writing.</h2>
+          </div>
+          <p className="qp-section-lede">
+            The same controls that govern an institutional desk, applied to a small allocator’s
+            capital. We never custody, we never co-mingle, we do not run a proprietary book
+            alongside.
+          </p>
+        </header>
+        <div className="qp-risk-grid">
+          {RISK.map((it) => (
+            <article key={it.num}>
+              <div className="num">{it.num}</div>
+              <h3>{it.h}</h3>
+              <p>{it.p}</p>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ── Contact ───────────────────────────────────────────────────────── */
+function Contact() {
+  return (
+    <section className="qp-section paper">
+      <div className="qp-wrap qp-contact-grid">
+        <div className="qp-contact-copy">
+          <div className="qp-section-eye">Speak with the desk</div>
+          <h2>For accredited and institutional investors only.</h2>
+          <p>
+            We accept new mandates twice a quarter. A member of the desk will respond within two
+            business days with the methodology pack and the documents required for onboarding.
+          </p>
+          <div className="qp-contact-meta">
+            <div>
+              <span>Desk</span>
+              <strong>desk@blackridge.capital</strong>
+            </div>
+            <div>
+              <span>Address</span>
+              <strong>
+                68&nbsp;Telok&nbsp;Ayer&nbsp;Street&nbsp;#04-01
+                <br />
+                Singapore&nbsp;048471
+              </strong>
+            </div>
+            <div>
+              <span>Regulator</span>
+              <strong>MAS · CMS-LR-202407</strong>
+            </div>
+          </div>
+        </div>
+        <div className="qp-contact-action">
+          <Link href="/onboarding" className="qp-btn-primary lg">
+            Request a meeting
+          </Link>
+          <span className="qp-contact-note">
+            Submission constitutes neither a subscription nor an offer. Blackridge will respond only
+            after reviewing eligibility under the Securities and Futures Act (Singapore) or
+            equivalent in the investor’s jurisdiction.
+          </span>
+        </div>
+      </div>
+    </section>
   );
 }

@@ -1,6 +1,7 @@
 // Support-message API. POST: any logged-in user. GET + PATCH: admin only
 // (gated by @PreAuthorize on the backend, not the client).
 import { apiClient } from './client';
+import { addOptionalParam, buildPageParams } from './queryParams';
 import type { PageEnvelope } from '@/types/api';
 
 export type SupportMessageStatus = 'NEW' | 'READ' | 'RESOLVED';
@@ -44,8 +45,8 @@ export async function listSupportMessages(
   size = 25,
   status?: SupportMessageStatus,
 ): Promise<SupportMessagePage> {
-  const params: Record<string, string | number> = { page, size };
-  if (status) params.status = status;
+  const params: Record<string, string | number> = buildPageParams({ page, size }, 25);
+  addOptionalParam(params, 'status', status);
   const { data } = await apiClient.get<SupportMessagePage>('/api/v1/support', { params });
   return data;
 }

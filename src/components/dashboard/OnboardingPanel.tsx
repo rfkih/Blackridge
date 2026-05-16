@@ -203,7 +203,7 @@ function OnboardingStep({ step, isFocus }: { step: Step; isFocus: boolean }) {
     <li
       className={`flex items-start gap-3 rounded-sm border px-3 py-2.5 transition-colors ${
         step.done
-          ? 'border-[var(--color-profit)]/30 bg-[rgba(22,179,100,0.06)]'
+          ? 'border-[var(--color-profit)]/30 bg-[var(--tint-profit)]'
           : isFocus
             ? 'border-[var(--accent-primary)] bg-[var(--bg-elevated)]'
             : 'border-bd-subtle bg-bg-surface'
@@ -215,7 +215,7 @@ function OnboardingStep({ step, isFocus }: { step: Step; isFocus: boolean }) {
         className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-sm"
         style={{
           background: step.done
-            ? 'rgba(22,179,100,0.15)'
+            ? 'var(--tint-profit)'
             : isFocus
               ? 'var(--accent-glow)'
               : 'var(--bg-elevated)',

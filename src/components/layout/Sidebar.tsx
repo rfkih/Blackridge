@@ -247,7 +247,10 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                         style={{
                           flexShrink: 0,
                           opacity: 0.95,
-                          color: active ? 'var(--brand-500)' : '#8C95A2',
+                          // Brand is literal #121924 in both modes — invisible
+                          // on the always-dark sidebar. Active state reads via
+                          // white icon + the row's translucent-white background.
+                          color: active ? '#F2F5F8' : '#8C95A2',
                         }}
                       />
                       <span>{label}</span>
@@ -337,7 +340,10 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                         strokeWidth={1.6}
                         style={{
                           flexShrink: 0,
-                          color: active ? 'var(--brand-500)' : '#8C95A2',
+                          // Brand is literal #121924 in both modes — invisible
+                          // on the always-dark sidebar. Active state reads via
+                          // white icon + the row's translucent-white background.
+                          color: active ? '#F2F5F8' : '#8C95A2',
                         }}
                       />
                       <span>{label}</span>
@@ -367,7 +373,10 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
               width: 32,
               height: 32,
               borderRadius: '50%',
-              background: 'var(--brand-500)',
+              // Avatar plate uses a translucent-white tint instead of the
+              // brand var — literal #121924 disappears against the dark
+              // sidebar, leaving the initials floating.
+              background: 'rgba(255,255,255,0.10)',
               color: '#fff',
               display: 'grid',
               placeItems: 'center',

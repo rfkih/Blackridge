@@ -12,6 +12,7 @@ import {
 } from 'recharts';
 import { useCurrencyFormatter } from '@/hooks/useCurrency';
 import { formatDate } from '@/lib/formatters';
+import type { ChartTooltipItem } from '@/lib/charts/rechartsTheme';
 
 export interface EquityCurvePoint {
   ts: number;
@@ -24,16 +25,18 @@ interface EquityCurveProps {
   height?: number;
 }
 
-interface TooltipItem {
-  payload: { ts: number; equity: number };
-}
-
 export function EquityCurve({ points, initialCapital, height = 220 }: EquityCurveProps) {
   const capital = initialCapital ?? points[0]?.equity ?? 0;
   const data = useMemo(() => points.map((p) => ({ ts: p.ts, equity: p.equity })), [points]);
   const formatCurrency = useCurrencyFormatter();
 
-  const EquityTooltip = ({ active, payload }: { active?: boolean; payload?: TooltipItem[] }) => {
+  const EquityTooltip = ({
+    active,
+    payload,
+  }: {
+    active?: boolean;
+    payload?: ChartTooltipItem<{ ts: number; equity: number }>[];
+  }) => {
     if (!active || !payload?.length) return null;
     const d = payload[0]?.payload;
     if (!d) return null;

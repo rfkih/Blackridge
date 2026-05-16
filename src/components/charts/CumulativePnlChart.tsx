@@ -11,7 +11,12 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
-import { AXIS_TICK, CHART_COLORS, TOOLTIP_CONTENT_STYLE } from '@/lib/charts/rechartsTheme';
+import {
+  AXIS_TICK,
+  CHART_COLORS,
+  TOOLTIP_CONTENT_STYLE,
+  type ChartTooltipItem,
+} from '@/lib/charts/rechartsTheme';
 import { useCurrencyFormatter } from '@/hooks/useCurrency';
 import type { DailyPnl } from '@/types/pnl';
 
@@ -26,10 +31,6 @@ interface CumulativePoint {
   daily: number;
 }
 
-interface TooltipItem {
-  payload: CumulativePoint;
-}
-
 export function CumulativePnlChart({ data, height = 240 }: CumulativePnlChartProps) {
   const formatCurrency = useCurrencyFormatter();
   const CumulativeTooltip = ({
@@ -37,7 +38,7 @@ export function CumulativePnlChart({ data, height = 240 }: CumulativePnlChartPro
     payload,
   }: {
     active?: boolean;
-    payload?: TooltipItem[];
+    payload?: ChartTooltipItem<CumulativePoint>[];
   }) => {
     if (!active || !payload?.length) return null;
     const d = payload[0]?.payload;
