@@ -171,7 +171,7 @@ export default function StrategiesOverviewPage() {
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-5">
             {[
               { step: '01', title: 'Hypothesis', body: 'Documented edge, regime, expected behavior.' },
-              { step: '02', title: 'Backtest', body: 'Walk-forward + slippage + fees.' },
+              { step: '02', title: 'Backtest', body: 'Walk-forward across price + macro + sentiment; slippage + fees in.' },
               { step: '03', title: 'Monte-Carlo', body: 'Stress fills, slippage, ordering.' },
               { step: '04', title: 'Paper', body: 'Live ticks, no real orders, 30 days.' },
               { step: '05', title: 'Live', body: 'Tiny size first; risk caps armed.' },

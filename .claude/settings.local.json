@@ -175,7 +175,10 @@
       "Bash(cp \"C:\\\\Users\\\\rifki\\\\.claude\\\\projects\\\\C--Project-Blackridge\\\\24866024-5586-432c-9e2f-5888c99a8c02\\\\tool-results\\\\webfetch-1778916565586-twxvq7.bin\" /tmp/blackridge-design/design.tar.gz)",
       "Bash(tar -xzf design.tar.gz)",
       "Bash(cp \"C:\\\\Users\\\\rifki\\\\.claude\\\\projects\\\\C--Project-blackridge\\\\0a409897-98e0-439c-b9be-4ef3dc38bf4b\\\\tool-results\\\\webfetch-1778918344916-ydjiyi.bin\" /tmp/design.tar.gz)",
-      "Bash(tar -xzf /tmp/design.tar.gz -C /tmp/design)"
+      "Bash(tar -xzf /tmp/design.tar.gz -C /tmp/design)",
+      "Bash(git rm *)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)"
     ]
   }
 }

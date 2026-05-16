@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import type { Metadata } from 'next';
-import { ArrowRight, Play, Beaker, Bot, LineChart, Shield, Zap, List } from 'lucide-react';
+import { ArrowRight, Play, Beaker, Bot, LineChart, Shield, Zap, Layers } from 'lucide-react';
 import { MarketingShell } from '@/components/marketing/MarketingShell';
 import { Sparkline, makeSpark } from '@/components/marketing/Sparkline';
 
@@ -156,9 +156,9 @@ export default function WelcomePage() {
               body="Run the same strategy across sub-accounts with separate risk budgets. One dashboard, many keys."
             />
             <Feature
-              icon={<List />}
-              title="Audit trail forever"
-              body="Every order, fill, parameter change, and rebalance is logged. Export to CSV in two clicks."
+              icon={<Layers />}
+              title="Alternative data baked in"
+              body="Strategies trade on more than price. FRED macro, Binance funding & open interest, on-chain flows from CoinMetrics and DeFiLlama, and the Fear & Greed sentiment index — all point-in-time, all built in."
             />
           </div>
         </div>

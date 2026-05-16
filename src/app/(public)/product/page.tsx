@@ -70,7 +70,7 @@ const DISCIPLINE = [
   {
     n: 'II.',
     h: 'Construction',
-    p: 'Backtests use point-in-time data with realistic slippage, funding, and venue fees. Out-of-sample windows are reserved before parameter selection. Monte-Carlo on timing establishes a confidence interval, not a single curve.',
+    p: 'Backtests use point-in-time data — price, macro, on-chain, sentiment — with realistic slippage, funding, and venue fees. Out-of-sample windows are reserved before parameter selection. Monte-Carlo on timing establishes a confidence interval, not a single curve.',
     k: 'Strategies retired before live',
     v: '14 of 21',
   },
@@ -140,6 +140,36 @@ const RISK = [
   },
 ] as const;
 
+/* Signals — every external feed the strategies see at decision time.
+   Mirrors the seven sources wired into the Research JVM's ML-ingest plane
+   (see `src/lib/api/mlIngest.ts`). Grouped by what they tell the model. */
+const SIGNALS = [
+  {
+    n: 'I.',
+    h: 'Macro',
+    sources: 'FRED · ALFRED · ForexFactory',
+    p: 'Real yields, DXY, VIX, M2, headline CPI, and the live econ calendar (FOMC, CPI, NFP, unemployment). Strategies size down ahead of named events and re-enter once realised vol re-anchors.',
+    k: 'Series tracked',
+    v: '32',
+  },
+  {
+    n: 'II.',
+    h: 'Market structure',
+    sources: 'Binance · CoinGecko',
+    p: 'Funding rate, open interest, top-trader long-short, taker buy/sell volume, plus global market cap and BTC dominance. Conviction is a function of crowding and flow direction, not price alone.',
+    k: 'Update cadence',
+    v: '1 min',
+  },
+  {
+    n: 'III.',
+    h: 'On-chain & sentiment',
+    sources: 'CoinMetrics · DeFiLlama · alternative.me',
+    p: 'Exchange netflow, active addresses, realised cap, stablecoin supply, chain TVL, and the Fear & Greed Index. Regime tags shift the strategy mix toward mean-reversion or trend depending on extremity.',
+    k: 'Fear & Greed history',
+    v: '> 6 yrs daily',
+  },
+] as const;
+
 export default function ProductPage() {
   return (
     <MarketingShell activeNav="product">
@@ -148,6 +178,7 @@ export default function ProductPage() {
         <Venues />
         <FactSheet />
         <Discipline />
+        <Signals />
         <StrategySpot />
         <Letter />
         <Risk />
@@ -408,6 +439,54 @@ function Discipline() {
             <article key={it.n}>
               <div className="qp-disc-num">{it.n}</div>
               <h3>{it.h}</h3>
+              <p>{it.p}</p>
+              <div className="qp-disc-stat">
+                <span>{it.k}</span>
+                <strong>{it.v}</strong>
+              </div>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ── Signals ───────────────────────────────────────────────────────── */
+function Signals() {
+  return (
+    <section className="qp-section">
+      <div className="qp-wrap">
+        <header className="qp-section-head">
+          <div>
+            <div className="qp-section-eye">Inputs</div>
+            <h2>Signals, beyond the price tape.</h2>
+          </div>
+          <p className="qp-section-lede">
+            Every strategy scores regime, conviction, and exhaustion against seven point-in-time-correct
+            external feeds — macro, market microstructure, on-chain flows, and sentiment. The candle is
+            the smallest of them.
+          </p>
+        </header>
+
+        <div className="qp-disc-grid">
+          {SIGNALS.map((it) => (
+            <article key={it.n}>
+              <div className="qp-disc-num">{it.n}</div>
+              <h3>{it.h}</h3>
+              <div
+                style={{
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: 11,
+                  letterSpacing: '0.06em',
+                  textTransform: 'uppercase',
+                  color: 'var(--qp-ink-muted)',
+                  fontWeight: 600,
+                  margin: '-6px 0 14px',
+                }}
+              >
+                {it.sources}
+              </div>
               <p>{it.p}</p>
               <div className="qp-disc-stat">
                 <span>{it.k}</span>

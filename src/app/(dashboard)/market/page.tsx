@@ -7,6 +7,7 @@ import { AlertCircle, LineChart, RefreshCw } from 'lucide-react';
 import { SymbolPicker } from '@/components/charts/SymbolPicker';
 import { IntervalTabs } from '@/components/charts/IntervalTabs';
 import { OhlcvReadout } from '@/components/charts/OhlcvReadout';
+import { MarketContextBar } from '@/components/market/MarketContextBar';
 import { ErrorBoundary } from '@/components/shared/ErrorBoundary';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -152,6 +153,12 @@ function MarketPageContent() {
         title="Candlestick viewer"
         description="Browse any symbol/interval with optional EMA, Bollinger, Keltner, and RSI overlays."
       />
+
+      {/* Market-wide context: regime + sentiment. Sits above the chart so it
+          frames how to read whatever the user has selected, without competing
+          with the chart's own header. Stays anchored to BTC regardless of the
+          symbol being viewed — both are crypto-market-level signals. */}
+      <MarketContextBar />
 
       <section className="overflow-hidden rounded-xl border border-bd-subtle bg-bg-surface">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-bd-subtle px-4 py-3">
