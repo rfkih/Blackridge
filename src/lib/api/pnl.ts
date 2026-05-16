@@ -25,7 +25,7 @@ interface BackendDailyPnl {
 
 interface BackendStrategyPnl {
   strategyCode: string | null;
-  // Backend emits `realizedPnl`; older builds shipped `totalPnl`. Accept both.
+
   realizedPnl?: number | string | null;
   totalPnl?: number | string | null;
   tradeCount: number | null;

@@ -56,7 +56,6 @@ export function BacktestActivateStrategyDialog({ run, open, onClose }: Props) {
   const strategiesQ = useAccountStrategies();
   const activate = useActivateBacktestStrategy(run.id);
 
-  // Reset state when dialog opens
   useEffect(() => {
     if (open) {
       setSelectedCode(strategyCodes[0] ?? '');
@@ -70,12 +69,10 @@ export function BacktestActivateStrategyDialog({ run, open, onClose }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
-  // When selected code changes, clear the strategy selection
   useEffect(() => {
     setSelectedStrategyId('');
   }, [selectedCode]);
 
-  // Strategies owned by the user that match the selected strategy code
   const matchingStrategies = useMemo(() => {
     if (!strategiesQ.data || !selectedCode) return [];
     return strategiesQ.data.filter(
@@ -119,7 +116,6 @@ export function BacktestActivateStrategyDialog({ run, open, onClose }: Props) {
       setActivatedSimulated(result.simulated);
       setStep('success');
     } catch {
-      // error shown inline via activate.error
     }
   }
 
@@ -222,7 +218,7 @@ function ConfigureStep({
 }) {
   return (
     <div className="space-y-4">
-      {/* Run summary — symbol, interval, return, and the sizing config used */}
+      {}
       <div className="flex flex-wrap gap-x-4 gap-y-1 rounded-sm bg-bg-base px-3 py-2 text-[11px]">
         <span className="text-text-muted">
           Symbol <span className="font-mono font-semibold text-text-primary">{run.symbol}</span>
@@ -262,7 +258,7 @@ function ConfigureStep({
         )}
       </div>
 
-      {/* Strategy code selector (multi-strategy runs) */}
+      {}
       {strategyCodes.length > 1 && (
         <div className="space-y-1.5">
           <Label className="text-[11px] font-semibold uppercase tracking-wider text-text-muted">
@@ -283,7 +279,7 @@ function ConfigureStep({
         </div>
       )}
 
-      {/* Account strategy selector */}
+      {}
       <div className="space-y-1.5">
         <Label className="text-[11px] font-semibold uppercase tracking-wider text-text-muted">
           Your {selectedCode} Strategy
@@ -334,7 +330,7 @@ function ConfigureStep({
         )}
       </div>
 
-      {/* Selected strategy info */}
+      {}
       {selectedStrategy && (
         <div className="rounded-sm border border-bd-subtle bg-bg-base px-3 py-2 text-[11px] space-y-1">
           <div className="flex items-center justify-between">
@@ -377,7 +373,7 @@ function ConfigureStep({
         </div>
       )}
 
-      {/* Param overrides info */}
+      {}
       <div className="rounded-sm border border-bd-subtle bg-bg-base px-3 py-2 text-[11px] text-text-secondary">
         <span className="font-semibold text-text-primary">{overrideCount}</span>{' '}
         parameter override{overrideCount !== 1 ? 's' : ''} from this run will be saved as a
@@ -389,7 +385,7 @@ function ConfigureStep({
         )}
       </div>
 
-      {/* Preset name */}
+      {}
       <div className="space-y-1.5">
         <Label className="text-[11px] font-semibold uppercase tracking-wider text-text-muted">
           Preset name
@@ -404,7 +400,7 @@ function ConfigureStep({
         />
       </div>
 
-      {/* Error */}
+      {}
       {error && (
         <div className="flex items-start gap-2 rounded-sm border border-loss/30 bg-tint-loss px-3 py-2 text-[11px] text-loss">
           <AlertTriangle size={12} className="mt-0.5 shrink-0" />
@@ -412,7 +408,7 @@ function ConfigureStep({
         </div>
       )}
 
-      {/* Actions */}
+      {}
       <div className="flex items-center justify-end gap-2 pt-1">
         <button
           type="button"

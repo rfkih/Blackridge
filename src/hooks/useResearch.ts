@@ -60,8 +60,6 @@ export function useSearchResearchLog(q: ResearchLogQuery) {
   });
 }
 
-// ── Sweep hooks ─────────────────────────────────────────────────────────────
-
 const SWEEP_LIST_KEY = ['research', 'sweeps'] as const;
 
 export function useCreateSweep() {
@@ -186,10 +184,7 @@ export function useSweep(sweepId: string | undefined) {
     enabled: Boolean(sweepId) && Boolean(userId),
     refetchInterval: (query) => {
       const status = query.state.data?.status;
-      // 1s while running so per-combo progress bars advance smoothly. Backend
-      // polls the underlying backtest at 500ms and persists on every change;
-      // 1s on the client gives the UI two chances to render each progress
-      // step. Drops to off once the sweep is settled.
+
       if (status === 'RUNNING' || status === 'PENDING') return 1_000;
       return false;
     },

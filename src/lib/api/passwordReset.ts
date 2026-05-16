@@ -1,6 +1,4 @@
-// Password-reset API. Both endpoints are public — no auth header needed.
-// The request endpoint is intentionally no-leak: same response whether
-// the email exists or not, so callers can never enumerate users.
+
 import { apiClient } from './client';
 
 export interface PasswordResetRequestPayload {

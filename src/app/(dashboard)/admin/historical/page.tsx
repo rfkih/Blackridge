@@ -59,18 +59,15 @@ import {
   type SubmitJobRequest,
 } from '@/lib/api/historical';
 
-// Free-text symbol input + a short common-pairs dropdown — backend accepts
-// any Binance symbol, no hardcoded set.
 const COMMON_SYMBOLS = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'BNBUSDT', 'XRPUSDT'];
 
-// Action keys are used as both render order + dedup keys when submitting jobs.
 type ActionKey = 'warmup' | 'rangeFill' | 'recompute' | 'fundingHistory' | `patch:${string}`;
 
 interface SelectableAction {
   key: ActionKey;
   label: string;
   description: string;
-  count?: number; // visible row-count for patches
+  count?: number;
   variant?: 'default' | 'danger';
   disabled?: boolean;
   disabledReason?: string;
@@ -79,7 +76,7 @@ interface SelectableAction {
 function defaultDateRange(): { from: string; to: string } {
   const now = new Date();
   const fromDt = subDays(now, 7);
-  // datetime-local format — Spring parses as LocalDateTime without timezone.
+
   return {
     from: format(fromDt, "yyyy-MM-dd'T'HH:mm"),
     to: format(now, "yyyy-MM-dd'T'HH:mm"),
@@ -87,8 +84,6 @@ function defaultDateRange(): { from: string; to: string } {
 }
 
 function toIsoSeconds(v: string): string {
-  // datetime-local omits seconds; the backend's LocalDateTime parser tolerates
-  // both, but the round-trip is cleaner with seconds present.
   return v.length === 16 ? `${v}:00` : v;
 }
 
@@ -110,22 +105,17 @@ export default function AdminHistoricalPage() {
 function HistoricalIntegrityConsole() {
   const defaults = useMemo(defaultDateRange, []);
 
-  // ── Scope state ──────────────────────────────────────────────────────────
   const [symbol, setSymbol] = useState('BTCUSDT');
   const [interval, setIntervalValue] = useState<string>('1h');
   const [from, setFrom] = useState<string>(defaults.from);
   const [to, setTo] = useState<string>(defaults.to);
   const [useFullRange, setUseFullRange] = useState<boolean>(true);
 
-  // Whether the operator has actually clicked "Inspect" on this scope. We
-  // do not auto-fire the report on every keystroke — coverage queries scan
-  // a partition and shouldn't run on form-edit churn.
   const [inspected, setInspected] = useState<boolean>(false);
 
   const fromIso = useFullRange ? undefined : toIsoSeconds(from);
   const toIso = useFullRange ? undefined : toIsoSeconds(to);
 
-  // ── Diagnostic + registry queries ────────────────────────────────────────
   const coverage = useCoverageReport({
     symbol,
     interval,
@@ -141,19 +131,12 @@ function HistoricalIntegrityConsole() {
     return set;
   }, [patchable.data]);
 
-  // ── Selection state ──────────────────────────────────────────────────────
   const [selected, setSelected] = useState<Set<ActionKey>>(new Set());
-  // Reset selection when scope changes (the row counts no longer apply).
+
   useEffect(() => {
     setSelected(new Set());
   }, [symbol, interval, from, to, useFullRange]);
 
-  // ── Available repair actions (derived from coverage + registry + selection)
-  // Mutual exclusion: warmup, rangeFill, and recompute all mutate
-  // feature_store on the same scope — running two together is a race
-  // (warmup overwrites recompute's inserts, rangeFill races recompute's
-  // delete). Operator picks at most one of the three; checking any one
-  // disables the other two.
   const FS_MUTATORS: ActionKey[] = useMemo(() => ['warmup', 'rangeFill', 'recompute'], []);
   const selectedFsMutator = FS_MUTATORS.find((k) => selected.has(k));
 
@@ -167,7 +150,6 @@ function HistoricalIntegrityConsole() {
       return `Conflicts with the selected "${selectedFsMutator}" action on the same scope — pick one feature_store mutator at a time.`;
     };
 
-    // Warmup is always available — it's the cold-start workhorse.
     {
       const conflict = fsConflictReason('warmup');
       actions.push({
@@ -180,7 +162,6 @@ function HistoricalIntegrityConsole() {
       });
     }
 
-    // Range fill requires a date range.
     {
       const conflict = fsConflictReason('rangeFill');
       const reason =
@@ -201,9 +182,6 @@ function HistoricalIntegrityConsole() {
       });
     }
 
-    // NULL-column patches — one per non-zero column with a registered patcher.
-    // Independent of FS mutators (different columns, different scope), so no
-    // mutual-exclusion logic applies here.
     Object.entries(report.nullColumns)
       .sort((a, b) => b[1] - a[1])
       .forEach(([column, count]) => {
@@ -222,15 +200,12 @@ function HistoricalIntegrityConsole() {
         });
       });
 
-    // Funding-history backfill — touches funding_rate_history, doesn't
-    // collide with feature_store mutators.
     actions.push({
       key: 'fundingHistory',
       label: 'Backfill funding_rate_history (Binance fapi)',
       description: 'Pull funding events into funding_rate_history. Idempotent; perp-only.',
     });
 
-    // Recompute is destructive — always last, always range-required.
     {
       const conflict = fsConflictReason('recompute');
       const reason =
@@ -268,7 +243,6 @@ function HistoricalIntegrityConsole() {
     return null;
   }, [from, to, useFullRange]);
 
-  // ── Submission ───────────────────────────────────────────────────────────
   const submit = useSubmitJob();
   const [activeJobIds, setActiveJobIds] = useState<string[]>([]);
   const [confirmRecompute, setConfirmRecompute] = useState<boolean>(false);
@@ -317,7 +291,7 @@ function HistoricalIntegrityConsole() {
         const column = k.slice('patch:'.length);
         jobs.push({
           jobType: 'PATCH_NULL_COLUMN',
-          // No symbol/interval → handler auto-discovers every affected pair.
+
           params: { column },
         });
       }
@@ -328,9 +302,6 @@ function HistoricalIntegrityConsole() {
       return;
     }
 
-    // Submit in parallel — each call goes through one cookie-authed request,
-    // backend persists PENDING immediately. Per-job errors are surfaced via
-    // toast; the overall flow only reports the successful subset.
     const settled = await Promise.all(
       jobs.map(async (req) => {
         try {
@@ -363,7 +334,6 @@ function HistoricalIntegrityConsole() {
     coverage.refetch();
   };
 
-  // ── Render ───────────────────────────────────────────────────────────────
   return (
     <div className="space-y-6">
       <header>
@@ -433,8 +403,6 @@ function HistoricalIntegrityConsole() {
     </div>
   );
 }
-
-// ─── Scope card ──────────────────────────────────────────────────────────────
 
 interface ScopeCardProps {
   symbol: string;
@@ -601,8 +569,6 @@ function ScopeCard(props: ScopeCardProps) {
     </section>
   );
 }
-
-// ─── Coverage report card ────────────────────────────────────────────────────
 
 interface CoverageCardProps {
   query: ReturnType<typeof useCoverageReport>;
@@ -833,8 +799,6 @@ function Row({
   );
 }
 
-// ─── Repair actions card ─────────────────────────────────────────────────────
-
 interface RepairActionsCardProps {
   actions: SelectableAction[];
   selected: Set<ActionKey>;
@@ -937,8 +901,6 @@ function RepairActionsCard(props: RepairActionsCardProps) {
     </section>
   );
 }
-
-// ─── Active jobs panel ───────────────────────────────────────────────────────
 
 function ActiveJobsPanel({ jobIds, onDismiss }: { jobIds: string[]; onDismiss: () => void }) {
   return (
@@ -1079,8 +1041,6 @@ function StatusBadge({ status }: { status: JobStatus }) {
   );
 }
 
-// ─── Recent jobs panel ───────────────────────────────────────────────────────
-
 function RecentJobsPanel() {
   const [expanded, setExpanded] = useState<boolean>(false);
   const list = useListJobs({ limit: 20 });
@@ -1156,8 +1116,6 @@ function RecentJobRow({ job }: { job: HistoricalBackfillJob }) {
   );
 }
 
-// ─── Recompute confirmation dialog ───────────────────────────────────────────
-
 interface RecomputeConfirmDialogProps {
   open: boolean;
   symbol: string;
@@ -1201,8 +1159,6 @@ function RecomputeConfirmDialog(props: RecomputeConfirmDialogProps) {
   );
 }
 
-// ─── Backfill candle range card ──────────────────────────────────────────────
-
 function BackfillCandleRangeCard({
   onJobsSubmitted,
 }: {
@@ -1211,8 +1167,7 @@ function BackfillCandleRangeCard({
   const [symbol, setSymbol] = useState('BTCUSDT');
   const [from, setFrom] = useState<string>('2020-01-01T00:00');
   const [to, setTo] = useState<string>(format(subYears(new Date(), 3), "yyyy-MM-dd'T'HH:mm"));
-  // Local flag because useMutation.isPending flips false after the first
-  // mutateAsync settles — not after all parallel calls complete.
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const submit = useSubmitJob();
 
@@ -1231,7 +1186,6 @@ function BackfillCandleRangeCard({
     const toIso = toIsoSeconds(to);
 
     try {
-      // Submit one job per active interval in parallel.
       const settled = await Promise.all(
         BACKTEST_INTERVALS.map(async (interval) => {
           try {
@@ -1355,8 +1309,6 @@ function BackfillCandleRangeCard({
     </section>
   );
 }
-
-// ─── Admin notice ────────────────────────────────────────────────────────────
 
 function AdminNotice() {
   return (

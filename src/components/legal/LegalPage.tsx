@@ -11,7 +11,6 @@ interface LegalPageProps {
   children: React.ReactNode;
 }
 
-// Shared chrome for /privacy, /terms, /cookies.
 export function LegalPage({ title, subtitle, children }: LegalPageProps) {
   useDocumentTitle(title);
 

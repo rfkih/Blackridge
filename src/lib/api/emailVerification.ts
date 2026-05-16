@@ -1,5 +1,4 @@
-// Email-verification API. /verify is public (token IS the auth);
-// /resend-verification requires the user's session.
+
 import { apiClient } from './client';
 
 export async function verifyEmail(token: string): Promise<void> {

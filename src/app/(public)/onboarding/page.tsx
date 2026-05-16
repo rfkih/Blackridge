@@ -69,7 +69,7 @@ export default function OnboardingPage() {
 
   return (
     <div className="br grid min-h-screen grid-cols-2">
-      {/* Left art panel */}
+      {}
       <aside
         className="relative flex flex-col justify-between overflow-hidden p-14"
         style={{
@@ -154,7 +154,7 @@ export default function OnboardingPage() {
         </div>
       </aside>
 
-      {/* Right form */}
+      {}
       <main className="w-full p-14" style={{ background: 'var(--bg-base)' }}>
         <div className="mx-auto w-full" style={{ maxWidth: 560 }}>
           <div className="mb-4 flex items-center justify-between">
@@ -472,7 +472,7 @@ export default function OnboardingPage() {
             </Step>
           )}
 
-          {/* Footer actions */}
+          {}
           <div
             className="mt-9 flex items-center justify-between pt-6"
             style={{ borderTop: '1px solid var(--border-subtle)' }}
@@ -539,9 +539,6 @@ function Step({ title, sub, children }: { title: string; sub: string; children: 
 }
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  // The label wraps its child input — implicit association per HTML spec.
-  // jsx-a11y's strict default still flags this since it can't statically
-  // see the input through arbitrary children; the wrapping pattern is valid.
   return (
     // eslint-disable-next-line jsx-a11y/label-has-associated-control
     <label className="mb-3.5 block">

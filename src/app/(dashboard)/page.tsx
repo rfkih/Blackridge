@@ -61,17 +61,16 @@ export default function DashboardPage() {
 
   return (
     <div className="br flex flex-col gap-4">
-      {/* Email-verification reminder — auto-hides once verified. */}
+      {}
       <EmailVerificationBanner />
 
-      {/* Drawdown kill-switch alerts — auto-hides when no strategy is tripped. */}
+      {}
       <KillSwitchBanner />
 
-      {/* Onboarding ladder — auto-hides when the user is fully set up. */}
+      {}
       <OnboardingPanel />
 
-      {/* Row 1 — compact balance card + 3 stat cards (Open positions, Today's
-          P&L, Win rate). Mirrors the prototype's 4-column hero row. */}
+      {}
       <section
         className="dashboard-hero-row grid gap-4"
         style={{
@@ -113,7 +112,7 @@ export default function DashboardPage() {
         />
       </section>
 
-      {/* Row 2 — equity chart panel + promo column (2 stacked tiles). */}
+      {}
       <section
         className="dashboard-two-col grid gap-4"
         style={{ gridTemplateColumns: 'minmax(0, 2fr) minmax(0, 1fr)' }}
@@ -129,13 +128,13 @@ export default function DashboardPage() {
         <PromoTileColumn />
       </section>
 
-      {/* Row 3 — quick actions (Deposit, Withdraw, Run strategy, Set limits). */}
+      {}
       <QuickActionRow />
 
-      {/* Row 4 — full-width open positions table. */}
+      {}
       <PositionsPanel trades={openTrades} profitableCount={profitableCount} />
 
-      {/* Row 5 — daily P&L bar chart + watchlist. */}
+      {}
       <section
         className="grid gap-4"
         style={{ gridTemplateColumns: 'minmax(0, 2fr) minmax(0, 1fr)' }}
@@ -147,8 +146,6 @@ export default function DashboardPage() {
   );
 }
 
-// Quick helper for the Today's P&L stat — formats a number with absolute
-// value (sign comes from the caller).
 function formatAbsCurrency(n: number): string {
   return (
     '$' +
@@ -156,8 +153,6 @@ function formatAbsCurrency(n: number): string {
   );
 }
 
-// 2 stacked promo tiles paired alongside the equity panel — matches the
-// prototype's row 2 layout (chart 2fr | promo column 1fr).
 function PromoTileColumn() {
   return (
     <section className="grid gap-4" style={{ gridTemplateRows: '1fr 1fr' }}>
@@ -179,10 +174,6 @@ function PromoTileColumn() {
   );
 }
 
-// Compact balance card for the hero row — text-only, no chart. Mirrors the
-// prototype's `.balance-card`: gradient surface, tiny eyebrow, big number,
-// translucent delta chip, and a 3-cell footer (Available / In positions /
-// Margin used) divided by a hairline.
 interface CompactBalanceCardProps {
   firstName: string;
   balance: number;
@@ -281,8 +272,6 @@ function BalanceMini({ label, value }: { label: string; value: string }) {
   );
 }
 
-// Full equity chart panel — sits in row 2, paired with the promo column.
-// Shows balance + delta + period pills + big mini-equity chart.
 interface EquityPanelProps {
   balance: number;
   changeToday: number;
@@ -362,8 +351,6 @@ function EquityPanel({ balance, changeToday, changePct, points, period, setPerio
   );
 }
 
-// Daily P&L bars panel (row 5 left) — 7 bars Mon-Sun, deterministic mock
-// generator so the bars are stable across renders.
 function DailyPnlPanel({ weekTotal }: { weekTotal: number }) {
   const formatCurrency = useCurrencyFormatter();
   const days = useMemo(() => {
@@ -430,8 +417,6 @@ function DailyPnlPanel({ weekTotal }: { weekTotal: number }) {
   );
 }
 
-// Watchlist panel (row 5 right) — list of watched assets with sparkline and
-// price/change. Mock data; ready to wire to a /watchlist endpoint later.
 const WATCHLIST = [
   { sym: 'BTC', pair: 'BTC/USDT', price: 68340.2, ch: 1.81 },
   { sym: 'ETH', pair: 'ETH/USDT', price: 3614.4, ch: 0.96 },
@@ -647,11 +632,6 @@ function pickBestOpen(trades: LivePosition[]): { symbol: string; pct: number } |
   );
 }
 
-
-// ─────────────────────── StatCard ───────────────────────
-// White (or theme-elevated) stat card with eyebrow, big value, and a
-// muted sub-line. Used as the right two cards in the hero row.
-
 interface StatCardProps {
   label: string;
   value: string;
@@ -735,7 +715,6 @@ function StatCard({ label, value, sub, tone = 'neutral', icon }: StatCardProps) 
   );
 }
 
-
 function minMax(data: number[]): { min: number; max: number } {
   let min = Infinity;
   let max = -Infinity;
@@ -761,27 +740,16 @@ function mapPeriod(p: UiPeriod): ReturnType<typeof useEquityCurve>['period'] {
 }
 
 function fallbackCurve(): number[] {
-  // Smooth ascending fallback — matches the gentle mint curve in the mock.
-  // Intentionally deterministic: the previous version used Math.random() which
-  // produced different paths on server vs. client, tripping React's hydration
-  // mismatch warning on every dashboard load. A seeded noise term keeps the
-  // shape visually varied without introducing non-determinism.
   const n = 60;
   const out: number[] = [];
   let v = 100;
   for (let i = 0; i < n; i++) {
-    // Two offset sines give a richer curve than a single wave; no random input.
     const noise = Math.sin(i / 2.3) * 1.4 + Math.sin(i / 7.1 + 1.2) * 1.9;
     v += Math.sin(i / 5) * 2 + noise;
     out.push(v);
   }
   return out;
 }
-
-// ─────────────────────── Chart ───────────────────────
-// Compact equity sparkline rendered as a white line over the emerald
-// balance card. No tag or terminator dot — the surrounding card carries
-// the value, the chart just shows the trajectory.
 
 function MiniEquityChart({ data, height }: { data: number[]; height: number }) {
   const width = 480;
@@ -800,10 +768,6 @@ function MiniEquityChart({ data, height }: { data: number[]; height: number }) {
   d += ` T ${pts[pts.length - 1][0].toFixed(1)} ${pts[pts.length - 1][1].toFixed(1)}`;
   const area = `${d} L ${width} ${height} L 0 ${height} Z`;
 
-  // Stroke + area gradient both pull from the palette-aware brand color so the
-  // curve reads on light cards and shifts with Midnight/Slate/Oxford/Emerald.
-  // `currentColor` lets a parent override via the `color` CSS property if it
-  // needs a non-brand tint (e.g. profit/loss accents on a sparkline).
   return (
     <svg
       viewBox={`0 0 ${width} ${height}`}
@@ -828,8 +792,6 @@ function MiniEquityChart({ data, height }: { data: number[]; height: number }) {
     </svg>
   );
 }
-
-// ─────────────────────── Positions Panel ───────────────────────
 
 function PositionsPanel({
   trades,
@@ -931,8 +893,6 @@ function EmptyPositions() {
 }
 
 function PositionRow({ trade, isLast }: { trade: LivePosition; isLast?: boolean }) {
-  // Live WS frames update pnlMap + markMap in the store. Prefer those over
-  // the REST snapshot so the row doesn't lag the ticker by ~15s.
   const livePnl = usePositionStore((s) => s.pnlMap[trade.tradeId]);
   const liveMark = usePositionStore((s) => s.markMap[trade.tradeId]);
   const formatCurrency = useCurrencyFormatter();
@@ -942,8 +902,6 @@ function PositionRow({ trade, isLast }: { trade: LivePosition; isLast?: boolean 
   const color = isUp ? 'var(--mm-mint)' : 'var(--mm-dn)';
   const softBg = isUp ? 'var(--mm-mint-soft)' : 'var(--mm-dn-soft)';
 
-  // Never silently substitute entryPrice for mark — that masks "no live tick"
-  // as "no movement since open". Show `—` until a real mark arrives.
   const markPrice = liveMark ?? trade.markPrice ?? null;
   const value = markPrice != null ? markPrice * trade.quantity : null;
 
@@ -955,8 +913,7 @@ function PositionRow({ trade, isLast }: { trade: LivePosition; isLast?: boolean 
   return (
     <Link
       href={`/trades/${trade.tradeId}`}
-      // Borderless row matching the design pack's `.bot-row` — flush cells
-      // with a hairline separator between rows. Hover bg lifts subtly.
+
       className="position-row"
       style={{
         display: 'grid',
@@ -1052,9 +1009,6 @@ function Sparkline({ values, color }: { values: number[]; color: string }) {
 }
 
 function buildSpark(seed: string): number[] {
-  // Deterministic sparkline from the seed. Stable across PnL sign flips —
-  // the stroke colour already conveys direction; reshaping the curve on every
-  // zero-cross made the row visually jitter on scalping symbols.
   let s = 0;
   for (let i = 0; i < seed.length; i++) {
     s = (s * 31 + seed.charCodeAt(i)) % 2147483647;
@@ -1074,4 +1028,3 @@ function buildSpark(seed: string): number[] {
   }
   return out;
 }
-

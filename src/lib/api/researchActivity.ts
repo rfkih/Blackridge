@@ -5,7 +5,6 @@
 import { researchClient } from '@/lib/api/client';
 import type { AgentActivity, AgentSessionSummary } from '@/types/research';
 
-// Sessions endpoint returns a custom envelope (Map.of in controller)
 export interface SessionsResponse {
   content: AgentSessionSummary[];
   page: number;
@@ -13,11 +12,9 @@ export interface SessionsResponse {
   total: number;
 }
 
-// Activities endpoint returns Spring Data Page<T> — uses 'number' not 'page',
-// 'totalElements' not 'total'.
 export interface ActivitiesResponse {
   content: AgentActivity[];
-  number: number;        // 0-based page index
+  number: number;
   size: number;
   totalElements: number;
   totalPages: number;

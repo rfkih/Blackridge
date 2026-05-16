@@ -37,9 +37,6 @@ export default function TradeDetailPage({ params }: { params: { id: string } }) 
   const tradeQuery = useTrade(params.id);
   const formatCurrency = useCurrencyFormatter();
 
-  // Start live P&L for the trade's account. The positionStore is keyed by
-  // tradeId so subscribing is cheap whether or not this specific trade is
-  // currently in the open set.
   useLivePnl(tradeQuery.data?.accountId);
   const livePnl = usePositionStore((s) => s.pnlMap[params.id]);
 
@@ -75,7 +72,7 @@ export default function TradeDetailPage({ params }: { params: { id: string } }) 
     <div className="flex flex-col gap-5">
       <BackLink />
 
-      {/* Header */}
+      {}
       <section className="rounded-xl border border-bd-subtle bg-bg-surface p-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="flex items-center gap-4">
@@ -125,7 +122,7 @@ export default function TradeDetailPage({ params }: { params: { id: string } }) 
         </div>
       </section>
 
-      {/* Summary row */}
+      {}
       <section className="grid grid-cols-2 gap-px overflow-hidden rounded-md border border-bd-subtle bg-bd-subtle sm:grid-cols-3 lg:grid-cols-6">
         <SummaryCell label="Entry price">
           <PriceCell value={trade.entryPrice} decimals={4} />
@@ -149,7 +146,7 @@ export default function TradeDetailPage({ params }: { params: { id: string } }) 
         </SummaryCell>
       </section>
 
-      {/* Meta row — duration, TP targets, sizing */}
+      {}
       <section className="grid grid-cols-2 gap-4 sm:grid-cols-4">
         <MetaTile label="Duration" icon={Clock}>
           {formatDuration((trade.exitTime ?? Date.now()) - trade.entryTime)}
@@ -167,7 +164,7 @@ export default function TradeDetailPage({ params }: { params: { id: string } }) 
 
       <EntryPlanPanel trade={trade} />
 
-      {/* Position legs */}
+      {}
       <section className="flex flex-col gap-3">
         <div className="flex items-baseline justify-between">
           <div>
@@ -199,10 +196,7 @@ export default function TradeDetailPage({ params }: { params: { id: string } }) 
                   position={p}
                   direction={trade.direction}
                   isOpen={legOpen}
-                  // Only the SINGLE leg, or an open TP/RUNNER leg, can contribute
-                  // to the trade's live unrealized P&L. Allocating the whole
-                  // trade unrealized to a single leg is a rough approximation —
-                  // the backend doesn't break it down per leg yet.
+
                   liveUnrealizedPnl={legOpen ? (livePnl ?? trade.unrealizedPnl) : null}
                 />
               );
@@ -216,16 +210,12 @@ export default function TradeDetailPage({ params }: { params: { id: string } }) 
   );
 }
 
-// Inferred from the strategy contract, not from a decision-event log —
-// once the backend records per-entry gate state, replace this with the
-// real reasons.
 function EntryPlanPanel({ trade }: { trade: Trades }) {
   const isLong = trade.direction === 'LONG';
   const stop = trade.stopLossPrice;
   const tp1 = trade.tp1Price;
   const tp2 = trade.tp2Price;
 
-  // R distance = entry-to-stop. Without it, R-multiples are undefined.
   const rDistance = stop != null && trade.entryPrice ? Math.abs(trade.entryPrice - stop) : null;
   const rMultiple = (target: number | null | undefined): number | null => {
     if (target == null || rDistance == null || rDistance === 0) return null;
@@ -436,9 +426,6 @@ function BackLink() {
 function CloseTradeButton({ trade }: { trade: Trades }) {
   const closeMutation = useCloseTrade();
 
-  // Open legs only — `trade.quantity` is the *original* entry size, not what's
-  // left after TP1/TP2 fills. Summing remaining qty across open legs is what
-  // the backend will actually send to Binance.
   const openLegs = (trade.positions ?? []).filter((p) => p.exitTime == null);
   const remainingQty = openLegs.reduce((sum, p) => sum + (p.quantity ?? 0), 0);
   const baseAsset = trade.symbol.replace('USDT', '');

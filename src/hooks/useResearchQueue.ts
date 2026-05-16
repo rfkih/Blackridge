@@ -25,9 +25,7 @@ export function useResearchQueue(filters?: {
     queryKey: [...QUEUE_KEY, filters?.strategyCode ?? '*', filters?.status ?? []],
     queryFn: () => listQueue(filters),
     enabled: Boolean(userId),
-    // 10s while running so PENDING/RUNNING transitions land quickly without
-    // hammering the research JVM. The orchestrator tick is on the order of
-    // tens of seconds, so faster polling buys nothing.
+
     staleTime: 5_000,
     refetchInterval: 10_000,
   });

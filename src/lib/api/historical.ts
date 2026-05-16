@@ -1,13 +1,8 @@
-// Historical data integrity console — coverage, jobs, patchable columns.
-//
-// All endpoints route through the research JVM (8081). The trading JVM
-// reverse-proxies /api/v1/historical/** so both clients hit the same origin.
+
 import { researchClient as apiClient } from './client';
 import { addOptionalParam } from './queryParams';
 
 const BASE = '/api/v1/historical';
-
-// ── Coverage report ─────────────────────────────────────────────────────────
 
 export interface CoverageGap {
   /** Last present candle's start_time before the gap. */
@@ -71,8 +66,6 @@ export async function getCoverageReport(
   return data;
 }
 
-// ── Patchable columns (auto-discover what FeaturePatcher beans exist) ───────
-
 export interface PatchableColumn {
   column: string;
   writtenColumns: string[];
@@ -86,8 +79,6 @@ export async function getPatchableColumns(): Promise<PatchableColumnsResponse> {
   const { data } = await apiClient.get<PatchableColumnsResponse>(`${BASE}/patchable-columns`);
   return data;
 }
-
-// ── Jobs ────────────────────────────────────────────────────────────────────
 
 export type JobType =
   | 'COVERAGE_REPAIR'

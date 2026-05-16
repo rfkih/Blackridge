@@ -75,7 +75,7 @@ const COLUMNS: Array<{ key: SortKey | 'legs'; label: string; sortable: boolean }
  * value in the column.
  */
 const SORT_EXTRACTORS: Record<SortKey, (t: BacktestTrade) => number | string | null> = {
-  index: (t) => t.entryTime, // # mirrors chronological order
+  index: (t) => t.entryTime,
   strategy: (t) => t.strategyCode ?? t.strategyName ?? '',
   interval: (t) => t.interval ?? '',
   direction: (t) => t.direction,
@@ -92,13 +92,9 @@ const SORT_EXTRACTORS: Record<SortKey, (t: BacktestTrade) => number | string | n
   duration: (t) => (t.exitTime != null ? t.exitTime - t.entryTime : null),
 };
 
-// CSS grid template — keeps header + virtualized rows perfectly aligned.
-// Total minimum width drives the horizontal scroll for narrower viewports.
-// Strategy column gets 92px (fits LSR_V2 / VCB / TPR / TSMOM_V1); interval
-// 56px (fits 15m / 1h / 1d). Combined adds 148px to the minimum table width.
 const GRID_TEMPLATE =
   '40px 92px 56px 60px 150px 84px 150px 84px 80px 80px 80px 110px 92px 100px 64px 100px';
-const ROW_HEIGHT = 36; // matches .py-2 + content baseline; virtualizer needs a stable estimate
+const ROW_HEIGHT = 36;
 const VIEWPORT_MAX_HEIGHT = 480;
 
 type PnlSign = 'all' | 'profit' | 'loss' | 'breakeven';
@@ -162,15 +158,10 @@ export function BacktestTradeTable({
 }: BacktestTradeTableProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // Default view = chronological entry. Clicking a header cycles asc → desc →
-  // back to the default; see handleSort below.
   const [sortKey, setSortKey] = useState<SortKey>('index');
   const [sortDir, setSortDir] = useState<SortDir>('asc');
   const [filters, setFilters] = useState<FilterState>(EMPTY_FILTERS);
 
-  // Available filter options derived once per trades change. Empty Sets if
-  // a dimension is uniform (e.g. single-strategy run) — the filter bar
-  // hides those dimensions to keep the chrome compact.
   const filterOptions = useMemo(() => {
     const strategies = new Set<string>();
     const intervals = new Set<string>();
@@ -196,7 +187,6 @@ export function BacktestTradeTable({
 
   const filtered = useMemo(() => applyFilters(trades, filters), [trades, filters]);
 
-  // Effect (not render-time) so the parent setState doesn't loop with us.
   useEffect(() => {
     onFilteredTradesChange?.(filtered);
   }, [filtered, onFilteredTradesChange]);
@@ -207,8 +197,7 @@ export function BacktestTradeTable({
     copy.sort((a, b) => {
       const va = extractor(a);
       const vb = extractor(b);
-      // Null always trails, regardless of direction. Keeps "no exit yet"
-      // rows at the bottom when sorting on exitTime/exitPrice/duration.
+
       if (va == null && vb == null) return 0;
       if (va == null) return 1;
       if (vb == null) return -1;
@@ -219,8 +208,6 @@ export function BacktestTradeTable({
         cmp = String(va).localeCompare(String(vb));
       }
       if (cmp === 0) {
-        // Deterministic tiebreaker — entryTime, then id — so React/virtualizer
-        // keys stay stable across equal sort values.
         cmp = a.entryTime - b.entryTime;
         if (cmp === 0) cmp = a.id.localeCompare(b.id);
       }
@@ -232,8 +219,6 @@ export function BacktestTradeTable({
   const handleSort = useCallback((key: SortKey) => {
     setSortKey((prevKey) => {
       if (prevKey !== key) {
-        // New column — start at asc for natural order; but default sort
-        // (pnl, r, duration, exit*) feels more useful descending.
         const preferDesc: SortKey[] = ['pnl', 'r', 'duration', 'exitTime', 'entryTime'];
         setSortDir(preferDesc.includes(key) ? 'desc' : 'asc');
         return key;
@@ -256,9 +241,6 @@ export function BacktestTradeTable({
     overscan: 12,
   });
 
-  // Scroll the selected row into view when the chart asks for it. With
-  // virtualization there are no row DOM refs to .scrollIntoView() — the
-  // virtualizer's scrollToIndex is the equivalent primitive.
   useEffect(() => {
     if (!scrollTrigger || !selectedTradeId) return;
     const idx = indexById.get(selectedTradeId);
@@ -306,7 +288,7 @@ export function BacktestTradeTable({
       aria-rowcount={ordered.length + 1}
       className="overflow-hidden rounded-xl border border-bd-subtle bg-bg-surface"
     >
-      {/* Horizontal scroll wrapper so narrow viewports don't squash columns. */}
+      {}
       <div className="overflow-x-auto">
         <div style={{ minWidth: 1348 }}>
           <div
@@ -347,7 +329,7 @@ export function BacktestTradeTable({
             })}
           </div>
 
-          {/* Vertical scroll viewport — only the row in view is rendered. */}
+          {}
           <div
             ref={scrollRef}
             className="overflow-y-auto"
@@ -378,8 +360,6 @@ export function BacktestTradeTable({
   );
 }
 
-// ─── Filter bar ──────────────────────────────────────────────────────────────
-
 interface FilterOptions {
   strategies: string[];
   intervals: string[];
@@ -395,8 +375,6 @@ interface BacktestTradeFiltersProps {
   visibleCount: number;
 }
 
-// Dimensions with a single uniform value across the run are hidden so the
-// bar stays compact. Filters apply instantly; no Apply button.
 function BacktestTradeFilters({
   options,
   filters,
@@ -595,12 +573,8 @@ function FilterPill({
   );
 }
 
-// ─── Sort glyph ───────────────────────────────────────────────────────────────
-
 function SortGlyph({ active, dir }: { active: boolean; dir: SortDir }) {
   if (!active) {
-    // Subtle double-chevron hint that the column is clickable. Keeps header
-    // chrome consistent across all sortable columns without screaming.
     return (
       <ChevronsUpDown
         size={11}
@@ -616,8 +590,6 @@ function SortGlyph({ active, dir }: { active: boolean; dir: SortDir }) {
     <ChevronDown size={12} strokeWidth={2.25} aria-hidden="true" />
   );
 }
-
-// ─── Row ──────────────────────────────────────────────────────────────────────
 
 interface VirtualRowProps {
   trade: BacktestTrade;

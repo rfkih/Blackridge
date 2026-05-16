@@ -1,6 +1,4 @@
-// Read-only client for V38 cross_window_run — regime-stratified validation
-// verdicts written by the research orchestrator. Drives the strategy detail
-// panel and the promotion-dialog gate warning.
+
 import { apiClient } from './client';
 
 export type CrossWindowVerdict =

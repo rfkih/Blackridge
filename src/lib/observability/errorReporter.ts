@@ -62,8 +62,6 @@ export function reportError(input: ErrorReportInput): void {
 
   const fingerprint = input.fingerprint ?? computeFingerprint(loggerName, exceptionClass, stackTrace);
 
-  // Local dedup gate — server still dedups by fingerprint, this is a
-  // courtesy to avoid spraying the network during a tight error loop.
   const now = Date.now();
   prunestale(now);
   const expiry = inflight.get(fingerprint);
@@ -83,20 +81,15 @@ export function reportError(input: ErrorReportInput): void {
     mdc,
   };
 
-  // Fire-and-forget. Use `fetch` directly to bypass the Axios interceptor
-  // chain (the interceptor calls reportError on 5xx, so going through it
-  // would re-enter on a failed report).
   const url = `${env.apiUrl}/api/v1/errors`;
   try {
     void fetch(url, {
       method: 'POST',
-      // No credentials — endpoint is permitAll() and we want it to work
-      // before login (login-page crashes are exactly the high-value reports).
+
       credentials: 'omit',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
-      // Don't keep the network alive after page unload — a few dropped
-      // reports are fine; blocking navigation is not.
+
       keepalive: true,
     }).catch((err) => {
       // eslint-disable-next-line no-console -- single line, dev signal only
@@ -158,11 +151,7 @@ function computeFingerprint(loggerName: string, exClass: string | undefined, sta
     const lines = stack.split(/\r?\n/, 6).slice(0, 5).map((s) => s.trim());
     parts.push(lines.join('|'));
   }
-  // Server uses SHA-256 when fingerprint is absent; client uses 8-stream
-  // djb2 so we don't have to plumb the async crypto.subtle API through
-  // the synchronous fire-and-forget reporter. The two don't need to
-  // agree byte-for-byte — each is internally consistent for its own
-  // callers, and dedup is per-source anyway.
+
   return multiStreamHash(parts.join('||'));
 }
 
@@ -176,7 +165,6 @@ function computeFingerprint(loggerName: string, exClass: string | undefined, sta
  * report path async and complicate the fire-and-forget call sites.
  */
 function multiStreamHash(s: string): string {
-  // Distinct primes ensure the streams diverge after the first few chars.
   const seeds = [5381, 52711, 14695981, 31, 17, 41, 53, 71];
   let out = '';
   for (const seed of seeds) {
@@ -186,7 +174,7 @@ function multiStreamHash(s: string): string {
     }
     out += h.toString(16).padStart(8, '0');
   }
-  return out; // 8 streams × 8 hex = 64 hex chars
+  return out;
 }
 
 function truncate(s: string | undefined, max: number): string | undefined {

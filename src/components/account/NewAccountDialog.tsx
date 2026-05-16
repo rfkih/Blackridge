@@ -55,7 +55,6 @@ const EMPTY_STATE: FormState = {
   acknowledgedSafety: false,
 };
 
-// Username regex matches the backend's @Pattern on CreateAccountRequest.
 const USERNAME_PATTERN = /^[A-Za-z0-9 _-]+$/;
 
 export function NewAccountDialog({ open, onOpenChange }: NewAccountDialogProps) {
@@ -64,8 +63,6 @@ export function NewAccountDialog({ open, onOpenChange }: NewAccountDialogProps) 
   const [submitError, setSubmitError] = useState<string | null>(null);
   const mutation = useCreateAccount();
 
-  // Reset form every time the dialog opens so stale values + error state
-  // from a prior attempt don't bleed into the new one.
   useEffect(() => {
     if (open) {
       setForm(EMPTY_STATE);
@@ -147,7 +144,7 @@ export function NewAccountDialog({ open, onOpenChange }: NewAccountDialogProps) 
         <ServerIpCard variant="compact" />
 
         <div className="grid grid-cols-2 gap-4">
-          {/* Label */}
+          {}
           <FieldRow
             label="Label"
             error={validationErrors.username}
@@ -165,7 +162,7 @@ export function NewAccountDialog({ open, onOpenChange }: NewAccountDialogProps) 
             />
           </FieldRow>
 
-          {/* Exchange */}
+          {}
           <FieldRow
             label="Exchange"
             hint={EXCHANGE_OPTIONS.find((o) => o.value === form.exchange)?.description}
@@ -188,7 +185,7 @@ export function NewAccountDialog({ open, onOpenChange }: NewAccountDialogProps) 
             </Select>
           </FieldRow>
 
-          {/* API key */}
+          {}
           <FieldRow label="API key" error={validationErrors.apiKey} className="col-span-2">
             <Input
               id="account-api-key"
@@ -202,7 +199,7 @@ export function NewAccountDialog({ open, onOpenChange }: NewAccountDialogProps) 
             />
           </FieldRow>
 
-          {/* API secret */}
+          {}
           <FieldRow label="API secret" error={validationErrors.apiSecret} className="col-span-2">
             <div className="relative">
               <Input
@@ -228,7 +225,7 @@ export function NewAccountDialog({ open, onOpenChange }: NewAccountDialogProps) 
             </div>
           </FieldRow>
 
-          {/* Safety acknowledgement */}
+          {}
           {/* eslint-disable-next-line jsx-a11y/label-has-associated-control -- checkbox is nested inside */}
           <label className="col-span-2 flex cursor-pointer items-start gap-2.5 rounded-md border border-bd-subtle bg-bg-base p-3 transition-colors hover:bg-bg-hover">
             <input
@@ -286,8 +283,6 @@ export function NewAccountDialog({ open, onOpenChange }: NewAccountDialogProps) 
     </Dialog>
   );
 }
-
-// ─── Helpers ─────────────────────────────────────────────────────────────────
 
 /**
  * Always-visible safety banner. Exchange API keys are the most sensitive

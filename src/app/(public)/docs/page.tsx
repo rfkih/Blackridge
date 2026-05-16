@@ -51,7 +51,7 @@ const SECTIONS = [
 export default function DocsPage() {
   return (
     <MarketingShell activeNav="docs">
-      {/* Hero */}
+      {}
       <section style={{ padding: '72px 0 32px' }}>
         <div className="mx-auto max-w-[1180px] px-5 sm:px-8 text-center">
           <span
@@ -97,7 +97,7 @@ export default function DocsPage() {
         </div>
       </section>
 
-      {/* Section grid */}
+      {}
       <section style={{ padding: '64px 0' }}>
         <div className="mx-auto max-w-[1180px] px-5 sm:px-8">
           <SectionHead
@@ -158,7 +158,7 @@ export default function DocsPage() {
         </div>
       </section>
 
-      {/* Status strip */}
+      {}
       <section style={{ padding: '64px 0 96px' }}>
         <div className="mx-auto max-w-[820px] px-5 sm:px-8 text-center">
           <div

@@ -41,8 +41,7 @@ const FIELD_INPUT_STYLE: React.CSSProperties = {
 
 export default function ForgotPasswordPage() {
   const [submitError, setSubmitError] = useState<string | null>(null);
-  // Always show the same generic confirmation — the API is no-leak, so
-  // we never reveal whether the email exists.
+
   const [submitted, setSubmitted] = useState(false);
 
   const {

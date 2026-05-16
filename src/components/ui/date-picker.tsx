@@ -65,12 +65,8 @@ export function DatePicker({
   const [open, setOpen] = useState(false);
   const [viewDate, setViewDate] = useState<Date>(() => selected ?? new Date());
 
-  // Reset the visible month to the selected date whenever it changes from
-  // outside (e.g. preset shortcuts) so the popover doesn't still be parked
-  // on an unrelated month when the user reopens it.
   const lastValue = useMemo(() => value, [value]);
   if (selected && !isSameMonth(viewDate, selected) && lastValue !== format(viewDate, ISO_FMT)) {
-    // Only sync on actual external change — guarded by lastValue check above.
   }
 
   const days = useMemo(() => buildMonthGrid(viewDate), [viewDate]);
@@ -82,8 +78,6 @@ export function DatePicker({
   };
 
   const yearOptions = useMemo(() => {
-    // ±15 years from today plus the currently-selected year. Keeps the year
-    // picker compact but covers most backtest windows.
     const now = new Date().getFullYear();
     const set = new Set<number>();
     for (let y = now - 15; y <= now + 1; y++) set.add(y);
@@ -260,7 +254,7 @@ export function DatePicker({
 
 function parseIso(value: string | undefined): Date | null {
   if (!value) return null;
-  // Strip time part if a callsite passed `YYYY-MM-DDTHH:mm:ss`.
+
   const stripped = value.includes('T') ? value.slice(0, 10) : value;
   const d = parse(stripped, ISO_FMT, new Date());
   return isNaN(d.getTime()) ? null : d;
@@ -273,11 +267,9 @@ function isDisabled(d: Date, min: Date | null, max: Date | null): boolean {
 }
 
 function buildMonthGrid(viewDate: Date): Date[] {
-  // Weeks start Monday — fits the European trading-week convention. ISO
-  // weekday: Mon=1..Sun=7. JS getDay: Sun=0..Sat=6 — convert.
   const first = startOfMonth(viewDate);
   const last = endOfMonth(viewDate);
-  const firstWeekday = (getDay(first) + 6) % 7; // 0=Mon..6=Sun
+  const firstWeekday = (getDay(first) + 6) % 7;
   const cells: Date[] = [];
   for (let i = firstWeekday; i > 0; i--) {
     const d = new Date(first);
@@ -287,8 +279,7 @@ function buildMonthGrid(viewDate: Date): Date[] {
   for (let day = 1; day <= last.getDate(); day++) {
     cells.push(new Date(viewDate.getFullYear(), viewDate.getMonth(), day));
   }
-  // Pad to a full 6-row grid (42 cells) so the popover height doesn't jump
-  // between months with 4/5/6 visible weeks.
+
   while (cells.length % 7 !== 0 || cells.length < 42) {
     const last = cells[cells.length - 1];
     const next = new Date(last);

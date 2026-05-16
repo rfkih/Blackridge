@@ -42,7 +42,6 @@ export function installGlobalErrorHandlers(): void {
         });
       }
     } catch {
-      /* never throw out of the global handler */
     }
     if (typeof priorOnError === 'function') {
       try {
@@ -60,13 +59,11 @@ export function installGlobalErrorHandlers(): void {
       const reason = (event as PromiseRejectionEvent).reason;
       reportException(reason, { loggerName: 'frontend.unhandledrejection' });
     } catch {
-      /* never throw */
     }
     if (typeof priorOnUnhandled === 'function') {
       try {
         return priorOnUnhandled.call(window, event);
       } catch {
-        /* ignore */
       }
     }
   };

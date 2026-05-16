@@ -46,7 +46,7 @@ export function RecentActivityFeed() {
       if (isClosed) {
         out.push({
           id: `${t.id}-exit`,
-          // Closing a LONG = sell; closing a SHORT = buy (cover)
+
           kind: t.direction === 'LONG' ? 'sell' : 'buy',
           strategyCode: String(t.strategyCode),
           symbol: t.symbol,
@@ -211,7 +211,7 @@ function ActivityRow({ event, isLast }: { event: ActivityEvent; isLast: boolean 
 
 function formatQty(q: number, sym: string): string {
   if (!Number.isFinite(q)) return '—';
-  // BTC and ETH carry more precision; smaller-cap pairs round to 2 dp.
+
   const dp = sym === 'BTC' ? 4 : sym === 'ETH' ? 3 : 2;
   return q.toLocaleString('en-US', { minimumFractionDigits: dp, maximumFractionDigits: dp });
 }

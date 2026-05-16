@@ -44,10 +44,6 @@ function map(r: BackendStrategyDefinition): StrategyDefinition {
 const BASE = '/api/v1/strategy-definitions';
 
 export async function listStrategyDefinitions(): Promise<StrategyDefinition[]> {
-  // Backwards-compat shape: when called without any pagination params the
-  // controller still returns a bare array so existing strategy-picker
-  // dropdowns and dialogs (BacktestParamTuner, NewStrategyDialog, etc.)
-  // keep working unchanged. Use `searchStrategyDefinitions` for paged use.
   const { data } = await apiClient.get<BackendStrategyDefinition[]>(BASE);
   return (data ?? []).map(map);
 }
@@ -99,9 +95,6 @@ export async function updateStrategyDefinition(
 }
 
 export async function deprecateStrategyDefinition(id: string): Promise<StrategyDefinition> {
-  // DELETE is intentionally a soft-delete: the service flips status to
-  // DEPRECATED so historical account_strategy / backtest_run rows still
-  // resolve their strategy metadata.
   const { data } = await apiClient.delete<BackendStrategyDefinition>(`${BASE}/${id}`);
   return map(data);
 }

@@ -1,7 +1,4 @@
-// TanStack Query hooks for the research orchestrator panels on /research.
-// All polling cadences match other research panels (10–30s); the orchestrator
-// is loopback-only and cheap to poll, but the underlying tables only mutate
-// on tick boundaries (~minutes), so 30s is plenty.
+
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   enqueueSweep,

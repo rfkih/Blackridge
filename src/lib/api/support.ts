@@ -1,5 +1,4 @@
-// Support-message API. POST: any logged-in user. GET + PATCH: admin only
-// (gated by @PreAuthorize on the backend, not the client).
+
 import { apiClient } from './client';
 import { addOptionalParam, buildPageParams } from './queryParams';
 import type { PageEnvelope } from '@/types/api';

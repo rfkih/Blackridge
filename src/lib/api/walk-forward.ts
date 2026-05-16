@@ -1,7 +1,4 @@
-// Read-only client for /api/v1/walk-forward on the trading JVM. Backed by
-// the walk_forward_run table (V12); the orchestrator (Python) writes new
-// rows after every POST /walk-forward. Triggering a new run from the UI
-// is intentionally out of scope — see WalkForwardController javadoc.
+
 import { apiClient } from './client';
 import { addOptionalParam, buildPageParams } from './queryParams';
 import type { PageEnvelope } from '@/types/api';
@@ -63,4 +60,3 @@ export async function listWalkForwardRuns(
   });
   return data;
 }
-

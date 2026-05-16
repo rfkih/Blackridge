@@ -42,7 +42,6 @@ function writeDismissed(v: boolean) {
     if (v) window.localStorage.setItem(DISMISSED_KEY, '1');
     else window.localStorage.removeItem(DISMISSED_KEY);
   } catch {
-    /* sessionStorage unavailable in private mode — silent no-op */
   }
 }
 
@@ -51,16 +50,12 @@ export function OnboardingPanel() {
   const { data: strategies = [], isLoading: loadingStrategies } = useStrategies();
   const { data: openTrades = [] } = useOpenTrades();
 
-  // Start false on the server / first paint to keep hydration deterministic;
-  // read the persisted dismissed flag in useEffect after mount.
   const [dismissed, setDismissed] = useState(false);
   const [newAccountOpen, setNewAccountOpen] = useState(false);
   useEffect(() => {
     setDismissed(readDismissed());
   }, []);
 
-  // While the data is loading we render nothing — better than flashing a
-  // "no accounts" panel for users who actually have accounts.
   if (loadingAccounts || loadingStrategies) return null;
   if (dismissed) return null;
 
@@ -74,8 +69,6 @@ export function OnboardingPanel() {
   const allComplete = hasAccount && hasActiveAccount && hasStrategy && hasLiveStrategy && hasTrade;
   if (allComplete) return null;
 
-  // Ladder of steps with their done-state. We render every step so the user
-  // sees their progress, but only the first not-done step is the active CTA.
   const steps: Step[] = [
     {
       key: 'account',
@@ -92,8 +85,7 @@ export function OnboardingPanel() {
       icon: Wallet,
       done: hasAccount && hasActiveAccount,
       cta: { href: '/settings', label: 'Open settings' },
-      // Only meaningful once an account exists — until then, the prior step
-      // is still the gate.
+
       gated: !hasAccount,
     },
     {
@@ -122,13 +114,12 @@ export function OnboardingPanel() {
         "Sit tight — once an entry signal fires, you'll see it on the dashboard and in the trades log.",
       icon: Plus,
       done: hasTrade,
-      // No CTA — this is informational only. The orchestrator is in charge now.
+
       cta: null,
       gated: !hasLiveStrategy,
     },
   ];
 
-  // First not-yet-done, not-gated step is the focus. Gated steps render but stay quiet.
   const focusIdx = steps.findIndex((s) => !s.done && !s.gated);
   const completed = steps.filter((s) => s.done).length;
 

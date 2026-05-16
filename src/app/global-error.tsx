@@ -1,6 +1,5 @@
 'use client';
 
-// SLICE: Root error boundary — must define html/body; shows stack in development when the root layout fails.
 import './globals.css';
 import { useEffect, useRef } from 'react';
 import { reportException } from '@/lib/observability/errorReporter';
@@ -14,13 +13,8 @@ export default function GlobalErrorBoundary({
 }) {
   const isDev = process.env.NODE_ENV === 'development';
 
-  // Boundary-level dedup so reset → re-throw doesn't re-fire (the
-  // reporter's 60s latch is a backstop, this avoids touching it).
   const reportedRef = useRef<Error | null>(null);
 
-  // Root-layout crashes are the highest-severity browser events we can
-  // capture — always ship them. Boundary fires before any provider tree
-  // is mounted, but the reporter only needs `window`, not React context.
   useEffect(() => {
     if (reportedRef.current === error) return;
     reportedRef.current = error;

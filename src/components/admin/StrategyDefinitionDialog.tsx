@@ -69,8 +69,6 @@ const STRATEGY_TYPE_OPTIONS = [
 ];
 const STATUS_OPTIONS = ['ACTIVE', 'INACTIVE', 'DEPRECATED'];
 
-// Mirrors the backend's @Pattern — surfaces the rule early instead of
-// waiting for a 400 to reveal it.
 const CODE_PATTERN = /^[A-Z0-9_]+$/;
 
 export function StrategyDefinitionDialog({
@@ -88,9 +86,6 @@ export function StrategyDefinitionDialog({
   const updateMutation = useUpdateStrategyDefinition();
   const isPending = createMutation.isPending || updateMutation.isPending;
 
-  // Reset whenever the dialog opens. Edit → hydrate from row. Replicate →
-  // pre-fill all fields except code so the admin picks a fresh code.
-  // Create → start from empty.
   useEffect(() => {
     if (!open) return;
     setSubmitError(null);
@@ -358,4 +353,3 @@ export function StrategyDefinitionDialog({
     </Dialog>
   );
 }
-

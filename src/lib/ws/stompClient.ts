@@ -12,34 +12,25 @@ import { useWsStore } from '@/store/wsStore';
 export type StompTokenProvider = () => Promise<string | null>;
 
 let stompClient: Client | null = null;
-// Tracked so we can detect a provider swap on re-init (e.g. after re-login)
-// and spin up a fresh client. Comparing references is enough — the auth
-// hook recreates the closure when the user identity changes.
+
 let currentTokenProvider: StompTokenProvider | null = null;
-// True while we're intentionally tearing down — suppresses the spurious
-// "reconnecting" flash that would otherwise fire from the final onWebSocketClose.
+
 let intentionalDisconnect = false;
-// Exponential-backoff state. Reset to 0 on successful CONNECT; incremented
-// on every websocket close that wasn't intentional.
+
 let attemptCount = 0;
 
 const BASE_DELAY_MS = 1_000;
 const MAX_DELAY_MS = 30_000;
-// 1 + 2 + 4 + 8 + 16 + 30 + 30 + 30 ≈ 2 minutes wall time. Past that we
-// give up and surface a manual retry CTA — silent infinite reconnects mask
-// real outages (server down, token expired, network gone) far worse than a
-// loud "click to retry" banner.
+
 const MAX_RETRIES = 8;
 
 function backoffMs(attempt: number): number {
-  // attempt is 1-based — attempt #1 waits 1s, #2 waits 2s, #3 waits 4s, …
   return Math.min(BASE_DELAY_MS * 2 ** (attempt - 1), MAX_DELAY_MS);
 }
 
 export function initStompClient(tokenProvider: StompTokenProvider | null): void {
   if (stompClient?.active && currentTokenProvider === tokenProvider) return;
-  // Provider swapped while a client was still live — drop it so we can
-  // activate a new one that will mint its own CONNECT credential.
+
   if (stompClient) {
     intentionalDisconnect = true;
     void stompClient.deactivate();
@@ -56,27 +47,18 @@ export function initStompClient(tokenProvider: StompTokenProvider | null): void 
 
   stompClient = new Client({
     brokerURL: env.wsUrl,
-    // Initial reconnect cadence — onWebSocketClose mutates this on the live
-    // client to implement exponential backoff before stompjs schedules the
-    // next attempt.
+
     reconnectDelay: BASE_DELAY_MS,
-    // beforeConnect runs on the initial activate AND every reconnect, so
-    // short-lived ws-tickets (≤60 s) are refreshed every attempt. Stash the
-    // result in connectHeaders, which stompjs reads when it sends CONNECT.
+
     beforeConnect: async () => {
       if (!stompClient) return;
       try {
         const fresh = await tokenProvider();
-        // Re-check after the async ticket fetch — disconnectStompClient() may
-        // have run concurrently (logout, page unload) and set stompClient = null.
+
         if (stompClient) {
           stompClient.connectHeaders = fresh ? { Authorization: `Bearer ${fresh}` } : {};
         }
       } catch {
-        // Ticket fetch failed (likely 401 on /me — cookie expired). Clear
-        // the header so CONNECT fails fast with a recognizable auth error
-        // instead of using a stale one. The reconnect loop will retry until
-        // the user re-authenticates or the circuit breaker trips.
         if (stompClient) stompClient.connectHeaders = {};
       }
     },
@@ -106,8 +88,6 @@ export function initStompClient(tokenProvider: StompTokenProvider | null): void 
       s.setReconnectAttempts(attemptCount);
 
       if (attemptCount > MAX_RETRIES) {
-        // Circuit breaker: stop the auto-reconnect loop. The user must click
-        // "Retry" (which calls retryStompClient) to spin up a fresh attempt.
         s.setReconnecting(false);
         s.setPermanentlyDisconnected(true);
         if (stompClient) {
@@ -141,8 +121,7 @@ export function initStompClient(tokenProvider: StompTokenProvider | null): void 
 export function retryStompClient(): void {
   if (stompClient?.active) return;
   const provider = currentTokenProvider;
-  // Force a fresh init by clearing module state — initStompClient's
-  // short-circuit otherwise treats the stored provider as still-valid.
+
   currentTokenProvider = null;
   initStompClient(provider);
 }
@@ -172,7 +151,6 @@ export function subscribeToTopic(topic: string, callback: (body: string) => void
     try {
       sub.unsubscribe();
     } catch {
-      // Client may already be torn down — ignore.
     }
   };
 }
@@ -195,7 +173,5 @@ export function publishToApp(destination: string, body: unknown): void {
       headers: { 'content-type': 'application/json' },
     });
   } catch {
-    // Publish can throw if the socket just closed between the active check
-    // and the send; a reconnect will re-publish so we can safely swallow this.
   }
 }

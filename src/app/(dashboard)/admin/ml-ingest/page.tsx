@@ -1,24 +1,5 @@
 'use client';
 
-// Admin console for the ML/sentiment ingestion control plane (V67).
-//
-// What this page does:
-//   - Shows a card per source (7 cards) with health status + last pull +
-//     row counts + error count + PIT-violation count.
-//   - Provides a "Backfill" button per source that opens a date-range dialog
-//     and submits a BACKFILL_ML_* job. Job progress is shown inline in the
-//     card and reuses the existing historical-backfill polling helpers.
-//   - Provides a "Schedule" button per source that opens an editor for the
-//     row in ml_ingest_schedule (cron, enabled toggle, lookback hours,
-//     config JSON). Saves go to PATCH /api/v1/ml-ingest/schedules/{id}.
-//
-// What this page deliberately does NOT do:
-//   - Show raw job logs — the existing /admin/historical page already does
-//     that for ALL backfill types including BACKFILL_ML_*.
-//   - Render a custom polling spinner — uses the same useJob hook + helpers
-//     as historical, so polling cadence and terminal-state handling are
-//     identical.
-
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { format, formatDistanceToNowStrict, parseISO, subMonths } from 'date-fns';
@@ -95,8 +76,6 @@ function jobTypeToMlSource(jobType: string | null | undefined): MlSource | null 
   return VALID_SOURCES.has(candidate as MlSource) ? (candidate as MlSource) : null;
 }
 
-// ── Helpers ────────────────────────────────────────────────────────────────
-
 function fmtRelative(iso: string | null): string {
   if (!iso) return '—';
   try {
@@ -137,11 +116,6 @@ function healthIcon(status: MlSourceHealthStatus) {
   }
 }
 
-// Backfill ranges are date-only; ML sources publish at daily-or-coarser
-// granularity (FRED daily, Binance funding 8h, on-chain daily, F&G daily).
-// Sub-day precision adds UI complexity for no signal — we send
-// `start = YYYY-MM-DDT00:00:00`, `end = YYYY-MM-DDT23:59:59` to the backend
-// at submit time.
 const ISO_DATE_FMT = 'yyyy-MM-dd';
 
 function defaultBackfillRange(): { start: string; end: string } {
@@ -174,8 +148,6 @@ function presetRange(months: number): { start: string; end: string } {
   };
 }
 
-// ── Page ───────────────────────────────────────────────────────────────────
-
 export default function MlIngestAdminPage() {
   const router = useRouter();
   const isAuthHydrated = useAuthHydrated();
@@ -184,7 +156,6 @@ export default function MlIngestAdminPage() {
   const schedulesQ = useMlSchedules();
   const healthQ = useMlSourceHealth();
 
-  // Map by source for O(1) lookup when rendering cards.
   const schedulesBySource = useMemo<Partial<Record<MlSource, MlIngestSchedule>>>(() => {
     const out: Partial<Record<MlSource, MlIngestSchedule>> = {};
     for (const row of schedulesQ.data ?? []) {
@@ -201,7 +172,6 @@ export default function MlIngestAdminPage() {
     return out;
   }, [healthQ.data]);
 
-  // Active job lives in the card that triggered it; one at a time per UI.
   const [activeJobId, setActiveJobId] = useState<string | null>(null);
   const jobQ = useJob(activeJobId);
   const cancelMutation = useCancelJob();
@@ -209,25 +179,12 @@ export default function MlIngestAdminPage() {
   const [backfillDialogFor, setBackfillDialogFor] = useState<MlSource | null>(null);
   const [scheduleDialogFor, setScheduleDialogFor] = useState<MlSource | null>(null);
 
-  // Auth guard — soft redirect to dashboard if not admin. Server-side
-  // @PreAuthorize is the real security boundary; this is a UX guard so
-  // non-admins don't see a 403 dance. Effect, not inline, to avoid
-  // calling router.replace during render (React anti-pattern, double-fires
-  // in strict mode).
   useEffect(() => {
     if (isAuthHydrated && !isAdmin) {
       router.replace('/');
     }
   }, [isAuthHydrated, isAdmin, router]);
 
-  // When the active job transitions to a terminal state (SUCCESS/FAILED/
-  // CANCELLED), refresh the source-health + schedules queries immediately.
-  // Without this, the cards keep showing stale "degraded" / old counts
-  // until the next 30s health poll tick — which makes consecutive
-  // backfills look like nothing is happening after a previous failure.
-  //
-  // Ref-guard so we only invalidate once per (jobId × terminal) transition,
-  // not on every re-render while the job stays terminal in cache.
   const lastHandledJobIdRef = useRef<string | null>(null);
   const schedulesRefetch = schedulesQ.refetch;
   const healthRefetch = healthQ.refetch;
@@ -261,7 +218,7 @@ export default function MlIngestAdminPage() {
 
   return (
     <div className="p-6 space-y-6">
-      {/* Header */}
+      {}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-semibold text-text-primary flex items-center gap-2">
@@ -288,12 +245,12 @@ export default function MlIngestAdminPage() {
         </Button>
       </div>
 
-      {/* Active job banner */}
+      {}
       {jobQ.data && !isJobTerminal(jobQ.data) ? (
         <ActiveJobBanner job={jobQ.data} onCancel={onCancelActive} isCancelling={cancelMutation.isPending} />
       ) : null}
 
-      {/* Source grid */}
+      {}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
         {SOURCE_ORDER.map((source) => (
           <SourceCard
@@ -309,7 +266,7 @@ export default function MlIngestAdminPage() {
         ))}
       </div>
 
-      {/* Backfill dialog */}
+      {}
       <BackfillDialog
         source={backfillDialogFor}
         onClose={() => setBackfillDialogFor(null)}
@@ -319,7 +276,7 @@ export default function MlIngestAdminPage() {
         }}
       />
 
-      {/* Schedule edit dialog */}
+      {}
       <ScheduleDialog
         source={scheduleDialogFor}
         schedule={scheduleDialogFor ? schedulesBySource[scheduleDialogFor] : undefined}
@@ -328,8 +285,6 @@ export default function MlIngestAdminPage() {
     </div>
   );
 }
-
-// ── Source card ────────────────────────────────────────────────────────────
 
 interface SourceCardProps {
   source: MlSource;
@@ -370,7 +325,7 @@ function SourceCard({
         </Badge>
       </div>
 
-      {/* Stats grid */}
+      {}
       <div className="grid grid-cols-2 gap-2 text-xs font-mono tabular-nums">
         <Stat label="Last pull" value={fmtRelative(health?.lastPullAt ?? null)} />
         <Stat label="Last success" value={fmtRelative(health?.lastSuccessAt ?? null)} />
@@ -438,8 +393,6 @@ function Stat({
   );
 }
 
-// ── Active job banner ──────────────────────────────────────────────────────
-
 function ActiveJobBanner({
   job,
   onCancel,
@@ -482,8 +435,6 @@ function ActiveJobBanner({
   );
 }
 
-// ── Backfill dialog ────────────────────────────────────────────────────────
-
 function BackfillDialog({
   source,
   onClose,
@@ -504,13 +455,8 @@ function BackfillDialog({
   const open = source !== null;
   const symbolRequired = source === 'binance_macro' || source === 'coinmetrics';
 
-  // Today as ISO YYYY-MM-DD — the `max` bound for both pickers. Recomputed
-  // once per render; trivially cheap and dodges a `useMemo` ceremony.
   const todayIso = format(new Date(), ISO_DATE_FMT);
 
-  // Backend wants ISO LocalDateTime (no zone). Backfill ranges run over full
-  // days, so we pad start to 00:00:00 and end to 23:59:59 here, keeping the
-  // picker state as date-only.
   const buildSubmitParams = () => ({
     start: `${start}T00:00:00`,
     end: `${end}T23:59:59`,
@@ -581,7 +527,7 @@ function BackfillDialog({
             </div>
           ) : null}
 
-          {/* Quick preset chips — covers 95% of operator intents */}
+          {}
           <div>
             <Label className="text-xs uppercase tracking-wide text-text-muted">
               Quick range
@@ -608,7 +554,7 @@ function BackfillDialog({
             </div>
           </div>
 
-          {/* Date pickers — calendar popover, dark theme, matches design system */}
+          {}
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1.5">
               <Label htmlFor={startId} className="text-xs uppercase tracking-wide text-text-muted">
@@ -662,8 +608,6 @@ function BackfillDialog({
   );
 }
 
-// ── Schedule edit dialog ───────────────────────────────────────────────────
-
 function ScheduleDialog({
   source,
   schedule,
@@ -678,9 +622,7 @@ function ScheduleDialog({
     <Dialog open={open} onOpenChange={(o) => (o ? null : onClose())}>
       <DialogContent>
         {schedule ? (
-          // Keying on schedule.id forces React to remount the form when the
-          // selected source changes, resetting all state to the new defaults
-          // without any useEffect-style state syncing.
+
           <ScheduleEditForm key={schedule.id} schedule={schedule} onSaved={onClose} />
         ) : null}
       </DialogContent>
@@ -755,7 +697,7 @@ function ScheduleEditForm({
       </DialogHeader>
 
       <div className="space-y-4 py-2">
-        {/* Enabled toggle */}
+        {}
         <div className="flex items-center justify-between rounded-md border border-bd-subtle px-3 py-2">
           <div>
             <Label className="text-sm">Enabled</Label>
@@ -766,7 +708,7 @@ function ScheduleEditForm({
           <Switch checked={enabled} onCheckedChange={setEnabled} />
         </div>
 
-        {/* Cron */}
+        {}
         <div>
           <Label htmlFor={cronId}>Cron (Spring 6-field)</Label>
           <Input
@@ -781,7 +723,7 @@ function ScheduleEditForm({
           </div>
         </div>
 
-        {/* Lookback */}
+        {}
         <div>
           <Label htmlFor={lookbackId}>Lookback hours (live tick)</Label>
           <Input
@@ -798,7 +740,7 @@ function ScheduleEditForm({
           </div>
         </div>
 
-        {/* Config JSON */}
+        {}
         <div>
           <Label htmlFor={configId}>Config (JSON)</Label>
           <textarea

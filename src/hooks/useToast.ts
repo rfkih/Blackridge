@@ -75,8 +75,7 @@ function show(input: ShowToastInput) {
     description: input.description,
     variant: input.variant ?? 'default',
   };
-  // Push and cap. Drop oldest so the newest always wins attention — a late
-  // error toast shouldn't be hidden behind a stale success toast.
+
   const next = [...toasts, toast];
   while (next.length > MAX_VISIBLE) {
     const dropped = next.shift();

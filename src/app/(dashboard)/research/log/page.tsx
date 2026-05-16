@@ -32,7 +32,6 @@ export default function ResearchLogPage() {
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
   const { searchInput, setSearchInput, debouncedSearch, page, setPage } = useDebouncedSearchPage();
 
-  // Reset to page 0 whenever any filter or sort changes.
   useEffect(() => {
     setPage(0);
   }, [strategyFilter, assetFilter, intervalFilter, sortKey, sortDir, setPage]);
@@ -75,7 +74,7 @@ export default function ResearchLogPage() {
         {isFetching && !isLoading && <Loader2 size={14} className="animate-spin text-text-muted" />}
       </header>
 
-      {/* Filters */}
+      {}
       <div className="flex flex-wrap items-center gap-2">
         <div className="relative">
           <Search
@@ -274,7 +273,7 @@ export default function ResearchLogPage() {
         </div>
       )}
 
-      {/* Pagination */}
+      {}
       {totalPages > 1 && (
         <div className="flex items-center justify-between text-[12px] text-text-muted">
           <span>
@@ -303,8 +302,6 @@ export default function ResearchLogPage() {
     </div>
   );
 }
-
-// ── Sub-components ───────────────────────────────────────────────────────────
 
 function FilterSelect({
   label,

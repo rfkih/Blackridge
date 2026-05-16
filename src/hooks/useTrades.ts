@@ -28,9 +28,6 @@ const FALLBACK_PNL: PnlSummary = {
 const OPEN_TRADES_REST_POLL_MS = 15_000;
 
 export function useOpenTrades(accountId?: string) {
-  // While the WS is connected we get live PnL frames + lifecycle events, so
-  // 15s REST polling is duplicative. Fall back to it only when the socket is
-  // down (initial connect, reconnect window, or backend WS outage).
   const wsConnected = useWsStore((s) => s.connected);
   return useQuery({
     queryKey: ['trades', 'open', accountId ?? null],
@@ -62,8 +59,7 @@ export function useTradesList(filters: TradesPageFilters) {
     ],
     queryFn: () => getTradesPage(filters),
     staleTime: QUERY_STALE_TIMES.closedTrades,
-    // Keep the previous page's data visible while the new page loads so the
-    // table doesn't flash to a skeleton on every sort/filter/paginate.
+
     placeholderData: (prev) => prev,
   });
 }
@@ -118,8 +114,6 @@ export function usePnlSummary(period: 'today' | 'week' | 'month' = 'today') {
 }
 
 export function useDailyPnl(from: string, to: string, strategyCode?: string) {
-  // Enabled only when we have a well-formed window — empty strings would hit
-  // the backend with `?from=&to=` and trigger a 400.
   const enabled = Boolean(from) && Boolean(to);
   return useQuery({
     queryKey: ['pnl', 'daily', from, to, strategyCode ?? null],

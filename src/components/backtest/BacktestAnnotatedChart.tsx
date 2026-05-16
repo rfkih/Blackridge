@@ -1,9 +1,5 @@
 'use client';
 
-// TradingView Lightweight Charts is imported dynamically inside useEffect.
-// The module is not safe under SSR, so the parent dynamic()-imports this
-// component with ssr: false.
-
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type {
   IChartApi,
@@ -38,9 +34,6 @@ interface BacktestAnnotatedChartProps {
   height?: number;
 }
 
-// Generous radius — TV markers are ~10px glyphs, hard to hit precisely
-// when bars are pixel-thin. Crosshair uses the same radius so the cursor
-// change and click target stay in sync.
 const MARKER_HIT_RADIUS_PX = 32;
 
 interface HoverState {
@@ -66,10 +59,6 @@ export function BacktestAnnotatedChart({
   const [ready, setReady] = useState(false);
   const [hover, setHover] = useState<HoverState | null>(null);
 
-  // Snap marker times to the candle that contains them — backend exit
-  // times can be mid-bar and TV reports `param.time` as the candle's
-  // start, so unaligned markers would never match on click. Memoised on
-  // trades + candles only; selection state is handled by the effect below.
   const { markers, metaByTime } = useMemo(() => {
     const built = buildTradeMarkers(trades);
     const candleTimes = candles.map((c) => c.time);
@@ -96,16 +85,12 @@ export function BacktestAnnotatedChart({
     return m;
   }, [trades]);
 
-  // Keep the click/crosshair handlers referencing the latest marker maps via a
-  // ref so we can subscribe once and still resolve against the current set.
   const clickCtxRef = useRef({ metaByTime, onTradeSelect, series: seriesRef });
   clickCtxRef.current = { metaByTime, onTradeSelect, series: seriesRef };
 
-  // Subscribe refs that span effects.
   const crosshairRef = useRef<((param: MouseEventParams<Time>) => void) | null>(null);
   const clickUnsubRef = useRef<(() => void) | null>(null);
 
-  // ── Effect 1: mount the chart ──────────────────────────────────────────────
   useEffect(() => {
     if (!containerRef.current) return;
     setReady(false);
@@ -153,11 +138,8 @@ export function BacktestAnnotatedChart({
       });
       seriesRef.current = series;
 
-      // TV v5: markers are a plugin bolted onto a series, not a method on it.
       markersPluginRef.current = tv.createSeriesMarkers(series, []);
 
-      // Pixel-distance hit testing — exact-bar match is too narrow on
-      // zoomed-out charts. Click outside the radius deselects.
       const clickHandler = (param: MouseEventParams<Time>) => {
         const ctx = clickCtxRef.current;
         if (!param.point) {
@@ -180,11 +162,9 @@ export function BacktestAnnotatedChart({
         try {
           chart.unsubscribeClick(clickHandler);
         } catch {
-          // Chart may already be removed.
         }
       };
 
-      // ── Resize with the container.
       const ro = new ResizeObserver(() => {
         if (containerRef.current) {
           chart.applyOptions({ width: containerRef.current.clientWidth });
@@ -202,7 +182,7 @@ export function BacktestAnnotatedChart({
       unsubs.forEach((fn) => fn());
       clickUnsubRef.current?.();
       clickUnsubRef.current = null;
-      // Price lines live on the series — dropping the chart drops them too.
+
       priceLineRefs.current = [];
       markersPluginRef.current = null;
       chartRef.current?.remove();
@@ -212,10 +192,6 @@ export function BacktestAnnotatedChart({
     };
   }, [height]);
 
-  // ── Effect 2: load candles ────────────────────────────────────────────────
-  // getBacktestCandles already filters NaN and sorts ascending. We do one
-  // linear pass to drop duplicate timestamps (TV rejects them) but skip the
-  // O(n log n) re-sort the earlier version performed every refetch.
   useEffect(() => {
     if (!ready || !candles.length || !seriesRef.current) return;
     const seen = new Set<number>();
@@ -238,23 +214,19 @@ export function BacktestAnnotatedChart({
     chartRef.current?.timeScale().fitContent();
   }, [ready, candles]);
 
-  // ── Effect 3: apply markers. Only depends on the marker array. ────────────
   useEffect(() => {
     if (!ready) return;
     markersPluginRef.current?.setMarkers(markers);
   }, [ready, markers]);
 
-  // ── Effect 4: SL / TP price lines for the selected trade ──────────────────
   useEffect(() => {
     if (!ready || !seriesRef.current) return;
     const series = seriesRef.current;
 
-    // Remove whatever was drawn last.
     for (const line of priceLineRefs.current) {
       try {
         series.removePriceLine(line);
       } catch {
-        // Series may have been torn down — ignore.
       }
     }
     priceLineRefs.current = [];
@@ -265,7 +237,6 @@ export function BacktestAnnotatedChart({
 
     const hitLine = deriveTradeOutcome(trade.positions).hitLine;
 
-    // Import LineStyle lazily; it's part of the same module we already loaded.
     void (async () => {
       const { LineStyle } = await import('lightweight-charts');
       if (!seriesRef.current) return;
@@ -279,8 +250,7 @@ export function BacktestAnnotatedChart({
       ) => {
         if (price == null || !Number.isFinite(price)) return;
         const wasHit = which != null && hitLine === which;
-        // Emphasise the horizontal the trade actually closed on: solid + thicker
-        // + a "✓ hit" label suffix. Other lines stay in the ambient dashed state.
+
         const line = activeSeries.createPriceLine({
           price,
           color,
@@ -292,13 +262,6 @@ export function BacktestAnnotatedChart({
         priceLineRefs.current.push(line);
       };
 
-      // RUNNER_ONLY trades (e.g. DCT) exit purely via trailing stop with no
-      // fixed TP. Their stored tp1Price is a sentinel (e.g. entry + 20R)
-      // that keeps the persistence layer happy but doesn't represent a real
-      // target — drawing it as a price line is misleading and pushes the
-      // chart's price scale way off. Detect by "every position is a RUNNER
-      // leg", then suppress TP lines and use the trade's actual exit price
-      // as the operative exit level instead.
       const isRunnerOnly =
         trade.positions.length > 0 &&
         trade.positions.every((p) => p.type === 'RUNNER');
@@ -309,15 +272,10 @@ export function BacktestAnnotatedChart({
         add(trade.tp2Price, '#00E5B0', 'TP2', 'TP2');
       }
       if (isRunnerOnly) {
-        // Trail exit = where the chandelier finally caught price. Works for
-        // both TRAILING_STOP and RUNNER_CLOSE exit reasons, since both close
-        // the trade on the trail in a runner-only structure.
         if (trade.exitPrice != null && Number.isFinite(trade.exitPrice)) {
           add(trade.exitPrice, '#3B82F6', 'TRAIL EXIT', 'RUNNER');
         }
       } else if (hitLine === 'RUNNER') {
-        // Multi-leg trades (TP1+RUNNER): only show the trail anchor when the
-        // runner actually closed via the trail.
         const runnerLeg = trade.positions.find(
           (p) => p.type === 'RUNNER' && p.exitReason === 'RUNNER_CLOSE',
         );
@@ -329,10 +287,6 @@ export function BacktestAnnotatedChart({
     })();
   }, [ready, selectedTradeId, tradeById]);
 
-  // ── Effect 5: scroll to the selected trade when a scroll is requested. ────
-  // Use setVisibleRange so we can centre regardless of the current scroll
-  // position. timeToCoordinate would only work if the trade is already
-  // on-screen, which defeats the purpose of "scroll to it".
   useEffect(() => {
     if (!ready || !scrollTrigger || !selectedTradeId) return;
     const trade = tradeById.get(selectedTradeId);
@@ -342,8 +296,7 @@ export function BacktestAnnotatedChart({
 
     const entrySec = Math.floor(trade.entryTime / 1000);
     const exitSec = trade.exitTime != null ? Math.floor(trade.exitTime / 1000) : entrySec;
-    // Pad either side so the trade isn't pinned to the edge. Fall back to one
-    // hour for instant in/out trades so the visible range never collapses to zero.
+
     const span = Math.max(exitSec - entrySec, 60 * 60);
     const pad = Math.max(span * 0.5, 60 * 60);
     chart.timeScale().setVisibleRange({
@@ -352,16 +305,11 @@ export function BacktestAnnotatedChart({
     });
   }, [ready, scrollTrigger, selectedTradeId, tradeById]);
 
-  // ── Effect 6: crosshair tooltip. Rebind when the marker index changes. ────
   useEffect(() => {
     if (!ready) return;
     const chart = chartRef.current;
     if (!chart) return;
 
-    // Marker iteration deferred to the rAF tick — TV fires crosshair events
-    // at mouse-move rate; running the O(markers) hit test inline would
-    // jank dense charts. Same hit radius the click handler uses, so the
-    // cursor-pointer affordance matches where a click would land.
     let rafId: number | null = null;
     let pendingPoint: { x: number; y: number } | null = null;
     let pendingValid = false;
@@ -404,7 +352,6 @@ export function BacktestAnnotatedChart({
     };
 
     const handler = (param: MouseEventParams<Time>) => {
-      // Snapshot the point — TV may reuse the param object on the next event.
       pendingPoint = param.point ? { x: param.point.x, y: param.point.y } : null;
       pendingValid = true;
       if (rafId == null) rafId = requestAnimationFrame(commit);
@@ -418,13 +365,11 @@ export function BacktestAnnotatedChart({
       try {
         chart.unsubscribeCrosshairMove(handler);
       } catch {
-        // Chart tear-down race.
       }
       crosshairRef.current = null;
     };
   }, [ready, metaByTime]);
 
-  // Keyboard: ESC deselects.
   const handleKey = useCallback(
     (e: React.KeyboardEvent<HTMLDivElement>) => {
       if (e.key === 'Escape') onTradeSelect(null);
@@ -435,16 +380,10 @@ export function BacktestAnnotatedChart({
   const hoveredTrade = hover ? tradeById.get(hover.tradeId) : null;
   const selectedTrade = selectedTradeId ? tradeById.get(selectedTradeId) ?? null : null;
 
-  // Switch to pointer wherever the tooltip would show — same hit-radius
-  // as the click handler.
   const cursorOverMarker = hoveredTrade != null;
 
   return (
-    // The div hosts TradingView's canvas — TV captures pointer events; we
-    // only listen for ESC to deselect. `role="application"` marks this as a
-    // focusable application region for screen readers; we still suppress the
-    // noninteractive-element-interactions rule because the handler attaches
-    // to the region container, not an intrinsically-interactive element.
+
     /* eslint-disable jsx-a11y/no-noninteractive-element-interactions, jsx-a11y/no-noninteractive-tabindex */
     <div
       ref={containerRef}
@@ -467,7 +406,6 @@ export function BacktestAnnotatedChart({
 
 const HINT_DISMISS_KEY = 'blackheart:backtest-chart-hint-dismissed';
 
-// One-time discoverability nudge — dismissal persists across sessions.
 function ClickAnyMarkerHint() {
   const [dismissed, setDismissed] = useState<boolean | null>(null);
 
@@ -487,8 +425,6 @@ function ClickAnyMarkerHint() {
     try {
       window.localStorage.setItem(HINT_DISMISS_KEY, '1');
     } catch {
-      // No persistence available (private mode); the in-memory dismiss still
-      // takes effect for this session.
     }
   };
 
@@ -590,7 +526,7 @@ function TradeDetailCard({ trade, onClose }: { trade: BacktestTrade; onClose: ()
       role="dialog"
       aria-label="Trade details"
     >
-      {/* Header — direction, outcome, close */}
+      {}
       <div className="flex items-center justify-between gap-2 border-b border-[var(--border-subtle)] px-3 py-2">
         <div className="flex min-w-0 items-center gap-2">
           <span
@@ -620,7 +556,7 @@ function TradeDetailCard({ trade, onClose }: { trade: BacktestTrade; onClose: ()
         </button>
       </div>
 
-      {/* Strategy + TF — surfaces the per-trade attribution we recently added */}
+      {}
       <div className="flex items-center gap-2 border-b border-[var(--border-subtle)] px-3 py-2">
         {trade.strategyCode || trade.strategyName ? (
           <span
@@ -637,7 +573,7 @@ function TradeDetailCard({ trade, onClose }: { trade: BacktestTrade; onClose: ()
         </span>
       </div>
 
-      {/* Entry / exit times */}
+      {}
       <div className="space-y-1 border-b border-[var(--border-subtle)] px-3 py-2 font-mono text-[11px]">
         <DetailRow label="Entry" value={formatDate(trade.entryTime)} muted />
         <DetailRow
@@ -650,9 +586,7 @@ function TradeDetailCard({ trade, onClose }: { trade: BacktestTrade; onClose: ()
         )}
       </div>
 
-      {/* Price levels — the SL / TP / entry prices the trade was sized against.
-          For RUNNER_ONLY trades (no fixed TP, pure trailing exit) we hide
-          TP rows since the stored tp1Price is just a sentinel. */}
+      {}
       {(() => {
         const isRunnerOnly =
           trade.positions.length > 0 &&
@@ -697,7 +631,7 @@ function TradeDetailCard({ trade, onClose }: { trade: BacktestTrade; onClose: ()
         );
       })()}
 
-      {/* P&L summary */}
+      {}
       <div className="space-y-1 border-b border-[var(--border-subtle)] px-3 py-2 font-mono text-[11px] tabular-nums">
         <div className="flex items-center justify-between">
           <span className="text-[10px] uppercase tracking-wider text-[var(--text-muted)]">
@@ -716,7 +650,7 @@ function TradeDetailCard({ trade, onClose }: { trade: BacktestTrade; onClose: ()
         <DetailRow label="Quantity" value={trade.quantity.toString()} muted />
       </div>
 
-      {/* Per-leg breakdown — what each child position did */}
+      {}
       <div className="px-3 py-2">
         <div className="label-caps mb-1 !text-[9px]">Legs</div>
         {trade.positions.length === 0 ? (
@@ -808,10 +742,6 @@ function legDotColor(reason: PositionExitReason | null | undefined): string {
   }
 }
 
-// Nearest marker to a click/hover point in pixel space. The x-distance
-// quick-reject keeps this cheap on dense charts; we measure from the
-// marker's price coord (not its rendered glyph offset) and rely on the
-// generous radius to absorb the visual offset.
 function findClosestMarkerByPixel(
   metaByTime: Map<number, MarkerMeta[]>,
   series: ISeriesApi<'Candlestick'>,
@@ -825,9 +755,9 @@ function findClosestMarkerByPixel(
 
   metaByTime.forEach((metas, time) => {
     const x = timeScale.timeToCoordinate(time as Time);
-    if (x == null) return; // marker scrolled off the visible time scale
+    if (x == null) return;
     const dx = x - point.x;
-    if (Math.abs(dx) > hitRadiusPx) return; // x-only quick-reject
+    if (Math.abs(dx) > hitRadiusPx) return;
     for (const meta of metas) {
       const y = series.priceToCoordinate(meta.price);
       if (y == null) continue;
@@ -843,21 +773,18 @@ function findClosestMarkerByPixel(
   return chosen;
 }
 
-// Snap to the candle whose [start, start + interval) contains t. Falls
-// back to identity until candles load; mid-bar markers won't snap in that
-// window but exact-aligned trades still bind.
 function makeCandleTimeSnapper(sortedTimes: number[]): (t: number) => number {
   if (sortedTimes.length < 2) return (t) => t;
-  // Backend contract: ascending. We don't re-sort.
+
   const last = sortedTimes[sortedTimes.length - 1];
   const first = sortedTimes[0];
   return (t: number): number => {
     if (t <= first) return first;
-    // Past the loaded range — anchor to the last candle so it stays clickable.
+
     if (t >= last) return last;
     let lo = 0;
     let hi = sortedTimes.length - 1;
-    // Largest index whose value is <= t.
+
     while (lo < hi) {
       const mid = (lo + hi + 1) >> 1;
       if (sortedTimes[mid] <= t) lo = mid;

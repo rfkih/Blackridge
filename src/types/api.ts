@@ -85,17 +85,16 @@ export interface BackendAuthData {
  *  new @JsonProperty aliases added to AccountStrategyResponse. All renamed
  *  fields are optional so the mapper can fall back gracefully. */
 export interface BackendAccountStrategy {
-  // New wire names (from @JsonProperty on AccountStrategyResponse)
-  id?: UUID | null; // was accountStrategyId
-  interval?: string | null; // was intervalName
-  createdAt?: ISO8601 | null; // was createdTime
-  updatedAt?: ISO8601 | null; // was updatedTime
-  // Legacy Java field names — kept so cached/proxied responses still map
+  id?: UUID | null;
+  interval?: string | null;
+  createdAt?: ISO8601 | null;
+  updatedAt?: ISO8601 | null;
+
   accountStrategyId?: UUID | null;
   intervalName?: string | null;
   createdTime?: ISO8601 | null;
   updatedTime?: ISO8601 | null;
-  // Unchanged fields
+
   accountId: UUID;
   strategyDefinitionId?: UUID | null;
   strategyCode: string;
@@ -103,7 +102,7 @@ export interface BackendAccountStrategy {
    *  only one is `enabled` at a time. */
   presetName?: string | null;
   symbol: string;
-  enabled: boolean; // frontend: derives `status` from this
+  enabled: boolean;
   /** Paper-trade flag: when true the strategy emits real signals but
    *  OPEN_LONG/OPEN_SHORT are diverted to paper_trade_run. Combined with
    *  `enabled` this defines the promotion state (RESEARCH / PAPER_TRADE /

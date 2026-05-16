@@ -43,7 +43,6 @@ function DrawdownTooltip({
 }
 
 export function DrawdownChart({ points, height = 220 }: DrawdownChartProps) {
-  // Normalise so drawdown is negative (underwater). Backend may send positive %.
   const data = useMemo(
     () =>
       points.map((p) => ({
@@ -60,7 +59,7 @@ export function DrawdownChart({ points, height = 220 }: DrawdownChartProps) {
       const v = data[i].drawdownPct;
       if (v < lo) lo = v;
     }
-    // leave 10% breathing room, clamp to a reasonable floor
+
     return Math.min(lo * 1.1, -0.1);
   }, [data]);
 

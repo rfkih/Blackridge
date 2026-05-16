@@ -52,24 +52,20 @@ export function useLivePnl(accountId: string | undefined) {
   useEffect(() => {
     if (!connected || !accountId) return;
 
-    // 1) Subscribe to the destination. Must happen BEFORE we register with the
-    //    backend publisher — otherwise the first frame arrives before the
-    //    subscription is active and is dropped by the broker.
     const unsubscribe = subscribeToTopic(`/topic/pnl/${accountId}`, (body) => {
       try {
         const env = JSON.parse(body) as BackendActiveTradePnlEnvelope;
         const trades = env.trades ?? [];
         if (trades.length === 0) return;
         const ts = Date.now();
-        // Build the full batch first, then commit once. Per-trade commits
-        // would fire N subscriber notifications for a single network frame.
+
         const batch: PnlUpdate[] = [];
         for (const t of trades) {
           if (!t.tradeId) continue;
           const mark = numberOrNull(t.currentPrice);
           const pnl = numberOrNull(t.unrealizedPnlAmount);
           const pnlPct = numberOrNull(t.unrealizedPnlPercent);
-          if (pnl == null) continue; // malformed row — skip rather than corrupt the map
+          if (pnl == null) continue;
           batch.push({
             tradeId: t.tradeId,
             accountId,
@@ -85,8 +81,6 @@ export function useLivePnl(accountId: string | undefined) {
       }
     });
 
-    // 2) Opt this account into the backend's publish loop. The registry is
-    //    idempotent, so resending on every reconnect is safe.
     publishToApp('/pnl.subscribe', { accountId });
 
     return unsubscribe;

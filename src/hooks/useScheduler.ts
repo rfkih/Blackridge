@@ -40,8 +40,6 @@ export function useRunSchedulerOnce() {
   return useMutation<void, Error, number>({
     mutationFn: (id) => runSchedulerOnce(id),
     onSuccess: () => {
-      // The run is async on the server, but lastRunAt for IP_MONITOR will
-      // update once the heartbeat lands — refetch shortly after to surface it.
       setTimeout(() => qc.invalidateQueries({ queryKey: ['scheduler', 'status'] }), 2_000);
     },
   });

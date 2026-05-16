@@ -140,8 +140,6 @@ export default function ResearchQueuePage() {
   );
 }
 
-// ── Table ─────────────────────────────────────────────────────────────────
-
 function QueueTable({ rows }: { rows: ResearchQueueItem[] }) {
   return (
     <div className="overflow-hidden rounded-md border border-bd-subtle">
@@ -350,8 +348,6 @@ function EmptyState({ onCreate }: { onCreate: () => void }) {
   );
 }
 
-// ── Create dialog ─────────────────────────────────────────────────────────
-
 const SAMPLE_SWEEP =
   '{\n  "params": [\n    { "name": "longRsiMin", "values": [50, 52, 54, 56] }\n  ]\n}';
 
@@ -546,8 +542,6 @@ function NewQueueItemDialog({ onClose }: { onClose: () => void }) {
   );
 }
 
-// ── Bits ──────────────────────────────────────────────────────────────────
-
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
@@ -593,4 +587,3 @@ function Td({
     </td>
   );
 }
-

@@ -125,18 +125,11 @@ function StrategyCard({
   onDragLeave: () => void;
   onDrop: (e: React.DragEvent) => void;
 }) {
-  // V66 — `isLive` is strict: only true for real-money LIVE. PAPER rows
-  // are *running* (orchestrator picks them up) but never get the green
-  // glow or "LIVE" labels — those would mislead the operator into
-  // thinking real capital is at risk. Use `isRunning` for stop/start
-  // toggle semantics where PAPER also stops.
   const isLive = strategy.status === 'LIVE';
   const isPaper = strategy.status === 'PAPER';
   const isRunning = isLive || isPaper;
   const isToggling = isActivating || isDeactivating;
-  // V54 — read-only PUBLIC clone-of-other-tenant. Writes are routed through
-  // the clone flow instead of edit/delete; drag-to-reorder is disabled
-  // because the row isn't in this user's preset list.
+
   const isReadOnlyPublic = !strategy.ownedByCurrentUser;
   return (
     <div
@@ -194,16 +187,13 @@ function StrategyCard({
         </button>
       )}
 
-      {/* V54 — PUBLIC rows aren't fetchable via /strategies/[id] (the detail
-          page enforces ownership and would 404), so the body is a non-link
-          div for read-only cards. The "Clone" button is the only action. */}
+      {}
       <CardBody
         readOnly={isReadOnlyPublic}
         href={`/strategies/${strategy.id}`}
         className="flex flex-col gap-4"
       >
-        {/* Top row — strategy-icon tile + tag pill (left) and status toggle
-            (right). Mirrors the design pack's `.strat-head`. */}
+        {}
         <div className="flex items-start justify-between gap-3 pr-8">
           <div className="flex min-w-0 items-center gap-3">
             <span
@@ -253,7 +243,7 @@ function StrategyCard({
           )}
         </div>
 
-        {/* Symbol + interval — display headline */}
+        {}
         <div>
           <div
             className="mm-display"
@@ -285,10 +275,7 @@ function StrategyCard({
           </div>
         </div>
 
-        {/* 3-stat grid — sizing, side, priority. The first cell adapts its
-            label + value to the strategy's sizing mode (V55) so users don't
-            have to guess what the percentage means. Mirrors the design
-            pack's `.strat-stats`. */}
+        {}
         <div
           className="grid grid-cols-3 gap-3"
           style={{
@@ -342,7 +329,7 @@ function StrategyCard({
           </div>
         </div>
 
-        {/* Footer — drag affordance + edit-params arrow */}
+        {}
         <div
           style={{
             display: 'flex',
@@ -374,8 +361,7 @@ function StrategyCard({
         </div>
       </CardBody>
 
-      {/* Drag handle — sits at the top-left corner. The whole card is the
-          drag source; the handle is just the visual affordance. */}
+      {}
       <span
         aria-hidden="true"
         className="pointer-events-none absolute left-2 top-2 z-10 flex h-6 w-6 items-center justify-center rounded-md text-[var(--text-muted)] opacity-0 transition-opacity group-hover:opacity-80"
@@ -441,7 +427,7 @@ function StrategyCard({
 function SizingStat({ strategy }: { strategy: AccountStrategy }) {
   const useRisk = Boolean(strategy.useRiskBasedSizing);
   const allocation = strategy.capitalAllocationPct ?? 0;
-  // riskPct is wire-fraction (0..0.20); display as percent.
+
   const riskPctDisplay = (strategy.riskPct ?? 0) * 100;
 
   const label = useRisk ? 'Risk per trade' : 'Trade size';
@@ -506,12 +492,6 @@ function IntervalSelect({
   disabled: boolean;
   onChange: (next: string) => void;
 }) {
-  // Native <select> overlaid on the existing pill styling. The input lives
-  // inside the parent <Link> — stopPropagation keeps row clicks away from
-  // the link navigation when the user is interacting with the picker.
-  // Always include the current value as an option so a non-canonical
-  // interval (e.g. an interval added after the constants list) doesn't
-  // disappear from the dropdown.
   const options = INTERVALS.includes(value as (typeof INTERVALS)[number])
     ? INTERVALS
     : [value, ...INTERVALS];
@@ -545,8 +525,6 @@ function StatusToggle({
   disabled: boolean;
   onToggle: () => void;
 }) {
-  // V66 — both LIVE and PAPER are "running" (orchestrator picks them up);
-  // clicking either should stop the row. Only STOPPED rows start.
   const isRunning = status === 'LIVE' || status === 'PAPER';
   return (
     <button
@@ -882,7 +860,7 @@ function PublicStrategiesSection({
   onClone: (s: AccountStrategy) => void;
 }) {
   const noop = () => {};
-  // Bucket by interval for visual consistency with the user's owned section.
+
   const byInterval = new Map<string, AccountStrategy[]>();
   for (const s of strategies) {
     const list = byInterval.get(s.interval) ?? [];
@@ -968,9 +946,6 @@ function StrategyCardSkeleton() {
 }
 
 export default function StrategiesPage() {
-  // V54 — opt in to PUBLIC research-agent strategies so users can browse +
-  // clone them. All other consumers (dashboard, trades, pnl, etc.) keep
-  // using `useStrategies()` which filters to owned-only.
   const { data: strategies = [], isLoading, isError, refetch } = useAllVisibleStrategies();
   const { accounts, isAll, activeAccount, scopedAccountId } = useActiveAccount();
   const [isCreateOpen, setCreateOpen] = useState(false);
@@ -985,11 +960,6 @@ export default function StrategiesPage() {
   const rearmMutation = useRearmKillSwitch();
   const riskConfigMutation = useUpdateAccountRiskConfig();
 
-  // V54 — partition into owned vs PUBLIC. Owned go through the per-account
-  // bucketed view; PUBLIC render in their own section above (always visible
-  // regardless of the top-bar account scope) so users can browse + clone the
-  // research-agent's catalogue without it showing up as a "ghost account"
-  // under per-account groupings.
   const ownedStrategies = scopedAccountId
     ? strategies.filter((s) => s.ownedByCurrentUser && s.accountId === scopedAccountId)
     : strategies.filter((s) => s.ownedByCurrentUser);
@@ -998,11 +968,6 @@ export default function StrategiesPage() {
     ? ownedStrategies.filter((s) => s.status === 'LIVE')
     : ownedStrategies;
 
-  // Count siblings per tuple so cards know when to render the
-  // "Active preset / Activate" footer vs. a lone-preset card.
-  // Always count from ALL owned strategies, not the filtered view — otherwise
-  // active-only mode (max 1 LIVE per tuple) makes every count = 1 and the
-  // "Active preset" card footer is never rendered.
   const presetsByTuple = new Map<string, number>();
   for (const s of ownedStrategies) {
     const k = tupleKey(s);
@@ -1108,9 +1073,6 @@ export default function StrategiesPage() {
   };
 
   const handleMaxTradesChange = (accountId: string, value: number | null) => {
-    // Wire 0 (or any value < 1) to the backend as "clear the cap" — the
-    // service treats anything below 1 as null on the entity. null on the
-    // wire means "leave unchanged", which isn't what we want here.
     const wireValue = value == null || value < 1 ? 0 : Math.trunc(value);
     riskConfigMutation.mutate(
       { accountId, payload: { maxConcurrentTrades: wireValue } },
@@ -1176,8 +1138,7 @@ export default function StrategiesPage() {
         }
       />
 
-      {/* Per-account total-concurrency cap. Renders one row per account
-          when scoped to "All accounts", or just the active account otherwise. */}
+      {}
       {accounts.length > 0 && (
         <section className="space-y-2">
           {(scopedAccountId ? accounts.filter((a) => a.id === scopedAccountId) : accounts).map(
@@ -1371,7 +1332,6 @@ function AccountsAndIntervalsView({
   updatingIntervalId: string | undefined;
   rearmingId: string | undefined;
 }) {
-  // Bucket by accountId. Preserve account list order; tack on stragglers.
   const byAccount = new Map<string, AccountStrategy[]>();
   for (const s of strategies) {
     const list = byAccount.get(s.accountId) ?? [];
@@ -1389,7 +1349,6 @@ function AccountsAndIntervalsView({
         const accountStrategies = byAccount.get(accountId) ?? [];
         const account = accounts.find((a) => a.id === accountId);
 
-        // Bucket this account's strategies by interval.
         const byInterval = new Map<string, AccountStrategy[]>();
         for (const s of accountStrategies) {
           const list = byInterval.get(s.interval) ?? [];

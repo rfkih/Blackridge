@@ -40,7 +40,7 @@ export function StrategyFilterGrid({ strategies, categories }: Props) {
 
   return (
     <>
-      {/* Category filter pills */}
+      {}
       <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
         {categories.map((c) => {
           const isOn = active === c;
@@ -65,7 +65,7 @@ export function StrategyFilterGrid({ strategies, categories }: Props) {
         })}
       </div>
 
-      {/* Strategy grid — filtered */}
+      {}
       <section style={{ padding: '32px 0 64px' }}>
         <div className="mx-auto max-w-[1180px] px-5 sm:px-8">
           <div

@@ -7,10 +7,6 @@ import { retryStompClient } from '@/lib/ws/stompClient';
 
 const SHOW_AFTER_MS = 3_000;
 
-// Louder companion to the TopNav pulse pill — the pill is easy to miss
-// when actively monitoring P&L. Reconnects are exponential-backoff capped
-// at MAX_RETRIES (see stompClient); after that the banner exposes a manual
-// retry button so the user can recover without a full page reload.
 export function WsReconnectingBanner() {
   const connected = useWsStore((s) => s.connected);
   const reconnecting = useWsStore((s) => s.reconnecting);
@@ -18,11 +14,6 @@ export function WsReconnectingBanner() {
   const attempts = useWsStore((s) => s.reconnectAttempts);
   const [show, setShow] = useState(false);
 
-  // Deps are connected-only: the STOMP client cycles `reconnecting` true/false
-  // while a disconnect persists, and including it would reset the 3 s timer
-  // every cycle — the banner could then never fire on a flaky network.
-  // Permanent state skips the delay entirely — the user already waited
-  // through the backoff window and needs the CTA immediately.
   useEffect(() => {
     if (connected) {
       setShow(false);

@@ -38,8 +38,6 @@ import type { AccountSummary } from '@/types/account';
 
 type SectionKey = string;
 
-// Flat 6+ section nav mirroring the prototype's settings layout: icon +
-// label, no groups, sticky in column. Order matches the prototype.
 const SETTINGS_NAV: { k: string; label: string; icon: React.ElementType }[] = [
   { k: 'profile', label: 'Profile', icon: User },
   { k: 'appearance', label: 'Appearance', icon: Sun },
@@ -66,7 +64,7 @@ export default function SettingsPage() {
         flex: 1,
       }}
     >
-      {/* ── Left settings nav (flat, sticky) ── */}
+      {}
       <nav
         aria-label="Settings sections"
         className="self-start sticky top-5"
@@ -113,7 +111,7 @@ export default function SettingsPage() {
         })}
       </nav>
 
-      {/* ── Right content ── */}
+      {}
       <div
         style={{
           display: 'flex',
@@ -133,8 +131,7 @@ export default function SettingsPage() {
         {active === 'brokers' && <BrokersSection />}
         {active === 'risk' && <RiskGuardrailsSection />}
         {active === 'support' && <SupportSection />}
-        {/* Profile view is the landing one — when there's no match we fall
-            back to it rather than showing an empty canvas. */}
+        {}
         {![
           'profile',
           'appearance',
@@ -151,8 +148,6 @@ export default function SettingsPage() {
   );
 }
 
-// Audit trail for the caller — strategy mutations, kill-switch rearms,
-// risk-config changes. Server-side scoped; no admin-wide visibility here.
 function RecentActivitySection() {
   const PAGE_SIZE = 25;
   const [page, setPage] = useState(0);
@@ -346,7 +341,6 @@ const ACTION_TONE: Record<string, ActivityTone> = {
 };
 
 function humanAction(action: string): string {
-  // Split SNAKE_CASE into Title Case: STRATEGY_CREATED → "Strategy created".
   const parts = action.split('_');
   if (parts.length === 0) return action;
   const first = parts[0];
@@ -356,8 +350,6 @@ function humanAction(action: string): string {
   );
 }
 
-// Posts to POST /api/v1/support; admins read it on /admin/inbox. The
-// `diagnostic` snapshot never includes JWT or secrets.
 function SupportSection() {
   const { user } = useAuth();
   const appVersion = process.env.NEXT_PUBLIC_APP_VERSION ?? 'dev';
@@ -367,7 +359,6 @@ function SupportSection() {
   const [submitting, setSubmitting] = useState(false);
   const [submittedId, setSubmittedId] = useState<string | null>(null);
 
-  // Note: never include JWT or any secret here.
   const diagnostic = useMemo(() => {
     const lines = [
       `Time: ${new Date().toISOString()}`,
@@ -578,8 +569,6 @@ function SupportSection() {
   );
 }
 
-// ─── Profile — wired to PATCH /api/v1/users/me ──────────────────────────────
-
 function ProfileSection() {
   const { user } = useAuth();
   const { theme, setTheme } = useTheme();
@@ -589,8 +578,6 @@ function ProfileSection() {
   const [phoneNumber, setPhoneNumber] = useState(user?.phoneNumber ?? '');
   const handle = useMemo(() => deriveHandle(user?.email ?? user?.name ?? ''), [user]);
 
-  // Rehydrate local draft when the server-side user changes (e.g. after a
-  // successful save the auth store flips, and we want the inputs to reflect it).
   useEffect(() => {
     setDisplayName(user?.name ?? '');
     setPhoneNumber(user?.phoneNumber ?? '');
@@ -819,13 +806,6 @@ function ProfileSection() {
   );
 }
 
-// ─── Display currency picker ───────────────────────────────────────────────
-//
-// Lives inside the Profile form so it sits next to the other display-level
-// preferences (theme, handle, timezone). Persisted through the zustand store;
-// there's nothing to save to the backend — all conversions happen client-side
-// off the `/api/v1/market/rates` feed.
-
 function DisplayCurrencyPicker() {
   const current = useCurrencyStore((s) => s.displayCurrency);
   const setCurrency = useCurrencyStore((s) => s.setDisplayCurrency);
@@ -865,13 +845,6 @@ function DisplayCurrencyPicker() {
     </div>
   );
 }
-
-// ─── Security — reflects what we actually ship ──────────────────────────────
-//
-// The design pack shows 2FA + hardware key + IP allowlist + withdrawal lock.
-// We don't ship any of those yet — the actual security posture of this
-// install is HttpOnly session cookie + backend rate limiter + sidebar
-// sign-out. This card reports that truthfully so users aren't misled.
 
 function SecuritySection() {
   const { logout } = useAuth();
@@ -984,8 +957,7 @@ function SecuritySection() {
         ))}
       </div>
 
-      {/* Danger zone — real sign-out button. Lives under security because
-          that's where users look for it. */}
+      {}
       <div
         style={{
           marginTop: 24,
@@ -1059,8 +1031,6 @@ function ToggleSwitch({ on, ...aria }: { on: boolean; 'aria-label'?: string }) {
     </div>
   );
 }
-
-// ─── Risk guardrails — Phase 2a + 2b ────────────────────────────────────────
 
 function RiskGuardrailsSection() {
   const { data: accounts = [] } = useAccounts();
@@ -1250,8 +1220,6 @@ function RiskField({ label, children }: { label: string; children: React.ReactNo
   );
 }
 
-// ─── Brokers — live from useAccounts ────────────────────────────────────────
-
 function BrokersSection() {
   const { data: accounts = [] } = useAccounts();
   const [rotateTarget, setRotateTarget] = useState<AccountSummary | null>(null);
@@ -1414,8 +1382,6 @@ function BrokersSection() {
   );
 }
 
-// ─── Helpers ────────────────────────────────────────────────────────────────
-
 function deriveHandle(source: string): string {
   const base = source.split('@')[0] ?? source;
   const clean = base.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
@@ -1439,11 +1405,6 @@ function formatJoinDate(iso: string): string {
   if (Number.isNaN(d.getTime())) return '';
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
-
-// ─── Appearance section ────────────────────────────────────────────────────
-// Theme (dark/light) + Brand palette (Midnight/Slate/Oxford/Emerald). Both
-// persist to localStorage via their respective providers; <html> attributes
-// are updated optimistically so the swap reads instantly.
 
 const PALETTE_ORDER: Palette[] = ['midnight', 'slate', 'oxford'];
 const NUMBER_FORMATS = [
@@ -1478,7 +1439,7 @@ function AppearanceSection() {
 
   return (
     <section className="br flex flex-col gap-4">
-      {/* ── Mode: light / dark with mini layout previews ── */}
+      {}
       <SettingCard
         title="Mode"
         desc="Light is friendlier for daytime. Dark is easier on the eyes for late-night sessions."
@@ -1522,7 +1483,7 @@ function AppearanceSection() {
         </div>
       </SettingCard>
 
-      {/* ── Theme (brand palette) ── */}
+      {}
       <SettingCard
         title="Theme"
         desc="The accent color across every screen. Profit-green and loss-red stay fixed regardless of palette."
@@ -1619,8 +1580,6 @@ function AppearanceSection() {
   );
 }
 
-// Mini layout preview — sidebar tile + content blocks. Pure CSS divs so it
-// re-renders instantly when palette/theme change.
 function ModePreview({ bg, card }: { bg: string; card: string }) {
   return (
     <div
@@ -1710,8 +1669,6 @@ function Segmented({
   );
 }
 
-// ─── Notifications section ─────────────────────────────────────────────────
-
 function NotificationsSection() {
   const [notif, setNotif] = useState({
     fills: true,
@@ -1760,8 +1717,6 @@ function NotificationsSection() {
     </section>
   );
 }
-
-// ─── API & exchanges section ───────────────────────────────────────────────
 
 const EXCHANGE_ROWS = [
   { ex: 'Binance Futures', label: 'Production · BR-Main', status: 'live', lastUsed: '3s ago' },
@@ -1819,8 +1774,6 @@ function ApiSection() {
     </section>
   );
 }
-
-// Shared toggle row used by NotificationsSection.
 
 function ToggleRow({
   on,

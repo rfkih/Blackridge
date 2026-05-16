@@ -24,7 +24,7 @@ function mapAccount(a: BackendAccountSummary): AccountSummary {
     createdAt: a.createdTime,
     maxConcurrentLongs: toNum(a.maxConcurrentLongs, 2),
     maxConcurrentShorts: toNum(a.maxConcurrentShorts, 2),
-    // Total cap is null when not set on the backend — distinguish from "0".
+
     maxConcurrentTrades: a.maxConcurrentTrades == null ? null : Number(a.maxConcurrentTrades),
     volTargetingEnabled: Boolean(a.volTargetingEnabled),
     bookVolTargetPct: toNum(a.bookVolTargetPct, 15),

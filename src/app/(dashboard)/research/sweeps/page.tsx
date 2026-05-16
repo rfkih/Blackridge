@@ -139,14 +139,12 @@ function StatusPill({ status }: { status: string }) {
   );
 }
 
-// ─── New-sweep form ─────────────────────────────────────────────────────────
-
 const TODAY = new Date().toISOString().slice(0, 10);
 const ONE_YEAR_AGO = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
 
 interface GridEntry {
   key: string;
-  values: string; // comma-separated, parsed to number[] on submit
+  values: string;
 }
 
 /** Strategies whose backend param service consumes BacktestParamOverrideContext.
@@ -193,8 +191,6 @@ function formatDefault(v: number): string {
 }
 
 function NewSweepForm({ onSubmitted }: { onSubmitted: (sweepId: string) => void }) {
-  // Only show AccountStrategy rows whose strategyCode is (a) ACTIVE in the
-  // StrategyDefinition catalogue and (b) research-capable on the backend.
   const strategiesQ = useStrategies();
   const definitionsQ = useStrategyDefinitions();
   const activeDefCodes = new Set(
@@ -213,12 +209,10 @@ function NewSweepForm({ onSubmitted }: { onSubmitted: (sweepId: string) => void 
   const [label, setLabel] = useState('');
   const [accountStrategyId, setAccountStrategyId] = useState<string>('');
   const [rankMetric, setRankMetric] = useState<NonNullable<SweepSpec['rankMetric']>>('avgR');
-  // Default to TRAIN_OOS so new sweeps are honest by default. Users running
-  // smoke tests or working with very short windows can flip back to NONE.
+
   const [splitMode, setSplitMode] = useState<NonNullable<SweepSpec['splitMode']>>('TRAIN_OOS');
   const [oosFractionPct, setOosFractionPct] = useState('30');
-  // Default to 20% locked holdout — fund-grade default. Empty string =
-  // "no holdout" so the user can opt out without a separate toggle.
+
   const [holdoutFractionPct, setHoldoutFractionPct] = useState('20');
   const [walkForwardWindows, setWalkForwardWindows] = useState('4');
   const [grid, setGrid] = useState<GridEntry[]>([]);
@@ -229,10 +223,6 @@ function NewSweepForm({ onSubmitted }: { onSubmitted: (sweepId: string) => void 
   const defaults = defaultsQ.data ?? {};
   const availableKeys = Object.keys(defaults).sort();
 
-  // Auto-build the starter grid for the selected strategy, with each row's
-  // candidate values derived from the actual default value of that key.
-  // Only auto-rebuilds when the form is empty or matches the previous auto
-  // state, so manual edits survive a strategy switch.
   const prevAutoRef = useRef<GridEntry[] | null>(null);
   useEffect(() => {
     if (!selectedCode || !defaultsQ.data) return;
@@ -296,9 +286,7 @@ function NewSweepForm({ onSubmitted }: { onSubmitted: (sweepId: string) => void 
       paramGrid,
       rankMetric,
       splitMode,
-      // Both TRAIN_OOS and WALK_FORWARD_K use oosFractionPct as the total
-      // OOS coverage relative to the available (non-holdout) window. In
-      // K-fold mode the coverage is divided evenly across the K folds.
+
       oosFractionPct:
         splitMode === 'TRAIN_OOS' || splitMode === 'WALK_FORWARD_K'
           ? Number(oosFractionPct) || 30
@@ -591,8 +579,6 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
     </label>
   );
 }
-
-// ─── Table primitives ───────────────────────────────────────────────────────
 
 function Th({ children, align }: { children?: React.ReactNode; align?: 'right' }) {
   return (

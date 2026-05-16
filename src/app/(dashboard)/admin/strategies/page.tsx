@@ -33,13 +33,7 @@ import type { StrategyDefinition } from '@/types/strategyDefinition';
 export default function AdminStrategiesPage() {
   const router = useRouter();
   const isAdmin = useIsAdmin();
-  // The route is client-gated: non-admins get redirected to the dashboard
-  // on render. The backend still enforces ROLE_ADMIN on every write — this
-  // redirect is UX, not security.
-  //
-  // Wait for the persist middleware to rehydrate before reading role —
-  // Zustand initialises `user: null` which would otherwise flash a redirect
-  // for any admin who just hit F5.
+
   const hydrated = useAuthHydrated();
 
   useEffect(() => {
@@ -72,8 +66,6 @@ export default function AdminStrategiesPage() {
   };
 
   const handleDeprecate = (row: StrategyDefinition) => {
-    // window.confirm is the right primitive here — soft-delete is
-    // reversible (flip status back via edit), so a heavy modal is overkill.
     // eslint-disable-next-line no-alert
     const ok = window.confirm(
       `Deprecate "${row.strategyCode}"? It will no longer appear in pickers. Historical rows still resolve.`,
@@ -104,8 +96,6 @@ export default function AdminStrategiesPage() {
     return { active: a, inactive: i, deprecated: d };
   }, [rows]);
 
-  // Before we know the user's role, render nothing — prevents a flash of
-  // admin chrome for a regular user who lands here by typing the URL.
   if (!hydrated) return null;
   if (!isAdmin) return null;
 
@@ -199,8 +189,6 @@ export default function AdminStrategiesPage() {
     </div>
   );
 }
-
-// ─── Table ───────────────────────────────────────────────────────────────────
 
 interface StrategyTableProps {
   label: string;
@@ -304,8 +292,6 @@ function StrategyTable({
     </section>
   );
 }
-
-// ─── Supporting UI ───────────────────────────────────────────────────────────
 
 function StatusBadge({ status }: { status: string }) {
   const meta = resolveStatus(status);

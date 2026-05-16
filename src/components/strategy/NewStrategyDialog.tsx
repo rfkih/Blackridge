@@ -56,9 +56,7 @@ interface FormState {
 function initialState(defaultAccountId?: string): FormState {
   return {
     accountId: defaultAccountId ?? '',
-    // Left blank — the effect below fills it from the live strategy-definitions
-    // catalogue once loaded, so we never ship a hard-coded "LSR_V2" that could
-    // be stale / deprecated / absent on a given instance.
+
     strategyCode: '',
     presetName: '',
     symbol: 'BTCUSDT',
@@ -106,10 +104,6 @@ export function NewStrategyDialog({
     [strategyDefinitions],
   );
 
-  // Auto-select the first ACTIVE strategy when the dialog opens and definitions
-  // finish loading. If the user has already picked something, respect their
-  // choice. If the previously-picked code has since been deprecated, fall back
-  // to the first ACTIVE to avoid submitting a dead code.
   useEffect(() => {
     if (!open) return;
     if (activeDefinitions.length === 0) return;
@@ -119,13 +113,6 @@ export function NewStrategyDialog({
     }
   }, [open, activeDefinitions, form.strategyCode]);
 
-  // V56 — sizing config is unified through account_strategy
-  // (use_risk_based_sizing + risk_pct) for ALL engines, both legacy
-  // (LSR/LSR_V2/VCB/VBO/FCARRY) and spec-driven (DCB/MMR/MRO/TPR + research
-  // archetypes). `strategyControlsRiskSizing` returns true unconditionally;
-  // the predicate is kept as a hook for the rare future case where a
-  // strategy genuinely owns its own sizing math (none today). Show the
-  // section as soon as the user picks any strategy.
   const riskSizingApplies = form.strategyCode
     ? strategyControlsRiskSizing(form.strategyCode)
     : false;
@@ -165,11 +152,9 @@ export function NewStrategyDialog({
         capitalAllocationPct: Number(form.capitalAllocationPct),
         priorityOrder: Number(form.priorityOrder),
         enabled: form.enabled,
-        // V55 — only send the risk-sizing fields for legacy strategies that
-        // actually read them. For spec engines, omit so the backend default
-        // (TRUE/0.05) is stored but stays inert.
+
         useRiskBasedSizing: riskSizingApplies ? form.useRiskBasedSizing : undefined,
-        // UI is in percent (5 = 5%); backend stores fraction (0.05 = 5%).
+
         riskPct:
           riskSizingApplies && form.useRiskBasedSizing ? Number(form.riskPct) / 100 : undefined,
       },

@@ -49,13 +49,9 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
           key={pathname}
           className="page-enter dashboard-main flex-1 overflow-y-auto"
           style={{
-            // Symmetric padding — the design pack uses 24px / 32px around
-            // the dashboard content. Phone screens get a tighter padding
-            // via the .dashboard-main override in globals.css.
             padding: '24px 32px 32px 32px',
             color: 'var(--mm-ink-0)',
-            // Hint the compositor — cheaper opacity/transform transitions on
-            // the top-level main during route animation.
+
             willChange: 'opacity, transform',
           }}
         >

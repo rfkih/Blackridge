@@ -1,9 +1,4 @@
-// Read access to the Python research orchestrator (FastAPI on 127.0.0.1:8082)
-// via the trading-JVM proxy at /api/v1/research-orch/**. Admin-gated server-
-// side; the X-Orch-Token shared secret never leaves the JVM host.
-//
-// Only read paths exposed today. Write paths (POST /tick, /walk-forward,
-// /queue) stay agent-only — the dashboard surfaces results, not control.
+
 import { apiClient } from './client';
 import type {
   EnqueueSweepRequest,

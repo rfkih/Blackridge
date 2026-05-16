@@ -14,9 +14,6 @@ function formatNum(n: number | null | undefined, digits = 2): string {
   return n.toFixed(digits);
 }
 
-// Tooltip copy for each metric. Centralised so they can be reused on the
-// dashboard or sweep result page later. Each is a tight 2-3 paragraph
-// explanation: what the number is, how to read it, what NOT to read into it.
 const HELP = {
   totalReturn: (
     <>
@@ -186,10 +183,6 @@ export function BacktestMetricsGrid({ metrics, isLoading }: BacktestMetricsGridP
   const totalReturnColor = m == null ? 'neutral' : m.totalReturn >= 0 ? 'profit' : 'loss';
   const totalReturnPctPrefix = m && m.totalReturnPct >= 0 ? '+' : '';
 
-  // Risk:reward — avg win ÷ |avg loss|. Three states: null (no data), '∞'
-  // (winners but no losers — same convention as ProfitFactor's null = ∞), or
-  // a numeric ratio. `Math.abs` defends against either sign convention coming
-  // through avgLossUsdt.
   const avgWin = m?.avgWinUsdt ?? null;
   const avgLossAbs = m?.avgLossUsdt == null ? null : Math.abs(m.avgLossUsdt);
   const rrrInfinite =

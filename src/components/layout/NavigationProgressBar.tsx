@@ -25,15 +25,12 @@ export function NavigationProgressBar() {
   const timerRef = useRef<number | null>(null);
   const hideRef = useRef<number | null>(null);
 
-  // Drive the bar forward in small increments while active — stalls near the
-  // top so a fast navigation reaches 100% quickly but a slow one still looks
-  // alive instead of hanging at one value.
   useEffect(() => {
     if (!active) return;
     setProgress(12);
     const tick = () => {
       setProgress((p) => {
-        if (p >= 90) return p; // park at 90 until we know we're done
+        if (p >= 90) return p;
         const step = p < 40 ? 6 : p < 70 ? 3 : 1.2;
         return p + step;
       });
@@ -45,8 +42,6 @@ export function NavigationProgressBar() {
     };
   }, [active]);
 
-  // When the route actually changes (pathname+search), the navigation finished.
-  // Drive to 100%, then fade out.
   useEffect(() => {
     if (!active) return;
     setProgress(100);
@@ -58,13 +53,8 @@ export function NavigationProgressBar() {
     return () => {
       if (hideRef.current != null) window.clearTimeout(hideRef.current);
     };
-    // Intentionally keyed on the transition signal — we only want to
-    // react when the pathname or query actually changed.
   }, [pathname, searchParams]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Detect the start of a navigation by intercepting anchor clicks at the
-  // document level. Only same-origin, no-modifier clicks count — matches
-  // Next.js Link's own criteria for client-side navigation.
   useEffect(() => {
     function onClick(e: MouseEvent) {
       if (e.defaultPrevented) return;
@@ -84,7 +74,7 @@ export function NavigationProgressBar() {
         }
       }
       if (href.startsWith('#') || href.startsWith('mailto:') || href.startsWith('tel:')) return;
-      // Same URL — don't start the bar.
+
       const currentHref = window.location.pathname + window.location.search;
       if (href === currentHref) return;
 

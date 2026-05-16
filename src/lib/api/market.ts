@@ -3,8 +3,6 @@ import { toNum } from './coerce';
 import type { CandleData, IndicatorData, SymbolSlippageStats } from '@/types/market';
 import { INTERVAL_SECONDS } from '@/lib/charts/chartTheme';
 
-// Backend may return time as `time`, `openTime`, or `timestamp`.
-// Value may be epoch-ms or epoch-seconds — detect by magnitude.
 interface BackendCandle {
   time?: number;
   openTime?: number;
@@ -41,7 +39,7 @@ interface BackendIndicator {
 function resolveTimeSec(d: { time?: number; openTime?: number; timestamp?: number }): number {
   const raw = d.time ?? d.openTime ?? d.timestamp;
   if (raw == null || !Number.isFinite(raw)) return NaN;
-  // If the value is larger than year 3000 in seconds (32503680000), assume it's milliseconds.
+
   return raw > 32_503_680_000 ? Math.floor(raw / 1_000) : raw;
 }
 
@@ -67,7 +65,7 @@ export async function fetchCandles(
         close: d.close,
         volume: d.volume ?? 0,
       }))
-      // TV assertion: no NaN times, must be strictly ascending
+
       .filter((c) => Number.isFinite(c.time))
       .sort((a, b) => a.time - b.time)
   );

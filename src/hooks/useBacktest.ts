@@ -80,26 +80,18 @@ export function useBacktestRun(id: string | undefined) {
     queryKey: ['backtest-run', id],
     queryFn: () => getBacktestRun(id as string),
     enabled: isValidId(id),
-    // Override the "immutable once complete" stale time while the run is
-    // still progressing — TanStack treats the key as fresh otherwise and
-    // wouldn't refetch on the interval below.
+
     staleTime: QUERY_STALE_TIMES.backtestResults,
     refetchInterval: (q) => {
       const run = q.state.data;
       if (!run) return false;
       if (!ACTIVE_STATUSES.has(run.status)) return false;
-      // STOMP up → progress arrives via WS, REST poll is just a fallback.
-      // STOMP down → REST poll is the only source, so tighten it.
+
       return wsConnected ? DETAIL_POLL_SLOW_MS : DETAIL_POLL_FAST_MS;
     },
     refetchIntervalInBackground: false,
   });
 
-  // When the run transitions out of an active status (RUNNING → COMPLETED /
-  // FAILED), invalidate the derived datasets. Result-page hooks load once
-  // and cache forever for performance — without this they'd hold the empty
-  // payload they fetched while the run was still computing, and the user
-  // would see "no trades" until a manual refresh.
   const prevStatusRef = useRef<BacktestRun['status'] | null>(null);
   const currentStatus = query.data?.status;
   useEffect(() => {
@@ -135,8 +127,6 @@ export function useActivateBacktestStrategy(runId: string | undefined) {
       return activateBacktestStrategy(runId, payload);
     },
     onSuccess: (strategy) => {
-      // Refresh the account strategies list so the newly-enabled strategy
-      // shows up immediately in the Strategies page without a manual reload.
       queryClient.invalidateQueries({ queryKey: ['strategies'] });
       queryClient.invalidateQueries({ queryKey: ['strategy', strategy.id] });
     },
@@ -157,16 +147,12 @@ export function useActiveBacktestCount(): {
   isLoading: boolean;
   firstActiveId: string | null;
 } {
-  // triggeredBy: 'USER' scopes both totals to the caller's own runs.
-  // Without it, the backend visibility rule (user_id = :me OR triggered_by = 'RESEARCHER')
-  // includes all RESEARCHER runs in the total — a researcher run in flight would
-  // disable the submit button for every regular user even though they have a free slot.
   const pendingQ = useBacktestRuns({ status: 'PENDING', size: 1, triggeredBy: 'USER' });
   const runningQ = useBacktestRuns({ status: 'RUNNING', size: 1, triggeredBy: 'USER' });
   return {
     count: (pendingQ.data?.total ?? 0) + (runningQ.data?.total ?? 0),
     isLoading: pendingQ.isLoading || runningQ.isLoading,
-    // Prefer the RUNNING run for the link — it's the one the user cares about.
+
     firstActiveId:
       runningQ.data?.content[0]?.id ?? pendingQ.data?.content[0]?.id ?? null,
   };
@@ -257,8 +243,6 @@ export function useBacktestProgressStream(runId: string | undefined): void {
         },
       );
 
-      // Terminal frames: refetch the full run detail so metrics / trade
-      // history land in the cache without waiting for the poll interval.
       if (frame.status === 'COMPLETED' || frame.status === 'FAILED') {
         void queryClient.invalidateQueries({ queryKey: ['backtest-run', runId] });
       }

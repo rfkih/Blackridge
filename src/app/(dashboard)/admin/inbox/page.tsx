@@ -72,7 +72,7 @@ export default function AdminInboxPage() {
       className="mm-card"
       style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}
     >
-      {/* Header */}
+      {}
       <header
         style={{
           display: 'flex',
@@ -111,7 +111,7 @@ export default function AdminInboxPage() {
         </button>
       </header>
 
-      {/* Filter chips */}
+      {}
       <div role="tablist" aria-label="Status filter" style={{ display: 'flex', gap: 6 }}>
         {STATUS_FILTERS.map((f) => {
           const active = filter === f.value;
@@ -133,7 +133,7 @@ export default function AdminInboxPage() {
         })}
       </div>
 
-      {/* List */}
+      {}
       {query.isLoading && messages.length === 0 ? (
         <div style={{ padding: 24, fontSize: 12, color: 'var(--mm-ink-2)', textAlign: 'center' }}>
           Loading messages…
@@ -193,7 +193,7 @@ export default function AdminInboxPage() {
         </ul>
       )}
 
-      {/* Footer */}
+      {}
       {messages.length > 0 && (
         <footer
           style={{

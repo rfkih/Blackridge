@@ -40,9 +40,9 @@ export function PageLoader({ label = 'Loading', fullscreen = true, className }: 
       }
     >
       <div className="flex flex-col items-center gap-6">
-        {/* Rotating ring + logo stack */}
+        {}
         <div className="relative h-[88px] w-[88px]">
-          {/* Outer orbit — slow rotating dashed ring */}
+          {}
           <svg
             className="absolute inset-0 animate-[mm-spin-slow_3.2s_linear_infinite]"
             viewBox="0 0 100 100"
@@ -75,7 +75,7 @@ export function PageLoader({ label = 'Loading', fullscreen = true, className }: 
             />
           </svg>
 
-          {/* Inner orbit — faster, opposite direction, shorter arc */}
+          {}
           <svg
             className="absolute inset-2 animate-[mm-spin-reverse_1.9s_cubic-bezier(0.65,0,0.35,1)_infinite]"
             viewBox="0 0 100 100"
@@ -94,7 +94,7 @@ export function PageLoader({ label = 'Loading', fullscreen = true, className }: 
             />
           </svg>
 
-          {/* Pulsing logo at centre */}
+          {}
           <div
             className="absolute inset-0 flex items-center justify-center"
             style={{
@@ -107,7 +107,7 @@ export function PageLoader({ label = 'Loading', fullscreen = true, className }: 
           </div>
         </div>
 
-        {/* Label + animated dots */}
+        {}
         <div className="flex flex-col items-center gap-2">
           <div
             className="font-mono text-[10px] uppercase"
@@ -133,7 +133,7 @@ export function PageLoader({ label = 'Loading', fullscreen = true, className }: 
             </span>
           </div>
 
-          {/* Hairline bar — scans left/right to echo the ring's motion */}
+          {}
           <div
             className="relative h-[2px] w-[160px] overflow-hidden rounded-full"
             style={{ backgroundColor: 'var(--border-subtle)' }}

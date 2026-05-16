@@ -68,7 +68,6 @@ export function useActiveAccount(): ActiveAccountContext {
       return;
     }
     if (selection !== 'all' && !accounts.some((a) => a.id === selection)) {
-      // Stored selection no longer valid (account revoked, different user, etc.)
       setSelection(accounts.length === 1 ? accounts[0].id : 'all');
     }
   }, [accounts, selection, isLoading, setSelection]);
@@ -106,8 +105,7 @@ export function useCreateAccount() {
     mutationFn: (payload: CreateAccountPayload) => createAccount(payload),
     onSuccess: (account) => {
       queryClient.invalidateQueries({ queryKey: ['accounts'] });
-      // If the user had no selection yet, land them on the account they
-      // just created so the rest of the dashboard isn't a ghost town.
+
       if (existingSelection == null) {
         setSelection(account.id);
       }
@@ -186,8 +184,7 @@ export function useDeleteAccount() {
     mutationFn: (accountId: string) => deleteAccount(accountId),
     onSuccess: (_data, accountId) => {
       queryClient.invalidateQueries({ queryKey: ['accounts'] });
-      // If the user was scoped to the account they just deleted, fall back to
-      // 'all' so downstream queries don't keep firing against a dead id.
+
       if (selection === accountId) {
         setSelection('all');
       }

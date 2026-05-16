@@ -82,25 +82,16 @@ export function BacktestParamTuner() {
   const loadPreset = useBacktestParamStore((s) => s.loadPreset);
   const resetWizard = useBacktestParamStore((s) => s.resetAll);
 
-  // `submittedRef` flips true the moment we've kicked off the success
-  // navigation to the run's detail page. The guard below must respect it or
-  // `resetWizard()` (which nulls `config` before we leave this route) races
-  // the redirect and bounces the user to /backtest/new instead of the
-  // freshly-created run.
   const submittedRef = useRef(false);
 
-  // Guard: without config there's nothing to tune.
   useEffect(() => {
     if (submittedRef.current) return;
     if (!config) router.replace('/backtest/new');
   }, [config, router]);
 
-  // Memoised so downstream hooks don't see a fresh array identity each render.
   const strategyCodes = useMemo<Array<string>>(() => config?.strategyCodes ?? [], [config]);
   const [activeTab, setActiveTab] = useState<string>(strategyCodes[0] ?? '');
-  // Phase 3.8 — opt in to calibrated slippage (BacktestService falls back
-  // to the symbol's measured fill-cost when slippageRate is omitted).
-  // Default off so existing wizard runs stay deterministic-replay.
+
   const [useCalibratedSlippage, setUseCalibratedSlippage] = useState<boolean>(false);
   const slippageStatsQ = useQuery({
     queryKey: ['market', 'slippage', config?.symbol ?? null],
@@ -127,9 +118,6 @@ export function BacktestParamTuner() {
   const vcbDefaults = needsVcb ? vcbDefaultsQ.data : undefined;
   const vboDefaults = needsVbo ? vboDefaultsQ.data : undefined;
 
-  // Spec-driven strategies (M1+): pull archetype + spec_jsonb.params from
-  // strategy_definition. Legacy LSR/VCB/VBO short-circuit above this, so this
-  // covers MMR / TPR / etc. — anything whose `archetype` is not LEGACY_JAVA.
   const definitionsQ = useStrategyDefinitions();
   const specByCode = useMemo<
     Record<string, { archetype: string | null; params: Record<string, number | boolean> }>
@@ -181,14 +169,11 @@ export function BacktestParamTuner() {
     [overrideCounts],
   );
 
-  // Dirty-state beforeunload guard — only fires once the user has made edits.
   useEffect(() => {
     if (totalOverrides === 0) return undefined;
     const handler = (e: BeforeUnloadEvent) => {
       e.preventDefault();
-      // Assigning `returnValue` is the browser-standard way to trigger the
-      // confirm dialog. The prop is deprecated but still required across
-      // major browsers; no-param-reassign is suppressed intentionally.
+
       // eslint-disable-next-line no-param-reassign
       e.returnValue = '';
     };
@@ -231,19 +216,13 @@ export function BacktestParamTuner() {
       });
       const run = await createMutation.mutateAsync(payload);
       if (!run.id) {
-        // Belt-and-braces: the mapper already falls back to backtestRunId, but
-        // if the backend ever emits an empty shape we'd rather surface an
-        // error than silently redirect to /backtest/.
         throw new Error('Backtest submitted but server returned no run id');
       }
       toast.success({
         title: 'Backtest submitted',
         description: `Run ${run.id.slice(0, 8)} · ${run.symbol} ${run.interval}`,
       });
-      // Navigate FIRST, then reset. Nulling `config` inside resetWizard()
-      // triggers the guard effect which would otherwise race us with a
-      // replace() to /backtest/new. `submittedRef` also short-circuits the
-      // guard for the remainder of this component's life.
+
       submittedRef.current = true;
       router.push(`/backtest/${run.id}`);
       resetWizard();
@@ -252,8 +231,7 @@ export function BacktestParamTuner() {
         err != null &&
         typeof err === 'object' &&
         (err as { response?: { status?: number } }).response?.status === 429;
-      // Skip the toast for 429 — the warning bar already shows the "slot in
-      // use" message and surfacing both creates a confusing double-message.
+
       if (!is429) {
         toast.error({
           title: 'Could not submit backtest',
@@ -277,7 +255,6 @@ export function BacktestParamTuner() {
     router,
   ]);
 
-  // Cmd/Ctrl+Enter → Run
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
@@ -290,7 +267,7 @@ export function BacktestParamTuner() {
   }, [handleRun]);
 
   if (!config) {
-    return null; // redirecting
+    return null;
   }
 
   const defaultsLoading =
@@ -300,7 +277,7 @@ export function BacktestParamTuner() {
 
   return (
     <div className="space-y-5">
-      {/* Header: back + breadcrumb */}
+      {}
       <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div className="flex items-start gap-3">
           <button
@@ -321,10 +298,10 @@ export function BacktestParamTuner() {
         <WizardBreadcrumb current="params" onStepClick={handleBackToConfig} />
       </header>
 
-      {/* Run summary bar — read-only recap of Step 1 */}
+      {}
       <RunSummaryBar config={config} totalOverrides={totalOverrides} />
 
-      {/* Strategy tabs */}
+      {}
       <div className="flex items-center gap-1 border-b border-bd-subtle">
         {strategyCodes.map((code) => {
           const isActive = code === activeTab;
@@ -355,9 +332,9 @@ export function BacktestParamTuner() {
         })}
       </div>
 
-      {/* Active tab body */}
+      {}
       <div className="rounded-xl border border-bd-subtle bg-bg-surface">
-        {/* Preset bar */}
+        {}
         <div className="border-b border-bd-subtle px-4 py-3">
           <BacktestParamPresetBar
             strategyCode={activeTab}
@@ -371,7 +348,7 @@ export function BacktestParamTuner() {
           />
         </div>
 
-        {/* Form */}
+        {}
         <div className="px-4 py-4">
           {defaultsLoading ? (
             <div className="flex items-center justify-center gap-2 py-10 text-[12px] text-text-muted">
@@ -402,12 +379,7 @@ export function BacktestParamTuner() {
         </div>
       </div>
 
-      {/* Slippage cost model — calibrated from this user's actual fills,
-          when a meaningful sample exists. Off by default so existing
-          deterministic-replay flows are unchanged. The help-icon is a
-          dedicated tooltip trigger (separate from the label so clicking
-          the label still toggles the checkbox via htmlFor); 2-second
-          hover delay keeps casual readers from being pelted with docs. */}
+      {}
       <div className="rounded-xl border border-bd-subtle bg-bg-surface px-4 py-3">
         <div className="flex items-start gap-3">
           <input
@@ -436,7 +408,7 @@ export function BacktestParamTuner() {
         </div>
       </div>
 
-      {/* Footer — Run submit */}
+      {}
       <footer className="flex flex-col gap-2 rounded-xl border border-bd-subtle bg-bg-surface px-4 py-3">
         {isAtLimit && (
           <div className="flex items-center justify-between gap-3 rounded-sm border border-[rgba(245,158,11,0.3)] bg-tint-warning px-3 py-2 text-[11px] text-warning">
@@ -646,8 +618,6 @@ function ActiveParamForm({
     );
   }
 
-  // Spec-driven strategies (M1+) — archetype + spec_jsonb.params from
-  // strategy_definition. Anything not LEGACY_JAVA falls through to here.
   if (specDef && Object.keys(specDef.params).length > 0) {
     return (
       <SpecParamsForm
@@ -731,8 +701,6 @@ function SlippageHelpHint() {
               setOpen(false);
             }}
             onClick={(e) => {
-              // Prevent the surrounding <label htmlFor> from also toggling
-              // the checkbox when the user clicks the help icon.
               e.preventDefault();
               e.stopPropagation();
               cancel();

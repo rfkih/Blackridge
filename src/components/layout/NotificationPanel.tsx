@@ -1,12 +1,5 @@
 'use client';
 
-// In-app event feed shown in the TopNav alerts popover. Today this is composed
-// from existing API surfaces — kill-switch trips on AccountStrategy, IP changes
-// from ServerIpLog, and recent COMPLETED backtests — rather than a dedicated
-// notification feed (no backend table for that yet). When the backend grows a
-// real /api/v1/notifications endpoint with read/unread state, swap the
-// composition below for a single fetch + change the unread-count source.
-
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {
   AlertTriangle,
@@ -57,7 +50,6 @@ function writeLastSeenTs(ts: number) {
   try {
     window.localStorage.setItem(READ_FLAG_KEY, String(ts));
   } catch {
-    /* no-op */
   }
 }
 
@@ -71,9 +63,6 @@ export function NotificationPanel() {
   });
   const recentBacktests = useBacktestRuns({ status: 'COMPLETED', size: 5 });
 
-  // Admin-only feed of operational alerts (kill-switch trips, ingest stalls,
-  // P&L deviation, verdict drift). 403 for non-admins is fine — `enabled`
-  // guards against firing it at all.
   const isAdmin = useIsAdmin();
   const recentAlerts = useQuery({
     queryKey: ['alerts', 'recent-popover'],
@@ -86,7 +75,6 @@ export function NotificationPanel() {
   const notifications = useMemo<Notification[]>(() => {
     const out: Notification[] = [];
 
-    // 1. Kill-switch trips — strategy-level, very high priority.
     for (const s of strategies) {
       if (s.isKillSwitchTripped && s.killSwitchTrippedAt) {
         out.push({
@@ -103,7 +91,6 @@ export function NotificationPanel() {
       }
     }
 
-    // 2. IP whitelist change — affects every account simultaneously.
     if (ipStatus.data?.event === 'CHANGED' && ipStatus.data.recordedAt) {
       out.push({
         id: `ip-${ipStatus.data.recordedAt}`,
@@ -116,8 +103,6 @@ export function NotificationPanel() {
       });
     }
 
-    // 3. Recent backtest completions — useful for "I kicked off a sweep, did
-    //    it finish?" without having to navigate to the runs list.
     const runs = recentBacktests.data?.content ?? [];
     for (const r of runs.slice(0, 3)) {
       if (!r.completedAt) continue;
@@ -135,7 +120,6 @@ export function NotificationPanel() {
       });
     }
 
-    // 4. Operational alerts (admin only) — Phase 7 system signals.
     const alerts = recentAlerts.data?.content ?? [];
     for (const a of alerts.slice(0, 5)) {
       if (!a.createdAt) continue;
@@ -150,15 +134,10 @@ export function NotificationPanel() {
       });
     }
 
-    // Newest first — the panel is about "what just happened".
     out.sort((a, b) => new Date(b.ts).getTime() - new Date(a.ts).getTime());
     return out;
   }, [strategies, ipStatus.data, recentBacktests.data, recentAlerts.data]);
 
-  // Unread = notifications produced after the last time the user opened the
-  // panel. We don't track per-item read state because composing from multiple
-  // ephemeral sources doesn't have stable IDs across reloads — a watermark
-  // is good enough for "you have new things" UX.
   const [lastSeenTs, setLastSeenTs] = useState<number>(() => readLastSeenTs());
   const newestTs = notifications[0]?.ts ?? null;
   const unreadCount = useMemo(() => {
@@ -168,7 +147,6 @@ export function NotificationPanel() {
 
   const [open, setOpen] = useState(false);
 
-  // When the panel opens, mark everything currently visible as seen.
   useEffect(() => {
     if (open && newestTs) {
       const ms = new Date(newestTs).getTime();

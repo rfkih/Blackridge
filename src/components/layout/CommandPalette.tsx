@@ -77,7 +77,6 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
     );
   }, [query]);
 
-  // Reset state on open
   useEffect(() => {
     if (open) {
       setQuery('');
@@ -86,7 +85,6 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
     }
   }, [open]);
 
-  // Keep active index in bounds
   useEffect(() => {
     setActiveIndex((i) => Math.min(i, Math.max(filtered.length - 1, 0)));
   }, [filtered.length]);
@@ -118,7 +116,6 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
     [filtered, activeIndex, navigate],
   );
 
-  // Group items + build a single id→flatIndex map so the render loop is O(n) not O(n²).
   const { groups, flatItems, flatIndexById } = useMemo(() => {
     const g: Record<string, PaletteItem[]> = {};
     for (const item of filtered) {
@@ -155,7 +152,7 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
             Search pages and actions
           </DialogPrimitive.Description>
 
-          {/* Search input */}
+          {}
           <div className="flex items-center gap-3 border-b border-[var(--border-subtle)] px-4 py-3">
             <Search size={15} className="shrink-0 text-[var(--text-muted)]" aria-hidden="true" />
             <input
@@ -180,7 +177,7 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
             </kbd>
           </div>
 
-          {/* Results */}
+          {}
           <div
             id="palette-results"
             role="listbox"
@@ -243,7 +240,7 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
             )}
           </div>
 
-          {/* Footer hint */}
+          {}
           <div className="flex items-center gap-3 border-t border-[var(--border-subtle)] px-4 py-2">
             <span className="text-[10px] text-[var(--text-muted)]">
               <kbd className="font-mono">↑↓</kbd> navigate&nbsp;&nbsp;

@@ -20,7 +20,7 @@ function fmt(n: number | null, _sym: string): string {
 
 function fmtVol(v: number | null, _sym: string): string {
   if (v == null) return '—';
-  // Remove USDT suffix for display; show as BTC value
+
   if (v >= 1_000_000) return `${(v / 1_000_000).toFixed(1)}M`;
   if (v >= 1_000) return `${(v / 1_000).toFixed(1)}K`;
   return v.toFixed(0);

@@ -1,6 +1,4 @@
-// Audit-event read API. The caller only ever sees their own events —
-// no admin-wide endpoint exposed (yet). Page/size based pagination
-// matches the Spring Data shape on the wire.
+
 import { apiClient } from './client';
 import type { PageEnvelope } from '@/types/api';
 

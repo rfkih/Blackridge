@@ -1,10 +1,3 @@
-// ML/sentiment ingestion control plane (V67) — admin-only.
-//
-// Backend lives in the research JVM (8081) like the historical-backfill
-// console — both routed through researchClient. Manual backfills route
-// through the existing `historical_backfill_job` table via a thin trigger
-// endpoint; the frontend polls `/api/v1/historical/jobs/{id}` (existing
-// helper) for live progress instead of duplicating polling logic here.
 
 import { researchClient as apiClient } from './client';
 import type {
@@ -16,8 +9,6 @@ import type {
 import type { HistoricalBackfillJob } from './historical';
 
 const BASE = '/api/v1/ml-ingest';
-
-// ── Schedules ───────────────────────────────────────────────────────────────
 
 export async function listMlSchedules(): Promise<MlIngestSchedule[]> {
   const { data } = await apiClient.get<MlIngestSchedule[]>(`${BASE}/schedules`);
@@ -37,14 +28,10 @@ export async function updateMlSchedule(
   return data;
 }
 
-// ── Source health ───────────────────────────────────────────────────────────
-
 export async function listMlSourceHealth(): Promise<MlSourceHealth[]> {
   const { data } = await apiClient.get<MlSourceHealth[]>(`${BASE}/health`);
   return data;
 }
-
-// ── Manual backfill trigger ─────────────────────────────────────────────────
 
 /**
  * Returns the freshly-inserted HistoricalBackfillJob row. Caller should then
@@ -57,8 +44,6 @@ export async function triggerMlBackfill(
   const { data } = await apiClient.post<HistoricalBackfillJob>(`${BASE}/backfill`, req);
   return data;
 }
-
-// ── Discovery: known source list ────────────────────────────────────────────
 
 export async function listKnownMlSources(): Promise<string[]> {
   const { data } = await apiClient.get<{ sources: string[] }>(`${BASE}/sources`);

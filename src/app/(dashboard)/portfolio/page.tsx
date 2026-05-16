@@ -40,9 +40,6 @@ export default function PortfolioPage() {
   const realizedToday = pnlToday?.realizedPnl ?? 0;
   const unrealizedOpen = pnlToday?.unrealizedPnl ?? 0;
 
-  // Derive a real allocation from the holdings. Stablecoins form their own
-  // sleeve; the rest bucket into "Crypto". Locked USDT shows as a separate
-  // tint. Keeps the donut honest — no sleeves the platform doesn't track.
   const allocation = useMemo(() => {
     const stableTickers = new Set(['USDT', 'USDC', 'BUSD', 'DAI', 'TUSD', 'USDP']);
     let stableValue = 0;
@@ -82,7 +79,7 @@ export default function PortfolioPage() {
 
   return (
     <div className="flex flex-col gap-5">
-      {/* ─── Hero bar (design pack 05 · Portfolio) ─── */}
+      {}
       <section
         className="mm-card mm-card-lift"
         style={{
@@ -91,10 +88,10 @@ export default function PortfolioPage() {
           overflow: 'hidden',
         }}
       >
-        {/* Mint scanning band at the top — pack's signature. */}
+        {}
         <div className="mm-band" />
 
-        {/* Left: total + delta chip + 4 sub-stats */}
+        {}
         <div>
           <div className="mm-kicker">TOTAL VALUE · ALL DESKS</div>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 14, marginTop: 10 }}>
@@ -174,14 +171,14 @@ export default function PortfolioPage() {
         </div>
       </section>
 
-      {/* ─── Middle row — Allocation / Risk / Performance ─── */}
+      {}
       <section className="grid gap-5" style={{ gridTemplateColumns: 'repeat(3, minmax(0, 1fr))' }}>
         <AllocationCard slices={allocation} isLoading={isLoading} />
         <RiskCard totalUsdt={totalUsdt} rows={rows} lockedUsdt={lockedUsdt} />
         <PerformanceCard />
       </section>
 
-      {/* ─── Holdings table ─── */}
+      {}
       <section
         className="mm-card"
         style={{
@@ -285,8 +282,6 @@ export default function PortfolioPage() {
   );
 }
 
-// ─── Hero sub-components ────────────────────────────────────────────────────
-
 function HeroStat({
   label,
   value,
@@ -351,8 +346,6 @@ function DeltaChip({ value, period }: { value: number; period: string }) {
     </span>
   );
 }
-
-// ─── Middle row cards ──────────────────────────────────────────────────────
 
 interface Slice {
   label: string;
@@ -606,8 +599,6 @@ function PerformanceCard() {
   );
 }
 
-// ─── Holdings row ───────────────────────────────────────────────────────────
-
 function HoldingRow({ row, last }: { row: EnrichedAsset; last: boolean }) {
   const initial = row.asset.charAt(0).toUpperCase() || '·';
   const formatCurrency = useCurrencyFormatter();
@@ -734,8 +725,6 @@ function NumCell({ value, decimals, muted }: { value: number; decimals: number; 
   );
 }
 
-// ─── Donut ──────────────────────────────────────────────────────────────────
-
 function Donut({ slices }: { slices: Slice[] }) {
   const size = 108;
   const r = 44;
@@ -773,8 +762,6 @@ function Donut({ slices }: { slices: Slice[] }) {
     </svg>
   );
 }
-
-// ─── Helpers ────────────────────────────────────────────────────────────────
 
 function isStable(asset: string): boolean {
   return ['USDT', 'USDC', 'BUSD', 'DAI', 'TUSD', 'USDP'].includes(asset.toUpperCase());

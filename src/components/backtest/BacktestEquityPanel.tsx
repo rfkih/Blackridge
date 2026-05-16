@@ -48,8 +48,7 @@ export function BacktestEquityPanel({
 
   const maxDrawdown = useMemo(() => {
     if (!points.length) return 0;
-    // Avoid Math.min(...arr) — spread on a thousands-long array can blow the
-    // call-stack on some JS engines (Safari especially).
+
     let min = points[0].drawdownPct;
     for (let i = 1; i < points.length; i++) {
       const v = points[i].drawdownPct;

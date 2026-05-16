@@ -140,9 +140,6 @@ const RISK = [
   },
 ] as const;
 
-/* Signals — every external feed the strategies see at decision time.
-   Mirrors the seven sources wired into the Research JVM's ML-ingest plane
-   (see `src/lib/api/mlIngest.ts`). Grouped by what they tell the model. */
 const SIGNALS = [
   {
     n: 'I.',
@@ -188,7 +185,6 @@ export default function ProductPage() {
   );
 }
 
-/* ── Hero ──────────────────────────────────────────────────────────── */
 function Hero() {
   return (
     <section className="qp-hero">
@@ -331,7 +327,6 @@ function EquityChart({ data, height = 180 }: { data: number[]; height?: number }
   );
 }
 
-/* ── Venues ────────────────────────────────────────────────────────── */
 function Venues() {
   return (
     <section className="qp-venues">
@@ -351,7 +346,6 @@ function Venues() {
   );
 }
 
-/* ── Composite track record ────────────────────────────────────────── */
 function FactSheet() {
   return (
     <section className="qp-section paper">
@@ -418,7 +412,6 @@ function FactSheet() {
   );
 }
 
-/* ── Discipline ────────────────────────────────────────────────────── */
 function Discipline() {
   return (
     <section className="qp-section">
@@ -452,7 +445,6 @@ function Discipline() {
   );
 }
 
-/* ── Signals ───────────────────────────────────────────────────────── */
 function Signals() {
   return (
     <section className="qp-section">
@@ -500,7 +492,6 @@ function Signals() {
   );
 }
 
-/* ── Strategy spotlight ────────────────────────────────────────────── */
 function StrategySpot() {
   return (
     <section className="qp-section paper">
@@ -580,7 +571,6 @@ function StrategySpot() {
   );
 }
 
-/* ── Partner letter ────────────────────────────────────────────────── */
 function Letter() {
   return (
     <section className="qp-section paper qp-letter-section">
@@ -612,7 +602,6 @@ function Letter() {
   );
 }
 
-/* ── Risk band ─────────────────────────────────────────────────────── */
 function Risk() {
   return (
     <section className="qp-section brand">
@@ -642,7 +631,6 @@ function Risk() {
   );
 }
 
-/* ── Contact ───────────────────────────────────────────────────────── */
 function Contact() {
   return (
     <section className="qp-section paper">

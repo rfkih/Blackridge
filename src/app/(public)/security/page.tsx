@@ -84,7 +84,7 @@ const COMMITMENTS = [
 export default function SecurityPage() {
   return (
     <MarketingShell activeNav="security">
-      {/* Hero */}
+      {}
       <section style={{ padding: '72px 0 32px' }}>
         <div className="mx-auto max-w-[1180px] px-5 sm:px-8">
           <div className="grid grid-cols-1 items-center gap-12 md:grid-cols-[1.1fr_1fr]">
@@ -131,7 +131,7 @@ export default function SecurityPage() {
               </div>
             </div>
 
-            {/* Trust band (palette-aware dark plate) */}
+            {}
             <div className="br-trust-band" style={{ padding: 32 }}>
               <div className="grid grid-cols-2 gap-x-6 gap-y-5">
                 <TrustStat value="0" label="Funds custodied" />
@@ -144,7 +144,7 @@ export default function SecurityPage() {
         </div>
       </section>
 
-      {/* Principles grid */}
+      {}
       <section style={{ padding: '64px 0' }}>
         <div className="mx-auto max-w-[1180px] px-5 sm:px-8">
           <SectionHead
@@ -189,7 +189,7 @@ export default function SecurityPage() {
         </div>
       </section>
 
-      {/* Compliance status */}
+      {}
       <section style={{ padding: '64px 0', background: 'var(--bg-surface)' }}>
         <div className="mx-auto max-w-[820px] px-5 sm:px-8">
           <SectionHead
@@ -234,7 +234,7 @@ export default function SecurityPage() {
         </div>
       </section>
 
-      {/* Commitments */}
+      {}
       <section style={{ padding: '80px 0' }}>
         <div className="mx-auto max-w-[1180px] px-5 sm:px-8">
           <SectionHead
@@ -281,7 +281,7 @@ export default function SecurityPage() {
         </div>
       </section>
 
-      {/* Disclosure / contact strip */}
+      {}
       <section style={{ padding: '64px 0', background: 'var(--bg-surface)' }}>
         <div className="mx-auto max-w-[820px] px-5 sm:px-8 text-center">
           <h2

@@ -1,8 +1,3 @@
-// Phase 7 alert-inbox shapes. Domain types for the operational-alert feed
-// surfaced by the Trading JVM (kill-switch trips, ingest stalls, P&L
-// deviation, verdict drift, …). Distinct from the error-log feed in
-// `src/types/errors.ts` — alerts are dispatched events, errors are
-// fingerprint-deduped log rows.
 
 import type { PageEnvelope } from './api';
 
@@ -39,4 +34,3 @@ export interface ListAlertsParams {
   page?: number;
   size?: number;
 }
-

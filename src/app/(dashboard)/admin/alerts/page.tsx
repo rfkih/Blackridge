@@ -81,9 +81,9 @@ export default function AdminAlertsPage() {
         </button>
       </header>
 
-      {/* Filter bar */}
+      {}
       <div className="flex flex-col gap-2 rounded-xl border border-bd-subtle bg-bg-surface px-3 py-2.5">
-        {/* Search */}
+        {}
         <div className="flex items-center gap-2">
           <span className="w-20 shrink-0 text-[11px] uppercase tracking-widest text-text-muted">
             Search
@@ -103,7 +103,7 @@ export default function AdminAlertsPage() {
           </div>
         </div>
 
-        {/* Severity */}
+        {}
         <div className="flex items-center gap-2">
           <span className="w-20 shrink-0 text-[11px] uppercase tracking-widest text-text-muted">
             Severity
@@ -134,7 +134,7 @@ export default function AdminAlertsPage() {
           </div>
         </div>
 
-        {/* Sort + suppressed + count */}
+        {}
         <div className="flex items-center gap-3">
           <span className="w-20 shrink-0 text-[11px] uppercase tracking-widest text-text-muted">
             Sort
@@ -174,7 +174,7 @@ export default function AdminAlertsPage() {
         </div>
       </div>
 
-      {/* Feed */}
+      {}
       {query.isLoading ? (
         <div className="flex items-center justify-center py-12 text-text-secondary">
           <Loader2 size={18} className="animate-spin" />
@@ -191,7 +191,7 @@ export default function AdminAlertsPage() {
         </ul>
       )}
 
-      {/* Pagination */}
+      {}
       {totalPages > 1 && (
         <div className="flex items-center justify-between text-[12px] text-text-muted">
           <span>

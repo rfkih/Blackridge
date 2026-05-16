@@ -1,14 +1,3 @@
-// Domain types for the ML/sentiment ingestion control plane (V67).
-//
-// Mirrors:
-//   - blackheart/src/main/java/id/co/blackheart/model/MlIngestSchedule.java
-//   - blackheart/src/main/java/id/co/blackheart/model/MlSourceHealth.java
-//
-// Wire types live alongside the canonical domain shapes — Jackson serialises
-// LocalDateTime as ISO-8601 with no trailing Z (server is UTC by convention),
-// numeric audit cols already typed as string|null by the backend serializer
-// in some edge cases. Keep both representations explicit so we don't crash on
-// either.
 
 /** Source identifier — matches Python module names + `ml_ingest_schedule.source`. */
 export type MlSource =

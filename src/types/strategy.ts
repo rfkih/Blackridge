@@ -99,7 +99,6 @@ export interface KellyStatus {
 }
 
 export interface LsrParams {
-  // Regime / volatility thresholds
   adxTrendingMin: number;
   adxCompressionMax: number;
   adxEntryMin: number;
@@ -108,7 +107,6 @@ export interface LsrParams {
   atrRatioChaotic: number;
   atrRatioCompress: number;
 
-  // Risk / exits
   stopAtrBuffer: number;
   maxRiskPct: number;
   tp1RLongSweep: number;
@@ -121,17 +119,14 @@ export interface LsrParams {
   shortNotionalMultiplier: number;
   longContinuationNotionalMultiplier: number;
 
-  // Time-stop bars (integers)
   timeStopBarsLongSweep: number;
   timeStopBarsLongContinuation: number;
   timeStopBarsShort: number;
 
-  // Time-stop minimum R
   timeStopMinRLongSweep: number;
   timeStopMinRLongContinuation: number;
   timeStopMinRShort: number;
 
-  // Long sweep reclaim
   longSweepMinAtr: number;
   longSweepMaxAtr: number;
   longSweepRsiMin: number;
@@ -142,7 +137,6 @@ export interface LsrParams {
   minSignalScoreLongSweep: number;
   minConfidenceScoreLongSweep: number;
 
-  // Long continuation reclaim
   longContRsiMin: number;
   longContRsiMax: number;
   longContRvolMin: number;
@@ -152,7 +146,6 @@ export interface LsrParams {
   minSignalScoreLongCont: number;
   minConfidenceScoreLongCont: number;
 
-  // Short exhaustion
   shortSweepMinAtr: number;
   shortSweepMaxAtr: number;
   shortRsiMin: number;
@@ -173,32 +166,26 @@ export interface LsrParams {
  * VCB_PARAM_META, and VCB_SECTIONS together.
  */
 export interface VcbParams {
-  // ── Compression thresholds ──
   squeezeKcTolerance: number;
   atrRatioCompressMax: number;
   erCompressMax: number;
 
-  // ── Breakout thresholds ──
   relVolBreakoutMin: number;
   relVolBreakoutMax: number;
   bodyRatioBreakoutMin: number;
 
-  // ── 4H bias threshold ──
   biasErMin: number;
 
-  // ── Entry filters ──
   adxEntryMax: number;
   longRsiMin: number;
   shortRsiMax: number;
   longDiSpreadMin: number;
   shortDiSpreadMin: number;
 
-  // ── Risk / exits ──
   stopAtrBuffer: number;
   tp1R: number;
   maxEntryRiskPct: number;
 
-  // ── Runner trail phases ──
   runnerHalfR: number;
   runnerBreakEvenR: number;
   runnerPhase2R: number;
@@ -208,7 +195,6 @@ export interface VcbParams {
   runnerLockPhase2R: number;
   runnerLockPhase3R: number;
 
-  // ── Signal score threshold ──
   minSignalScore: number;
 }
 
@@ -221,37 +207,30 @@ export interface VcbParams {
  * VBO_PARAM_META, and VBO_SECTIONS together.
  */
 export interface VboParams {
-  // ── Compression detection (previous bar) ──
   compressionBbWidthPctMax: number;
   compressionAdxMax: number;
   requireKcSqueeze: boolean;
 
-  // ── Entry-bar ADX band ──
   adxEntryMin: number;
   adxEntryMax: number;
 
-  // ── Breakout confirmation ──
   requireDonchianBreak: boolean;
   requireTrendAlignment: boolean;
   ema50SlopeMin: number;
   atrExpansionMin: number;
   rvolMin: number;
 
-  // ── Breakout candle quality ──
   bodyRatioMin: number;
   clvMin: number;
   clvMax: number;
 
-  // ── RSI sanity ──
   longRsiMax: number;
   shortRsiMin: number;
 
-  // ── Risk / exits ──
   stopAtrBuffer: number;
   maxEntryRiskPct: number;
   tp1R: number;
 
-  // ── Position management ──
   breakEvenR: number;
   runnerBreakEvenR: number;
   runnerPhase2R: number;
@@ -261,7 +240,6 @@ export interface VboParams {
   runnerLockPhase2R: number;
   runnerLockPhase3R: number;
 
-  // ── Signal score ──
   minSignalScore: number;
 }
 

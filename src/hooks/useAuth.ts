@@ -1,6 +1,4 @@
-// useAuth hook — login / logout / register mutations + /me query.
-// Auth token lives in an HttpOnly cookie set by the backend on login/register.
-// /me is used on mount to rehydrate the user if the cookie is still valid.
+
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect } from 'react';
@@ -21,9 +19,6 @@ const ME_QUERY_KEY = ['auth', 'me'] as const;
 /** Map Java DTO field names to the frontend User shape. */
 function mapUser(u: BackendUser | undefined | null): User {
   if (!u) {
-    // Fail loud. Previously this crashed deep in a getter ("cannot read
-    // userId of undefined") which made diagnosing a response-shape mismatch
-    // painful. A named error is easier to triage.
     throw new Error('Auth response missing `user` — check backend response shape.');
   }
   return {
@@ -45,22 +40,11 @@ function toLoginResponse(data: BackendAuthData | undefined): LoginResponse {
 }
 
 async function postLogin(payload: LoginRequest): Promise<LoginResponse> {
-  // Plaintext password over HTTPS is the industry-standard auth contract.
-  // TLS protects it on the wire; BCrypt on the backend protects it at rest;
-  // LoggingServiceImpl redacts password/secret/token fields so the value
-  // never reaches the log. No client-side encoding or hashing — those are
-  // security theatre over HTTPS.
   const { data } = await apiClient.post<BackendAuthData>('/api/v1/users/login', payload);
   return toLoginResponse(data);
 }
 
 async function postRegister(payload: RegisterRequest): Promise<RegisterResponse> {
-  // Backend expects `fullName`, not `name`. Phone is only forwarded when
-  // non-empty so validation doesn't reject an empty string on the @Size rule.
-  //
-  // Register auto-logs the user in: the backend now returns the same
-  // LoginResponse shape as /login ({accessToken, tokenType, expiresIn, user})
-  // so the client can transition directly into the authenticated app.
   const body: Record<string, string> = {
     email: payload.email,
     password: payload.password,
@@ -88,10 +72,6 @@ export function useAuth() {
   const setUser = useAuthStore((s) => s.setUser);
   const clearAuth = useAuthStore((s) => s.clearAuth);
 
-  // Re-fetch /me on mount when we have a locally-cached user but no token in
-  // memory — this is the post-refresh case where the HttpOnly cookie still
-  // auths but the in-memory token is gone. Also fires when token is present
-  // but user is absent (cold boot after login).
   const meQuery = useQuery({
     queryKey: ME_QUERY_KEY,
     queryFn: fetchMe,
@@ -100,7 +80,6 @@ export function useAuth() {
     retry: 0,
   });
 
-  // Mirror /me result into the store (TanStack Query owns the fetch; effect only syncs).
   useEffect(() => {
     if (meQuery.data && meQuery.data.id !== user?.id) {
       setUser(meQuery.data);
@@ -146,14 +125,9 @@ export function useAuth() {
   );
 
   const logout = useCallback(async () => {
-    // Best-effort server-side cookie clear — clears the HttpOnly JWT on the
-    // API origin. We don't want a network failure to strand the user in a
-    // "looks logged in locally" state, so swallow errors and clear local
-    // state unconditionally (which also clears the signal cookie).
     try {
       await apiClient.post('/api/v1/users/logout');
     } catch {
-      /* ignore */
     }
     clearAuth();
     queryClient.removeQueries({ queryKey: ME_QUERY_KEY });

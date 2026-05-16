@@ -42,7 +42,6 @@ export interface BackendBacktestRunMetrics {
  * is optional so the mapper can pick whichever alias is present.
  */
 export interface BackendBacktestRun {
-  // New shape (BacktestRunDetailResponse)
   id?: UUID | null;
   accountStrategyId?: UUID | null;
   strategyAccountStrategyIds?: Record<string, UUID> | null;
@@ -90,15 +89,13 @@ export interface BackendBacktestRun {
   fundingRateBpsPer8h?: number | string | null;
   metrics?: BackendBacktestRunMetrics | null;
 
-  // Legacy aliases (BacktestRunResponse) — same run, different field names.
   backtestRunId?: UUID | null;
   asset?: string | null;
   startTime?: ISO8601 | null;
   endTime?: ISO8601 | null;
   createdTime?: ISO8601 | null;
   updatedTime?: ISO8601 | null;
-  // Legacy metrics were flat on the run, not nested; kept as optional so the
-  // mapper can synthesise a BacktestMetrics when the new `metrics` is absent.
+
   grossProfit?: number | string | null;
   grossLoss?: number | string | null;
   netProfit?: number | string | null;

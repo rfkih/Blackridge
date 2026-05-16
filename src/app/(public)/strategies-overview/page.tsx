@@ -120,7 +120,7 @@ const CATEGORIES = [
 export default function StrategiesOverviewPage() {
   return (
     <MarketingShell activeNav="strategies">
-      {/* Hero */}
+      {}
       <section style={{ padding: '72px 0 32px' }}>
         <div className="mx-auto max-w-[1180px] px-5 sm:px-8 text-center">
           <span
@@ -160,7 +160,7 @@ export default function StrategiesOverviewPage() {
         </div>
       </section>
 
-      {/* How we build them */}
+      {}
       <section style={{ padding: '64px 0', background: 'var(--bg-surface)' }}>
         <div className="mx-auto max-w-[1180px] px-5 sm:px-8">
           <SectionHead

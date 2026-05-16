@@ -115,7 +115,7 @@ export default function AdminErrorsPage() {
       </header>
 
       <div className="flex flex-col gap-2 rounded-xl border border-bd-subtle bg-bg-surface px-3 py-2.5">
-        {/* Search */}
+        {}
         <div className="flex items-center gap-2">
           <span className="w-16 text-[11px] uppercase tracking-widest text-text-muted">Search</span>
           <div className="relative">
@@ -161,7 +161,7 @@ export default function AdminErrorsPage() {
           }}
         />
 
-        {/* Sort + row count */}
+        {}
         <div className="flex items-center gap-2">
           <span className="w-16 text-[11px] uppercase tracking-widest text-text-muted">Sort</span>
           <select

@@ -1,8 +1,5 @@
 'use client';
 
-// TradingView Lightweight Charts is canvas-based and not SSR-safe, so this
-// component is always loaded via dynamic({ ssr: false }) at its call site.
-
 import { useEffect, useRef } from 'react';
 import type {
   IChartApi,
@@ -53,8 +50,6 @@ export function CandlestickChart({
   const rsiChartRef = useRef<IChartApi | null>(null);
   const candleSeriesRef = useRef<ISeriesApi<'Candlestick'> | null>(null);
 
-  // Indicator series refs — kept separately so we can remove one without
-  // rebuilding the others.
   const ema20Ref = useRef<ISeriesApi<'Line'> | null>(null);
   const ema50Ref = useRef<ISeriesApi<'Line'> | null>(null);
   const bbUpperRef = useRef<ISeriesApi<'Line'> | null>(null);
@@ -65,15 +60,11 @@ export function CandlestickChart({
   const rsiSeriesRef = useRef<ISeriesApi<'Line'> | null>(null);
   const rsiSyncUnsubRef = useRef<(() => void) | null>(null);
 
-  // Imperative handle holding the latest click callback so we don't rebind
-  // the chart-click subscription when the parent re-renders.
   const onClickRef = useRef(onCandleClick);
   onClickRef.current = onCandleClick;
 
-  // Keep a stable reference to LineStyle (loaded alongside the TV module).
   const lineStyleRef = useRef<typeof LineStyle | null>(null);
 
-  // ── Effect 1: mount main + rsi charts ─────────────────────────────────────
   useEffect(() => {
     if (!containerRef.current) return;
     let cancelled = false;
@@ -112,9 +103,6 @@ export function CandlestickChart({
       });
       candleSeriesRef.current = cs;
 
-      // Click handler — dispatches the candle's epoch-seconds time so the
-      // parent can match it against its own data without caring about chart
-      // internals.
       const clickHandler = (param: MouseEventParams<Time>) => {
         if (!param.time) return;
         const cb = onClickRef.current;
@@ -125,11 +113,9 @@ export function CandlestickChart({
         try {
           chart.unsubscribeClick(clickHandler);
         } catch {
-          // Chart may already be torn down.
         }
       });
 
-      // Resize with container.
       const ro = new ResizeObserver(() => {
         if (containerRef.current) chart.applyOptions({ width: containerRef.current.clientWidth });
         if (rsiContainerRef.current && rsiChartRef.current) {
@@ -143,9 +129,7 @@ export function CandlestickChart({
     return () => {
       cancelled = true;
       unsubs.forEach((fn) => fn());
-      // Tear down in reverse of creation order. Unsubscribe the timescale sync
-      // BEFORE removing the main chart, otherwise the callback can run against
-      // a freed timeScale handle.
+
       rsiSyncUnsubRef.current?.();
       rsiSyncUnsubRef.current = null;
       rsiChartRef.current?.remove();
@@ -164,7 +148,6 @@ export function CandlestickChart({
     };
   }, [height]);
 
-  // ── Effect 2: candles ───────────────────────────────────────────────────────
   useEffect(() => {
     if (!candleSeriesRef.current || !candles.length) return;
     const seen = new Set<number>();
@@ -189,7 +172,6 @@ export function CandlestickChart({
     chartRef.current?.timeScale().fitContent();
   }, [candles]);
 
-  // ── Effect 3: overlay indicators ────────────────────────────────────────────
   useEffect(() => {
     const chart = chartRef.current;
     const LineStyleEnum = lineStyleRef.current;
@@ -208,7 +190,6 @@ export function CandlestickChart({
           .filter((d) => d[key] != null)
           .map((d) => ({ time: d.time as Time, value: d[key] as number }));
 
-      // EMA20
       if (showIndicators?.ema20) {
         if (!ema20Ref.current) {
           ema20Ref.current = chart.addSeries(tv.LineSeries, {
@@ -224,7 +205,6 @@ export function CandlestickChart({
         ema20Ref.current = null;
       }
 
-      // EMA50
       if (showIndicators?.ema50) {
         if (!ema50Ref.current) {
           ema50Ref.current = chart.addSeries(tv.LineSeries, {
@@ -240,7 +220,6 @@ export function CandlestickChart({
         ema50Ref.current = null;
       }
 
-      // Bollinger Bands (upper + middle solid + lower)
       if (showIndicators?.bollingerBands) {
         const common = { color: '#8892A4', priceLineVisible: false, lastValueVisible: false };
         if (!bbUpperRef.current) {
@@ -272,8 +251,6 @@ export function CandlestickChart({
         }
       }
 
-      // Keltner Channels (dashed upper + lower only — the "middle" basis is
-      // intentionally omitted because it'd collide visually with EMA20).
       if (showIndicators?.keltnerChannel) {
         const common = {
           color: '#A855F7',
@@ -307,7 +284,6 @@ export function CandlestickChart({
     showIndicators?.keltnerChannel,
   ]);
 
-  // ── Effect 4: RSI sub-chart ────────────────────────────────────────────────
   useEffect(() => {
     const mainChart = chartRef.current;
     if (!mainChart) return;
@@ -352,7 +328,6 @@ export function CandlestickChart({
         });
         rsiSeriesRef.current = rsiSeries;
 
-        // Reference lines at 70/30.
         rsiSeries.createPriceLine({
           price: 70,
           color: TV.NEUTRAL,
@@ -370,8 +345,6 @@ export function CandlestickChart({
           title: '',
         });
 
-        // Keep RSI's time scale locked to the main chart's. Track the
-        // unsubscribe so we don't leak the handler on toggle.
         const syncHandler = (range: LogicalRange | null) => {
           if (range) rsiChart.timeScale().setVisibleLogicalRange(range);
         };
@@ -380,7 +353,6 @@ export function CandlestickChart({
           try {
             mainChart.timeScale().unsubscribeVisibleLogicalRangeChange(syncHandler);
           } catch {
-            // Main chart may already be removed.
           }
         };
       }

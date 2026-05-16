@@ -30,12 +30,8 @@ import { useWsStore } from '@/store/wsStore';
 import type { AgentActivity, AgentSessionSummary } from '@/types/research';
 import { toast } from '@/hooks/useToast';
 
-// ─── Constants ────────────────────────────────────────────────────────────────
-
 const SESSIONS_PAGE_SIZE = 20;
 const ACTIVITIES_PAGE_SIZE = 100;
-
-// ─── Helpers ─────────────────────────────────────────────────────────────────
 
 /** Convert SCREAMING_SNAKE_CASE to Title Case for human display. */
 function toTitleCase(s: string): string {
@@ -65,8 +61,6 @@ function relativeOffset(sessionStart: string, activityAt: string): string {
   const m = mins % 60;
   return m > 0 ? `+${h}h ${m}m` : `+${h}h`;
 }
-
-// ─── Activity type color config ───────────────────────────────────────────────
 
 interface ActivityStyle {
   color: string;
@@ -99,7 +93,7 @@ function getActivityStyle(
     if (verdict === 'DISCARD') {
       return { color: 'var(--color-loss)', bg: 'rgba(255,90,90,0.14)', dot: '#ff5a5a' };
     }
-    // NO_EDGE default for ITERATION_COMPLETED
+
     return { color: 'var(--color-warning)', bg: 'rgba(245,166,35,0.14)', dot: '#f5a623' };
   }
   if (activityType === 'SWEEP_QUEUED') {
@@ -120,8 +114,6 @@ function getActivityStyle(
   return { color: 'var(--text-secondary)', bg: 'rgba(170,170,170,0.10)', dot: '#888' };
 }
 
-// ─── Strategy code badge ──────────────────────────────────────────────────────
-
 function StrategyBadge({ code }: { code: string }) {
   return (
     <span
@@ -136,8 +128,6 @@ function StrategyBadge({ code }: { code: string }) {
     </span>
   );
 }
-
-// ─── Details expansion ────────────────────────────────────────────────────────
 
 function DetailsBlock({ details }: { details: Record<string, unknown> }) {
   const entries = Object.entries(details);
@@ -164,8 +154,6 @@ function DetailsBlock({ details }: { details: Record<string, unknown> }) {
   );
 }
 
-// ─── Single activity item (timeline row) ─────────────────────────────────────
-
 function ActivityItem({
   activity,
   sessionStart,
@@ -182,7 +170,7 @@ function ActivityItem({
 
   return (
     <div className="relative flex gap-3">
-      {/* Vertical connector line */}
+      {}
       {!isLast && (
         <div
           className="absolute left-[9px] top-5 w-px"
@@ -190,7 +178,7 @@ function ActivityItem({
         />
       )}
 
-      {/* Timeline dot */}
+      {}
       <div className="relative mt-1 shrink-0">
         <div
           className="flex h-5 w-5 items-center justify-center rounded-full"
@@ -200,10 +188,10 @@ function ActivityItem({
         </div>
       </div>
 
-      {/* Content */}
+      {}
       <div className="mb-3 min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-1.5">
-          {/* Activity type badge */}
+          {}
           <span
             className="rounded-sm px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide"
             style={{ color: style.color, background: style.bg }}
@@ -213,7 +201,7 @@ function ActivityItem({
 
           {activity.strategyCode && <StrategyBadge code={activity.strategyCode} />}
 
-          {/* Status badge (only if not SUCCESS) */}
+          {}
           {activity.status !== 'SUCCESS' && (
             <span className="rounded-sm px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[var(--color-loss)]">
               {activity.status}
@@ -244,8 +232,6 @@ function ActivityItem({
   );
 }
 
-// ─── Session detail (timeline) ────────────────────────────────────────────────
-
 function SessionTimeline({
   sessionId,
   session,
@@ -266,15 +252,14 @@ function SessionTimeline({
   });
 
   const fetched: AgentActivity[] = query.data?.content ?? [];
-  // Merge live events into the fetched list, deduplicating by activityId so a
-  // re-fetch after SESSION_END doesn't produce phantom duplicates.
+
   const fetchedIds = new Set(fetched.map((a) => a.activityId));
   const newLive = liveActivities.filter((a) => !fetchedIds.has(a.activityId));
   const activities: AgentActivity[] = [...fetched, ...newLive];
 
   return (
     <div className="space-y-5">
-      {/* Back + header */}
+      {}
       <div className="flex items-start justify-between gap-4">
         <div>
           <button
@@ -309,7 +294,7 @@ function SessionTimeline({
         </button>
       </div>
 
-      {/* Session meta card */}
+      {}
       <section className="overflow-hidden rounded-xl border border-bd-subtle bg-bg-surface">
         <div className="grid gap-x-6 gap-y-2 p-4 sm:grid-cols-2 lg:grid-cols-4">
           <MetaStat label="Agent" value={session.agentName} />
@@ -360,7 +345,7 @@ function SessionTimeline({
         )}
       </section>
 
-      {/* Timeline */}
+      {}
       <section className="overflow-hidden rounded-xl border border-bd-subtle bg-bg-surface">
         <header className="flex items-center gap-2.5 border-b border-bd-subtle px-4 py-3">
           <div>
@@ -420,8 +405,6 @@ function SessionTimeline({
   );
 }
 
-// ─── Meta stat (used in session detail card) ──────────────────────────────────
-
 function MetaStat({
   label,
   value,
@@ -454,8 +437,6 @@ function MetaStat({
   );
 }
 
-// ─── Session card (sessions list view) ───────────────────────────────────────
-
 function SessionCard({
   session,
   onViewTimeline,
@@ -473,10 +454,10 @@ function SessionCard({
 
   return (
     <div className="overflow-hidden rounded-xl border border-bd-subtle bg-bg-surface">
-      {/* Header row */}
+      {}
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-bd-subtle px-4 py-3">
         <div className="flex flex-wrap items-center gap-2">
-          {/* Agent badge */}
+          {}
           <span
             className="inline-flex items-center gap-1 rounded-sm px-2 py-0.5 text-[11px] font-medium"
             style={{ background: 'var(--accent-glow)', color: 'var(--accent-primary)' }}
@@ -485,7 +466,7 @@ function SessionCard({
             {session.agentName}
           </span>
 
-          {/* Session ID + copy */}
+          {}
           <div className="flex items-center gap-1">
             <span className="font-mono text-[12px] tabular-nums text-text-muted">{shortId}…</span>
             <button
@@ -499,7 +480,7 @@ function SessionCard({
             </button>
           </div>
 
-          {/* Goal hit badge */}
+          {}
           {session.goalHit && (
             <span
               className="inline-flex items-center gap-1 rounded-sm px-1.5 py-0.5 text-[10px] font-bold uppercase"
@@ -511,7 +492,7 @@ function SessionCard({
           )}
         </div>
 
-        {/* Timestamps */}
+        {}
         <div className="font-mono text-[11px] tabular-nums text-text-muted">
           <span title={session.startedAt}>
             {format(parseISO(session.startedAt), 'MMM d, HH:mm')}
@@ -525,9 +506,9 @@ function SessionCard({
         </div>
       </div>
 
-      {/* Body */}
+      {}
       <div className="flex flex-wrap items-center justify-between gap-4 px-4 py-3">
-        {/* Stats */}
+        {}
         <div className="flex flex-wrap items-center gap-5">
           <Stat label="Iterations" value={session.iterationsCompleted} mono />
           <Stat
@@ -546,7 +527,7 @@ function SessionCard({
           <Stat label="Activities" value={session.activityCount} mono />
         </div>
 
-        {/* Strategy codes */}
+        {}
         {(session.strategyCodes?.length ?? 0) > 0 && (
           <div className="flex flex-wrap items-center gap-1.5">
             {session.strategyCodes.map((code) => (
@@ -556,7 +537,7 @@ function SessionCard({
         )}
       </div>
 
-      {/* Footer */}
+      {}
       <div className="flex justify-end border-t border-bd-subtle px-4 py-2.5">
         <Button
           size="sm"
@@ -603,8 +584,6 @@ function Stat({
   );
 }
 
-// ─── Sessions skeleton ────────────────────────────────────────────────────────
-
 function SessionsSkeletonList() {
   return (
     <div className="space-y-3">
@@ -631,8 +610,6 @@ function SessionsSkeletonList() {
     </div>
   );
 }
-
-// ─── Pagination controls ──────────────────────────────────────────────────────
 
 function PaginationBar({
   page,
@@ -670,8 +647,6 @@ function PaginationBar({
   );
 }
 
-// ─── Sessions list view ───────────────────────────────────────────────────────
-
 function SessionsList({
   onViewTimeline,
   wsConnected,
@@ -694,7 +669,7 @@ function SessionsList({
 
   return (
     <div className="space-y-5">
-      {/* Page header */}
+      {}
       <div className="flex items-start justify-between gap-4">
         <div>
           <p className="label-caps inline-flex items-center gap-1.5">
@@ -738,10 +713,10 @@ function SessionsList({
 
       <div className="h-px w-full bg-bd-subtle" />
 
-      {/* Loading skeleton */}
+      {}
       {query.isLoading && <SessionsSkeletonList />}
 
-      {/* Error state */}
+      {}
       {query.isError && !query.isLoading && (
         <div className="rounded-xl border border-bd-subtle bg-bg-surface p-6 text-center">
           <p className="text-[13px] text-[var(--color-loss)]">
@@ -750,7 +725,7 @@ function SessionsList({
         </div>
       )}
 
-      {/* Empty state */}
+      {}
       {!query.isLoading && !query.isError && sessions.length === 0 && (
         <div className="rounded-xl border border-bd-subtle bg-bg-surface p-10 text-center">
           <Bot size={32} className="mx-auto mb-3 text-text-muted" strokeWidth={1.4} />
@@ -762,7 +737,7 @@ function SessionsList({
         </div>
       )}
 
-      {/* Session cards */}
+      {}
       {sessions.length > 0 && (
         <div className="space-y-3">
           {sessions.map((session) => (
@@ -775,7 +750,7 @@ function SessionsList({
         </div>
       )}
 
-      {/* Pagination */}
+      {}
       {!query.isLoading && total > 0 && (
         <PaginationBar page={page} total={total} pageSize={SESSIONS_PAGE_SIZE} onPage={setPage} />
       )}
@@ -783,30 +758,21 @@ function SessionsList({
   );
 }
 
-// ─── Page root ────────────────────────────────────────────────────────────────
-
 export default function ResearchActivityPage() {
   const isAdmin = useIsAdmin();
   const queryClient = useQueryClient();
   const wsConnected = useWsStore((s) => s.connected);
 
-  // null = sessions list, string = show timeline for that session
   const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
   const [selectedSession, setSelectedSession] = useState<AgentSessionSummary | null>(null);
 
-  // Live activities received via STOMP while the page is open.
-  // Deduplicated by activityId; accumulated for the current mount lifetime.
   const [liveActivities, setLiveActivities] = useState<AgentActivity[]>([]);
 
-  // Clear the live buffer only when navigating BETWEEN sessions, not when
-  // opening a session from the list (null → id). Events that arrived while
-  // browsing the sessions list are still relevant to the session about to open.
   const lastSessionRef = useRef<string | null>(null);
   useEffect(() => {
     const prev = lastSessionRef.current;
     lastSessionRef.current = selectedSessionId;
-    // Only clear if we're moving from one session to a different one, not
-    // from the sessions list (null) to a specific session.
+
     if (prev !== null && prev !== selectedSessionId) {
       setLiveActivities([]);
     }
@@ -819,8 +785,6 @@ export default function ResearchActivityPage() {
         return [...prev, activity];
       });
 
-      // When a session ends, refresh both the sessions list and the open
-      // timeline so the card stats and the final SESSION_END row both appear.
       if (activity.activityType === 'SESSION_END') {
         void queryClient.invalidateQueries({ queryKey: ['research-activity', 'sessions'] });
         void queryClient.invalidateQueries({ queryKey: ['research-activity', 'timeline'] });
@@ -831,7 +795,6 @@ export default function ResearchActivityPage() {
 
   useResearchActivityStream(handleLiveActivity);
 
-  // Activities relevant to the currently open session detail view.
   const sessionLiveActivities = liveActivities.filter((a) => a.sessionId === selectedSessionId);
 
   if (!isAdmin) {

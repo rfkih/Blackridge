@@ -123,7 +123,7 @@ export interface SweepSpec {
   accountStrategyId: string;
   asset: string;
   interval: string;
-  fromDate: string; // ISO LocalDateTime
+  fromDate: string;
   toDate: string;
   initialCapital: number;
   label?: string;
@@ -295,8 +295,6 @@ export interface SweepsQuery {
   page?: number;
   size?: number;
 }
-
-// ── Agent activity types ─────────────────────────────────────────────────────
 
 /**
  * One discrete event emitted by the quant-researcher agent during a session.

@@ -18,7 +18,6 @@ import type { CandlestickChartIndicators } from '@/components/charts/Candlestick
 import type { CandleData, ChartInterval, IndicatorData } from '@/types/market';
 import { cn } from '@/lib/utils';
 
-// TradingView isn't SSR-safe — keep the wrapper dynamic.
 const CandlestickChart = nextDynamic(
   () => import('@/components/charts/CandlestickChart').then((m) => m.CandlestickChart),
   { ssr: false, loading: () => <Skeleton className="h-[560px] w-full" /> },
@@ -29,8 +28,6 @@ const CANDLE_COUNT = 500;
 
 const INTERVAL_OPTIONS: ChartInterval[] = ['5m', '15m', '1h', '4h'];
 
-// Module-level sentinels keep prop identity stable across renders — prevents
-// CandlestickChart's memoised effects from thrashing while data loads.
 const EMPTY_CANDLES: CandleData[] = [];
 const EMPTY_FEATURES: IndicatorData[] = [];
 
@@ -71,9 +68,6 @@ function loadIndicators(): Required<CandlestickChartIndicators> {
 }
 
 export default function MarketPage() {
-  // useSearchParams() forces a client-side render boundary. Next 14 requires
-  // the page to opt into that explicitly by wrapping the subtree in Suspense,
-  // so we render the real page body inside one.
   return (
     <Suspense fallback={<Skeleton className="h-[560px] w-full" />}>
       <MarketPageContent />
@@ -101,8 +95,7 @@ function MarketPageContent() {
 
   const [indicators, setIndicatorsState] =
     useState<Required<CandlestickChartIndicators>>(DEFAULT_INDICATORS);
-  // Hydrate from localStorage after mount — avoids an SSR/CSR mismatch that
-  // would fire the initial render with server-side defaults then replace them.
+
   useEffect(() => {
     setIndicatorsState(loadIndicators());
   }, []);
@@ -113,7 +106,6 @@ function MarketPageContent() {
       try {
         window.localStorage.setItem(INDICATOR_STORAGE_KEY, JSON.stringify(next));
       } catch {
-        // localStorage may be disabled (Safari private mode) — not fatal.
       }
       return next;
     });
@@ -131,8 +123,7 @@ function MarketPageContent() {
     queryFn: () => fetchCandles(filters.symbol, filters.interval, CANDLE_COUNT),
     staleTime: 0,
     refetchInterval: REFETCH_INTERVALS[filters.interval] ?? 300_000,
-    // Hold the old data while the new symbol/interval loads — avoids an empty
-    // chart flash on toggle.
+
     placeholderData: (prev) => prev,
     retry: false,
   });
@@ -154,10 +145,7 @@ function MarketPageContent() {
         description="Browse any symbol/interval with optional EMA, Bollinger, Keltner, and RSI overlays."
       />
 
-      {/* Market-wide context: regime + sentiment. Sits above the chart so it
-          frames how to read whatever the user has selected, without competing
-          with the chart's own header. Stays anchored to BTC regardless of the
-          symbol being viewed — both are crypto-market-level signals. */}
+      {}
       <MarketContextBar />
 
       <section className="overflow-hidden rounded-xl border border-bd-subtle bg-bg-surface">
@@ -195,8 +183,6 @@ function MarketPageContent() {
     </div>
   );
 }
-
-// ─── Supporting UI ──────────────────────────────────────────────────────────
 
 interface IndicatorBarProps {
   indicators: Required<CandlestickChartIndicators>;

@@ -1,5 +1,4 @@
-// Pathname → tab title. Exact match first, then longest matching dynamic
-// prefix (`/backtest/<id>` etc.), then fallback to "Dashboard".
+
 const STATIC_TITLES: Record<string, string> = {
   '/': 'Dashboard',
   '/portfolio': 'Portfolio',
@@ -43,7 +42,6 @@ export function resolvePageTitle(pathname: string | null | undefined): string {
   const exact = STATIC_TITLES[pathname];
   if (exact) return exact;
 
-  // Longest prefix wins so `/backtest/new` is not hijacked by `/backtest/`.
   let bestPrefixMatch: string | null = null;
   let bestPrefixLen = 0;
   for (const { prefix, title } of PREFIX_TITLES) {

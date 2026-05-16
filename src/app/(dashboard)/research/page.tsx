@@ -225,8 +225,6 @@ export default function ResearchDashboardPage() {
   );
 }
 
-// ── Panel: Service health ───────────────────────────────────────────────────
-
 function ServiceHealthPanel() {
   const health = useServiceHealth();
   const refreshing = health.trading.refreshing || health.research.refreshing;
@@ -277,9 +275,6 @@ function HealthCard({ jvm, port, health }: { jvm: Jvm; port: number; health: Ser
   );
 }
 
-// Trading JVM is the supervisor; we never expose start/stop for it from the
-// dashboard (a misclick would halt live capital). Research is restart-safe by
-// design, so dashboard-driven lifecycle is appropriate here.
 function ResearchLifecycleControls({ status }: { status: ServiceHealthMap['research']['status'] }) {
   const { start, restart } = useResearchControl();
   const isUp = status === 'UP';
@@ -338,11 +333,6 @@ function ResearchLifecycleControls({ status }: { status: ServiceHealthMap['resea
   );
 }
 
-// ── Panel: Research automation (pause/resume) ──────────────────────────────
-
-// Pauses the autonomous research-tick loop. The flag lives in research_control
-// (V23) and is read directly by research-tick.sh on every cron tick — neither
-// JVM needs to be up for a pause to take effect on the next 30-min window.
 function ResearchAutomationPanel() {
   const { data, isLoading, isError } = useResearchAutomationStatus();
   const { pause, resume } = useResearchAutomationControl();
@@ -463,13 +453,6 @@ function ResearchAutomationPanel() {
   );
 }
 
-// ── Panel: Kill-switch tripped strategies ──────────────────────────────────
-
-// Surfaces strategies whose drawdown kill-switch has tripped
-// (`is_kill_switch_tripped=true`). RiskGuardService blocks new entries on a
-// tripped strategy until an admin clears it via POST /:id/rearm — without this
-// panel the trip is silent and can sit for days. Renders nothing in the happy
-// path so the dashboard stays quiet when everything is fine.
 function KillSwitchPanel() {
   const { data: strategies = [], isLoading } = useStrategies();
   const tripped = useMemo(() => strategies.filter((s) => s.isKillSwitchTripped), [strategies]);
@@ -552,14 +535,6 @@ function KillSwitchRow({ strategy }: { strategy: AccountStrategy }) {
   );
 }
 
-// ── Panel: Stuck-trade reconciliation ──────────────────────────────────────
-
-// Surfaces parent trades whose state is inconsistent with their child legs:
-// OPEN parents with no positions, OPEN parents whose every leg already closed,
-// PARTIALLY_CLOSED parents with no remaining OPEN leg. Each is a silent capital
-// risk — the per-strategy active-trade gate keeps blocking new entries while
-// nothing is actually managing the (real or non-existent) position. Renders
-// nothing when the system is healthy.
 function StuckTradesPanel() {
   const { data: anomalies = [], isLoading } = useTradeAnomalies();
 
@@ -634,8 +609,6 @@ function StuckTradeRow({ anomaly }: { anomaly: TradeAnomaly }) {
   );
 }
 
-// ── Panel: Binance WS heartbeat ────────────────────────────────────────────
-
 /**
  * Surfaces the trading JVM's actual core function — receiving Binance kline
  * frames. /actuator/health says "the JVM is alive"; this tile says "the
@@ -709,8 +682,6 @@ function formatAge(ms: number): string {
   const rem = Math.floor(s % 60);
   return `${m}m ${rem}s ago`;
 }
-
-// ── Panel: JVM telemetry ────────────────────────────────────────────────────
 
 function JvmTelemetryPanel() {
   const tele = useJvmTelemetry();
@@ -860,10 +831,6 @@ function Sparkline({ samples }: { samples: JvmTelemetrySnapshot[] }) {
     </div>
   );
 }
-
-// ── Panel: Sweep activity ───────────────────────────────────────────────────
-
-// ── Panel: Scheduler status ─────────────────────────────────────────────────
 
 function SchedulerPanel() {
   const { data: jobs = [], isLoading, isError, isFetching } = useSchedulerStatus();
@@ -1089,8 +1056,6 @@ function SchedulerEditDialog({ job, onClose }: { job: SchedulerJobStatus; onClos
   );
 }
 
-// ── Panel: Sweep activity ───────────────────────────────────────────────────
-
 const SWEEP_STATUS_FILTERS: { label: string; value: string }[] = [
   { label: 'In-flight', value: 'RUNNING,PENDING' },
   { label: 'Running', value: 'RUNNING' },
@@ -1268,8 +1233,6 @@ function SweepActivityPanel() {
   );
 }
 
-// ── Panel: Recent promotions ────────────────────────────────────────────────
-
 const RECENT_PROMOTIONS_TO_STATES: { label: string; value: PromotionState | '' }[] = [
   { label: 'All', value: '' },
   { label: 'PAPER_TRADE', value: 'PAPER_TRADE' },
@@ -1285,8 +1248,6 @@ function RecentPromotionsPanel() {
   const [toState, setToState] = useState<PromotionState | ''>('');
   const [page, setPage] = useState(0);
 
-  // Debounce the strategy-code text filter so typing doesn't fire one
-  // request per keystroke against the backend.
   const [codeQuery, setCodeQuery] = useState('');
   useEffect(() => {
     const id = setTimeout(() => {
@@ -1531,8 +1492,6 @@ function DetailRow({ label, children }: { label: string; children: React.ReactNo
   );
 }
 
-// ── Panel: Promotion candidates ────────────────────────────────────────────
-
 const PROMOTION_CANDIDATES_PAGE_SIZE = 25;
 
 const PROMOTION_SORT_FIELDS: Array<{ key: string; label: string }> = [
@@ -1548,10 +1507,6 @@ const STATE_TONE: Record<DerivedPromotionState, Tone> = {
 };
 
 function PromotionCandidatesPanel() {
-  // Promotion lifecycle lives at the definition level (one decision per strategyCode).
-  // Filter/sort/paginate server-side; `state` is a client-derived display column —
-  // the backend doesn't expose enabled/simulated as filterable params.
-  // DEPRECATED definitions appear as INACTIVE until ?excludeStatus=DEPRECATED is added server-side.
   const [query, setQuery] = useState('');
   const [sortField, setSortField] = useState('strategyCode');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
@@ -1580,14 +1535,6 @@ function PromotionCandidatesPanel() {
   const [target, setTarget] = useState<StrategyDefinition | null>(null);
   const [targetIsDeepLinked, setTargetIsDeepLinked] = useState(false);
 
-  // Walk-forward deep-link: /research#promote-{strategyCode} auto-opens the
-  // dialog for that strategy. Mount-only effect parses the hash and seeds
-  // both `query` and `debouncedQuery` so the very first fetch is filtered
-  // (no 250 ms debounce wait, no race against unfiltered page-1 data). The
-  // separate find-effect below resolves the target once the matching fetch
-  // returns. Splitting into two effects avoids the bug where a single
-  // `[rows]`-keyed effect would force `setQuery` + `setPage(0)` on every
-  // poll while the hash was unconsumed, snapping the user back to page 0.
   const [pendingTargetCode, setPendingTargetCode] = useState<string | null>(null);
   const deepLinkParsedRef = useRef(false);
   useEffect(() => {
@@ -1610,10 +1557,6 @@ function PromotionCandidatesPanel() {
     setPendingTargetCode(code);
   }, []);
 
-  // Resolve the deep-link target once a fetch that matches the deep-link
-  // query has settled. Clears `pendingTargetCode` after one settled attempt
-  // so a non-existent code doesn't loop forever and so user-driven navigation
-  // afterwards doesn't accidentally reopen the dialog.
   useEffect(() => {
     if (!pendingTargetCode) return;
     if (debouncedQuery !== pendingTargetCode) return;
@@ -1633,8 +1576,7 @@ function PromotionCandidatesPanel() {
     if (typeof window !== 'undefined' && window.location.hash.startsWith('#promote-')) {
       window.history.replaceState(null, '', window.location.pathname + window.location.search);
     }
-    // Restore the default unfiltered view when closing a deep-linked dialog so
-    // the operator isn't left staring at a single-row table.
+
     if (wasDeepLinked) {
       setQuery('');
       setDebouncedQuery('');
@@ -1827,10 +1769,6 @@ function SortableTh({
   );
 }
 
-// ── Promotion dialog ───────────────────────────────────────────────────────
-
-// Mirrors the backend's `chk_promotion_states` CHECK constraint. Client-side
-// only for UX — backend rejects illegal transitions. Update both in lockstep.
 const LEGAL_NEXT_STATES: Record<PromotionState, PromotionState[]> = {
   RESEARCH: ['PAPER_TRADE'],
   PAPER_TRADE: ['PROMOTED', 'REJECTED'],
@@ -1843,11 +1781,7 @@ const ALL_TARGETS: PromotionState[] = ['PAPER_TRADE', 'PROMOTED', 'DEMOTED', 'RE
 
 function PromoteDialog({ target, onClose }: { target: StrategyDefinition; onClose: () => void }) {
   const promote = useDefinitionPromote();
-  // Backend is the source of truth — pre-V40 definitions with no log row
-  // are derived as RESEARCH regardless of `enabled`/`simulated`, but rows
-  // backfilled by V40 may have enabled=true / simulated=false without a
-  // log entry. Fall back to client derivation while the state query is in
-  // flight so the dialog renders something useful immediately.
+
   const stateQuery = useDefinitionPromotionState(target.strategyCode);
   const fallbackState = derivePromotionState(Boolean(target.enabled), Boolean(target.simulated));
   const currentState: PromotionState =
@@ -1857,8 +1791,6 @@ function PromoteDialog({ target, onClose }: { target: StrategyDefinition; onClos
   const [reason, setReason] = useState('');
   const [evidence, setEvidence] = useState('');
 
-  // Live-parse so the user sees JSON errors while typing.
-  // Empty string is valid — evidence is optional.
   const evidenceParse = useMemo<{
     parsed: unknown;
     error: string | null;
@@ -1872,15 +1804,11 @@ function PromoteDialog({ target, onClose }: { target: StrategyDefinition; onClos
   }, [evidence]);
 
   const reasonInputRef = useRef<HTMLInputElement | null>(null);
-  // Autofocus the reason field once the dialog mounts. RHF/shadcn doesn't do
-  // this for us reliably with controlled inputs.
+
   useEffect(() => {
     reasonInputRef.current?.focus();
   }, []);
 
-  // When the backend state resolves and our default toState is illegal, snap
-  // to the first legal transition. Avoids "Apply is disabled but no other
-  // option pre-selected" UX dead-end.
   useEffect(() => {
     if (legalTargets.length === 0) return;
     if (!legalTargets.includes(toState)) setToState(legalTargets[0]);
@@ -1950,10 +1878,7 @@ function PromoteDialog({ target, onClose }: { target: StrategyDefinition; onClos
               {ALL_TARGETS.map((s) => {
                 const legal = legalTargets.includes(s);
                 const selected = toState === s;
-                // Three visual states: selected (accent border + tinted bg),
-                // legal-but-unselected (subtle border, default text), illegal
-                // (loss-tinted border + strikethrough so the impossibility is
-                // visible without hovering for the title tooltip).
+
                 const borderColor = selected
                   ? 'var(--accent-primary)'
                   : legal
@@ -2093,8 +2018,6 @@ function PromoteDialog({ target, onClose }: { target: StrategyDefinition; onClos
     </Dialog>
   );
 }
-
-// ── Panel: Research log tail ────────────────────────────────────────────────
 
 const RESEARCH_LOG_PAGE_SIZE = 25;
 
@@ -2303,8 +2226,6 @@ function ResearchLogPanel() {
   );
 }
 
-// ── Shared bits ────────────────────────────────────────────────────────────
-
 function Dot({ tone }: { tone: Tone }) {
   return (
     <span
@@ -2315,9 +2236,6 @@ function Dot({ tone }: { tone: Tone }) {
   );
 }
 
-// Small "updating…" badge rendered in PanelShell.headerSlot while a polling
-// query is in-flight. Keeps users from misreading a stale-looking number as
-// frozen, especially on slow networks where 5s ticks visibly trail.
 function RefreshingPill() {
   return (
     <span
@@ -2330,8 +2248,6 @@ function RefreshingPill() {
     </span>
   );
 }
-
-// ── Panel: Orchestrator leaderboard ─────────────────────────────────────────
 
 const STAT_VERDICT_TONE: Record<StatisticalVerdict, Tone> = {
   SIGNIFICANT_EDGE: 'profit',
@@ -2444,8 +2360,6 @@ function LeaderboardPanel() {
   );
 }
 
-// ── Panel: Recent iterations ────────────────────────────────────────────────
-
 const ITERATIONS_PAGE_SIZE = 20;
 const ITERATION_VERDICT_FILTERS: { label: string; value: '' | IterationVerdict }[] = [
   { label: 'All', value: '' },
@@ -2456,8 +2370,6 @@ const ITERATION_VERDICT_FILTERS: { label: string; value: '' | IterationVerdict }
 ];
 
 function RecentIterationsPanel() {
-  // Orchestrator uses cursor pagination — keep a stack so Prev pops back to
-  // the previous page's cursor (cursor APIs don't natively support Prev).
   const [strategyCode, setStrategyCode] = useState('');
   const [verdict, setVerdict] = useState<'' | IterationVerdict>('');
   const [cursorStack, setCursorStack] = useState<(string | null)[]>([null]);
@@ -2624,8 +2536,6 @@ function RecentIterationsPanel() {
   );
 }
 
-// ── Panel: Walk-forward candidates ──────────────────────────────────────────
-
 function WalkForwardCandidatesPanel() {
   const { data: rows = [], isLoading } = useWalkForwardCandidates();
 
@@ -2674,8 +2584,6 @@ function WalkForwardCandidatesPanel() {
     </PanelShell>
   );
 }
-
-// ── Panel: Queue (all statuses) ─────────────────────────────────────────────
 
 const QUEUE_STATUS_TONE: Record<QueueStatus, Tone> = {
   PENDING: 'muted',
@@ -2785,8 +2693,6 @@ function QueuePanel() {
   );
 }
 
-// ── Panel: Journal (agent hypothesis / outcome trail) ───────────────────────
-
 const JOURNAL_TYPES: Array<JournalEntryType | 'ALL'> = [
   'ALL',
   'HYPOTHESIS',
@@ -2880,7 +2786,7 @@ function JournalPanel() {
         </div>
       }
     >
-      {/* Secondary filter bar */}
+      {}
       <div className="mb-3 flex flex-wrap items-center gap-2 border-b border-bd-subtle pb-2">
         <div className="flex items-center gap-1">
           {JOURNAL_STATUSES.map((s) => (
@@ -2984,11 +2890,9 @@ function JournalPanel() {
   );
 }
 
-// ── Dialog: Enqueue sweep ───────────────────────────────────────────────────
-
 interface SweepParamRow {
   name: string;
-  values: string; // comma-separated; parsed on submit
+  values: string;
 }
 
 function EnqueueSweepDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
@@ -3030,8 +2934,6 @@ function EnqueueSweepDialog({ open, onClose }: { open: boolean; onClose: () => v
           .map((v) => v.trim())
           .filter((v) => v.length > 0)
           .map((v) => {
-            // Coerce numeric strings → numbers; "true"/"false" → booleans;
-            // anything else stays a string.
             if (v === 'true') return true;
             if (v === 'false') return false;
             const n = Number(v);

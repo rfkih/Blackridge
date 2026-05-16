@@ -34,8 +34,6 @@ export function useSearchRecentPromotions(q: RecentPromotionsQuery) {
   });
 }
 
-// ── account-scope (V15) ───────────────────────────────────────────────────
-
 /**
  * Account-scope promote/demote — used by the strategy detail page's mode
  * toggle (PAPER ↔ LIVE). Invalidates the strategies list + the per-strategy
@@ -54,8 +52,6 @@ export function useAccountStrategyPromote() {
     },
   });
 }
-
-// ── definition-scope (V40) ────────────────────────────────────────────────
 
 export function useDefinitionPromotionState(strategyCode: string | undefined) {
   return useQuery({

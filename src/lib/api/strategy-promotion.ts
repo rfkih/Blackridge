@@ -1,9 +1,4 @@
-// Frontend client for /api/v1/strategy-promotion. Admin-only on the
-// backend; calls here will 403 for non-admin users (the /research page
-// gates the route on `useIsAdmin`, so the 403 path is rare).
-//
-// Routes through `apiClient` because StrategyPromotionController lives
-// on the trading JVM (it mutates account_strategy state).
+
 import { apiClient } from './client';
 import { addOptionalParam, buildPageParams } from './queryParams';
 import type { ISO8601, Page, UUID } from '@/types/api';
@@ -109,8 +104,6 @@ export function derivePromotionState(enabled: boolean, simulated: boolean): Deri
   return 'INACTIVE';
 }
 
-// ── Account-scoped promotion endpoint ─────────────────────────────────────
-
 /**
  * Account-scope promote/demote. Used by the strategy detail page's mode
  * toggle to flip a single row between PAPER_TRADE and PROMOTED (and other
@@ -127,8 +120,6 @@ export async function promoteAccountStrategy(
   );
   return data;
 }
-
-// ── Definition-scoped promotion endpoints ─────────────────────────────────
 
 export async function promoteDefinition(
   strategyCode: string,
@@ -147,4 +138,3 @@ export async function getDefinitionState(strategyCode: string): Promise<Promotio
   );
   return data.state;
 }
-

@@ -1,25 +1,12 @@
-// Auth state store. The JWT itself lives exclusively in the HttpOnly cookie
-// `blackheart-token` issued by the backend on the API origin — it is NOT
-// persisted to localStorage and is NOT written to document.cookie from JS.
-// An XSS payload on our origin cannot lift the token.
-//
-// Separately we write a tiny non-sensitive SIGNAL cookie `blackheart-session`
-// on the frontend origin. Next middleware route-gates on it because Next runs
-// on a different origin than the API and therefore can't see the HttpOnly
-// token cookie directly. The signal cookie is UX-only — spoofing it yields a
-// dashboard shell whose first /me call 401s and bounces back to /login. The
-// real auth is always enforced server-side.
+
 import { useEffect, useState } from 'react';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import type { User } from '@/types/api';
 import { usePositionStore } from './positionStore';
 
-// Matches the middleware's cookie name + Spring's JWT cookie TTL default
-// (15 min). Short TTL on the signal keeps idle tabs from lingering with a
-// "logged in" UX shell after the server session has already expired.
 const SIGNAL_COOKIE = 'blackheart-session';
-const SIGNAL_MAX_AGE_SECONDS = 60 * 60 * 24; // 1 day ceiling — /me call is the real gate.
+const SIGNAL_MAX_AGE_SECONDS = 60 * 60 * 24;
 
 function writeSignalCookie(present: boolean) {
   if (typeof document === 'undefined') return;
@@ -57,8 +44,7 @@ export const useAuthStore = create<AuthStore>()(
       },
       clearAuth: () => {
         writeSignalCookie(false);
-        // Clear cross-store state that belongs to the previous session — leaving
-        // these around bleeds yesterday's open positions/PnL into the new login.
+
         usePositionStore.getState().reset();
         set({ token: null, user: null, isAuthenticated: false });
       },
@@ -66,12 +52,9 @@ export const useAuthStore = create<AuthStore>()(
     {
       name: 'blackheart:auth',
       storage: createJSONStorage(() => localStorage),
-      // Persist only non-sensitive profile data — token and isAuthenticated
-      // are rehydrated from the HttpOnly cookie via /api/v1/users/me on mount.
+
       partialize: (state) => ({ user: state.user }),
       onRehydrateStorage: () => (state) => {
-        // Keep the signal cookie in sync with the persisted user, so a
-        // reopened tab doesn't flicker through /login before /me completes.
         if (state?.user) writeSignalCookie(true);
       },
     },
@@ -98,8 +81,7 @@ export function useAuthHydrated(): boolean {
   const [hydrated, setHydrated] = useState(false);
   useEffect(() => {
     const api = useAuthStore.persist;
-    // Defensive: if the persist middleware didn't attach for any reason,
-    // treat the store as already hydrated rather than blocking the UI.
+
     if (!api) {
       setHydrated(true);
       return;

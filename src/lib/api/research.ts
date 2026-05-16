@@ -55,8 +55,6 @@ export async function searchResearchLog(q: ResearchLogQuery = {}): Promise<Page<
   return data;
 }
 
-// ── Sweep driver ────────────────────────────────────────────────────────────
-
 export async function createSweep(spec: SweepSpec): Promise<SweepState> {
   const { data } = await apiClient.post<SweepState>(`${BASE}/sweeps`, spec);
   return data;

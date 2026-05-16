@@ -26,8 +26,7 @@ export async function fetchEquityPoints(
   const { data } = await apiClient.get<BackendPnlEquityPoint[]>('/api/v1/pnl/equity', {
     params: { accountId, from, to },
   });
-  // Accept either `time` or `ts` (the backtest endpoint uses the latter) and
-  // coerce numeric strings through toMs/num so the chart never receives NaN.
+
   return (data ?? [])
     .map((p) => ({
       time: toMs(p.time ?? p.ts) ?? 0,

@@ -1,17 +1,5 @@
 'use client';
 
-// Hooks for the ML/sentiment ingestion admin console (V67).
-//
-// The page composes:
-//   useMlSchedules   → list cron schedules
-//   useMlSourceHealth → 7 cards on the dashboard, polled every 30s
-//   useUpdateMlSchedule → cron / enabled / lookback / config edits
-//   useTriggerMlBackfill → kick off historical backfill (delegates to
-//                         existing `historical_backfill_job` machinery)
-//
-// The job-polling helpers (useJob, useCancelJob) come from
-// `@/hooks/useHistoricalBackfill` — no duplication.
-
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   listMlSchedules,
@@ -71,8 +59,6 @@ export function useTriggerMlBackfill() {
   return useMutation<HistoricalBackfillJob, Error, TriggerMlBackfillRequest>({
     mutationFn: triggerMlBackfill,
     onSuccess: (job) => {
-      // Prime the historical-job cache so the progress drawer can pick up
-      // the PENDING row immediately without a flash of loading state.
       qc.setQueryData(['historical:job', job.jobId], job);
       qc.invalidateQueries({ queryKey: ['historical:jobs'] });
       qc.invalidateQueries({ queryKey: [HEALTH_KEY] });

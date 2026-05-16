@@ -1,6 +1,3 @@
-// Shared helpers for the strategy params forms (LSR, VCB, VBO). Each form
-// merges backend-returned overrides on top of canonical defaults, compares
-// values to compute "changed" badges, and emits a sparse PATCH on save.
 
 /**
  * Merge backend-returned params on top of the canonical defaults.

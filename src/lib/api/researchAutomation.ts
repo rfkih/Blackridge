@@ -1,7 +1,4 @@
-// Frontend client for /api/v1/admin/research/control — pause/resume the
-// autonomous research-tick loop. Lives on the trading JVM (admin namespace)
-// so apiClient is correct; OS cron reads the flag from the DB so neither
-// JVM needs to be up for a pause to take effect on the next tick.
+
 import { apiClient } from './client';
 import type { ISO8601 } from '@/types/api';
 

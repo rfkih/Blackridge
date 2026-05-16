@@ -45,9 +45,7 @@ function MarketingNav({ activeNav }: { activeNav?: MarketingShellProps['activeNa
         <Link href="/welcome" className="inline-flex items-center gap-2.5">
           <BlackridgeWordmark size="md" />
         </Link>
-        {/* Mid-width: nav links hide; desktop: visible. Below md the Open-
-            account button alone is the affordance — keeps the bar uncluttered
-            without a full hamburger drawer. */}
+        {}
         <nav className="hidden flex-1 gap-7 text-[14px] font-medium md:flex">
           {NAV_LINKS.map((link) => {
             const active = activeNav === link.key;
@@ -59,9 +57,7 @@ function MarketingNav({ activeNav }: { activeNav?: MarketingShellProps['activeNa
                 style={{
                   color: active ? 'var(--brand-700)' : 'var(--text-secondary)',
                   fontWeight: active ? 600 : 500,
-                  // Underline cue in addition to color+weight — robust for
-                  // color-blind users and matches the visual emphasis of
-                  // sidebar active state elsewhere in the app.
+
                   borderBottom: active ? '2px solid var(--brand-500)' : '2px solid transparent',
                   paddingBottom: 2,
                 }}
@@ -95,9 +91,7 @@ function MarketingFooter() {
       }}
     >
       <div className="mx-auto max-w-[1180px] px-5 sm:px-8">
-        {/* Brand column lives on top on mobile, then becomes the wide first
-            column on md+. The link columns wrap to a 2x2 grid on small
-            screens and a single row on md+. */}
+        {}
         <div className="mb-10 grid gap-8 md:grid-cols-[2fr_1fr_1fr_1fr] md:gap-10">
           <div>
             <div className="mb-3.5 flex items-center gap-2.5">

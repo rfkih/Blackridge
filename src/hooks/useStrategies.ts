@@ -56,10 +56,7 @@ import type { LsrParams, VboParams, VcbParams } from '@/types/strategy';
  */
 export function useStrategies() {
   const all = useAllVisibleStrategies();
-  // useMemo so the filtered array is referentially stable across renders
-  // when the underlying query data hasn't changed. Otherwise every
-  // consumer's `useEffect([strategies])` / `useMemo([strategies])` would
-  // re-fire on each render of any component up the tree.
+
   const data = useMemo(
     () => all.data?.filter((s) => s.ownedByCurrentUser),
     [all.data],
@@ -308,8 +305,7 @@ export function useUpdateStrategy() {
     onSuccess: (strategy) => {
       queryClient.invalidateQueries({ queryKey: ['strategies'] });
       queryClient.setQueryData(['strategy', strategy.id], strategy);
-      // Kelly multiplier depends on the just-changed config (cap, enable flag) —
-      // invalidate so the panel re-fetches the live status.
+
       queryClient.invalidateQueries({ queryKey: ['kelly-status', strategy.id] });
     },
   });
@@ -361,8 +357,6 @@ export function useReplaceVcbParams(accountStrategyId: string | undefined) {
     },
   });
 }
-
-// ── VBO ──────────────────────────────────────────────────────────────────
 
 export function useVboDefaults() {
   return useQuery({

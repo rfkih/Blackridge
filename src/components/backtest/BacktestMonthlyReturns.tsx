@@ -10,7 +10,7 @@ interface BacktestMonthlyReturnsProps {
 
 interface MonthlyCell {
   year: number;
-  month: number; // 0-11
+  month: number;
   pct: number | null;
 }
 
@@ -197,8 +197,6 @@ function HeatmapSkeleton() {
   );
 }
 
-// ─── data + colour helpers ───────────────────────────────────────────────
-
 function buildHeatmap(points: BacktestEquityPoint[]): {
   rows: Array<{ year: number; cells: MonthlyCell[] }>;
   summary: {
@@ -216,7 +214,6 @@ function buildHeatmap(points: BacktestEquityPoint[]): {
     };
   }
 
-  // Take the last equity reading of each calendar month. Indexed by `YYYY-MM`.
   const lastByMonth = new Map<string, { ts: number; equity: number }>();
   for (const p of points) {
     const d = new Date(p.ts);
@@ -227,8 +224,6 @@ function buildHeatmap(points: BacktestEquityPoint[]): {
     }
   }
 
-  // Use the *first* equity value as the seed for the first month's return,
-  // so the opening month isn't blank when the run starts mid-month.
   const firstPoint = points[0];
 
   const sortedKeys = Array.from(lastByMonth.keys()).sort((a, b) => {
@@ -297,8 +292,7 @@ function cellStyle(pct: number | null): { bg: string; fg: string; text: string }
   if (pct == null) {
     return { bg: 'var(--mm-surface-3)', fg: 'var(--mm-ink-3)', text: '·' };
   }
-  // Buckets keyed off the design pack's color ramp. Same band edges
-  // (~3 / 8) so traders reading the dashboard see the same intensities.
+
   const a = Math.abs(pct);
   let bg: string;
   let fg = 'rgba(0,0,0,0.78)';
@@ -309,7 +303,7 @@ function cellStyle(pct: number | null): { bg: string; fg: string; text: string }
   else if (pct >= -3) bg = '#FCEAEB';
   else if (pct >= -6) bg = '#F8B5B7';
   else bg = '#F08688';
-  // Negative bands deeper than -6 read better with a slightly lighter foreground.
+
   if (a > 6) fg = 'rgba(0,0,0,0.85)';
   return { bg, fg, text: `${pct > 0 ? '+' : ''}${pct.toFixed(2)}` };
 }

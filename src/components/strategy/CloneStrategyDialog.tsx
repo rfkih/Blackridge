@@ -29,9 +29,7 @@ export function CloneStrategyDialog({
 }) {
   const [error, setError] = useState<string | null>(null);
   const cloneMutation = useCloneStrategy();
-  // V54 — when the user has scoped the top-bar to a specific account, land
-  // the clone there. In "All accounts" view we leave targetAccountId
-  // undefined and the backend defaults to the user's first account.
+
   const { scopedAccountId, activeAccount } = useActiveAccount();
 
   useEffect(() => {

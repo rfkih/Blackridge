@@ -45,7 +45,7 @@ export function ParamField({
 }: ParamFieldProps) {
   const id = useId();
   const modifiedFromDefault = useMemo(() => isModified(value, defaultValue), [value, defaultValue]);
-  // If savedValue wasn't supplied, treat the default as the saved value.
+
   const effectiveSaved = savedValue === undefined ? defaultValue : savedValue;
   const savedDiffersFromDefault = useMemo(
     () => savedValue !== undefined && isModified(effectiveSaved, defaultValue),
@@ -210,7 +210,6 @@ function FieldInput({ id, name, meta, value, onChange, readOnly }: FieldInputPro
     );
   }
 
-  // integer / decimal
   return (
     <NumberInput
       id={id}

@@ -12,8 +12,6 @@ import { normalizeError } from '@/lib/api/client';
 import { useCurrencyFormatter } from '@/hooks/useCurrency';
 import type { MonteCarloResult, MonteCarloSimulationMode } from '@/types/montecarlo';
 
-// Recharts is ~80kb gzipped — only ship it once the user has a result to
-// render. The form + form schema still render without it.
 const MonteCarloChart = nextDynamic(
   () => import('@/components/charts/MonteCarloChart').then((m) => m.MonteCarloChart),
   { ssr: false, loading: () => <Skeleton className="h-[320px] w-full" /> },
@@ -131,9 +129,6 @@ export default function MonteCarloPage() {
     }
   };
 
-  // Copy for the header pill — "5,000 SIMULATIONS" from the latest result,
-  // falling back to the currently-configured value in the form so the header
-  // reads meaningfully even before a run fires.
   const simsForKicker = (
     result?.numberOfSimulations ??
     (Number(form.numberOfSimulations) || 1000)
@@ -142,7 +137,7 @@ export default function MonteCarloPage() {
 
   return (
     <div className="flex flex-col gap-5">
-      {/* ─── Header — mirrors design pack 09 Monte Carlo ─── */}
+      {}
       <section
         className="mm-card"
         style={{
@@ -220,7 +215,7 @@ export default function MonteCarloPage() {
         </div>
       </section>
 
-      {/* ─── Config form — compact; opens under the header like an inspector ─── */}
+      {}
       <form
         onSubmit={handleSubmit}
         className="mm-card"
@@ -347,20 +342,18 @@ export default function MonteCarloPage() {
         )}
       </form>
 
-      {/* ─── Results or running state ─── */}
+      {}
       {mutation.isPending && <RunningSkeleton />}
       {result && !mutation.isPending && <Results result={result} />}
     </div>
   );
 }
 
-// ─── Results ────────────────────────────────────────────────────────────────
-
 function Results({ result }: { result: MonteCarloResult }) {
   const formatCurrency = useCurrencyFormatter();
   return (
     <>
-      {/* Paths chart — big card */}
+      {}
       <section className="mm-card" style={{ padding: '26px 30px' }}>
         <div
           style={{
@@ -403,7 +396,7 @@ function Results({ result }: { result: MonteCarloResult }) {
         </ErrorBoundary>
       </section>
 
-      {/* Percentiles + histogram side-by-side */}
+      {}
       <section
         className="grid gap-5"
         style={{ gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1.2fr)' }}
@@ -414,8 +407,6 @@ function Results({ result }: { result: MonteCarloResult }) {
     </>
   );
 }
-
-// ─── Percentile ledger ──────────────────────────────────────────────────────
 
 interface PercentileRow {
   label: string;
@@ -432,8 +423,6 @@ function PercentileLedger({ result }: { result: MonteCarloResult }) {
   const initial = result.initialCapital || 1;
   const formatCurrency = useCurrencyFormatter();
 
-  // Pack wants P99/90/75/50/25/10/01 — backend may only return 5/10/25/50/75/90/95.
-  // We take what we have and fall back cleanly; rows with no data render "—".
   const rows: PercentileRow[] = useMemo(() => {
     const readPct = (key: string) => {
       const v = p[key];
@@ -524,8 +513,6 @@ function PercentileLedger({ result }: { result: MonteCarloResult }) {
   );
 }
 
-// ─── Terminal distribution (histogram) + 3-stat grid ───────────────────────
-
 function TerminalDistribution({ result }: { result: MonteCarloResult }) {
   const { bars, axisLabels, medianIndex, firstLossIndex } = useMemo(
     () => buildHistogram(result),
@@ -533,11 +520,6 @@ function TerminalDistribution({ result }: { result: MonteCarloResult }) {
   );
 
   const cagr = useMemo(() => {
-    // Horizon is trades, not years — the design's "Exp. CAGR" is a stretch
-    // here because Monte Carlo projects a path in trade space, not calendar
-    // space. We surface the mean total return as a CAGR-proxy to match the
-    // design's labelling, with the understanding that users will read it in
-    // context ("return over the horizon") rather than annualized.
     const r = result.meanTotalReturnPct;
     return `${r >= 0 ? '+' : ''}${r.toFixed(1)}%`;
   }, [result.meanTotalReturnPct]);
@@ -552,7 +534,7 @@ function TerminalDistribution({ result }: { result: MonteCarloResult }) {
         Histogram of final equity
       </h2>
 
-      {/* Bars */}
+      {}
       <div
         role="img"
         aria-label="Histogram of simulated final equity"
@@ -588,7 +570,7 @@ function TerminalDistribution({ result }: { result: MonteCarloResult }) {
         })}
       </div>
 
-      {/* Axis labels */}
+      {}
       <div
         className="font-mono"
         style={{
@@ -607,7 +589,7 @@ function TerminalDistribution({ result }: { result: MonteCarloResult }) {
         ))}
       </div>
 
-      {/* Stat triplet */}
+      {}
       <div
         style={{
           marginTop: 18,
@@ -674,7 +656,7 @@ function buildHistogram(result: MonteCarloResult): {
   firstLossIndex: number;
 } {
   const p = result.finalEquityPercentiles;
-  // Ordered percentile anchors — only ones with a real numeric value make it in.
+
   const CANDIDATES: Array<[number, string[]]> = [
     [0.01, ['P1']],
     [0.05, ['P5']],
@@ -696,7 +678,7 @@ function buildHistogram(result: MonteCarloResult): {
       }
     }
   }
-  // Add min/max so the axis covers the full range observed.
+
   if (anchors.length > 0) {
     const first = anchors[0];
     const last = anchors[anchors.length - 1];
@@ -746,7 +728,6 @@ function buildHistogram(result: MonteCarloResult): {
     Math.min(N_BARS - 1, Math.floor(((result.initialCapital - min) / range) * N_BARS)),
   );
 
-  // Five evenly-spaced axis labels: min, q1, q2, q3, max.
   const axisLabels = [0, 0.25, 0.5, 0.75, 1].map((frac) => {
     const v = min + range * frac;
     return `$${abbreviate(v)}`;
@@ -768,8 +749,6 @@ function formatMode(mode: MonteCarloSimulationMode): string {
   return mode;
 }
 
-// ─── Form primitives ────────────────────────────────────────────────────────
-
 function Field({
   label,
   error,
@@ -782,7 +761,7 @@ function Field({
   children: React.ReactNode;
 }) {
   return (
-    // Nested association — the <label> wraps the control via children.
+
     // eslint-disable-next-line jsx-a11y/label-has-associated-control
     <label className="flex flex-col gap-1">
       <span className="mm-label">{label}</span>

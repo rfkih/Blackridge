@@ -92,9 +92,6 @@ type SamplesMap = Record<Jvm, JvmTelemetrySnapshot[]>;
  * don't flicker the sparkline to empty.
  */
 export function useJvmTelemetry(): JvmTelemetryView {
-  // Two pieces of state: a *frozen* snapshot returned to consumers (so
-  // `useMemo([samples])` works), and a mutation buffer that we append to
-  // as new frames arrive. We swap snapshot ← buffer.slice() on each tick.
   const bufferRef = useRef<SamplesMap>({ trading: [], research: [] });
   const [snapshot, setSnapshot] = useState<SamplesMap>({ trading: [], research: [] });
 
@@ -110,9 +107,6 @@ export function useJvmTelemetry(): JvmTelemetryView {
     })),
   });
 
-  // Joining update timestamps gives us a stable dep key that changes iff a
-  // tick produced fresh data. Iterating JVMS keeps this resilient when a
-  // third JVM is added.
   const dataKey = queries.map((q) => q.dataUpdatedAt).join('|');
 
   useEffect(() => {
@@ -122,16 +116,13 @@ export function useJvmTelemetry(): JvmTelemetryView {
       if (!data) return;
       const buf = bufferRef.current[jvm];
       const last = buf[buf.length - 1];
-      // Avoid double-appending the same snapshot when react-query returns
-      // identical cached data on a re-render.
+
       if (last && last.takenAt === data.takenAt) return;
       buf.push(data);
       if (buf.length > FRAME_BUFFER_SIZE) buf.shift();
       appended = true;
     });
     if (appended) {
-      // Return a fresh array per JVM so consumers using referential equality
-      // (useMemo, React.memo) actually see a change.
       setSnapshot({
         trading: [...bufferRef.current.trading],
         research: [...bufferRef.current.research],

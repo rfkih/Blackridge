@@ -32,8 +32,7 @@ function VerifyEmailContent() {
     verifyEmail(token)
       .then(() => {
         if (cancelled) return;
-        // Reflect the backend's flip in the in-memory user so the dashboard
-        // banner clears as soon as the user returns.
+
         const store = useAuthStore.getState();
         if (store.user && !store.user.emailVerified) {
           store.setUser({ ...store.user, emailVerified: true });

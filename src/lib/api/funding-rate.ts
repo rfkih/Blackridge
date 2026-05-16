@@ -1,6 +1,4 @@
-// Read-only client for V34 funding_rate_history. Drives the funding panel
-// on the backtest result page so operators can sanity-check the funding
-// regime that was actually realized over the run window.
+
 import { apiClient } from './client';
 
 export interface FundingRatePoint {

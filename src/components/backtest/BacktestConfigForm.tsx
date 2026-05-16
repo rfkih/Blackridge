@@ -40,9 +40,7 @@ const COMMON_SYMBOLS = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'BNBUSDT', 'XRPUSDT', '
 const INHERIT_PRIMARY = '__inherit_primary__';
 const INHERIT_ALLOC   = '__inherit_alloc__';
 const INHERIT_RISK    = '__inherit_risk__';
-// V62 — tristate sentinel for the gate-override selects (Auto / On / Off).
-// Picking "Auto" deletes the strategy's key from the override map so the
-// backend falls back to account_strategy.<gate>_gate_enabled.
+
 const INHERIT_GATE    = '__inherit_gate__';
 
 const configSchema = z
@@ -89,11 +87,7 @@ const configSchema = z
       )
       .optional(),
     evaluationMode: z.enum(['single', 'multi']).optional(),
-    // V58 — direction flags moved to per-strategy (sourced from each
-    // strategy's bound account_strategy). Run-level fields are kept
-    // wire-compatible but always sent as TRUE/TRUE so the resolver's
-    // run-level fallback (used only for ad-hoc spec strategies without a
-    // bound AS) stays permissive.
+
     allowLong: z.boolean(),
     allowShort: z.boolean(),
   })
@@ -138,10 +132,6 @@ export function BacktestConfigForm() {
   const { data: definitions = [], isLoading: definitionsLoading } = useStrategyDefinitions();
   const { scopedAccountId } = useActiveAccount();
 
-  // Source of truth for which strategies the user can pick is the
-  // strategy_definition catalogue, filtered to ACTIVE rows. DEPRECATED /
-  // INACTIVE definitions are hidden from the picker but remain valid in
-  // historical backtest_run rows.
   const activeDefinitions = useMemo(
     () =>
       definitions
@@ -164,7 +154,7 @@ export function BacktestConfigForm() {
   const [strategyAccountStrategyIds, setStrategyAccountStrategyIds] = useState<
     Record<string, string>
   >(savedConfig?.strategyAccountStrategyIds ?? {});
-  // Phase A — multi-strategy controls.
+
   const [maxConcurrentStrategies, setMaxConcurrentStrategies] = useState<string>(
     savedConfig?.maxConcurrentStrategies != null
       ? String(savedConfig.maxConcurrentStrategies)
@@ -178,31 +168,24 @@ export function BacktestConfigForm() {
       ]),
     ),
   );
-  // V57 — per-strategy risk-pct override (UI scale: percent, e.g. "5" =
-  // 5%). Stored fractional on submit. Blank = "fall back to persisted
-  // account_strategy.risk_pct" (and the persisted toggle).
+
   const [strategyRiskPcts, setStrategyRiskPcts] = useState<Record<string, string>>(
     Object.fromEntries(
       Object.entries(savedConfig?.strategyRiskPcts ?? {}).map(([code, frac]) => [
         code,
-        // Saved value is fractional; UI shows percent.
+
         String(Number(frac) * 100),
       ]),
     ),
   );
-  // V58 — per-strategy direction override maps. Key absent = "no override
-  // → use bound account_strategy's flag" (matches live behaviour). Key
-  // present = explicit override for this run (for research). Both `true`
-  // and `false` are valid override values.
+
   const [strategyAllowLong, setStrategyAllowLong] = useState<Record<string, boolean>>(
     savedConfig?.strategyAllowLong ?? {},
   );
   const [strategyAllowShort, setStrategyAllowShort] = useState<Record<string, boolean>>(
     savedConfig?.strategyAllowShort ?? {},
   );
-  // V62 — per-strategy risk-gate overrides. Same null-vs-bool semantics as
-  // strategyAllowLong: present key = explicit override (true/false), absent
-  // key = "use bound account_strategy's persisted toggle".
+
   const [strategyKillSwitchOverrides, setStrategyKillSwitchOverrides] = useState<
     Record<string, boolean>
   >(savedConfig?.strategyKillSwitchOverrides ?? {});
@@ -215,25 +198,17 @@ export function BacktestConfigForm() {
   const [strategyConcurrentCapOverrides, setStrategyConcurrentCapOverrides] = useState<
     Record<string, boolean>
   >(savedConfig?.strategyConcurrentCapOverrides ?? {});
-  // V62 — UI toggle for the gate-overrides section. Hidden by default so the
-  // common single-strategy / single-account research flow isn't cluttered.
+
   const [showGateOverrides, setShowGateOverrides] = useState<boolean>(false);
-  // Per-strategy interval. Blank string = "use primary interval".
+
   const [strategyIntervals, setStrategyIntervals] = useState<Record<string, string>>(
     savedConfig?.strategyIntervals ?? {},
   );
-  // 'single': all strategies share the primary interval.
-  // 'multi': each strategy's interval is auto-filled from its AccountStrategy,
-  // making interval mismatch impossible by construction.
+
   const [evaluationMode, setEvaluationMode] = useState<'single' | 'multi'>(
     savedConfig?.evaluationMode ?? 'single',
   );
-  // V58 — run-level direction flags are no longer user-controlled in the
-  // wizard. The backend resolver now reads allowLong/allowShort per-strategy
-  // from the bound account_strategy; run-level fields stay on the wire as a
-  // permissive fallback (used only for ad-hoc strategies without a bound
-  // AS), so we always submit TRUE/TRUE. Locals retained because re-run flow
-  // hydrates them and the wire payload still carries the field.
+
   const [allowLong] = useState<boolean>(true);
   const [allowShort] = useState<boolean>(true);
   const [errors, setErrors] = useState<FormErrors>({});
@@ -248,8 +223,6 @@ const strategyOptionsByCode = useMemo(() => {
     return map;
   }, [activeDefinitions, strategies]);
 
-  // When the user ticks a strategy, auto-pick the best-matching AccountStrategy
-  // (scoped account first, then any). When unticked, drop its id.
   const toggleStrategy = useCallback(
     (code: string) => {
       setSelectedStrategies((prev) => {
@@ -276,44 +249,27 @@ const strategyOptionsByCode = useMemo(() => {
     setStrategyAccountStrategyIds((ids) => ({ ...ids, [code]: id }));
   }, []);
 
-  // Map every assigned account-strategy back to its interval so we can flag
-  // mismatches. Result type is `Array<{ code, interval }>` for the strategies
-  // that don't agree with the form's interval.
   const strategyById = useMemo(() => {
     const m = new Map<string, AccountStrategy>();
     for (const s of strategies) m.set(s.id, s);
     return m;
   }, [strategies]);
 
-  // Phase B2 — track manual overrides so we can restore them when the
-  // user toggles multi → single. Multi mode auto-fills strategyIntervals
-  // from the registered AccountStrategy, but those auto-fills shouldn't
-  // persist as silent "manual overrides" once the user switches back.
   const intervalsBeforeMultiRef = useRef<Record<string, string>>({});
   const prevModeRef = useRef<'single' | 'multi'>(evaluationMode);
 
   useEffect(() => {
     const prev = prevModeRef.current;
     if (prev !== 'multi' && evaluationMode === 'multi') {
-      // single → multi: snapshot user's manual overrides BEFORE the
-      // auto-fill effect mutates them.
       intervalsBeforeMultiRef.current = { ...strategyIntervals };
     } else if (prev === 'multi' && evaluationMode === 'single') {
-      // multi → single: drop the auto-filled overrides; restore the
-      // manual overrides that were active before entering multi.
       setStrategyIntervals(intervalsBeforeMultiRef.current);
     }
     prevModeRef.current = evaluationMode;
-    // strategyIntervals intentionally excluded from deps — we only want
-    // to react to mode transitions, not to value updates within a mode.
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [evaluationMode]);
 
-  // Phase B2 — when the user picks 'multi' mode, auto-populate
-  // strategyIntervals from each strategy's registered AccountStrategy
-  // interval. This keeps effective interval == registered for every
-  // strategy by construction, so the mismatch warning never has anything
-  // to flag. Re-runs whenever selection or AccountStrategy picks change.
   useEffect(() => {
     if (evaluationMode !== 'multi') return;
     setStrategyIntervals((prev) => {
@@ -331,10 +287,6 @@ const strategyOptionsByCode = useMemo(() => {
     });
   }, [evaluationMode, selectedStrategies, strategyAccountStrategyIds, strategyById]);
 
-  // When account-strategies finish loading, auto-fill any selected strategy
-  // that is missing an account-strategy ID. This covers the race where the
-  // user clicked a chip before useAccountStrategies resolved (candidates was
-  // empty at click time so toggleStrategy couldn't pick one).
   useEffect(() => {
     if (strategiesLoading) return;
     setStrategyAccountStrategyIds((ids) => {
@@ -354,12 +306,6 @@ const strategyOptionsByCode = useMemo(() => {
     });
   }, [strategiesLoading, selectedStrategies, strategyOptionsByCode, scopedAccountId]);
 
-  // Phase B2 — a strategy's "effective interval" is its per-strategy
-  // override when set, otherwise the wizard's primary interval. Mismatch
-  // exists when the assigned account-strategy is registered on a
-  // different timeframe than its effective interval. In 'multi' mode
-  // mismatches are impossible by construction (effect above), so we
-  // short-circuit to an empty list.
   const intervalMismatches = useMemo(() => {
     if (evaluationMode === 'multi') return [];
     const out: Array<{ code: string; registered: string; effective: string }> = [];
@@ -383,11 +329,6 @@ const strategyOptionsByCode = useMemo(() => {
     strategyIntervals,
   ]);
 
-  // Phase A — sum of allocations across selected strategies. > 100 is
-  // legal at the API level (backend canonicaliseAllocations doesn't
-  // enforce a sum cap), but every strategy after the first to hit the
-  // balance ceiling silently fails its order. Surface the over-allocation
-  // up-front so the user understands what'll happen at runtime.
   const allocationSumPct = useMemo(() => {
     let total = 0;
     for (const code of selectedStrategies) {
@@ -398,12 +339,6 @@ const strategyOptionsByCode = useMemo(() => {
     return total;
   }, [selectedStrategies, strategyAllocations]);
 
-  // Phase A — flag strategies whose allocated capital is below the
-  // backtest's default min notional ($7). Without this guard the executor
-  // floors the order to min-notional, which inflates the strategy's real
-  // exposure above the user's intended slice — multi-strategy runs on
-  // small balances over-allocate the book. We use the same DEFAULT_SIZING
-  // floor the payload uses so the warning matches what'll happen.
   const tinyAllocationCodes = useMemo(() => {
     const capital = Number(initialCapital);
     if (!Number.isFinite(capital) || capital <= 0) return [];
@@ -411,7 +346,7 @@ const strategyOptionsByCode = useMemo(() => {
     for (const code of selectedStrategies) {
       const raw = strategyAllocations[code];
       const n = Number(raw);
-      if (!Number.isFinite(n) || n <= 0) continue; // blank = falls back to AccountStrategy default — skip
+      if (!Number.isFinite(n) || n <= 0) continue;
       const slice = (capital * n) / 100;
       if (slice < BACKTEST_MIN_NOTIONAL_USDT) {
         out.push({ code, pct: n, sliceUsdt: slice });
@@ -420,9 +355,6 @@ const strategyOptionsByCode = useMemo(() => {
     return out;
   }, [selectedStrategies, strategyAllocations, initialCapital]);
 
-  // The shared-fix button (sets the wizard's primary interval) only
-  // makes sense when every mismatched strategy is registered on the same
-  // timeframe AND none of them already have a per-strategy override.
   const sharedRegisteredInterval = useMemo(() => {
     if (intervalMismatches.length === 0) return null;
     const first = intervalMismatches[0].registered;
@@ -432,8 +364,6 @@ const strategyOptionsByCode = useMemo(() => {
   }, [intervalMismatches, strategyIntervals]);
 
   const handleSubmit = useCallback(() => {
-    // Trim allocations to only the strategies actually selected — drops
-    // stale entries left from earlier ticks of the form.
     const allocs: Record<string, number> = {};
     for (const code of selectedStrategies) {
       const raw = strategyAllocations[code];
@@ -444,9 +374,6 @@ const strategyOptionsByCode = useMemo(() => {
       }
     }
 
-    // V57 — trim per-strategy risk-pct overrides. UI scale is percent
-    // (5 = 5%); convert to fraction (0.05) for the wire/schema. Drop
-    // blanks (fall back to persisted) and out-of-range.
     const riskPcts: Record<string, number> = {};
     for (const code of selectedStrategies) {
       const raw = strategyRiskPcts[code];
@@ -457,22 +384,15 @@ const strategyOptionsByCode = useMemo(() => {
       }
     }
 
-    // Same trim for per-strategy intervals: only carry entries for
-    // currently-selected strategies, drop blanks (= "use primary").
     const intervals: Record<string, string> = {};
     for (const code of selectedStrategies) {
       const v = strategyIntervals[code];
       if (typeof v === 'string' && v.trim() !== '') intervals[code] = v.trim();
     }
 
-    // V58 — same trim for direction overrides: only carry entries for
-    // currently-selected strategies. Both true and false are valid
-    // override values, so we don't drop falsy entries.
     const allowLongMap: Record<string, boolean> = {};
     const allowShortMap: Record<string, boolean> = {};
-    // V62 — same trim for gate overrides. Trims to currently-selected
-    // strategies; preserves explicit false values (operator's intent to
-    // force a gate off for this run).
+
     const killSwitchMap: Record<string, boolean> = {};
     const regimeMap: Record<string, boolean> = {};
     const correlationMap: Record<string, boolean> = {};
@@ -610,8 +530,7 @@ const strategyOptionsByCode = useMemo(() => {
             />
             <datalist id="bt-symbols">
               {COMMON_SYMBOLS.map((s) => (
-                // Datalist options are not user-facing controls themselves —
-                // eslint's control-has-associated-label rule doesn't know that.
+
                 // eslint-disable-next-line jsx-a11y/control-has-associated-label
                 <option key={s} value={s} />
               ))}
@@ -712,9 +631,7 @@ const strategyOptionsByCode = useMemo(() => {
 
         {selectedStrategies.length > 0 && (
           <div className="border-t border-bd-subtle px-5 py-4">
-            {/* Phase B2 — backtest mode toggle. 'multi' auto-resolves each
-                 strategy's interval from its registered AccountStrategy and
-                 suppresses the mismatch warning by construction. */}
+            {}
             <div className="pb-4">
               <p className="label-caps pb-2">Backtest mode</p>
               <div className="flex flex-col gap-2 sm:flex-row">
@@ -794,7 +711,7 @@ const strategyOptionsByCode = useMemo(() => {
               </p>
             )}
 
-            {/* Phase A — concurrent cap + per-strategy allocation overrides. */}
+            {}
             <div className="mt-5 grid grid-cols-1 gap-4 border-t border-bd-subtle pt-4 lg:grid-cols-3">
               <Field label="Max concurrent strategies">
                 <Input
@@ -896,13 +813,7 @@ const strategyOptionsByCode = useMemo(() => {
                           on
                         </span>
                         <Select
-                          // Radix forbids value="" — use a sentinel for "use
-                          // primary" and translate on both edges. Stored
-                          // state still holds "" or a real interval, so the
-                          // submit-time trim logic stays unchanged.
-                          // In 'multi' mode the picker is locked to the
-                          // strategy's registered interval (auto-filled by
-                          // the effect above) — disabled to avoid drift.
+
                           value={
                             strategyIntervals[code] ? strategyIntervals[code] : INHERIT_PRIMARY
                           }
@@ -944,11 +855,7 @@ const strategyOptionsByCode = useMemo(() => {
                   that strategy in this run.
                 </p>
 
-                {/* V62 — per-strategy risk-gate overrides. Collapsed by
-                    default so the common single-strategy research flow
-                    isn't cluttered. Each gate is independently tristate:
-                    Auto (use persisted toggle), On (force enabled for
-                    this run), Off (force disabled for this run). */}
+                {}
                 <div className="mt-4">
                   <button
                     type="button"
@@ -1242,7 +1149,7 @@ function DirectionSelect({
     if (disabled) return;
     const wantsLong = mode !== 'short';
     const wantsShort = mode !== 'long';
-    // Clear overrides when the selection already matches live — keeps wire minimal.
+
     onLongChange(wantsLong === persistedLong ? undefined : wantsLong);
     onShortChange(wantsShort === persistedShort ? undefined : wantsShort);
   };

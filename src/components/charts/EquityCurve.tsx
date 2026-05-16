@@ -64,8 +64,7 @@ export function EquityCurve({ points, initialCapital, height = 220 }: EquityCurv
 
   const [yMin, yMax] = useMemo(() => {
     if (!data.length) return [0, 1];
-    // Single pass — Math.min/max on a spread of thousands of values can hit
-    // the JS call-stack limit (notably Safari).
+
     let lo = capital;
     let hi = capital;
     for (let i = 0; i < data.length; i++) {

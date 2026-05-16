@@ -1,7 +1,4 @@
-// Error-inbox API. Backed by GET /api/v1/error-log on the trading JVM —
-// admin-only, surfaces fingerprint-deduped error_log rows captured by
-// DbErrorAppender (backend) and ErrorIngestController (frontend/middleware).
-// Distinct from /api/v1/alerts which is the operational alert dispatcher.
+
 import { apiClient } from './client';
 import { addOptionalParam, buildPageParams } from './queryParams';
 import type {
@@ -12,7 +9,6 @@ import type {
   UpdateStatusResult,
 } from '@/types/errors';
 
-// Re-exported from canonical home `@/types/errors`; prefer direct import in new code.
 export type { ErrorLogRow, ErrorSeverity, ErrorStatus } from '@/types/errors';
 
 export async function listErrorLog(opts: ListErrorLogParams = {}): Promise<ErrorLogPage> {

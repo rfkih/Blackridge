@@ -50,14 +50,12 @@ function applyPalette(next: Palette) {
   try {
     localStorage.setItem(STORAGE_KEY, next);
   } catch {
-    // Safari private mode / quota — swallow.
   }
 }
 
 export function PaletteProvider({ children }: { children: React.ReactNode }) {
   const [palette, setPaletteState] = useState<Palette>(readInitialPalette);
 
-  // Cross-tab sync.
   useEffect(() => {
     const onStorage = (e: StorageEvent) => {
       if (e.key !== STORAGE_KEY) return;

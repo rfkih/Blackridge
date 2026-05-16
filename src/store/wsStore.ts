@@ -1,4 +1,4 @@
-// SLICE 1: WebSocket connection state (consumed by status indicator + reconnect handler in slice 5).
+
 import { create } from 'zustand';
 
 interface WsStore {
@@ -33,8 +33,7 @@ export const useWsStore = create<WsStore>((set) => ({
   setPermanentlyDisconnected: (permanentlyDisconnected) =>
     set((s) => ({
       permanentlyDisconnected,
-      // When flipping into the permanent state, the spinner is no longer
-      // accurate — the client has actively stopped trying.
+
       reconnecting: permanentlyDisconnected ? false : s.reconnecting,
     })),
   setReconnectAttempts: (reconnectAttempts) => set({ reconnectAttempts }),

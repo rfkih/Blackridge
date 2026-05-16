@@ -9,8 +9,7 @@ import type {
 } from '@/types/backtest';
 import type { CandleData } from '@/types/market';
 import type { AccountStrategy } from '@/types/strategy';
-// Phase 1 decoupling: backtest endpoints live on the research JVM (8081),
-// not the trading JVM (8080). Use researchClient throughout this module.
+
 import { researchClient as apiClient } from './client';
 import { toNum, toNumOrNull } from './coerce';
 import { extractList } from './pageUtils';
@@ -33,8 +32,7 @@ function synthesiseLegacyMetrics(b: BackendBacktestRun): BacktestMetrics | null 
   const netProfit = toNumOrNull(b.netProfit);
   const initialCapital = toNumOrNull(b.initialCapital);
   const endingBalance = toNumOrNull(b.endingBalance);
-  // Nothing to populate from if the wire has neither flat metrics nor any
-  // derivable balances. Signal "no metrics yet" to the UI.
+
   if (
     totalTrades == null &&
     winRate == null &&
@@ -122,8 +120,7 @@ function mapParamSnapshot(raw: unknown): Record<string, Record<string, unknown>>
     }
   }
   if (typeof raw !== 'object') return null;
-  // Only accept shapes that look like { [code]: { [key]: value } }. The wizard
-  // replay flow silently skips non-conforming structures.
+
   const out: Record<string, Record<string, unknown>> = {};
   for (const [code, overrides] of Object.entries(raw as Record<string, unknown>)) {
     if (overrides && typeof overrides === 'object' && !Array.isArray(overrides)) {
@@ -134,10 +131,6 @@ function mapParamSnapshot(raw: unknown): Record<string, Record<string, unknown>>
 }
 
 function mapBacktestRun(b: BackendBacktestRun): BacktestRun {
-  // Accept either the new BacktestRunDetailResponse shape (id/symbol/fromDate)
-  // or the legacy BacktestRunResponse shape (backtestRunId/asset/startTime).
-  // The two endpoints that still emit the legacy shape are internal â€” we
-  // shouldn't crash navigation when one sneaks through.
   const id = (b.id ?? b.backtestRunId ?? '') as UUID;
   const strategyCode = b.strategyCode ?? b.strategyName ?? '';
   const symbol = b.symbol ?? b.asset ?? '';
@@ -177,9 +170,7 @@ function mapBacktestRun(b: BackendBacktestRun): BacktestRun {
     strategyRiskPcts: coerceStrategyAllocations(b.strategyRiskPcts),
     strategyAllowLong: coerceStrategyBoolMap(b.strategyAllowLong),
     strategyAllowShort: coerceStrategyBoolMap(b.strategyAllowShort),
-    // V62 â€” round-trip the gate overrides so "Re-run with these params"
-    // reproduces the original run faithfully. Each is a Record<code,bool>
-    // (or null when the run pre-dates V62 / never used gate overrides).
+
     strategyKillSwitchOverrides: coerceStrategyBoolMap(b.strategyKillSwitchOverrides),
     strategyRegimeOverrides: coerceStrategyBoolMap(b.strategyRegimeOverrides),
     strategyCorrelationOverrides: coerceStrategyBoolMap(b.strategyCorrelationOverrides),
@@ -280,9 +271,6 @@ export interface BacktestRunsPage {
 export async function listBacktestRuns(
   filters: BacktestListFilters = {},
 ): Promise<BacktestRunsPage> {
-  // Pagination is only sent when explicitly set — omitting it tells the
-  // backend to return a bare array, which the synthesised return below
-  // restores into a page envelope for the caller.
   const params: Record<string, string | number | boolean> = {};
   addOptionalParam(params, 'status', filters.status);
   addOptionalParam(params, 'strategyCode', filters.strategyCode);
@@ -334,12 +322,6 @@ export async function createBacktestRun(payload: BacktestRunPayload): Promise<Ba
   return mapBacktestRun(data);
 }
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-// Result-page endpoints â€” each maps the backend shape into the UI-friendly one.
-// Timestamps are normalised to epoch ms for app code and to TV seconds at the
-// chart boundary only (see buildTradeMarkers + candle normaliser below).
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-
 interface BackendBacktestTradePosition {
   id: string;
   type: string;
@@ -377,9 +359,6 @@ interface BackendBacktestEquityPoint {
   drawdownPct: number;
 }
 
-// Backend candles may arrive as either epoch-ms (long) or ISO strings; this
-// covers both. TV needs seconds, domain code wants ms â€” we standardise on ms
-// here and convert at render time.
 interface BackendBacktestCandle {
   time?: number | string;
   openTime?: number | string;

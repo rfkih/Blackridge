@@ -47,8 +47,7 @@ export function LsrParamsForm({
   onSaveAsLive,
 }: LsrParamFormProps) {
   const [values, setValues] = useState<LsrParams>(() => mergeInitial(defaultValues, initialValues));
-  // Snapshot of the last persisted/saved values — used so each field can show
-  // "saved: X" next to "default: Y" before the user edits anything.
+
   const [savedValues, setSavedValues] = useState<LsrParams>(() =>
     mergeInitial(defaultValues, initialValues),
   );
@@ -58,7 +57,6 @@ export function LsrParamsForm({
   const saveMutation = useSaveLsrParams(accountStrategyId);
   const resetMutation = useResetLsrParams(accountStrategyId);
 
-  // Re-sync when upstream initial/default changes (e.g. data loads).
   useEffect(() => {
     const merged = mergeInitial(defaultValues, initialValues);
     setValues(merged);
@@ -151,7 +149,7 @@ export function LsrParamsForm({
 
   return (
     <div className="space-y-4">
-      {/* Header / summary */}
+      {}
       <div className="flex items-center justify-between">
         <p className="text-xs text-[var(--text-muted)]">
           {totalOverrides > 0 ? (

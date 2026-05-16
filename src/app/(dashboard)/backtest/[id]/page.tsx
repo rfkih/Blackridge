@@ -39,22 +39,16 @@ import type { AccountStrategy } from '@/types/strategy';
 import { BacktestProgressBar } from '@/components/backtest/BacktestProgressBar';
 import type { CandleData } from '@/types/market';
 
-// Module-level empty arrays so render-time fallbacks don't churn referential
-// identity. Without these, every "loading" render hands child memos a fresh
-// `[]`, which busts buildTradeMarkers / equity transforms downstream.
 const EMPTY_TRADES: BacktestTrade[] = [];
 const EMPTY_CANDLES: CandleData[] = [];
 const EMPTY_EQUITY: BacktestEquityPoint[] = [];
 
-// TradingView is not SSR-safe — load the whole chart component on the client.
 const BacktestAnnotatedChart = dynamic(
   () =>
     import('@/components/backtest/BacktestAnnotatedChart').then((m) => m.BacktestAnnotatedChart),
   { ssr: false, loading: () => <ChartSkeleton /> },
 );
 
-// Recharts adds ~80kb; keep it off the initial bundle. The equity panel only
-// renders once the run has loaded anyway.
 const BacktestEquityPanel = dynamic(
   () => import('@/components/backtest/BacktestEquityPanel').then((m) => m.BacktestEquityPanel),
   { ssr: false, loading: () => <Skeleton className="h-[260px] w-full" /> },
@@ -64,39 +58,26 @@ export default function BacktestResultPage({ params }: { params: { id: string } 
   const { id } = params;
   const router = useRouter();
 
-  // Route params can legitimately be the literal string "undefined" when an
-  // upstream caller built the URL from a run whose id was missing. Treating
-  // that as a routing error beats silently 404-ing against the backend.
   const idIsValid = typeof id === 'string' && id.length > 0 && id !== 'undefined' && id !== 'null';
 
   const runQ = useBacktestRun(idIsValid ? id : undefined);
-  // Realtime progress via STOMP (`/topic/backtest/{id}`). No-op when the
-  // socket isn't connected — the REST poll above still drives the bar.
+
   useBacktestProgressStream(idIsValid ? id : undefined);
   const tradesQ = useBacktestTrades(idIsValid ? id : undefined);
   const candlesQ = useBacktestCandles(idIsValid ? id : undefined);
   const equityQ = useBacktestEquityPoints(idIsValid ? id : undefined);
 
   const [selectedTradeId, setSelectedTradeId] = useState<string | null>(null);
-  // Two separate triggers so a chart→table scroll never loops back into a
-  // chart scroll, and vice versa.
+
   const [tableScrollTrigger, setTableScrollTrigger] = useState(0);
   const [chartScrollTrigger, setChartScrollTrigger] = useState(0);
-  // Mirrored from the table's filter UI so the chart renders the same
-  // marker set — otherwise arrows would have no matching row.
+
   const [filteredTrades, setFilteredTrades] = useState<BacktestTrade[] | null>(null);
 
   const [activateDialogOpen, setActivateDialogOpen] = useState(false);
 
-  // useAccountStrategies shares a query key with the /strategies page so the
-  // React Query cache makes this a no-cost read when the user has visited that
-  // page in the same session. The hook doesn't support an `enabled` prop, so
-  // we gate the actual computation on COMPLETED status instead.
   const { data: strategies = [] } = useAccountStrategies();
 
-  // Determine whether this run was submitted from (or references) a currently-live
-  // account strategy. When true: hide "Activate as Strategy" — the user already
-  // has an active strategy and shouldn't create a duplicate preset.
   const liveSourceStrategies = useMemo(() => {
     if (!runQ.data || runQ.data.status !== 'COMPLETED' || !strategies.length) return [];
     const boundIds = new Set(Object.values(runQ.data.strategyAccountStrategyIds ?? {}));
@@ -122,17 +103,13 @@ export default function BacktestResultPage({ params }: { params: { id: string } 
       .split(',')
       .map((c) => c.trim())
       .filter(Boolean);
-    // Prefer the per-strategy mapping the backend captured at submit time.
-    // Falls back to pinning every code to the run's default accountStrategyId
-    // so single-strategy legacy runs still resolve.
+
     const persisted = run.strategyAccountStrategyIds ?? {};
     const strategyAccountStrategyIds: Record<string, string> = {};
     for (const code of codes) {
       strategyAccountStrategyIds[code] = persisted[code] ?? run.accountStrategyId;
     }
-    // paramSnapshot is the exact diff-vs-defaults we sent on submission; replay
-    // it into the wizard so "Re-run with these params" is a true replay rather
-    // than re-tuning from scratch.
+
     hydrateFromRun(
       {
         symbol: run.symbol,
@@ -142,8 +119,7 @@ export default function BacktestResultPage({ params }: { params: { id: string } 
         initialCapital: run.initialCapital,
         strategyCodes: codes,
         strategyAccountStrategyIds,
-        // allowLong is null on older rows — default to long-only to avoid
-        // silently enabling shorts on strategies not validated for them.
+
         allowLong: run.allowLong ?? true,
         allowShort: run.allowShort ?? false,
         maxConcurrentStrategies: run.maxConcurrentStrategies ?? undefined,
@@ -151,9 +127,7 @@ export default function BacktestResultPage({ params }: { params: { id: string } 
         strategyRiskPcts: run.strategyRiskPcts ?? undefined,
         strategyAllowLong: run.strategyAllowLong ?? undefined,
         strategyAllowShort: run.strategyAllowShort ?? undefined,
-        // V62 — re-run with the original run's gate overrides so the replay
-        // matches the recorded behaviour. Null on legacy runs → undefined so
-        // the wizard's reducer treats those as "no overrides".
+
         strategyKillSwitchOverrides: run.strategyKillSwitchOverrides ?? undefined,
         strategyRegimeOverrides: run.strategyRegimeOverrides ?? undefined,
         strategyCorrelationOverrides: run.strategyCorrelationOverrides ?? undefined,
@@ -167,9 +141,6 @@ export default function BacktestResultPage({ params }: { params: { id: string } 
     router.push('/backtest/new');
   }, [runQ.data, hydrateFromRun, router]);
 
-  // Early returns come AFTER every hook is registered — React's Rules of
-  // Hooks require a stable call order across renders. Rendering the
-  // invalid-id panel before hooks run would desync the hook list.
   if (!idIsValid) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
@@ -212,8 +183,7 @@ export default function BacktestResultPage({ params }: { params: { id: string } 
         liveSourceStrategies={liveSourceStrategies}
       />
 
-      {/* Dialog: never mount for runs whose bound strategy is already live —
-          creating a second preset would duplicate an active configuration. */}
+      {}
       {liveSourceStrategies.length === 0 &&
         runQ.data &&
         runQ.data.status === 'COMPLETED' &&
@@ -334,8 +304,6 @@ export default function BacktestResultPage({ params }: { params: { id: string } 
   );
 }
 
-// ─── Header ───────────────────────────────────────────────────────────────────
-
 interface ResultHeaderProps {
   run: BacktestRun | undefined;
   isLoading: boolean;
@@ -412,8 +380,7 @@ function ResultHeader({
       <div className="flex shrink-0 flex-wrap items-center gap-2">
         {run?.status === 'COMPLETED' &&
           (liveSourceStrategies.length > 0 ? (
-            /* Run is already bound to a live strategy — guide the user there
-               instead of letting them create a duplicate preset. */
+
             <div className="border-[var(--color-profit)]/30 bg-[var(--color-profit)]/5 inline-flex items-center gap-2 rounded-full border px-3 py-2">
               <Zap size={13} strokeWidth={2} className="text-[var(--color-profit)]/70 shrink-0" />
               <span className="text-[12px] text-[var(--text-secondary)]">Active strategy</span>
@@ -462,8 +429,6 @@ function ResultHeader({
   );
 }
 
-// ─── Run config panel ─────────────────────────────────────────────────────────
-
 /**
  * Surfaces the per-strategy sizing config that was used for this run —
  * allocation %, risk/trade %, and direction. Placed before the metrics grid
@@ -510,10 +475,6 @@ function RunConfigPanel({ run }: { run: BacktestRun }) {
           const allowLong = run.strategyAllowLong?.[code];
           const allowShort = run.strategyAllowShort?.[code];
 
-          // Only render direction when both flags are explicitly set.
-          // A single null means "fall back to bound AS's flag" — we don't
-          // know what that is here, so showing a partial direction would
-          // mislead the user.
           const dir = (() => {
             if (allowLong == null || allowShort == null) return null;
             if (allowLong && allowShort) return 'Long + Short';
@@ -597,8 +558,6 @@ function safeDateFmt(value: string | null | undefined): string {
   return format(d, 'yyyy-MM-dd');
 }
 
-// ─── Loading / error states ──────────────────────────────────────────────────
-
 function ChartSkeleton() {
   return (
     <div className="relative p-2">
@@ -641,8 +600,6 @@ function ErrorState({ message, onRetry }: { message: string; onRetry: () => void
     </div>
   );
 }
-
-// ─── Reproducibility Manifest ─────────────────────────────────────────────────
 
 /**
  * Footer panel showing the manifest captured at submission: git SHA + app

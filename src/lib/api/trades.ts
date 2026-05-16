@@ -144,8 +144,7 @@ function tradeToLivePosition(t: Trades): LivePosition {
     direction: t.direction,
     quantity: t.quantity,
     entryPrice: t.entryPrice,
-    // Pass null through — UI renders "—" for absent marks instead of entryPrice
-    // (which would falsely imply "no movement since open").
+
     markPrice: t.markPrice ?? null,
     unrealizedPnl: t.unrealizedPnl ?? 0,
     unrealizedPnlPct: t.unrealizedPnlPct ?? 0,
@@ -167,10 +166,10 @@ export interface TradesPageFilters {
   status?: TradeStatus | 'ALL';
   strategyCode?: string;
   symbol?: string;
-  from?: string; // ISO date yyyy-MM-dd
+  from?: string;
   to?: string;
   accountId?: string;
-  page?: number; // zero-indexed
+  page?: number;
   size?: number;
 }
 
@@ -189,9 +188,6 @@ export interface TradesPage {
  * consistent `{ content, page, size, total }` shape.
  */
 export async function getTradesPage(filters: TradesPageFilters = {}): Promise<TradesPage> {
-  // Pagination is only sent when explicitly set — omitting it tells the
-  // backend to return a bare array, which the synthesised return below
-  // restores into a page envelope for the caller.
   const params: Record<string, string | number | boolean> = {};
   if (filters.status && filters.status !== 'ALL') params.status = filters.status;
   addOptionalParam(params, 'strategyCode', filters.strategyCode);

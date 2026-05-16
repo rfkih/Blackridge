@@ -1,4 +1,4 @@
-// SLICE 1: Backtest wizard state (config + per-strategy paramOverrides). Wired into UI in slice 7.
+
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import type { BacktestParamPreset, BacktestWizardConfig } from '@/types/backtest';
@@ -29,8 +29,6 @@ interface BacktestWizardState {
   ) => void;
 }
 
-// SSR-safe sessionStorage shim — falls back to a no-op store on the server
-// so the persist middleware doesn't blow up during prerender.
 const noopStorage: Storage = {
   length: 0,
   clear: () => {},
@@ -88,8 +86,6 @@ export const useBacktestParamStore = create<BacktestWizardState>()(
         set({ config, paramOverrides, activePresetName: null, sourceBacktestRunId }),
     }),
     {
-      // sessionStorage so the wizard survives an accidental refresh but doesn't
-      // bleed into a different tab's run.
       name: 'blackheart:backtest-wizard',
       storage: sessionStorageSafe,
       partialize: (state) => ({

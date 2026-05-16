@@ -1,11 +1,4 @@
-// Frontend client for Spring Boot Actuator endpoints. Admin-only on both
-// JVMs (gated in SecurityConfig). Powers the JVM telemetry + service-health
-// panels on /research.
-//
-// V14 (2026-04-30): research JVM is internal-only and the trading JVM
-// reverse-proxies its actuator at /research-actuator/**. We hit a single
-// origin (the trading JVM) but use distinct path prefixes per JVM so the
-// dashboard still shows two independent JVMs side-by-side.
+
 import { apiClient } from './client';
 
 export type Jvm = 'trading' | 'research';
@@ -24,8 +17,6 @@ export interface MetricResponse {
   availableTags: Array<{ tag: string; values: string[] }>;
 }
 
-// Trading JVM: native /actuator/**. Research JVM: forwarded by
-// ResearchProxyController at /research-actuator/** → research:8081/actuator/**.
 const ACTUATOR_PREFIX: Record<Jvm, string> = {
   trading: '/actuator',
   research: '/research-actuator',
@@ -125,9 +116,7 @@ export async function getJvmTelemetry(jvm: Jvm): Promise<JvmTelemetrySnapshot> {
     heapUsedBytes: heapUsed ? readStat(heapUsed, 'VALUE') : null,
     heapMaxBytes: heapMax ? readStat(heapMax, 'VALUE') : null,
     nonHeapUsedBytes: nonHeapUsed ? readStat(nonHeapUsed, 'VALUE') : null,
-    // Micrometer publishes percentile histograms when configured; the
-    // statistic name carries the percentile (e.g. "0.99"). Fall back to
-    // the MAX bucket if the percentile isn't published yet.
+
     gcPauseP99Seconds: gcPause
       ? readStat(gcPause, '0.99') ?? readStat(gcPause, 'MAX')
       : null,

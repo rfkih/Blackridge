@@ -43,7 +43,6 @@ export function ParamSection({
         try {
           window.sessionStorage.setItem(storageKey, next ? '1' : '0');
         } catch {
-          /* ignore */
         }
       }
       return next;

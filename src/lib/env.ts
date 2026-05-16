@@ -11,16 +11,13 @@
 
 const DEFAULT_API_URL = 'http://localhost:8080';
 const DEFAULT_WS_URL = 'ws://localhost:8080/ws';
-// Research endpoints (/api/v1/backtest, /api/v1/research, /api/v1/montecarlo,
-// /api/v1/historical) default to a separate JVM. Falls back to apiUrl when
-// NEXT_PUBLIC_RESEARCH_URL is unset — single-JVM deploys work unchanged.
+
 const DEFAULT_RESEARCH_URL = 'http://localhost:8081';
 
 function read(name: string, fallback: string): string {
   const raw = process.env[name]?.trim();
   if (raw) return raw;
-  // Fail hard in production — a prod build with no API_URL silently talks to
-  // localhost, which is rarely what anyone wants.
+
   if (process.env.NODE_ENV === 'production') {
     throw new Error(
       `[env] ${name} is required in production. Set it in your deployment environment.`,
@@ -44,9 +41,7 @@ function readOptional(name: string): string {
 
 const apiUrlResolved = read('NEXT_PUBLIC_API_URL', DEFAULT_API_URL);
 const researchExplicit = readOptional('NEXT_PUBLIC_RESEARCH_URL');
-// In production, require explicit research URL only if it's actually different
-// from apiUrl. If the operator wants single-JVM prod, they can leave it unset
-// and we'll route research traffic to the same host as trading.
+
 const researchUrlResolved = researchExplicit
   || (process.env.NODE_ENV === 'production' ? apiUrlResolved : DEFAULT_RESEARCH_URL);
 

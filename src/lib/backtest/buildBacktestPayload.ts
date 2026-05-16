@@ -27,7 +27,6 @@ function computeDiff(
  * Spring Boot parses cleanly: "2024-01-01T00:00:00".
  */
 function dateToLocalDateTime(isoDate: string): string {
-  // Already a full timestamp? Pass through.
   if (isoDate.includes('T')) return isoDate;
   return `${isoDate}T00:00:00`;
 }
@@ -120,17 +119,14 @@ export function buildBacktestPayload(
     startTime: dateToLocalDateTime(config.fromDate),
     endTime: dateToLocalDateTime(config.toDate),
     initialCapital: config.initialCapital,
-    // Trade-sizing fields — without these, signals fire but every position
-    // sizes to zero. See DEFAULT_SIZING for the rationale behind each value.
+
     riskPerTradePct: DEFAULT_SIZING.riskPerTradePct,
     feeRate: DEFAULT_SIZING.feeRate,
     minNotional: DEFAULT_SIZING.minNotional,
     minQty: DEFAULT_SIZING.minQty,
     qtyStep: DEFAULT_SIZING.qtyStep,
     maxOpenPositions: DEFAULT_SIZING.maxOpenPositions,
-    // Wizard-driven (Step 1 toggles). Falls back to long-only if the wizard
-    // somehow didn't set them — backend's resolveAllowShort defaults null
-    // → TRUE, so we must always send a concrete boolean.
+
     allowLong: config.allowLong ?? DEFAULT_SIZING.allowLong,
     allowShort: config.allowShort ?? DEFAULT_SIZING.allowShort,
     strategyParamOverrides: Object.fromEntries(
@@ -139,37 +135,23 @@ export function buildBacktestPayload(
         computeDiff(defaultParams[code] ?? {}, paramOverrides[code] ?? {}),
       ]),
     ),
-    // Phase A — multi-strategy controls. Both omitted from the payload when
-    // unset so the backend's null-handling kicks in (no cap; allocation
-    // falls back to account_strategy.capital_allocation_pct).
+
     maxConcurrentStrategies: config.maxConcurrentStrategies,
     strategyAllocations: trimAllocations(config.strategyAllocations),
-    // V57 — per-strategy risk-pct override. Fractional scale matching
-    // account_strategy.risk_pct. Omitted when empty so the backend falls
-    // back to the persisted value (and the persisted toggle).
+
     strategyRiskPcts: trimRiskPcts(config.strategyRiskPcts),
-    // V58 — per-strategy direction overrides. Omitted when empty so the
-    // backend falls back to the bound account_strategy's allow_long /
-    // allow_short for every strategy. Only populated when the operator
-    // flipped a direction from the persisted default in the wizard.
+
     strategyAllowLong: trimBoolMap(config.strategyAllowLong),
     strategyAllowShort: trimBoolMap(config.strategyAllowShort),
-    // V62 — per-strategy risk-gate overrides. Same trim shape as the V58
-    // direction overrides: present key = explicit override (true/false),
-    // missing key = use the bound account_strategy's persisted toggle.
-    // Omitted when empty so the JSONB blob on backtest_run stays NULL
-    // for runs that don't touch gates.
+
     strategyKillSwitchOverrides: trimBoolMap(config.strategyKillSwitchOverrides),
     strategyRegimeOverrides: trimBoolMap(config.strategyRegimeOverrides),
     strategyCorrelationOverrides: trimBoolMap(config.strategyCorrelationOverrides),
     strategyConcurrentCapOverrides: trimBoolMap(config.strategyConcurrentCapOverrides),
-    // Phase B2 — per-strategy interval override. Omitted when empty so
-    // the backend falls back to the primary interval for every strategy.
+
     strategyIntervals: trimIntervals(config.strategyIntervals),
   };
-  // When the user opts into calibrated slippage we OMIT the field —
-  // BacktestService falls back to its symbol-specific calibrated rate
-  // (or DEFAULT_SLIPPAGE_RATE if the symbol's sample is too thin).
+
   if (!options.useCalibratedSlippage) {
     payload.slippageRate = DEFAULT_SIZING.slippageRate;
   }

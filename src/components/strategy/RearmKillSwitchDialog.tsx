@@ -21,9 +21,6 @@ interface RearmKillSwitchDialogProps {
   onConfirm: (s: AccountStrategy) => void;
 }
 
-// Cooldown before the destructive action becomes clickable. The kill-switch
-// trips on a real drawdown event — slowing the rearm gives the operator a
-// beat to read the reason and abort if they fat-fingered the button.
 const REARM_COOLDOWN_MS = 5_000;
 
 export function RearmKillSwitchDialog({

@@ -33,7 +33,6 @@ function applyTheme(next: Theme) {
   try {
     localStorage.setItem(STORAGE_KEY, next);
   } catch {
-    // Ignore storage errors (Safari private mode, quota, etc.)
   }
 }
 
@@ -75,9 +74,6 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     setTheme(theme === 'dark' ? 'light' : 'dark');
   }, [theme, setTheme]);
 
-  // Memoise so consumers don't re-render on every parent update — a fresh
-  // object literal in the Provider `value` is the classic cause of a
-  // context-wide re-render storm.
   const value = useMemo<ThemeContextValue>(
     () => ({ theme, setTheme, toggle }),
     [theme, setTheme, toggle],

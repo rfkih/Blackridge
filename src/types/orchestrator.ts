@@ -1,6 +1,4 @@
-// Wire types for the Python research orchestrator (FastAPI on 8082),
-// reached via the trading-JVM proxy at /api/v1/research-orch/**.
-// Mirrors the response dicts from src/orchestrator/api/{iterations,queue,journal}.py.
+
 import type { ISO8601, UUID } from './api';
 
 export type StatisticalVerdict =
@@ -14,8 +12,6 @@ export type IterationVerdict = 'PASS' | 'ITERATE' | 'DISCARD' | 'FAILED';
 
 export type QueueStatus = 'PENDING' | 'RUNNING' | 'PARKED' | 'COMPLETED' | 'FAILED';
 
-// Postgres NUMERIC columns serialize to JSON strings via asyncpg (Decimal →
-// str), not numbers. Keep the wire type honest and coerce in the renderer.
 export type Numeric = number | string;
 
 export interface LeaderboardRow {
@@ -134,7 +130,6 @@ export interface JournalPage {
   next_actions: Array<{ kind: string; method?: string; path?: string }>;
 }
 
-// POST /queue body — mirrors EnqueueRequest in api/queue.py.
 export interface EnqueueSweepRequest {
   strategy_code: string;
   interval_name: '5m' | '15m' | '1h' | '4h';

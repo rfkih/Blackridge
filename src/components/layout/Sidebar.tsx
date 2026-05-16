@@ -49,8 +49,6 @@ interface NavGroup {
   items: NavItem[];
 }
 
-// Grouped to match the Blackridge prototype's Trade / Research / Account
-// sections. Keeps existing routes verbatim so deep links don't break.
 const NAV_GROUPS: NavGroup[] = [
   {
     label: 'TRADE',
@@ -145,10 +143,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         )}
         style={{
           padding: '20px 14px',
-          // Sidebar is always dark — chrome stays consistent so the brand
-          // active state reads identically across themes. data-theme="dark"
-          // forces the dark surface scale regardless of root theme; the
-          // palette is inherited from root so Midnight/Slate/Oxford propagate.
+
           background: '#0E1116',
           color: '#F2F5F8',
           borderRight: '1px solid rgba(255,255,255,0.06)',
@@ -156,7 +151,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         }}
         aria-label="Navigation"
       >
-        {/* Wordmark */}
+        {}
         <div className="flex items-center gap-2.5" style={{ padding: '6px 10px 22px' }}>
           <Link
             href="/"
@@ -191,7 +186,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           </button>
         </div>
 
-        {/* Nav */}
+        {}
         <nav
           aria-label="Main navigation"
           style={{ display: 'flex', flexDirection: 'column', gap: 8, flex: 1, minHeight: 0 }}
@@ -222,11 +217,6 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                       aria-current={active ? 'page' : undefined}
                       className={cn('br-sb-link', active && 'br-sb-link-on')}
                       style={{
-                        // Active state on a pinned-dark sidebar: subtle white
-                        // tint for the surface, keep text at the primary light
-                        // color (high contrast in every palette), let the
-                        // lifted brand color show through on the icon.
-                        // Avoids "dark text on dark tinted background" failure.
                         display: 'flex',
                         alignItems: 'center',
                         gap: 12,
@@ -247,9 +237,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                         style={{
                           flexShrink: 0,
                           opacity: 0.95,
-                          // Brand is literal #121924 in both modes — invisible
-                          // on the always-dark sidebar. Active state reads via
-                          // white icon + the row's translucent-white background.
+
                           color: active ? '#F2F5F8' : '#8C95A2',
                         }}
                       />
@@ -340,9 +328,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                         strokeWidth={1.6}
                         style={{
                           flexShrink: 0,
-                          // Brand is literal #121924 in both modes — invisible
-                          // on the always-dark sidebar. Active state reads via
-                          // white icon + the row's translucent-white background.
+
                           color: active ? '#F2F5F8' : '#8C95A2',
                         }}
                       />
@@ -354,7 +340,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           )}
         </nav>
 
-        {/* User card */}
+        {}
         <div
           style={{
             marginTop: 'auto',
@@ -373,9 +359,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
               width: 32,
               height: 32,
               borderRadius: '50%',
-              // Avatar plate uses a translucent-white tint instead of the
-              // brand var — literal #121924 disappears against the dark
-              // sidebar, leaving the initials floating.
+
               background: 'rgba(255,255,255,0.10)',
               color: '#fff',
               display: 'grid',

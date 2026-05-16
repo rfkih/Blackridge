@@ -18,8 +18,6 @@ export function IpWhitelistBanner() {
   const { data } = useServerIpStatus();
   const [dismissedFor, setDismissedFor] = useState<string | null>(null);
 
-  // Hydrate dismissal from localStorage on mount. Doing this in an effect
-  // (not at useState init) keeps SSR output stable.
   useEffect(() => {
     if (typeof window === 'undefined') return;
     setDismissedFor(window.localStorage.getItem(DISMISS_KEY));

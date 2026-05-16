@@ -20,8 +20,6 @@ export function EmailVerificationBanner() {
   const { user } = useAuth();
   const [pending, setPending] = useState(false);
 
-  // Only render when we know the verification state and it's false. While
-  // user is null (loading) or true, render nothing.
   if (!user || user.emailVerified !== false) return null;
 
   const handleResend = async () => {

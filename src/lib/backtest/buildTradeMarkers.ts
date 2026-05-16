@@ -7,7 +7,6 @@ interface LegMarkerCfg {
   label: string;
 }
 
-// Color + label per (leg type, exit reason) combination.
 const LEG_MARKER_CONFIG: Record<PositionType, Partial<Record<PositionExitReason, LegMarkerCfg>>> = {
   SINGLE: {
     TP_HIT: { color: '#00C896', label: 'TP' },
@@ -34,7 +33,6 @@ const LEG_MARKER_CONFIG: Record<PositionType, Partial<Record<PositionExitReason,
 };
 
 function exitPosition(isLong: boolean): 'aboveBar' | 'belowBar' {
-  // Profit legs plot opposite to the entry arrow so they don't overlap.
   return isLong ? 'aboveBar' : 'belowBar';
 }
 
@@ -92,7 +90,7 @@ export function buildTradeMarkers(trades: BacktestTrade[]): TradeMarkerSet {
     });
 
     for (const pos of trade.positions) {
-      if (pos.exitTime == null || pos.exitReason == null) continue; // leg still open
+      if (pos.exitTime == null || pos.exitReason == null) continue;
       const cfg = LEG_MARKER_CONFIG[pos.type]?.[pos.exitReason];
       if (!cfg) continue;
       const exitSec = Math.floor(pos.exitTime / 1000);
@@ -213,9 +211,6 @@ export function deriveTradeOutcome(positions: BacktestTradePosition[]): TradeOut
   const tp2 = hits.TP2;
   const runner = hits.RUNNER;
 
-  // Pick the most representative price line to highlight. Prefer the
-  // earliest-hit profit anchor, fall back to the stop when no profit leg
-  // fired.
   const hitLine: HitLine = (() => {
     if (tp1 === 'TP_HIT') return 'TP1';
     if (tp2 === 'TP_HIT') return 'TP2';

@@ -178,7 +178,8 @@
       "Bash(tar -xzf /tmp/design.tar.gz -C /tmp/design)",
       "Bash(git rm *)",
       "Bash(git add *)",
-      "Bash(git commit -m ' *)"
+      "Bash(git commit -m ' *)",
+      "Bash(grep -v \"\\\\.md$\")"
     ]
   }
 }

@@ -18,7 +18,6 @@ const PERIOD_DAYS: Record<EquityPeriod, number> = {
   ALL: 365,
 };
 
-// Used only as a last-resort fallback when no equity data has loaded yet.
 const FALLBACK_CAPITAL = 10_000;
 
 /**
@@ -36,17 +35,11 @@ function periodWindow(period: EquityPeriod) {
 
 export function useEquityCurve() {
   const [period, setPeriod] = useState<EquityPeriod>('30D');
-  // Follow the active-account selection — fall back to the user's first
-  // strategy's account only if nothing is explicitly selected (e.g. first
-  // login before accounts load).
+
   const { scopedAccountId } = useActiveAccount();
   const { data: strategies } = useStrategies();
   const accountId = scopedAccountId ?? strategies?.[0]?.accountId;
 
-  // Allocations are percentages, not absolute USDT — summing them produces a
-  // meaningless number. Use the first equity sample as the baseline (see
-  // `stats.baseline` below); only fall back to a fixed constant until the
-  // series loads.
   const allocatedCapital = FALLBACK_CAPITAL;
 
   const { from, to } = useMemo(() => periodWindow(period), [period]);
@@ -59,25 +52,21 @@ export function useEquityCurve() {
     retry: false,
   });
 
-  // `query.data ?? []` would mint a fresh array each render, busting the
-  // memoised stats below. Module-level sentinel keeps identity stable.
   const points = query.data ?? EMPTY_POINTS;
 
   const stats = useMemo(() => {
     if (!points.length) return null;
     const latest = points[points.length - 1]!.equity;
     const first = points[0]!.equity;
-    // First equity sample is the actual starting balance for this window.
+
     const baseline = first || allocatedCapital;
     const change = latest - baseline;
     const changePct = baseline !== 0 ? (change / baseline) * 100 : 0;
-    // reduce avoids `Math.min(...largeArr)` which is O(n) AND can hit
-    // the JS engine's argument-spread limit on long series.
+
     const maxDrawdown = points.reduce((m, p) => (p.drawdown < m ? p.drawdown : m), 0);
     return { latest, first, baseline, change, changePct, maxDrawdown };
   }, [points, allocatedCapital]);
 
-  // Prefer the first equity sample (real starting balance) over the allocated fallback.
   const initialCapital = stats?.baseline ?? allocatedCapital;
 
   return { period, setPeriod, points, stats, isLoading: query.isLoading, initialCapital };

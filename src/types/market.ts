@@ -33,9 +33,9 @@ export interface IndicatorData {
 
 /** Account equity time-series point. */
 export interface EquityPoint {
-  time: EpochMs; // epoch ms
-  equity: number; // USDT
-  drawdown: number; // percentage (negative, e.g. -5.2 means -5.2%)
+  time: EpochMs;
+  equity: number;
+  drawdown: number;
 }
 
 export interface FeatureStore {

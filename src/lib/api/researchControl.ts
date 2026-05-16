@@ -1,7 +1,4 @@
-// Frontend client for /api/v1/admin/research/{start,stop,restart} on the
-// trading JVM. The trading JVM is the supervisor — it has the always-on
-// process needed to spawn the research launcher and to forward the admin
-// cookie to research's /actuator/shutdown. Admin-only.
+
 import { apiClient } from './client';
 import type { ISO8601 } from '@/types/api';
 

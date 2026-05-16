@@ -6,18 +6,6 @@ import { Activity, ArrowDownRight, ArrowUpRight, Minus } from 'lucide-react';
 import { fetchCandles } from '@/lib/api/market';
 import type { CandleData } from '@/types/market';
 
-// Market Context strip — sits above the chart card on /market.
-//
-// Two cards: REGIME (derived live from BTC 4h candles, so it's
-// market-wide context independent of the symbol/interval the user is
-// browsing) and SENTIMENT (Fear & Greed Index).
-//
-// SENTIMENT BACKEND STATUS — the alternative.me Fear & Greed daily ingestion
-// runs in the Research JVM ml-ingest plane (see src/lib/api/mlIngest.ts and
-// /admin/ml-ingest), but no trader-facing endpoint is exposed yet. We render
-// a placeholder with deterministic values so the UI lights up the moment the
-// backend route ships. Search for `TODO(sentiment)` below to wire it.
-
 const REGIME_SYMBOL = 'BTCUSDT';
 const REGIME_INTERVAL = '4h' as const;
 const REGIME_LOOKBACK = 60;
@@ -30,8 +18,6 @@ export function MarketContextBar() {
     </div>
   );
 }
-
-// ─── Regime ────────────────────────────────────────────────────────────────
 
 function RegimeCard() {
   const query = useQuery({
@@ -69,7 +55,7 @@ function RegimeCard() {
         </span>
       </div>
 
-      {/* Scale bar — position along trend axis (-1 strong down → +1 strong up) */}
+      {}
       <ScaleBar
         position={verdict.position}
         leftLabel="Downtrend"
@@ -91,7 +77,7 @@ interface RegimeVerdict {
   label: string;
   tag: string;
   tone: Tone;
-  position: number; // -1 to +1
+  position: number;
   detail: string;
 }
 
@@ -104,13 +90,10 @@ function classifyRegime(candles: CandleData[] | undefined): RegimeVerdict {
   const last = window[window.length - 1]!.close;
   const pctChange = ((last - first) / first) * 100;
 
-  // Average normalised range as a vol proxy — compared against full sample
-  // to detect "chop" (sideways but volatile) vs "range" (sideways and quiet).
   const sampleVol = avgNormRange(window);
   const baselineVol = avgNormRange(candles);
   const volRatio = baselineVol > 0 ? sampleVol / baselineVol : 1;
 
-  // Clamp position for the scale bar (-1 = -5% or worse, +1 = +5% or better)
   const position = Math.max(-1, Math.min(1, pctChange / 5));
 
   let label: string;
@@ -162,19 +145,12 @@ function RegimeIcon({ tone }: { tone: Tone }) {
   return <Minus {...props} style={{ color }} />;
 }
 
-// ─── Sentiment ─────────────────────────────────────────────────────────────
-
 interface SentimentSnapshot {
-  value: number; // 0..100
+  value: number;
   yesterday: number;
-  asOf: string; // ISO date
+  asOf: string;
 }
 
-// TODO(sentiment): replace with backend call once a trader-facing endpoint is
-// exposed for alternative.me Fear & Greed (currently admin-only via
-// `/admin/ml-ingest`). Likely shape: GET /api/v1/sentiment/fear-greed →
-// { value, classification, yesterday, asOf }. When wired, swap this stub for
-// a TanStack Query against the new endpoint and drop the placeholder.
 function usePlaceholderSentiment(): SentimentSnapshot {
   return useMemo(
     () => ({
@@ -248,8 +224,6 @@ function classifySentiment(value: number): SentimentVerdict {
   return { label: 'Extreme greed', tag: 'Reduce exposure', tone: 'warning' };
 }
 
-// ─── Shared chrome ─────────────────────────────────────────────────────────
-
 type Tone = 'profit' | 'loss' | 'warning' | 'neutral';
 
 function toneColor(tone: Tone): string {
@@ -319,14 +293,13 @@ function ContextCard({ eyebrow, source, loading, error, children }: ContextCardP
 }
 
 interface ScaleBarProps {
-  position: number; // -1 to +1
+  position: number;
   leftLabel: string;
   rightLabel: string;
   tone: Tone;
 }
 
 function ScaleBar({ position, leftLabel, rightLabel, tone }: ScaleBarProps) {
-  // Clamp + map [-1,1] to [0%,100%]
   const pct = ((Math.max(-1, Math.min(1, position)) + 1) / 2) * 100;
   return (
     <div className="flex flex-col gap-1">
@@ -334,7 +307,7 @@ function ScaleBar({ position, leftLabel, rightLabel, tone }: ScaleBarProps) {
         className="relative h-1.5 w-full overflow-hidden rounded-full"
         style={{ background: 'var(--bg-hover)' }}
       >
-        {/* Centre tick to anchor the eye to the neutral position */}
+        {}
         <div
           aria-hidden="true"
           className="absolute top-0 h-full w-px"

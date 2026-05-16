@@ -1,8 +1,5 @@
 'use client';
 
-// TanStack Table's idiomatic column defs pass inline `cell: ({ row }) => …`
-// renderers. They're memoised as part of `columns` via useMemo; the
-// no-unstable-nested-components rule is a false positive for this pattern.
 /* eslint-disable react/no-unstable-nested-components */
 
 import Link from 'next/link';
@@ -35,7 +32,6 @@ const STATUSES: Array<{ value: '' | BacktestStatus; label: string }> = [
   { value: 'FAILED', label: 'Failed' },
 ];
 
-// Backtests are restricted to 5m/15m/1h/4h. The "" option means "no filter".
 const INTERVALS = ['', '5m', '15m', '1h', '4h'] as const;
 const PAGE_SIZES = [20, 50, 100];
 
@@ -122,7 +118,7 @@ function BacktestListContent() {
         else next.set(key, String(value));
       };
       apply('status', merged.status);
-      // source defaults to USER — omit from URL when default to keep links clean
+
       if (merged.source === 'RESEARCHER') next.set('source', 'RESEARCHER');
       else next.delete('source');
       apply('strategyCode', merged.strategyCode);
@@ -130,9 +126,7 @@ function BacktestListContent() {
       apply('interval', merged.interval);
       apply('from', merged.from);
       apply('to', merged.to);
-      // Always keep sort in the URL — even defaults — so a shared link
-      // reproduces the viewer's exact sort. Hiding the default makes
-      // "copy URL" surprising.
+
       next.set('sortBy', merged.sortBy);
       next.set('sortDir', merged.sortDir);
       apply('page', merged.page || null);
@@ -171,9 +165,6 @@ function BacktestListContent() {
     Boolean(filters.from) ||
     Boolean(filters.to);
 
-  // TanStack Table's sorting state — we mirror server-side sort into/out of
-  // it so clicking a column header updates the URL (and re-fetches) rather
-  // than doing a pure client-side reorder.
   const sorting: SortingState = useMemo(
     () => [{ id: filters.sortBy, desc: filters.sortDir === 'DESC' }],
     [filters.sortBy, filters.sortDir],
@@ -184,8 +175,6 @@ function BacktestListContent() {
       const next = typeof updater === 'function' ? updater(sorting) : updater;
       const first = next[0];
       if (!first) {
-        // TanStack cleared the sort — snap back to default createdAt DESC so
-        // the list never ends up in an unordered state.
         patchFilters({ sortBy: 'createdAt', sortDir: 'DESC' }, { resetPage: false });
         return;
       }
@@ -371,8 +360,7 @@ function BacktestListContent() {
         }
       />
 
-      {/* Filter bar — design pack toolbar pattern: 20px radius card with
-          pill-shaped status chips, hairline divider, then input fields. */}
+      {}
       <section
         className="mm-card flex flex-wrap items-center gap-3"
         style={{ padding: '14px 18px' }}
@@ -517,7 +505,7 @@ function BacktestListContent() {
         </div>
       </section>
 
-      {/* Table */}
+      {}
       {runsQuery.isError ? (
         <EmptyState
           icon={FlaskConical}
@@ -565,7 +553,7 @@ function BacktestListContent() {
         />
       )}
 
-      {/* Server-side pagination controls */}
+      {}
       {!runsQuery.isLoading && total > filters.size && (
         <div className="flex flex-wrap items-center justify-between gap-3 px-1">
           <div className="text-[11px] text-text-muted">

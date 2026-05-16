@@ -66,4 +66,3 @@ export function normalizeError(err: unknown): string {
   if (err instanceof Error && err.message) return err.message;
   return FALLBACK_MESSAGE;
 }
-

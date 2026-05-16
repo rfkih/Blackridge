@@ -114,7 +114,7 @@ const FAQ: { q: string; a: string }[] = [
 export default function PricingPage() {
   return (
     <MarketingShell activeNav="pricing">
-      {/* Hero */}
+      {}
       <section style={{ padding: '72px 0 24px' }}>
         <div className="mx-auto max-w-[1180px] px-5 sm:px-8 text-center">
           <span
@@ -152,7 +152,7 @@ export default function PricingPage() {
         </div>
       </section>
 
-      {/* Plan cards */}
+      {}
       <section style={{ padding: '32px 0 64px' }}>
         <div className="mx-auto max-w-[1180px] px-5 sm:px-8">
           <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
@@ -163,7 +163,7 @@ export default function PricingPage() {
         </div>
       </section>
 
-      {/* Comparison table */}
+      {}
       <section style={{ padding: '64px 0', background: 'var(--bg-surface)' }}>
         <div className="mx-auto max-w-[1180px] px-5 sm:px-8">
           <SectionHead
@@ -213,7 +213,7 @@ export default function PricingPage() {
         </div>
       </section>
 
-      {/* FAQ */}
+      {}
       <section style={{ padding: '80px 0' }}>
         <div className="mx-auto max-w-[820px] px-5 sm:px-8">
           <SectionHead eyebrow="Questions" title="Common questions" />

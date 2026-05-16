@@ -33,11 +33,6 @@ interface RangeEntry {
 const TODAY = new Date().toISOString().slice(0, 10);
 const ONE_YEAR_AGO = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
 
-// Curated starter dimensions per strategy. Three independent params each:
-// one regime/threshold gate, one trigger-quality filter, one stop sizing.
-// All keys MUST exist in the matching strategy's defaults — the form derives
-// each row's min/max/step from the actual default value at runtime, so
-// changing a default on the backend updates the starter ranges automatically.
 const STARTER_KEYS_BY_CODE: Record<string, string[]> = {
   TPR: ['adxEntryMin', 'clvMin', 'stopAtrBuffer'],
   VCB: ['adxEntryMax', 'relVolBreakoutMin', 'stopAtrBuffer'],
@@ -52,12 +47,7 @@ const RESEARCHABLE_CODES = new Set(['TPR', 'VCB', 'LSR']);
 
 export default function ResearchPage() {
   const router = useRouter();
-  // Sweep needs an AccountStrategy id (backtest_run.account_strategy_id is NOT NULL).
-  // We narrow the dropdown to AccountStrategy rows whose code is (a) registered
-  // in the StrategyDefinition catalogue with status=ACTIVE, and (b) in the
-  // research-capable allow-list. This matches the "only registered strategies
-  // in research" rule — an AccountStrategy pointing at a code that never got
-  // registered (or got DEPRECATED) won't appear here.
+
   const strategiesQ = useStrategies();
   const definitionsQ = useStrategyDefinitions();
   const activeDefCodes = new Set(
@@ -80,30 +70,18 @@ export default function ResearchPage() {
   const [elitePct, setElitePct] = useState('0.25');
   const [rankMetric, setRankMetric] = useState<NonNullable<SweepSpec['rankMetric']>>('avgR');
   const [ranges, setRanges] = useState<RangeEntry[]>([]);
-  // Pinned overrides — keyed map of {paramName → user-typed value}. Every
-  // available param is rendered in the editor pre-populated with its default;
-  // this map only tracks the user's edits. On submit we only ship entries
-  // whose typed value actually differs from the default (sending defaults
-  // would just be noise on the wire and in the persisted spec).
+
   const [pinValues, setPinValues] = useState<Record<string, string>>({});
   const [pinFilter, setPinFilter] = useState('');
-  // Section collapsed by default — most users never need to override a
-  // single param off its default. Opens on demand.
+
   const [pinOpen, setPinOpen] = useState(false);
 
-  // Resolve the strategyCode of the currently picked AccountStrategy. The
-  // defaults loader keys off this; switching strategies refetches.
   const selectedStrategy = eligibleStrategies.find((s) => s.id === accountStrategyId);
   const selectedCode = selectedStrategy?.strategyCode ?? null;
   const defaultsQ = useStrategyDefaults(selectedCode);
   const defaults = defaultsQ.data ?? {};
   const availableKeys = Object.keys(defaults).sort();
 
-  // When the selected strategy changes, pre-fill the form with that
-  // strategy's curated starter dimensions, with each row's min/max/step
-  // derived from the *actual default value* of that key. Only auto-rebuilds
-  // when the form is empty or matches the previous strategy's auto-build,
-  // so manual edits survive switching.
   const prevAutoRef = useRef<RangeEntry[] | null>(null);
   useEffect(() => {
     if (!selectedCode || !defaultsQ.data) return;
@@ -119,13 +97,10 @@ export default function ResearchPage() {
       setRanges(built);
       prevAutoRef.current = built;
     }
-    // We deliberately exclude `ranges` from deps — we only react to strategy /
-    // defaults changes, not user typing.
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedCode, defaultsQ.data]);
 
-  // Reset pinned overrides whenever the user picks a different strategy —
-  // a TPR-tuned value would be meaningless under VCB's param schema.
   useEffect(() => {
     setPinValues({});
     setPinFilter('');
@@ -167,9 +142,6 @@ export default function ResearchPage() {
       return;
     }
 
-    // Build pinned overrides — only include entries whose typed value parses
-    // to a valid number AND differs from the default. Skip swept keys; the
-    // sweep value would clobber the pin anyway.
     const fixedParams: Record<string, number> = {};
     for (const [key, raw] of Object.entries(pinValues)) {
       if (paramRanges[key]) continue;
@@ -373,8 +345,7 @@ export default function ResearchPage() {
                         setRanges((prev) =>
                           prev.map((x, i) => {
                             if (i !== idx) return x;
-                            // Auto-derive min/max/step on key change so the
-                            // user always starts from a sensible window.
+
                             if (dv != null) {
                               return { key: newKey, ...deriveRangeFromDefault(dv) };
                             }

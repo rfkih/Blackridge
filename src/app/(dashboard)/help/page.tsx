@@ -174,7 +174,7 @@ export default function HelpPage() {
         </p>
       </header>
 
-      {/* Filter */}
+      {}
       <div className="flex items-center gap-2 rounded-xl border border-bd-subtle bg-bg-surface px-3 py-2">
         <Search size={14} strokeWidth={1.75} className="shrink-0 text-text-muted" />
         <input

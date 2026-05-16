@@ -70,10 +70,6 @@ function isVcbStrategy(code: string): boolean {
   return VCB_CODES.has(code);
 }
 
-// Normalize sizing values into the canonical-grid string form used by the
-// Select options in `lib/constants.ts`. 30.0 → "30"; 1.50 → "1.5".
-// Keeps Radix's Select happy (a value not present in the option list shows
-// the placeholder instead of the selected entry).
 function formatAllocStr(pct: number): string {
   return String(parseFloat(pct.toFixed(2)));
 }
@@ -138,10 +134,7 @@ export default function StrategyDetailPage({ params }: PageProps) {
 
 function StrategyDetail({ strategy }: { strategy: AccountStrategy }) {
   const router = useRouter();
-  // Bug 2 fix: use hydrateFromRun (not setConfig) so stale paramOverrides from
-  // a previous wizard session are cleared. setConfig only writes config; it
-  // leaves paramOverrides intact, meaning a prior run's custom LSR/VCB params
-  // would silently carry into the new backtest.
+
   const hydrateBacktest = useBacktestParamStore((s) => s.hydrateFromRun);
 
   const handleRunBacktest = () => {
@@ -166,7 +159,7 @@ function StrategyDetail({ strategy }: { strategy: AccountStrategy }) {
         allowLong: true,
         allowShort: true,
       },
-      {}, // no param overrides — fresh run from strategy settings
+      {},
       null,
     );
     router.push('/backtest/new');
@@ -175,7 +168,7 @@ function StrategyDetail({ strategy }: { strategy: AccountStrategy }) {
   return (
     <>
       <header className="flex flex-col gap-0 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-5 shadow-panel">
-        {/* Top row: identity (left) + stats (right) */}
+        {}
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="flex flex-col gap-2">
             <div className="flex items-center gap-2">
@@ -205,7 +198,7 @@ function StrategyDetail({ strategy }: { strategy: AccountStrategy }) {
           </div>
         </div>
 
-        {/* Action strip — preset label + mode toggle + run backtest CTA */}
+        {}
         <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-[var(--border-subtle)] pt-3">
           <span className="font-mono text-[10px] text-[var(--text-muted)]">
             Preset · <span className="text-[var(--text-secondary)]">{strategy.presetName}</span>
@@ -347,13 +340,13 @@ function DirectionPanel({ strategy }: { strategy: AccountStrategy }) {
   const onToggle = async (direction: 'long' | 'short') => {
     const newLong = direction === 'long' ? !strategy.allowLong : strategy.allowLong;
     const newShort = direction === 'short' ? !strategy.allowShort : strategy.allowShort;
-    if (!newLong && !newShort) return; // guard — button is disabled before this point
+    if (!newLong && !newShort) return;
     try {
       await updateMut.mutateAsync({
         id: strategy.id,
         patch: { allowLong: newLong, allowShort: newShort },
       });
-      // Descriptive toast — tell the user exactly what changed.
+
       const changed: string[] = [];
       if (newLong !== strategy.allowLong) changed.push(newLong ? 'Long enabled' : 'Long disabled');
       if (newShort !== strategy.allowShort)
@@ -374,7 +367,7 @@ function DirectionPanel({ strategy }: { strategy: AccountStrategy }) {
         Direction
       </span>
 
-      {/* Long chip — checkmark when active so the toggle state is unambiguous */}
+      {}
       <button
         type="button"
         onClick={() => onToggle('long')}
@@ -390,7 +383,7 @@ function DirectionPanel({ strategy }: { strategy: AccountStrategy }) {
         Long
       </button>
 
-      {/* Short chip */}
+      {}
       <button
         type="button"
         onClick={() => onToggle('short')}
@@ -406,7 +399,7 @@ function DirectionPanel({ strategy }: { strategy: AccountStrategy }) {
         Short
       </button>
 
-      {/* Inline constraint hint — visible, not tooltip-gated */}
+      {}
       {(onlyLong || onlyShort) && !updateMut.isPending && (
         <span className="font-mono text-[10px] text-text-muted">
           · enable the other direction first to remove this one
@@ -481,9 +474,6 @@ function RiskGatesPanel({ strategy }: { strategy: AccountStrategy }) {
     }
   };
 
-  // Surface the post-V62 default state explicitly — operators landing on the
-  // page for the first time after migration shouldn't have to derive "why are
-  // all four off?" from the absence of checkmarks.
   const allOff = GATE_META.every((g) => !strategy[g.key]);
 
   return (
@@ -544,10 +534,6 @@ function KellySizingPanel({ strategy }: { strategy: AccountStrategy }) {
     (strategy.kellyMaxFraction * 100).toFixed(0),
   );
 
-  // Re-sync the input value with the strategy's current cap whenever the user
-  // enters edit mode. Without this the input retains the last-typed value
-  // across cancel/reopen cycles, or shows a stale value after a concurrent
-  // update from another tab.
   const onEdit = () => {
     setMaxFraction((strategy.kellyMaxFraction * 100).toFixed(0));
     setEditing(true);
@@ -586,9 +572,6 @@ function KellySizingPanel({ strategy }: { strategy: AccountStrategy }) {
     }
   };
 
-  // "Inactive" when Kelly is enabled but the runtime can't compute a real
-  // multiplier (no qualifying runs / all degenerate). Distinct from "disabled"
-  // because the operator's intent is on but the data isn't there yet.
   const isInactive =
     strategy.kellySizingEnabled && kellyStatus != null && kellyStatus.qualifyingRuns === 0;
 
@@ -696,19 +679,12 @@ function PositionSizingPanel({ strategy }: { strategy: AccountStrategy }) {
   const supportsRiskBased = strategyControlsRiskSizing(strategy.strategyCode);
 
   const [editing, setEditing] = React.useState(false);
-  // Stored as canonical-grid strings so they collation-match the Select
-  // options (`"30"`, not `"30.0"`). The `formatAllocStr` / `formatRiskStr`
-  // helpers strip trailing zeros so a stored 30.0 lines up with "30" in the
-  // dropdown.
+
   const [allocationInput, setAllocationInput] = React.useState(() =>
     formatAllocStr(strategy.capitalAllocationPct),
   );
   const [riskInput, setRiskInput] = React.useState(() => formatRiskStr(strategy.riskPct));
 
-  // Bug 3: keep inputs in sync with background refetches while NOT editing.
-  // When another panel save triggers invalidateQueries, `strategy` updates.
-  // Without this effect the user would save stale values if the form is
-  // opened after a background refresh.
   React.useEffect(() => {
     if (!editing) {
       setAllocationInput(formatAllocStr(strategy.capitalAllocationPct));
@@ -722,9 +698,6 @@ function PositionSizingPanel({ strategy }: { strategy: AccountStrategy }) {
     setEditing(true);
   };
 
-  // If the persisted value sits between grid options (e.g. legacy 27.5%),
-  // expose it as a "(current)" entry at the top of the dropdown so the user
-  // doesn't silently lose it just by opening the editor.
   const allocCurrentOffGrid = !ALLOC_OPTIONS.some(
     (v) => String(v) === formatAllocStr(strategy.capitalAllocationPct),
   );
@@ -732,9 +705,6 @@ function PositionSizingPanel({ strategy }: { strategy: AccountStrategy }) {
     (v) => String(v) === formatRiskStr(strategy.riskPct),
   );
 
-  // Bug 1 & 9: guard against concurrent calls (double-click) and prevent
-  // mode-switch while the edit form is open (which would create a stale-input
-  // desync — Bug 4).
   const onSwitchMode = async (toRiskBased: boolean) => {
     if (toRiskBased === strategy.useRiskBasedSizing || updateMut.isPending || editing) return;
     try {
@@ -756,9 +726,7 @@ function PositionSizingPanel({ strategy }: { strategy: AccountStrategy }) {
       toast.error({ title: `Allocation must be between 0.01% and ${ALLOC_MAX_PCT}%` });
       return;
     }
-    // Capture isRisk at save-time from the live strategy prop (not from
-    // a stale closure), but by this point editing=true so mode buttons are
-    // disabled — the two stay in sync.
+
     const isRiskNow = strategy.useRiskBasedSizing;
     const patch: { capitalAllocationPct: number; riskPct?: number } = {
       capitalAllocationPct: allocation,
@@ -788,8 +756,7 @@ function PositionSizingPanel({ strategy }: { strategy: AccountStrategy }) {
 
   return (
     <div className="rounded-lg border border-bd-subtle bg-bg-surface px-4 py-3 shadow-panel">
-      {/* Bug 8: outer justify-between keeps Edit button pinned to the right
-          even when the left-side content wraps on narrow viewports. */}
+      {}
       <div className="flex items-start justify-between gap-2">
         <div className="flex flex-wrap items-center gap-3">
           <Scale size={14} className="shrink-0 text-text-muted" aria-hidden="true" />
@@ -797,8 +764,7 @@ function PositionSizingPanel({ strategy }: { strategy: AccountStrategy }) {
             Position sizing
           </span>
 
-          {/* Mode selector. Bug 1: disabled while editing prevents the
-              stale-input desync (Bug 4) caused by switching mode mid-edit. */}
+          {}
           {supportsRiskBased && (
             <div className="flex items-center rounded-sm border border-bd-subtle bg-bg-base p-0.5">
               <button
@@ -830,7 +796,7 @@ function PositionSizingPanel({ strategy }: { strategy: AccountStrategy }) {
             </div>
           )}
 
-          {/* Current values (read mode) */}
+          {}
           {!editing && (
             <span className="font-mono text-[11px] text-text-primary">
               {isRisk ? (
@@ -854,9 +820,7 @@ function PositionSizingPanel({ strategy }: { strategy: AccountStrategy }) {
             </span>
           )}
 
-          {/* Edit form — Selects use the canonical ALLOC_OPTIONS / RISK_OPTIONS
-              from lib/constants so the grid stays unified with the backtest
-              wizard's per-strategy allocation/risk pickers. */}
+          {}
           {editing && (
             <div className="flex flex-wrap items-center gap-2">
               <div className="flex items-center gap-1">
@@ -928,8 +892,7 @@ function PositionSizingPanel({ strategy }: { strategy: AccountStrategy }) {
           )}
         </div>
 
-        {/* Edit button — always right-aligned because it lives outside the
-            wrapping flex container (Bug 8 fix). */}
+        {}
         {!editing && (
           <button
             type="button"
@@ -941,7 +904,7 @@ function PositionSizingPanel({ strategy }: { strategy: AccountStrategy }) {
         )}
       </div>
 
-      {/* Contextual hint — risk-based mode only */}
+      {}
       {isRisk && !editing && (
         <p className="mt-2 border-t border-bd-subtle pt-2 font-mono text-[10px] text-text-muted">
           Long entries: qty = account_balance × risk% ÷ stop_distance · capped at cap% of equity.
@@ -977,7 +940,6 @@ function StrategyModeToggle({ strategy }: { strategy: AccountStrategy }) {
   const isLive = strategy.status === 'LIVE';
   const isMutating = activate.isPending || promote.isPending;
 
-  // STOPPED rows aren't on the orchestrator's path — there's no "mode" yet.
   if (!isPaper && !isLive) return null;
 
   const handleSwitchToLive = () => {
@@ -1051,10 +1013,6 @@ function MetaStat({ label, value }: { label: string; value: React.ReactNode }) {
   );
 }
 
-// Backend trade filter doesn't accept `accountStrategyId` yet; we pull
-// (accountId, strategyCode, symbol) — the closest filter combo — and
-// post-filter for safety under multi-interval-per-symbol. Page size is
-// the hard cap until the API supports per-strategy filtering.
 const LIVE_TAB_TRADE_WINDOW = 200;
 
 function LiveTab({ strategy }: { strategy: AccountStrategy }) {
@@ -1073,15 +1031,12 @@ function LiveTab({ strategy }: { strategy: AccountStrategy }) {
   const winners = closed.filter((t) => (t.realizedPnl ?? 0) > 0).length;
   const winRate = closed.length === 0 ? null : winners / closed.length;
   const lastClosed = closed[0];
-  // The backend may have more rows than we fetched. Without a per-strategy
-  // total, we treat "fetched == window size" as a likely-truncated signal
-  // and label the realized stats accordingly so users don't read them as
-  // lifetime totals.
+
   const truncated = (data?.content?.length ?? 0) >= LIVE_TAB_TRADE_WINDOW;
 
   return (
     <div className="grid gap-4 md:grid-cols-2">
-      {/* Stat strip */}
+      {}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 md:col-span-2">
         <StatCard
           label="Open trades"
@@ -1105,7 +1060,7 @@ function LiveTab({ strategy }: { strategy: AccountStrategy }) {
         />
       </div>
 
-      {/* Open positions */}
+      {}
       <section className="rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-4 shadow-panel">
         <header className="mb-3 flex items-baseline justify-between">
           <h3 className="font-mono text-[10px] uppercase tracking-wider text-[var(--text-muted)]">
@@ -1130,7 +1085,7 @@ function LiveTab({ strategy }: { strategy: AccountStrategy }) {
         )}
       </section>
 
-      {/* Recent closed */}
+      {}
       <section className="rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-4 shadow-panel">
         <header className="mb-3 flex items-baseline justify-between">
           <h3 className="font-mono text-[10px] uppercase tracking-wider text-[var(--text-muted)]">

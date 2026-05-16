@@ -1,8 +1,4 @@
-// Frontend client for /api/v1/scheduler. Admin-only on the backend; the
-// /research dashboard polls list() to render the Scheduler panel.
-//
-// Lives on the trading JVM (the research JVM has @Profile("!research") on
-// SchedulerController) so we use apiClient — never researchClient.
+
 import { apiClient } from './client';
 import type { ISO8601 } from '@/types/api';
 

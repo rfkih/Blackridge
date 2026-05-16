@@ -1,7 +1,3 @@
-// Phase B/C error-inbox shapes. Domain types for the fingerprint-deduped
-// error_log feed captured by DbErrorAppender (backend) and ErrorIngestController
-// (frontend/middleware). Distinct from the alert dispatcher in
-// `src/types/alerts.ts` — these are repeating log rows, not one-shot events.
 
 import type { PageEnvelope } from './api';
 

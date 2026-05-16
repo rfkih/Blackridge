@@ -1,8 +1,3 @@
-// Shared TradingView chart theme constants.
-// TV charts are canvas-based and can't resolve CSS vars at paint time, so
-// we keep a resolved hex copy here. Values mirror the Machiavelli dark
-// scale in globals.css — if you change `--color-profit` or `--bg-surface`
-// for the dark theme, mirror it here.
 
 export const TV = {
   BG: '#0E1116',

@@ -101,7 +101,6 @@ export function formatCurrency(
     return omitUnit ? `${sign}${body}` : `${sign}Rp ${body}`;
   }
 
-  // USD = identity. We still need thousands separators + decimals.
   const min = opts?.minimumFractionDigits ?? 2;
   const max = opts?.maximumFractionDigits ?? 2;
   const body = formatNumber(Math.abs(usdtAmount), min, max);
@@ -110,10 +109,6 @@ export function formatCurrency(
 }
 
 function formatNumber(v: number, min: number, max: number, locale = 'en-US'): string {
-  // Intl rejects min > max — clamp so callers can override one bound without
-  // having to restate the other (e.g. the sidebar passes only
-  // `maximumFractionDigits: 0`, which would otherwise clash with the
-  // currency-default `min = 2`).
   const safeMax = Math.max(0, Math.min(20, max));
   const safeMin = Math.max(0, Math.min(safeMax, min));
   return v.toLocaleString(locale, {

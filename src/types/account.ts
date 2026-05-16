@@ -6,7 +6,7 @@ export interface BackendAccountSummary {
   userId: UUID;
   username: string;
   exchange: string;
-  isActive: string; // "Y" | "N"
+  isActive: string;
   createdTime: ISO8601;
   /** Phase 2a — concurrency caps. */
   maxConcurrentLongs?: number | null;

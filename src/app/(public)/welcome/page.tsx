@@ -37,7 +37,7 @@ const STRATEGY_HIGHLIGHTS = [
 export default function WelcomePage() {
   return (
     <MarketingShell>
-      {/* Hero */}
+      {}
       <section
         className="relative overflow-hidden"
         style={{ padding: '72px 0 56px', background: 'var(--bg-base)' }}
@@ -96,12 +96,12 @@ export default function WelcomePage() {
             </div>
           </div>
 
-          {/* Card-stack visual */}
+          {}
           <CardStack />
         </div>
       </section>
 
-      {/* Exchange logos */}
+      {}
       <section className="mx-auto max-w-[1180px] px-8" style={{ padding: '24px 32px 56px' }}>
         <div
           className="mb-6 text-center text-[13px] font-semibold uppercase tracking-[0.16em]"
@@ -121,7 +121,7 @@ export default function WelcomePage() {
         </div>
       </section>
 
-      {/* Features */}
+      {}
       <section style={{ padding: '80px 0', background: 'var(--bg-surface)' }}>
         <div className="mx-auto max-w-[1180px] px-8">
           <SectionHead
@@ -164,7 +164,7 @@ export default function WelcomePage() {
         </div>
       </section>
 
-      {/* Strategies highlight */}
+      {}
       <section style={{ padding: '80px 0' }}>
         <div className="mx-auto max-w-[1180px] px-8">
           <SectionHead
@@ -214,7 +214,7 @@ export default function WelcomePage() {
         </div>
       </section>
 
-      {/* Trust band */}
+      {}
       <section style={{ padding: '80px 0', background: 'var(--bg-surface)' }}>
         <div className="mx-auto max-w-[1180px] px-8">
           <div className="br-trust-band">
@@ -262,7 +262,7 @@ export default function WelcomePage() {
         </div>
       </section>
 
-      {/* CTA */}
+      {}
       <section style={{ padding: '80px 0' }}>
         <div className="mx-auto max-w-[1180px] px-8 text-center">
           <h2
@@ -414,7 +414,7 @@ function TrustStat({ value, label }: { value: string; label: string }) {
 function CardStack() {
   return (
     <div className="br-card-stack">
-      {/* C1 — live position card */}
+      {}
       <div className="br-float c1">
         <div className="mb-2 flex items-center gap-2.5">
           <div className="br-ticker btc">BTC</div>
@@ -455,7 +455,7 @@ function CardStack() {
         </div>
       </div>
 
-      {/* C2 — strategy summary card */}
+      {}
       <div className="br-float c2">
         <div
           className="text-[11px] font-semibold uppercase tracking-[0.08em]"
@@ -477,7 +477,7 @@ function CardStack() {
         </div>
       </div>
 
-      {/* C3 — equity sparkline card */}
+      {}
       <div className="br-float c3" style={{ padding: '14px 16px' }}>
         <div className="mb-2 flex items-center justify-between">
           <div

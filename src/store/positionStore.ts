@@ -1,6 +1,4 @@
-// SLICE 1: Open positions + live unrealized P&L map. Synced from REST via
-// useSyncOpenPositions; updated in real time by useLivePnl. The pnlMap is
-// pruned on every sync so it can never outgrow the active trade set.
+
 import { create } from 'zustand';
 import type { LivePosition, PnlUpdate } from '@/types/trading';
 
@@ -61,8 +59,7 @@ export const usePositionStore = create<PositionStore>((set) => ({
   updatePnlBatch: (updates) =>
     set((state) => {
       if (updates.length === 0) return state;
-      // Skip commits entirely if nothing actually changed — spares every
-      // subscriber from re-evaluating their selector.
+
       let pnlMutated = false;
       let markMutated = false;
       const nextPnl = { ...state.pnlMap };

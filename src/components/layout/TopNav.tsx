@@ -39,8 +39,7 @@ export function TopNav({ onMenuClick, onCommandOpen }: TopNavProps) {
       className="sticky top-0 z-20 flex shrink-0 items-center gap-3"
       style={{
         padding: '20px 0 8px',
-        // Match the dashboard page surface (--mm-bg-2) so sticky-scrolled
-        // content slides cleanly underneath without a color seam.
+
         background: 'var(--mm-bg-2)',
       }}
     >
@@ -58,7 +57,7 @@ export function TopNav({ onMenuClick, onCommandOpen }: TopNavProps) {
         <Menu size={16} strokeWidth={1.75} />
       </button>
 
-      {/* Search trigger */}
+      {}
       <button
         type="button"
         onClick={onCommandOpen}
@@ -89,7 +88,7 @@ export function TopNav({ onMenuClick, onCommandOpen }: TopNavProps) {
         </span>
       </button>
 
-      {/* WS status pill */}
+      {}
       <div
         className="mm-pill hidden sm:inline-flex"
         style={{ padding: '9px 14px', fontSize: 12 }}
@@ -110,8 +109,7 @@ export function TopNav({ onMenuClick, onCommandOpen }: TopNavProps) {
         <AccountSwitcher />
       </div>
 
-      {/* Theme toggle — render both icons/labels so SSR markup is stable; CSS
-          swaps visibility on the hydrated theme. */}
+      {}
       <button
         type="button"
         onClick={() => setTheme(isLight ? 'dark' : 'light')}
@@ -151,7 +149,7 @@ export function TopNav({ onMenuClick, onCommandOpen }: TopNavProps) {
         <span suppressHydrationWarning>{isLight ? 'Dark' : 'Light'}</span>
       </button>
 
-      {/* Alerts — opens a popover with kill-switch trips, IP changes, and recent backtests. */}
+      {}
       <NotificationPanel />
     </header>
   );

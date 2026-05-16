@@ -43,7 +43,7 @@ export interface Trades {
   realizedPnl: number;
   unrealizedPnl: number;
   feeUsdt: number;
-  // Populated by backend for OPEN trades only
+
   markPrice?: number | null;
   unrealizedPnlPct?: number | null;
   positions: TradePosition[];
@@ -57,8 +57,7 @@ export interface LivePosition {
   direction: TradeDirection;
   quantity: number;
   entryPrice: number;
-  // Null until the WS pushes a mark — never silently fall back to entryPrice,
-  // which would mask "no live data" as "no movement".
+
   markPrice: number | null;
   unrealizedPnl: number;
   unrealizedPnlPct: number;

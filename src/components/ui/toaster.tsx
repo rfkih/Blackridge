@@ -51,7 +51,7 @@ function ToastItem({ t }: { t: Toast }) {
       role={ROLE_FOR_VARIANT[t.variant]}
       aria-live={t.variant === 'error' || t.variant === 'warning' ? 'assertive' : 'polite'}
     >
-      {/* Left accent strip — non-colour cue doubled up with the icon. */}
+      {}
       <span
         aria-hidden="true"
         className="absolute inset-y-0 left-0 w-1"

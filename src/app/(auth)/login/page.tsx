@@ -19,7 +19,6 @@ const loginSchema = z.object({
 
 type LoginValues = z.infer<typeof loginSchema>;
 
-
 function LoginPageContent() {
   const search = useSearchParams();
   const next = safeRedirectPath(search.get('next'));
@@ -30,8 +29,6 @@ function LoginPageContent() {
   const [showPassword, setShowPassword] = useState(false);
   const [keepSignedIn, setKeepSignedIn] = useState(true);
 
-  // If the axios interceptor redirected us here on a 401, surface a clear
-  // "your session expired" banner. Flag is one-shot.
   useEffect(() => {
     if (consumeSessionExpiredFlag()) setSessionExpired(true);
   }, []);
@@ -98,7 +95,7 @@ function LoginPageContent() {
             Pick up where you left off. Your bots have been running.
           </p>
 
-          {/* Email */}
+          {}
           <div className="mb-3.5">
             <label htmlFor="email" className="br-label">
               Work email
@@ -125,7 +122,7 @@ function LoginPageContent() {
             )}
           </div>
 
-          {/* Password */}
+          {}
           <div className="mb-3.5">
             <div className="mb-1.5 flex items-baseline justify-between">
               <label htmlFor="password" className="br-label" style={{ marginBottom: 0 }}>
@@ -182,7 +179,7 @@ function LoginPageContent() {
             )}
           </div>
 
-          {/* Keep me signed in */}
+          {}
           <label
             htmlFor="keep-signed-in"
             className="my-3 flex cursor-pointer items-center gap-2.5 text-[13px]"

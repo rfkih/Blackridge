@@ -1,7 +1,4 @@
-// Read-only client for /api/v1/spec-trace on the trading JVM. Backed by
-// the spec_trace table (V19); the StrategyEngine writes one row per
-// evaluate() call (dense in backtest, 1% sample in live). Drives the
-// SpecTraceViewer admin UI for forensic decision replay.
+
 import { apiClient } from './client';
 import { addOptionalParam, buildPageParams } from './queryParams';
 import type { PageEnvelope } from '@/types/api';

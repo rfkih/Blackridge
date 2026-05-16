@@ -21,7 +21,6 @@ function writeAll(presets: BacktestParamPreset[]): void {
   try {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(presets));
   } catch {
-    // Ignore quota / Safari private mode — preset save silently fails.
   }
 }
 

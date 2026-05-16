@@ -123,10 +123,7 @@ export function DataTable<TData>({
     onSortingChange,
     manualSorting,
     getCoreRowModel: getCoreRowModel(),
-    // Skip the sorted row model entirely when the server is authoritative;
-    // feeding already-sorted data back through getSortedRowModel re-sorts
-    // it by `createdAt` (the table's default tie-breaker) and corrupts the
-    // server's order.
+
     ...(manualSorting ? {} : { getSortedRowModel: getSortedRowModel() }),
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
@@ -158,7 +155,7 @@ export function DataTable<TData>({
 
   return (
     <div className="flex flex-col gap-3">
-      {/* Toolbar — search + column menu + caller-provided extras */}
+      {}
       {(!hideSearch || !hideColumnMenu || toolbar) && (
         <div className="flex flex-wrap items-center gap-2">
           {!hideSearch && (
@@ -224,7 +221,7 @@ export function DataTable<TData>({
         </div>
       )}
 
-      {/* Table body */}
+      {}
       <div
         ref={tableRef}
         className={cn(
@@ -327,7 +324,7 @@ export function DataTable<TData>({
         </table>
       </div>
 
-      {/* Pagination */}
+      {}
       {!hidePagination && !isLoading && rows.length > 0 && (
         <div className="flex flex-wrap items-center justify-between gap-3 px-1">
           <div className="text-[11px] text-text-muted">
@@ -391,8 +388,7 @@ function BodyRow<TData>({ row, isSelected, onRowClick }: BodyRowProps<TData>) {
       onClick={handleClick}
       className={cn(
         'border-b border-bd-subtle transition-colors last:border-b-0',
-        // hover:bg-bg-hover was white-on-white in light mode (both
-        // resolve to #ffffff). bg-bg-hover gives a visible #f2f5f4 tint.
+
         onRowClick && 'cursor-pointer hover:bg-bg-hover',
         isSelected && 'bg-bg-hover',
       )}

@@ -1,11 +1,3 @@
-// Shared helpers for building Spring-flavoured query-param objects. Most
-// list endpoints (alerts, error-log, research log, sweeps, trades) follow
-// the same conventions:
-//   - `page` / `size` always set, with sensible defaults
-//   - optional filters omitted when null/undefined
-//   - string filters trimmed; empty strings dropped (backend treats them as
-//     "no filter on that column")
-//   - `sort` is a free-form Spring sort string ("createdAt,desc")
 
 type ParamValue = string | number | boolean;
 

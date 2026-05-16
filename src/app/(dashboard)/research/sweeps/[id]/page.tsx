@@ -24,10 +24,6 @@ export default function SweepDetailPage({ params }: PageProps) {
 
   const rankMetric = (s?.spec.rankMetric as keyof SweepResult | undefined) ?? 'avgR';
 
-  // ── Filter / sort / paginate state ─────────────────────────────────────
-  // Filters are tracked as Sets so each pill is a toggle. Sort key defaults
-  // to the sweep's rankMetric so the "winner is row 1" expectation holds
-  // until the user clicks a column to override.
   type SortDir = 'asc' | 'desc';
   const [statusFilter, setStatusFilter] = useState<Set<SweepResult['status']>>(new Set());
   const [roundFilter, setRoundFilter] = useState<Set<number>>(new Set());
@@ -57,9 +53,7 @@ export default function SweepDetailPage({ params }: PageProps) {
     copy.sort((a, b) => {
       const av = (a as unknown as Record<string, unknown>)[sortKey as string];
       const bv = (b as unknown as Record<string, unknown>)[sortKey as string];
-      // String compare for status; numeric for everything else. Nulls always
-      // sort to the bottom regardless of direction so a still-pending combo
-      // never out-ranks a completed one.
+
       if (typeof av === 'string' || typeof bv === 'string') {
         const as = (av as string) ?? '';
         const bs = (bv as string) ?? '';
@@ -105,17 +99,13 @@ export default function SweepDetailPage({ params }: PageProps) {
       setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
     } else {
       setSortKey(key);
-      // Default to descending for numeric metrics — almost always what the
-      // user wants ("show me the highest avgR").
+
       setSortDir('desc');
     }
     setPage(0);
   };
 
   const paramKeys = useMemo(() => {
-    // Research-mode sweeps use paramRanges; flat sweeps use paramGrid.
-    // Fall back to union of keys observed on actual result rows if neither is
-    // present (shouldn't happen, but keeps us safe).
     const fromRanges = s?.spec.paramRanges ? Object.keys(s.spec.paramRanges) : [];
     if (fromRanges.length) return fromRanges;
     const fromGrid = s?.spec.paramGrid ? Object.keys(s.spec.paramGrid) : [];
@@ -136,15 +126,10 @@ export default function SweepDetailPage({ params }: PageProps) {
   const isResearchMode = (s?.totalRounds ?? 0) > 1;
   const winner = rankedResults.find((r) => r.status === 'COMPLETED') ?? null;
 
-  // ── Per-backtest progress ──────────────────────────────────────────────
-  // The sweep thread mirrors each backtest's BacktestRun.progress_percent
-  // (0..100) onto the SweepResult on every poll, so we can render the real
-  // backtest progress directly — no client-side estimation needed.
   const getProgress = (r: SweepResult): number => {
     if (r.status === 'COMPLETED') return 1;
     if (r.status === 'PENDING') return 0;
-    // RUNNING / FAILED: prefer server-reported percent. Default to 0 if it
-    // hasn't been polled yet.
+
     const pct = typeof r.progressPercent === 'number' ? r.progressPercent : 0;
     return Math.max(0, Math.min(1, pct / 100));
   };
@@ -652,8 +637,7 @@ function ProgressCell({ status, progress }: { status: SweepResult['status']; pro
     FAILED: { bar: 'var(--color-loss)', label: 'var(--color-loss)' },
   };
   const c = palette[status] ?? palette.PENDING;
-  // Use the status label as primary text for terminal cases; show the
-  // percentage for in-flight rows so the user sees concrete movement.
+
   const label = status === 'PENDING' ? 'PENDING' : status === 'RUNNING' ? `${pct}%` : status;
   return (
     <div className="flex flex-col items-end gap-1">
@@ -791,7 +775,6 @@ function HoldoutPanel({ state, winner }: { state: SweepState; winner: SweepResul
 function formatParamValue(v: unknown): string {
   if (v == null) return '—';
   if (typeof v === 'number') {
-    // Trim trailing zeros for cleaner grid display.
     const s = v.toString();
     return s;
   }

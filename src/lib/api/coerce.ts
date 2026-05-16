@@ -1,6 +1,3 @@
-// Shared numeric coercion at the API boundary. Jackson serialises BigDecimal
-// as either number or string depending on config, so every numeric field on
-// the wire is a union — these helpers normalise it once at the mapper layer.
 
 /** Required numeric field — null/empty/NaN fall back to {@code fallback} (default 0). */
 export function toNum(v: number | string | null | undefined, fallback = 0): number {

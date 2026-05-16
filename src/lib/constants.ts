@@ -1,4 +1,4 @@
-// Circular type-only import — erased at runtime (strategy.ts re-imports Interval/StrategyCode).
+
 // eslint-disable-next-line import/no-cycle
 import type { LsrParams, VboParams, VcbParams } from '@/types/strategy';
 
@@ -93,7 +93,6 @@ export interface ParamMeta {
 }
 
 export const LSR_PARAM_META: Record<keyof LsrParams, ParamMeta> = {
-  // ── Regime / volatility thresholds ──
   adxTrendingMin: {
     label: 'ADX Trending Min',
     description: 'ADX must exceed this value for the regime to be considered trending.',
@@ -154,7 +153,6 @@ export const LSR_PARAM_META: Record<keyof LsrParams, ParamMeta> = {
     step: 0.05,
   },
 
-  // ── Risk / exits ──
   stopAtrBuffer: {
     label: 'Stop ATR Buffer',
     description: 'Extra ATR buffer added to the computed stop distance to absorb noise.',
@@ -256,7 +254,6 @@ export const LSR_PARAM_META: Record<keyof LsrParams, ParamMeta> = {
     step: 0.05,
   },
 
-  // ── Time-stop bars ──
   timeStopBarsLongSweep: {
     label: 'Time Stop Bars — Long Sweep',
     description: 'Max bars a long-sweep trade may stay open before being time-stopped.',
@@ -282,7 +279,6 @@ export const LSR_PARAM_META: Record<keyof LsrParams, ParamMeta> = {
     step: 1,
   },
 
-  // ── Time-stop minimum R ──
   timeStopMinRLongSweep: {
     label: 'Time Stop Min R — Long Sweep',
     description: 'Minimum unrealized R required to keep a long-sweep trade past the time stop.',
@@ -312,7 +308,6 @@ export const LSR_PARAM_META: Record<keyof LsrParams, ParamMeta> = {
     step: 0.05,
   },
 
-  // ── Long sweep reclaim ──
   longSweepMinAtr: {
     label: 'Long Sweep — Min ATR',
     description: 'Lower bound on the sweep move size in ATR units.',
@@ -389,7 +384,6 @@ export const LSR_PARAM_META: Record<keyof LsrParams, ParamMeta> = {
     step: 0.01,
   },
 
-  // ── Long continuation reclaim ──
   longContRsiMin: {
     label: 'Long Cont. — RSI Min',
     description: 'Minimum RSI acceptable on the pullback reclaim for a long-continuation entry.',
@@ -457,7 +451,6 @@ export const LSR_PARAM_META: Record<keyof LsrParams, ParamMeta> = {
     step: 0.01,
   },
 
-  // ── Short exhaustion ──
   shortSweepMinAtr: {
     label: 'Short Sweep — Min ATR',
     description: 'Lower bound on the short-side sweep move size in ATR units.',
@@ -520,7 +513,6 @@ export const LSR_PARAM_META: Record<keyof LsrParams, ParamMeta> = {
 };
 
 export const VCB_PARAM_META: Record<keyof VcbParams, ParamMeta> = {
-  // ── Compression ──────────────────────────────────────────────────────────
   squeezeKcTolerance: {
     label: 'Squeeze KC Tolerance',
     description:
@@ -550,7 +542,6 @@ export const VCB_PARAM_META: Record<keyof VcbParams, ParamMeta> = {
     step: 0.01,
   },
 
-  // ── Breakout ─────────────────────────────────────────────────────────────
   relVolBreakoutMin: {
     label: 'Relative Volume — Min',
     description:
@@ -581,7 +572,6 @@ export const VCB_PARAM_META: Record<keyof VcbParams, ParamMeta> = {
     step: 0.01,
   },
 
-  // ── 4H bias ──────────────────────────────────────────────────────────────
   biasErMin: {
     label: '4H Bias — ER Min',
     description: 'Minimum 4H efficiency ratio required to confirm directional bias.',
@@ -591,7 +581,6 @@ export const VCB_PARAM_META: Record<keyof VcbParams, ParamMeta> = {
     step: 0.01,
   },
 
-  // ── Entry filters ────────────────────────────────────────────────────────
   adxEntryMax: {
     label: 'ADX Entry Max',
     description: 'Reject entries when ADX is above this — filters over-extended trends.',
@@ -633,7 +622,6 @@ export const VCB_PARAM_META: Record<keyof VcbParams, ParamMeta> = {
     step: 0.1,
   },
 
-  // ── Risk / exits ─────────────────────────────────────────────────────────
   stopAtrBuffer: {
     label: 'Stop ATR Buffer',
     description: 'Additional ATR distance placed beyond the structural stop.',
@@ -662,7 +650,6 @@ export const VCB_PARAM_META: Record<keyof VcbParams, ParamMeta> = {
     step: 0.005,
   },
 
-  // ── Runner trail phases ──────────────────────────────────────────────────
   runnerHalfR: {
     label: 'Runner Half-R',
     description: 'R-multiple at which the runner starts honoring a tightened partial stop.',
@@ -736,7 +723,6 @@ export const VCB_PARAM_META: Record<keyof VcbParams, ParamMeta> = {
     step: 0.05,
   },
 
-  // ── Signal ───────────────────────────────────────────────────────────────
   minSignalScore: {
     label: 'Min Signal Score',
     description: 'Minimum composite signal score required to open a trade.',
@@ -869,7 +855,6 @@ export const VCB_SECTIONS: Array<{ title: string; keys: Array<keyof VcbParams> }
 ];
 
 export const VBO_PARAM_META: Record<keyof VboParams, ParamMeta> = {
-  // ── Compression detection (previous bar) ────────────────────────────────
   compressionBbWidthPctMax: {
     label: 'Compression — BB Width % Max',
     description:
@@ -894,7 +879,6 @@ export const VBO_PARAM_META: Record<keyof VboParams, ParamMeta> = {
     kind: 'toggle',
   },
 
-  // ── Entry-bar ADX band ──────────────────────────────────────────────────
   adxEntryMin: {
     label: 'Entry ADX — Min',
     description:
@@ -913,7 +897,6 @@ export const VBO_PARAM_META: Record<keyof VboParams, ParamMeta> = {
     step: 0.5,
   },
 
-  // ── Breakout confirmation ───────────────────────────────────────────────
   requireDonchianBreak: {
     label: 'Require Donchian Break',
     description: 'Require close beyond the Donchian-20 channel in addition to the Bollinger break.',
@@ -952,7 +935,6 @@ export const VBO_PARAM_META: Record<keyof VboParams, ParamMeta> = {
     step: 0.05,
   },
 
-  // ── Breakout candle quality ─────────────────────────────────────────────
   bodyRatioMin: {
     label: 'Body Ratio Min',
     description: 'Body / total-range floor on the breakout candle (filters doji-style breakouts).',
@@ -978,7 +960,6 @@ export const VBO_PARAM_META: Record<keyof VboParams, ParamMeta> = {
     step: 0.01,
   },
 
-  // ── RSI sanity ──────────────────────────────────────────────────────────
   longRsiMax: {
     label: 'Long RSI Max',
     description: 'Skip long entries above this RSI — avoids chasing already-extended runs.',
@@ -996,7 +977,6 @@ export const VBO_PARAM_META: Record<keyof VboParams, ParamMeta> = {
     step: 0.5,
   },
 
-  // ── Risk / exits ────────────────────────────────────────────────────────
   stopAtrBuffer: {
     label: 'Stop ATR Buffer',
     description: 'ATRs of padding beyond the breakout candle low (long) / high (short).',
@@ -1025,7 +1005,6 @@ export const VBO_PARAM_META: Record<keyof VboParams, ParamMeta> = {
     step: 0.05,
   },
 
-  // ── Position management ─────────────────────────────────────────────────
   breakEvenR: {
     label: 'Break-Even R',
     description: 'R-multiple at which the TP1 leg moves to break-even.',
@@ -1099,7 +1078,6 @@ export const VBO_PARAM_META: Record<keyof VboParams, ParamMeta> = {
     step: 0.05,
   },
 
-  // ── Signal ──────────────────────────────────────────────────────────────
   minSignalScore: {
     label: 'Min Signal Score',
     description: 'Minimum composite signal score required to open a trade.',

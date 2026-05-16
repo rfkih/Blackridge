@@ -51,9 +51,7 @@ export function AnalysisCard({ runId }: AnalysisCardProps) {
   }
 
   const mfe = data.mfeCapture;
-  // The backend serializes with Jackson NON_NULL, so empty reports (zero-trade
-  // runs) come back missing `buckets` / `bestTrades` / `worstTrades`. Default
-  // every collection before touching it.
+
   const buckets = data.buckets ?? {};
   const bestTrades = data.bestTrades ?? [];
   const worstTrades = data.worstTrades ?? [];
@@ -107,8 +105,6 @@ export function AnalysisCard({ runId }: AnalysisCardProps) {
   );
 }
 
-// ─── Sub-components ──────────────────────────────────────────────────────────
-
 function CardHeader({
   version,
   asset,
@@ -151,10 +147,6 @@ function HeadlineRow({ h }: { h: Headline }) {
   const avgPct = h.avgTradeReturnPct ?? null;
   const geomPct = h.geometricReturnPctAtAlloc90 ?? null;
 
-  // Risk:reward — Headline.avgLoss is signed-negative (HeadlineAccumulator
-  // sums raw negative pnl, doesn't take abs), so Math.abs is required.
-  // Three states mirror Profit Factor: null (no trades), '∞' (no losers),
-  // or numeric. The '∞' branch protects against the divide-by-zero path.
   const avgLossAbs = Math.abs(h.avgLoss);
   const rrrInfinite = h.avgWin > 0 && avgLossAbs === 0;
   const rrr = avgLossAbs > 0 ? h.avgWin / avgLossAbs : null;
@@ -228,8 +220,6 @@ function Stat({
   );
 }
 
-// ─── Bucket table ───────────────────────────────────────────────────────────
-
 const BUCKET_LABELS: Record<string, string> = {
   entry_adx: 'Entry ADX',
   bias_adx: 'Bias (4H) ADX',
@@ -280,8 +270,6 @@ function BucketTable({ bucketKey, rows }: { bucketKey: string; rows: BucketRow[]
   );
 }
 
-// ─── MFE / MAE ──────────────────────────────────────────────────────────────
-
 function MfeBlock({ mfe }: { mfe: MfeCapture }) {
   return (
     <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
@@ -323,8 +311,6 @@ function MfeStat({ label, value }: { label: string; value: string }) {
     </div>
   );
 }
-
-// ─── Best / worst trades ────────────────────────────────────────────────────
 
 function TradesList({
   label,
@@ -380,8 +366,6 @@ function TradeRow({ t }: { t: TradeSnapshot }) {
     </div>
   );
 }
-
-// ─── Helpers ────────────────────────────────────────────────────────────────
 
 function formatSignedUsdt(n: number): string {
   if (!Number.isFinite(n)) return '—';

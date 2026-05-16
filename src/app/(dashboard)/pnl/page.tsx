@@ -25,8 +25,6 @@ import { useStrategies } from '@/hooks/useStrategies';
 import { cn } from '@/lib/utils';
 import type { DailyPnl, StrategyPnl } from '@/types/pnl';
 
-// Recharts is heavy (~80kb gzipped). Lazy-load both charts so the filter bar
-// + summary tiles can paint while the chart chunk is still downloading.
 const PnlBarChart = nextDynamic(
   () => import('@/components/charts/PnlBarChart').then((m) => m.PnlBarChart),
   { ssr: false, loading: () => <Skeleton className="h-[260px] w-full" /> },
@@ -62,8 +60,6 @@ function readFilters(params: URLSearchParams): Filters {
 }
 
 export default function PnlPage() {
-  // useSearchParams() forces a client-side render boundary. Wrap in Suspense
-  // so Next 14's prerender pass doesn't abort when the hook bails out.
   return (
     <Suspense fallback={<Skeleton className="h-[60vh] w-full" />}>
       <PnlPageContent />
@@ -193,8 +189,6 @@ function PnlPageContent() {
   );
 }
 
-// ─── Filters ─────────────────────────────────────────────────────────────────
-
 function FilterBar({
   filters,
   onChange,
@@ -204,8 +198,6 @@ function FilterBar({
 }) {
   const { data: strategies = [] } = useStrategies();
 
-  // Unique strategy codes + symbols across the user's configured strategies —
-  // no separate endpoint needed and the set is usually small (<10 items).
   const strategyCodes = useMemo(() => {
     const set = new Set<string>();
     for (const s of strategies) set.add(s.strategyCode);
@@ -282,9 +274,7 @@ function DateInput({
   max?: string;
 }) {
   return (
-    // The label wraps both the caption and the input — a valid nested
-    // association — but eslint-plugin-jsx-a11y doesn't detect it through a
-    // sibling <span>. Disable the rule for this compound form primitive.
+
     // eslint-disable-next-line jsx-a11y/label-has-associated-control
     <label className="flex flex-col gap-1">
       <span className="label-caps inline-flex items-center gap-1">
@@ -314,7 +304,7 @@ function SelectInput({
   options: Array<{ value: string; label: string }>;
 }) {
   return (
-    // See DateInput — label wraps both span + control, a11y rule can't see that.
+
     // eslint-disable-next-line jsx-a11y/label-has-associated-control
     <label className="flex flex-col gap-1">
       <span className="label-caps">{label}</span>
@@ -336,8 +326,6 @@ function SelectInput({
     </label>
   );
 }
-
-// ─── Summary stats ───────────────────────────────────────────────────────────
 
 interface ComputedStats {
   total: number;
@@ -408,8 +396,6 @@ function SummaryRow({ stats, isLoading }: { stats: ComputedStats; isLoading: boo
     </div>
   );
 }
-
-// ─── Per-strategy table ──────────────────────────────────────────────────────
 
 function StrategyTable({ rows }: { rows: StrategyPnl[] }) {
   const ordered = useMemo(() => [...rows].sort((a, b) => b.totalPnl - a.totalPnl), [rows]);
@@ -502,14 +488,10 @@ function StrategyTable({ rows }: { rows: StrategyPnl[] }) {
   );
 }
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
-
 function filterBySymbol(data: DailyPnl[] | undefined, symbol: string): DailyPnl[] {
   if (!data) return [];
   if (!symbol) return data;
-  // Backend doesn't honor ?symbol= on /pnl/daily today, so the symbol filter
-  // is a no-op on the data itself. Keep the prop threading so the UI is
-  // wire-ready the moment the endpoint adds support.
+
   return data;
 }
 

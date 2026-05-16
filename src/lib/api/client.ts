@@ -1,15 +1,4 @@
-// Axios instances + auth interceptors.
-//
-// The research JVM (8081) is internal-only; the trading JVM reverse-proxies
-// /api/v1/{backtest,research,montecarlo,historical}/** → research JVM via
-// ResearchProxyController. Both clients hit the same origin.
-// `researchClient` is an alias for `apiClient` kept so each API module can
-// declare which JVM it targets — the assignment is meaningful documentation,
-// not an actual network distinction.
-//
-// Auth: HttpOnly `blackheart-token` cookie, no Authorization header.
-// A JS-readable token in Zustand would be exfiltrable by any XSS payload;
-// the cookie path covers every browser environment without that risk.
+
 import axios, { type AxiosError, type AxiosInstance } from 'axios';
 import { useAuthStore } from '@/store/authStore';
 import { env } from '@/lib/env';
@@ -32,11 +21,6 @@ function createApiClient(baseURL: string): AxiosInstance {
   });
 
   instance.interceptors.request.use((config) => {
-    // Safety belt — if a request URL resolves outside our known API
-    // origin, refuse to send credentials. `withCredentials: true` scopes
-    // the cookie to the target origin via browser SOP already, but this
-    // guards against a misconfigured caller passing a full
-    // https://attacker.example URL through the client.
     const rawUrl = config.url ?? '';
     const isAbsolute = /^https?:/i.test(rawUrl);
     if (isAbsolute && !rawUrl.startsWith(env.apiUrl)) {
@@ -71,12 +55,8 @@ function reportApiFailure(error: AxiosError) {
   const path = cfg?.url ?? '(unknown url)';
   const fullUrl = cfg?.baseURL ? `${cfg.baseURL}${path}` : path;
 
-  // Pin the fingerprint when the failure is a connectivity outage so all
-  // failing endpoints during one outage collapse to ONE error_log row
-  // (URL stays in mdc for triage). 5xx keeps server-side fingerprinting
-  // because two endpoints crashing the JVM in different ways are two bugs.
   const fingerprint = isNetwork
-    ? // 64 hex chars to fit the column shape — value is fixed, not a hash.
+    ?
       'frontendnetworkerror'.padEnd(64, '0')
     : undefined;
 
@@ -137,9 +117,6 @@ function isEnvelope(value: unknown): value is ApiEnvelope {
 }
 
 function isAuthPath(pathname: string): boolean {
-  // Exact match or trailing slash — `/login-foo` should NOT count as the auth path.
-  // Keep this list in sync with PUBLIC_PATHS in middleware.ts and the
-  // permitAll() rules in SecurityConfig.java.
   const PATHS = ['/login', '/register', '/forgot-password', '/reset-password', '/verify-email'];
   for (const p of PATHS) {
     if (pathname === p || pathname.startsWith(`${p}/`)) return true;
@@ -160,8 +137,6 @@ function markSessionExpired() {
   try {
     window.sessionStorage.setItem(SESSION_EXPIRED_FLAG, '1');
   } catch {
-    // sessionStorage can be unavailable in private-browsing edge cases —
-    // failing silently is fine, the user just won't see the toast.
   }
 }
 
@@ -176,11 +151,6 @@ export function consumeSessionExpiredFlag(): boolean {
   }
 }
 
-// Module-level latch — the dashboard fires many queries in parallel on mount,
-// and every single one returns 401 when the JWT cookie has expired. Without
-// this guard each one calls `window.location.assign(...)`, producing a storm
-// of navigations to /login?next=/... that looks like a redirect loop (and
-// flashes the PageLoader between each).
 let redirectingToLogin = false;
 
 /**
@@ -213,10 +183,6 @@ function sharedErrorHandler(error: AxiosError) {
   logDevAxiosFailure(error);
   reportApiFailure(error);
   if (error.response?.status === 401) {
-    // Clear local auth state on every 401 — cheap and idempotent, and
-    // critically: it clears the `blackheart-session` signal cookie so Next
-    // middleware bounces the next navigation at the edge instead of letting
-    // more API calls through.
     const { clearAuth } = useAuthStore.getState();
     clearAuth();
 
@@ -226,9 +192,7 @@ function sharedErrorHandler(error: AxiosError) {
       !isAuthPath(window.location.pathname)
     ) {
       redirectingToLogin = true;
-      // Stash a one-shot flag so the login page can show "Your session
-      // expired — please sign in again" instead of looking like the user
-      // arrived for no reason.
+
       markSessionExpired();
       const next = encodeURIComponent(window.location.pathname + window.location.search);
       window.location.assign(`/login?next=${next}`);

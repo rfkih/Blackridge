@@ -150,7 +150,7 @@ export function BacktestParamPresetBar({
         className,
       )}
     >
-      {/* Load preset dropdown */}
+      {}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <button
@@ -190,7 +190,7 @@ export function BacktestParamPresetBar({
         </DropdownMenuContent>
       </DropdownMenu>
 
-      {/* Save current — popover with name input */}
+      {}
       <Popover open={saveOpen} onOpenChange={setSaveOpen}>
         <PopoverTrigger asChild>
           <button
@@ -251,8 +251,7 @@ export function BacktestParamPresetBar({
         </PopoverContent>
       </Popover>
 
-      {/* Save to backend library — persists to strategy_param so the
-          preset is reusable in live trading and across browsers. */}
+      {}
       <Popover open={libraryOpen} onOpenChange={setLibraryOpen}>
         <PopoverTrigger asChild>
           <button
@@ -323,7 +322,7 @@ export function BacktestParamPresetBar({
         </PopoverContent>
       </Popover>
 
-      {/* Reset */}
+      {}
       <button
         type="button"
         disabled={overrideCount === 0}

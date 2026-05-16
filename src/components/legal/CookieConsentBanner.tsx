@@ -8,9 +8,6 @@ const STORAGE_KEY = 'blackheart:cookie-consent';
 
 type Decision = 'accepted' | 'declined';
 
-// Informational only — we don't run advertising/analytics. Hydration-safe
-// because the initial undefined state renders null until the effect reads
-// localStorage on the client.
 export function CookieConsentBanner() {
   const [decision, setDecision] = useState<Decision | null | undefined>(undefined);
 
@@ -33,7 +30,6 @@ export function CookieConsentBanner() {
     try {
       window.localStorage.setItem(STORAGE_KEY, next);
     } catch {
-      // Storage may be disabled (Safari private mode); no further action.
     }
   };
 

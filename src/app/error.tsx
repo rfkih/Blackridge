@@ -1,6 +1,5 @@
 'use client';
 
-// SLICE: Route error boundary — in development, show full stack (Spring-Boot-style trace) + reset.
 import { useEffect, useRef } from 'react';
 import { reportException } from '@/lib/observability/errorReporter';
 
@@ -13,11 +12,6 @@ export default function RouteErrorBoundary({
 }) {
   const isDev = process.env.NODE_ENV === 'development';
 
-  // Boundary-level dedup. React passes a fresh `error` reference on each
-  // render, so the effect re-fires on remount/reset even for the same
-  // underlying crash. The reporter's 60s latch covers most of that, but
-  // tracking the last reported instance here means we don't spam the latch
-  // on rapid reset → re-throw cycles.
   const reportedRef = useRef<Error | null>(null);
 
   useEffect(() => {

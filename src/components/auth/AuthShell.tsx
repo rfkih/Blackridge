@@ -29,7 +29,7 @@ export function AuthShell({
 }: AuthShellProps) {
   return (
     <div className="br grid min-h-screen grid-cols-1 md:grid-cols-2">
-      {/* Left brand panel — palette-driven gradient + quote + trust strip. */}
+      {}
       <aside
         className="relative hidden flex-col justify-between overflow-hidden p-14 md:flex"
         style={{
@@ -37,7 +37,7 @@ export function AuthShell({
           color: '#fff',
         }}
       >
-        {/* Soft ambient halo */}
+        {}
         <div
           aria-hidden="true"
           style={{
@@ -104,9 +104,9 @@ export function AuthShell({
         {trustStrip && <TrustStrip />}
       </aside>
 
-      {/* Right form panel — hosts the page's card content. */}
+      {}
       <main className="relative w-full p-8 sm:p-12 md:p-14" style={{ background: 'var(--bg-base)' }}>
-        {/* Mobile-only header: brand mark + topRight link (left panel is hidden) */}
+        {}
         <div className="mb-6 flex items-center justify-between md:hidden">
           <Link href="/welcome" className="inline-flex items-center gap-2.5">
             <BlackridgeMark size={28} />
@@ -133,7 +133,7 @@ export function AuthShell({
           )}
         </div>
 
-        {/* Desktop-only topRight in the upper-right corner */}
+        {}
         {topRight && (
           <div
             className="absolute right-8 top-8 hidden text-[13px] md:block"

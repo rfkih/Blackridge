@@ -70,7 +70,7 @@ export function PnlBarChart({ data, height = 260 }: PnlBarChartProps) {
           tickLine={{ stroke: CHART_COLORS.axis }}
           interval="preserveStartEnd"
           minTickGap={32}
-          tickFormatter={(v: string) => v.slice(5)} // MM-DD, saves horizontal space
+          tickFormatter={(v: string) => v.slice(5)}
         />
         <YAxis
           tick={AXIS_TICK}

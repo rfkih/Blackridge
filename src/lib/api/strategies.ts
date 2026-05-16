@@ -49,9 +49,7 @@ export function mapAccountStrategy(s: BackendAccountStrategy): AccountStrategy {
     regimeGateEnabled: Boolean(s.regimeGateEnabled),
     allowedTrendRegimes: s.allowedTrendRegimes ?? null,
     allowedVolatilityRegimes: s.allowedVolatilityRegimes ?? null,
-    // V62 — kill-switch / correlation / concurrent-cap toggles. Default false
-    // matches the backend backfill so pre-V62 cached responses map to
-    // "gate off" without surprises.
+
     killSwitchGateEnabled: Boolean(s.killSwitchGateEnabled),
     correlationGateEnabled: Boolean(s.correlationGateEnabled),
     concurrentCapGateEnabled: Boolean(s.concurrentCapGateEnabled),
@@ -59,8 +57,7 @@ export function mapAccountStrategy(s: BackendAccountStrategy): AccountStrategy {
     kellyMaxFraction: toNum(s.kellyMaxFraction) || 0.25,
     useRiskBasedSizing: Boolean(s.useRiskBasedSizing),
     riskPct: toNum(s.riskPct) || 0.05,
-    // V54 — visibility + ownership decoration. Default to PRIVATE/owned/"You"
-    // for pre-V54 cached responses so mapping never produces undefined.
+
     visibility: s.visibility === 'PUBLIC' ? 'PUBLIC' : 'PRIVATE',
     ownedByCurrentUser: s.ownedByCurrentUser ?? true,
     ownerLabel: s.ownerLabel ?? 'You',

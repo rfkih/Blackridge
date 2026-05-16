@@ -44,8 +44,6 @@ export function AccountSwitcher() {
     return <Skeleton className="h-7 w-32" />;
   }
 
-  // Empty state is now an actionable CTA — clicking the "Connect" pill opens
-  // the new-account dialog right there in the top bar.
   if (accounts.length === 0) {
     return (
       <>
@@ -70,7 +68,6 @@ export function AccountSwitcher() {
 
   const hasMultiple = accounts.length > 1;
 
-  // Trigger button content — mirrors current selection
   let triggerLabel: string;
   let triggerSubtle: string;
   if (isAll) {
@@ -146,10 +143,7 @@ export function AccountSwitcher() {
 
           <DropdownMenuSeparator />
           <DropdownMenuItem
-            // Radix closes the menu synchronously on select, which would race
-            // with the dialog's mount. `preventDefault` keeps the menu open
-            // just long enough for React to flush the dialog state update
-            // before we finally close both.
+
             onSelect={(event) => {
               event.preventDefault();
               setNewOpen(true);
@@ -173,9 +167,6 @@ export function AccountSwitcher() {
 }
 
 function AccountAvatar({ account, isAll }: { account: AccountSummary | null; isAll: boolean }) {
-  // bg-bg-base resolves to white in light mode → would be invisible
-  // against the white popover/card. Use bg-tint-profit (for "all") or
-  // bg-bg-hover (for the inactive avatar) so the tile is always visible.
   if (isAll) {
     return (
       <span className="flex size-5 shrink-0 items-center justify-center rounded-sm bg-tint-profit text-profit">

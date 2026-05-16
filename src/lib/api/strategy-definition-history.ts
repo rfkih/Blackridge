@@ -1,6 +1,4 @@
-// Read-only client for /api/v1/strategy-definition-history on the trading
-// JVM. Backed by the strategy_definition_history table (V18). Writes are
-// owned by StrategyDefinitionHistoryService — the UI is forensic only.
+
 import { apiClient } from './client';
 import type { PageEnvelope } from '@/types/api';
 
