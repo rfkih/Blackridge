@@ -19,8 +19,8 @@
 | Backtest annotated chart overlay spec | `docs/agent-context/BACKTEST_CHART_OVERLAY.md` |
 | Component patterns, state mgmt, coding rules, server-side list rule, perf | `docs/agent-context/CONVENTIONS.md` |
 | Backend full contract | `API_CONTRACT.md`, `SECURITY_REVIEW.md` |
-| Trading JVM context (cross-repo) | `../blackheart/CLAUDE.md` |
-| Research orchestrator (cross-repo) | `../research-orchestrator/CLAUDE.md` |
+| Trading JVM context (cross-repo) | `../blackheart-trading-engine/CLAUDE.md` |
+| Research orchestrator (cross-repo) | `../blackheart-research-orchestrator/CLAUDE.md` |
 
 ## Tech stack
 
