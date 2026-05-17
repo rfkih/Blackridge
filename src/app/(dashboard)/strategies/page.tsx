@@ -1,13 +1,12 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { formatDistanceToNow } from 'date-fns';
 import {
   ArrowUpRight,
   ArrowDownRight,
   ChevronRight,
-  Check,
   Copy,
   GripVertical,
   Loader2,
@@ -23,6 +22,8 @@ import { NewStrategyDialog } from '@/components/strategy/NewStrategyDialog';
 import { DeleteStrategyDialog } from '@/components/strategy/DeleteStrategyDialog';
 import { CloneStrategyDialog } from '@/components/strategy/CloneStrategyDialog';
 import { RearmKillSwitchDialog } from '@/components/strategy/RearmKillSwitchDialog';
+import { SwitchToLiveDialog } from '@/components/strategy/SwitchToLiveDialog';
+import { StartStrategyMenu, SwitchModeButton } from '@/components/strategy/StrategyModeControls';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   Select,
@@ -41,6 +42,7 @@ import {
   useUpdateStrategyInterval,
   useUpdateStrategyPriority,
 } from '@/hooks/useStrategies';
+import { useAccountStrategyPromote } from '@/hooks/useStrategyPromotion';
 import { useActiveAccount, useUpdateAccountRiskConfig } from '@/hooks/useAccounts';
 import { normalizeError } from '@/lib/api/client';
 import { toast } from '@/hooks/useToast';
@@ -91,10 +93,15 @@ function StrategyCard({
   onDeactivate,
   onIntervalChange,
   onRearm,
+  onStartAsPaper,
+  onStartAsLive,
+  onSwitchToPaper,
+  onSwitchToLive,
   isActivating,
   isDeactivating,
   isUpdatingInterval,
   isRearming,
+  isPromoting,
   isDragging,
   isDragOver,
   onDragStart,
@@ -113,10 +120,15 @@ function StrategyCard({
   onDeactivate: (s: AccountStrategy) => void;
   onIntervalChange: (s: AccountStrategy, intervalName: string) => void;
   onRearm: (s: AccountStrategy) => void;
+  onStartAsPaper: (s: AccountStrategy) => void;
+  onStartAsLive: (s: AccountStrategy) => void;
+  onSwitchToPaper: (s: AccountStrategy) => void;
+  onSwitchToLive: (s: AccountStrategy) => void;
   isActivating: boolean;
   isDeactivating: boolean;
   isUpdatingInterval: boolean;
   isRearming: boolean;
+  isPromoting: boolean;
   isDragging: boolean;
   isDragOver: boolean;
   onDragStart: () => void;
@@ -136,6 +148,7 @@ function StrategyCard({
       draggable={!isReadOnlyPublic}
       onDragStart={(e) => {
         if (isReadOnlyPublic) return;
+        // eslint-disable-next-line no-param-reassign
         e.dataTransfer.effectAllowed = 'move';
         e.dataTransfer.setData('text/plain', strategy.id);
         onDragStart();
@@ -374,35 +387,35 @@ function StrategyCard({
         <KillSwitchPanel strategy={strategy} onRearm={onRearm} isRearming={isRearming} />
       )}
 
-      {groupHasOtherPreset && !isReadOnlyPublic && (
-        <div className="-mt-2 flex items-center justify-between border-t border-[var(--border-subtle)] pt-3">
+      {!isReadOnlyPublic && (
+        <div className="-mt-2 flex items-center justify-between gap-3 border-t border-[var(--border-subtle)] pt-3">
           {isRunning ? (
             <span
               className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.14em]"
               style={{ color: isPaper ? 'var(--color-warning)' : 'var(--accent-primary)' }}
             >
               <Radio size={10} className={isLive ? 'animate-pulse' : ''} />
-              {isPaper ? 'Active preset · paper' : 'Active preset'}
+              {groupHasOtherPreset ? 'Active preset' : 'Running'} · {isPaper ? 'paper' : 'live'}
             </span>
           ) : (
             <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--text-muted)]">
               Inactive
             </span>
           )}
-          {!isRunning && (
-            <button
-              type="button"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                onActivate(strategy);
-              }}
-              disabled={isActivating}
-              className="inline-flex items-center gap-1 rounded-md border border-[var(--border-default)] bg-[var(--bg-elevated)] px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--text-primary)] transition-colors hover:border-[var(--accent-primary)] hover:text-[var(--accent-primary)] disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {isActivating ? <Loader2 size={10} className="animate-spin" /> : <Check size={10} />}
-              {isActivating ? 'Activating…' : 'Activate'}
-            </button>
+          {isRunning ? (
+            <SwitchModeButton
+              strategy={strategy}
+              onSwitchToPaper={onSwitchToPaper}
+              onSwitchToLive={onSwitchToLive}
+              isPending={isActivating || isPromoting}
+            />
+          ) : (
+            <StartStrategyMenu
+              strategy={strategy}
+              onStartAsPaper={onStartAsPaper}
+              onStartAsLive={onStartAsLive}
+              isPending={isActivating || isPromoting}
+            />
           )}
         </div>
       )}
@@ -751,10 +764,15 @@ function IntervalGroupSortable({
   onIntervalChange,
   onRearm,
   onReorder,
+  onStartAsPaper,
+  onStartAsLive,
+  onSwitchToPaper,
+  onSwitchToLive,
   activatingId,
   deactivatingId,
   updatingIntervalId,
   rearmingId,
+  promotingId,
 }: {
   interval: string;
   strategies: AccountStrategy[];
@@ -766,10 +784,15 @@ function IntervalGroupSortable({
   onIntervalChange: (s: AccountStrategy, intervalName: string) => void;
   onRearm: (s: AccountStrategy) => void;
   onReorder: (sourceId: string, targetId: string, ordered: AccountStrategy[]) => void;
+  onStartAsPaper: (s: AccountStrategy) => void;
+  onStartAsLive: (s: AccountStrategy) => void;
+  onSwitchToPaper: (s: AccountStrategy) => void;
+  onSwitchToLive: (s: AccountStrategy) => void;
   activatingId: string | undefined;
   deactivatingId: string | undefined;
   updatingIntervalId: string | undefined;
   rearmingId: string | undefined;
+  promotingId: string | undefined;
 }) {
   const [draggedId, setDraggedId] = useState<string | null>(null);
   const [dragOverId, setDragOverId] = useState<string | null>(null);
@@ -813,10 +836,15 @@ function IntervalGroupSortable({
             onDeactivate={onDeactivate}
             onIntervalChange={onIntervalChange}
             onRearm={onRearm}
+            onStartAsPaper={onStartAsPaper}
+            onStartAsLive={onStartAsLive}
+            onSwitchToPaper={onSwitchToPaper}
+            onSwitchToLive={onSwitchToLive}
             isActivating={activatingId === s.id}
             isDeactivating={deactivatingId === s.id}
             isUpdatingInterval={updatingIntervalId === s.id}
             isRearming={rearmingId === s.id}
+            isPromoting={promotingId === s.id}
             isDragging={draggedId === s.id}
             isDragOver={dragOverId === s.id}
             onDragStart={() => setDraggedId(s.id)}
@@ -826,6 +854,7 @@ function IntervalGroupSortable({
             }}
             onDragOver={(e) => {
               e.preventDefault();
+              // eslint-disable-next-line no-param-reassign
               e.dataTransfer.dropEffect = 'move';
               if (draggedId && draggedId !== s.id) setDragOverId(s.id);
             }}
@@ -909,10 +938,15 @@ function PublicStrategiesSection({
                     onDeactivate={noop}
                     onIntervalChange={noop}
                     onRearm={noop}
+                    onStartAsPaper={noop}
+                    onStartAsLive={noop}
+                    onSwitchToPaper={noop}
+                    onSwitchToLive={noop}
                     isActivating={false}
                     isDeactivating={false}
                     isUpdatingInterval={false}
                     isRearming={false}
+                    isPromoting={false}
                     isDragging={false}
                     isDragOver={false}
                     onDragStart={noop}
@@ -953,11 +987,16 @@ export default function StrategiesPage() {
   const [deleteTarget, setDeleteTarget] = useState<AccountStrategy | null>(null);
   const [cloneTarget, setCloneTarget] = useState<AccountStrategy | null>(null);
   const [rearmTarget, setRearmTarget] = useState<AccountStrategy | null>(null);
+  const [liveConfirmTarget, setLiveConfirmTarget] = useState<{
+    strategy: AccountStrategy;
+    fromStopped: boolean;
+  } | null>(null);
   const activateMutation = useActivateStrategy();
   const deactivateMutation = useDeactivateStrategy();
   const intervalMutation = useUpdateStrategyInterval();
   const priorityMutation = useUpdateStrategyPriority();
   const rearmMutation = useRearmKillSwitch();
+  const promoteMutation = useAccountStrategyPromote();
   const riskConfigMutation = useUpdateAccountRiskConfig();
 
   const ownedStrategies = scopedAccountId
@@ -985,6 +1024,72 @@ export default function StrategiesPage() {
       onError: (err) => {
         toast.error({
           title: 'Could not activate preset',
+          description: normalizeError(err),
+        });
+      },
+    });
+  };
+
+  const handleStartAsPaper = (strategy: AccountStrategy) => {
+    promoteMutation.mutate(
+      {
+        accountStrategyId: strategy.id,
+        toState: 'PAPER_TRADE',
+        reason: 'Operator started in paper mode from the strategies list',
+      },
+      {
+        onSuccess: () => {
+          toast.success({
+            title: `Started "${strategy.presetName}" in paper mode`,
+            description: 'Decisions divert to paper_trade_run — no Binance orders.',
+          });
+        },
+        onError: (err) => {
+          toast.error({
+            title: 'Could not start in paper mode',
+            description: normalizeError(err),
+          });
+        },
+      },
+    );
+  };
+
+  const handleSwitchToPaper = (strategy: AccountStrategy) => {
+    promoteMutation.mutate(
+      {
+        accountStrategyId: strategy.id,
+        toState: 'PAPER_TRADE',
+        reason: 'Operator demoted to paper from the strategies list',
+      },
+      {
+        onSuccess: () => {
+          toast.success({
+            title: `Switched "${strategy.presetName}" to paper`,
+            description: 'Open positions still close real; new entries divert to paper.',
+          });
+        },
+        onError: (err) => {
+          toast.error({
+            title: 'Could not switch to paper',
+            description: normalizeError(err),
+          });
+        },
+      },
+    );
+  };
+
+  const confirmSwitchToLive = (strategy: AccountStrategy) => {
+    activateMutation.mutate(strategy.id, {
+      onSuccess: (s) => {
+        toast.success({
+          title: `"${s.presetName}" is LIVE`,
+          description: `${s.strategyCode} · ${s.symbol} ${s.interval} — real orders fire on next bar close.`,
+        });
+        setLiveConfirmTarget(null);
+      },
+      onError: (err) => {
+        toast.error({
+          title: 'Could not switch to LIVE',
           description: normalizeError(err),
         });
       },
@@ -1234,6 +1339,10 @@ export default function StrategiesPage() {
               onIntervalChange={handleIntervalChange}
               onRearm={setRearmTarget}
               onReorder={handleReorder}
+              onStartAsPaper={handleStartAsPaper}
+              onStartAsLive={(s) => setLiveConfirmTarget({ strategy: s, fromStopped: true })}
+              onSwitchToPaper={handleSwitchToPaper}
+              onSwitchToLive={(s) => setLiveConfirmTarget({ strategy: s, fromStopped: false })}
               activatingId={activateMutation.isPending ? activateMutation.variables : undefined}
               deactivatingId={
                 deactivateMutation.isPending ? deactivateMutation.variables : undefined
@@ -1242,6 +1351,9 @@ export default function StrategiesPage() {
                 intervalMutation.isPending ? intervalMutation.variables?.id : undefined
               }
               rearmingId={rearmMutation.isPending ? rearmMutation.variables : undefined}
+              promotingId={
+                promoteMutation.isPending ? promoteMutation.variables?.accountStrategyId : undefined
+              }
             />
           )}
           {publicStrategies.length > 0 && (
@@ -1283,6 +1395,27 @@ export default function StrategiesPage() {
         isRearming={rearmMutation.isPending && rearmMutation.variables === rearmTarget?.id}
         onConfirm={handleRearmConfirmed}
       />
+      <SwitchToLiveDialog
+        open={Boolean(liveConfirmTarget)}
+        onOpenChange={(open) => {
+          if (
+            !open &&
+            !(
+              activateMutation.isPending &&
+              activateMutation.variables === liveConfirmTarget?.strategy.id
+            )
+          ) {
+            setLiveConfirmTarget(null);
+          }
+        }}
+        strategy={liveConfirmTarget?.strategy ?? null}
+        fromStopped={liveConfirmTarget?.fromStopped ?? false}
+        isPending={
+          activateMutation.isPending &&
+          activateMutation.variables === liveConfirmTarget?.strategy.id
+        }
+        onConfirm={confirmSwitchToLive}
+      />
     </div>
   );
 }
@@ -1311,10 +1444,15 @@ function AccountsAndIntervalsView({
   onIntervalChange,
   onRearm,
   onReorder,
+  onStartAsPaper,
+  onStartAsLive,
+  onSwitchToPaper,
+  onSwitchToLive,
   activatingId,
   deactivatingId,
   updatingIntervalId,
   rearmingId,
+  promotingId,
 }: {
   accounts: AccountSummary[];
   strategies: AccountStrategy[];
@@ -1327,10 +1465,15 @@ function AccountsAndIntervalsView({
   onIntervalChange: (s: AccountStrategy, intervalName: string) => void;
   onRearm: (s: AccountStrategy) => void;
   onReorder: (sourceId: string, targetId: string, ordered: AccountStrategy[]) => void;
+  onStartAsPaper: (s: AccountStrategy) => void;
+  onStartAsLive: (s: AccountStrategy) => void;
+  onSwitchToPaper: (s: AccountStrategy) => void;
+  onSwitchToLive: (s: AccountStrategy) => void;
   activatingId: string | undefined;
   deactivatingId: string | undefined;
   updatingIntervalId: string | undefined;
   rearmingId: string | undefined;
+  promotingId: string | undefined;
 }) {
   const byAccount = new Map<string, AccountStrategy[]>();
   for (const s of strategies) {
@@ -1394,10 +1537,15 @@ function AccountsAndIntervalsView({
                   onIntervalChange={onIntervalChange}
                   onRearm={onRearm}
                   onReorder={onReorder}
+                  onStartAsPaper={onStartAsPaper}
+                  onStartAsLive={onStartAsLive}
+                  onSwitchToPaper={onSwitchToPaper}
+                  onSwitchToLive={onSwitchToLive}
                   activatingId={activatingId}
                   deactivatingId={deactivatingId}
                   updatingIntervalId={updatingIntervalId}
                   rearmingId={rearmingId}
+                  promotingId={promotingId}
                 />
               ))}
             </div>
