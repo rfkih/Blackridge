@@ -12,6 +12,7 @@ import { toast } from '@/hooks/useToast';
 import { normalizeError } from '@/lib/api/client';
 import type { AccountStrategy } from '@/types/strategy';
 import type { ParamRange, SweepSpec } from '@/types/research';
+import { SUPPORTED_SYMBOLS, DEFAULT_SYMBOL } from '@/lib/symbols';
 
 /**
  * Research-mode backtest wizard. Instead of picking a single value per
@@ -59,7 +60,7 @@ export default function ResearchPage() {
     (s) => activeDefCodes.has(s.strategyCode) && RESEARCHABLE_CODES.has(s.strategyCode),
   );
 
-  const [asset, setAsset] = useState('BTCUSDT');
+  const [asset, setAsset] = useState<string>(DEFAULT_SYMBOL);
   const [interval, setIntervalValue] = useState('1h');
   const [fromDate, setFromDate] = useState(ONE_YEAR_AGO);
   const [toDate, setToDate] = useState(TODAY);
@@ -212,16 +213,17 @@ export default function ResearchPage() {
       <section className="space-y-4 rounded-xl border border-bd-subtle bg-bg-surface p-5">
         <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
           <Field label="Asset">
-            <input
-              className="mm-input"
+            <select
+              className="mm-input font-mono"
               value={asset}
               onChange={(e) => setAsset(e.target.value)}
-              list="research-backtest-asset-options"
-            />
-            <datalist id="research-backtest-asset-options">
-              <option value="BTCUSDT" />
-              <option value="ETHUSDT" />
-            </datalist>
+            >
+              {SUPPORTED_SYMBOLS.map((s) => (
+                <option key={s} value={s}>
+                  {s}
+                </option>
+              ))}
+            </select>
           </Field>
           <Field label="Interval">
             <input

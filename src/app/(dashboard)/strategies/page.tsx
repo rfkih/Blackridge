@@ -207,38 +207,25 @@ function StrategyCard({
         className="flex flex-col gap-4"
       >
         {}
-        <div className="flex items-start justify-between gap-3 pr-8">
-          <div className="flex min-w-0 items-center gap-3">
-            <span
-              aria-hidden="true"
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl font-mono text-[15px] font-bold"
-              style={{
-                background: 'var(--accent-subtle)',
-                color: 'var(--brand-500)',
-              }}
-            >
-              {strategy.symbol.slice(0, 1)}
-            </span>
-            <div className="flex min-w-0 flex-col gap-1">
-              <div className="flex items-center gap-2">
-                <StrategyBadge code={strategy.strategyCode} size="sm" />
-                {isReadOnlyPublic && (
-                  <span
-                    className="bg-[var(--accent-primary)]/12 rounded-sm px-1.5 py-0.5 font-mono text-[9px] font-semibold uppercase tracking-[0.12em] text-[var(--accent-primary)]"
-                    title={`Owned by ${strategy.ownerLabel} — clone to edit or run`}
-                  >
-                    {strategy.ownerLabel}
-                  </span>
-                )}
-              </div>
-              <span
-                className="truncate text-[11px]"
-                style={{ color: 'var(--mm-ink-2)' }}
-                title={strategy.presetName}
-              >
-                {strategy.presetName}
-              </span>
+        <div className="flex items-start justify-between gap-3 pl-10 pr-8">
+          <div className="flex min-w-0 flex-col gap-1">
+            <div className="flex items-center gap-2">
+              <StrategyBadge code={strategy.strategyCode} size="sm" />
+              {isReadOnlyPublic && (
+                <span
+                  className="bg-[var(--accent-primary)]/12 rounded-sm px-1.5 py-0.5 font-mono text-[9px] font-semibold uppercase tracking-[0.12em] text-[var(--accent-primary)]"
+                  title={`Owned by ${strategy.ownerLabel} — clone to edit or run`}
+                >
+                  {strategy.ownerLabel}
+                </span>
+              )}
             </div>
+            <span
+              className="truncate text-[11px] text-[var(--text-secondary)]"
+              title={strategy.presetName}
+            >
+              {strategy.presetName}
+            </span>
           </div>
           {isReadOnlyPublic ? (
             <span
@@ -290,115 +277,77 @@ function StrategyCard({
 
         {}
         <div
-          className="grid grid-cols-3 gap-3"
-          style={{
-            paddingTop: 12,
-            borderTop: '1px solid var(--mm-hair)',
-          }}
+          className="grid grid-cols-2 gap-3 border-t pt-3"
+          style={{ borderColor: 'var(--mm-hair-2)' }}
         >
           <SizingStat strategy={strategy} />
           <div>
-            <div
-              style={{
-                fontSize: 10,
-                fontWeight: 600,
-                letterSpacing: '0.08em',
-                textTransform: 'uppercase',
-                color: 'var(--mm-ink-2)',
-              }}
-            >
+            <div className="font-mono text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--text-muted)]">
               Side
             </div>
-            <div
-              style={{
-                marginTop: 4,
-                display: 'flex',
-                alignItems: 'center',
-                gap: 4,
-              }}
-            >
+            <div className="mt-1 flex items-center gap-1">
               <DirectionPill direction="long" enabled={strategy.allowLong} />
               <DirectionPill direction="short" enabled={strategy.allowShort} />
-            </div>
-          </div>
-          <div>
-            <div
-              style={{
-                fontSize: 10,
-                fontWeight: 600,
-                letterSpacing: '0.08em',
-                textTransform: 'uppercase',
-                color: 'var(--mm-ink-2)',
-              }}
-            >
-              Priority
-            </div>
-            <div
-              className="mm-num"
-              style={{ fontSize: 16, color: 'var(--mm-ink-0)', marginTop: 2 }}
-            >
-              #{position}
             </div>
           </div>
         </div>
 
         {}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            paddingTop: 12,
-            borderTop: '1px solid var(--mm-hair)',
-          }}
-        >
-          <span
-            className="font-mono"
-            style={{
-              fontSize: 10,
-              letterSpacing: '0.04em',
-              color: 'var(--mm-ink-3)',
-            }}
+        {isReadOnlyPublic ? (
+          <div
+            className="flex items-center border-t pt-3"
+            style={{ borderColor: 'var(--mm-hair-2)' }}
           >
-            {isReadOnlyPublic ? 'Public preset' : 'Drag to reorder'}
-          </span>
-          {!isReadOnlyPublic && (
-            <span
-              className="flex items-center gap-1 text-xs transition-colors group-hover:text-[var(--accent-primary)]"
-              style={{ color: 'var(--mm-ink-1)', fontWeight: 600 }}
-            >
+            <span className="font-mono text-[10px] uppercase tracking-[0.04em] text-[var(--text-muted)]">
+              Public preset
+            </span>
+          </div>
+        ) : (
+          <div
+            className="flex items-center justify-end border-t pt-3"
+            style={{ borderColor: 'var(--mm-hair-2)' }}
+          >
+            <span className="flex items-center gap-1 text-xs font-semibold text-[var(--text-secondary)] transition-colors group-hover:text-[var(--accent-primary)]">
               Edit params
               <ChevronRight size={12} />
             </span>
-          )}
-        </div>
+          </div>
+        )}
       </CardBody>
 
       {}
-      <span
-        aria-hidden="true"
-        className="pointer-events-none absolute left-2 top-2 z-10 flex h-6 w-6 items-center justify-center rounded-md text-[var(--text-muted)] opacity-0 transition-opacity group-hover:opacity-80"
-        title="Drag to reorder"
-      >
-        <GripVertical size={14} />
-      </span>
+      {!isReadOnlyPublic && (
+        <span
+          aria-hidden="true"
+          className="pointer-events-none absolute left-2 top-2 z-10 inline-flex items-center gap-1 rounded-md border border-[var(--border-subtle)] bg-[var(--bg-elevated)] px-1.5 py-0.5 font-mono text-[10px] font-semibold tabular-nums text-[var(--text-secondary)] opacity-70 transition-opacity group-hover:opacity-100"
+          title="Drag to reorder — priority within this interval group"
+        >
+          <GripVertical size={10} />#{position}
+        </span>
+      )}
 
       {strategy.isKillSwitchTripped && (
         <KillSwitchPanel strategy={strategy} onRearm={onRearm} isRearming={isRearming} />
       )}
 
       {!isReadOnlyPublic && (
-        <div className="-mt-2 flex items-center justify-between gap-3 border-t border-[var(--border-subtle)] pt-3">
+        <div
+          className="-mt-2 flex items-center justify-between gap-3 border-t pt-3"
+          style={{ borderColor: 'var(--mm-hair-2)' }}
+        >
           {isRunning ? (
             <span
-              className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.14em]"
-              style={{ color: isPaper ? 'var(--color-warning)' : 'var(--accent-primary)' }}
+              className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 font-mono text-[11px] font-semibold uppercase tracking-[0.12em]"
+              style={{
+                color: isPaper ? 'var(--color-warning)' : 'var(--color-profit)',
+                backgroundColor: isPaper ? 'rgba(245,166,35,0.12)' : 'rgba(22,179,100,0.12)',
+              }}
             >
-              <Radio size={10} className={isLive ? 'animate-pulse' : ''} />
+              <Radio size={11} className={isLive ? 'animate-pulse' : ''} />
               {groupHasOtherPreset ? 'Active preset' : 'Running'} · {isPaper ? 'paper' : 'live'}
             </span>
           ) : (
-            <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--text-muted)]">
+            <span className="inline-flex items-center rounded-full bg-[var(--bg-elevated)] px-2.5 py-1 font-mono text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--text-muted)]">
               Inactive
             </span>
           )}
@@ -486,7 +435,7 @@ function SizingStat({ strategy }: { strategy: AccountStrategy }) {
           marginTop: 2,
           fontSize: 9,
           letterSpacing: '0.02em',
-          color: 'var(--mm-ink-3)',
+          color: 'var(--mm-ink-2)',
           whiteSpace: 'nowrap',
         }}
       >
@@ -1202,10 +1151,10 @@ export default function StrategiesPage() {
   };
 
   const headerSubtitle = isAll
-    ? `${showActiveOnly ? 'Active strategies' : 'All presets'} across ${accounts.length} account${accounts.length === 1 ? '' : 's'}. Each tuple can hold multiple presets — one active at a time.`
+    ? `${showActiveOnly ? 'Active strategies' : 'All presets'} across ${accounts.length} account${accounts.length === 1 ? '' : 's'}.`
     : activeAccount
-      ? `${showActiveOnly ? 'Active strategies' : 'All presets'} on ${activeAccount.label}. Switch accounts in the top bar to see others.`
-      : `${showActiveOnly ? 'Active strategies' : 'All presets'}. Click any card to edit its parameters.`;
+      ? `${showActiveOnly ? 'Active strategies' : 'All presets'} on ${activeAccount.label}.`
+      : `${showActiveOnly ? 'Active strategies' : 'All presets'}.`;
 
   const canCreate = accounts.some((a) => a.active);
 

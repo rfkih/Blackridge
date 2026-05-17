@@ -30,8 +30,7 @@ import { BACKTEST_MIN_NOTIONAL_USDT } from '@/lib/backtest/buildBacktestPayload'
 import { cn } from '@/lib/utils';
 import type { BacktestWizardConfig } from '@/types/backtest';
 import type { AccountStrategy } from '@/types/strategy';
-
-const COMMON_SYMBOLS = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'BNBUSDT', 'XRPUSDT', 'AVAXUSDT'];
+import { SUPPORTED_SYMBOLS, DEFAULT_SYMBOL } from '@/lib/symbols';
 
 /** Sentinel for the per-strategy interval Select's "use primary" option.
  *  Radix's Select.Item rejects value="" because that string is reserved
@@ -141,7 +140,7 @@ export function BacktestConfigForm() {
     [definitions],
   );
 
-  const [symbol, setSymbol] = useState<string>(savedConfig?.symbol ?? 'BTCUSDT');
+  const [symbol, setSymbol] = useState<string>(savedConfig?.symbol ?? DEFAULT_SYMBOL);
   const [interval, setInterval] = useState<string>(savedConfig?.interval ?? '1h');
   const [fromDate, setFromDate] = useState<string>(savedConfig?.fromDate ?? defaultFromDate());
   const [toDate, setToDate] = useState<string>(savedConfig?.toDate ?? defaultToDate());
@@ -521,20 +520,18 @@ const strategyOptionsByCode = useMemo(() => {
         <SectionHeader title="Market & Range" />
         <div className="grid grid-cols-1 gap-4 p-5 sm:grid-cols-2 lg:grid-cols-4">
           <Field label="Symbol" error={errors.symbol}>
-            <Input
-              value={symbol}
-              onChange={(e) => setSymbol(e.target.value.toUpperCase())}
-              className="h-9 font-mono"
-              list="bt-symbols"
-              placeholder="BTCUSDT"
-            />
-            <datalist id="bt-symbols">
-              {COMMON_SYMBOLS.map((s) => (
-
-                // eslint-disable-next-line jsx-a11y/control-has-associated-label
-                <option key={s} value={s} />
-              ))}
-            </datalist>
+            <Select value={symbol} onValueChange={setSymbol}>
+              <SelectTrigger className="h-9 font-mono">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {SUPPORTED_SYMBOLS.map((s) => (
+                  <SelectItem key={s} value={s} className="font-mono">
+                    {s}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </Field>
 
           <Field

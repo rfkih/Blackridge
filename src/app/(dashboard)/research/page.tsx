@@ -89,6 +89,7 @@ import { toneColor, type Tone } from '@/lib/tones';
 import type { JvmTelemetrySnapshot, Jvm } from '@/lib/api/actuator';
 import type { AccountStrategy } from '@/types/strategy';
 import { RunningNowStrip } from '@/components/research/RunningNowStrip';
+import { SUPPORTED_SYMBOLS, DEFAULT_SYMBOL } from '@/lib/symbols';
 
 /**
  * /research dashboard — single admin-only page consolidating ops + research.
@@ -2090,7 +2091,7 @@ function ResearchLogPanel() {
           <input
             type="text"
             value={asset}
-            placeholder="BTCUSDT"
+            placeholder="e.g. BTCUSDT, ETHUSDT"
             onChange={(e) => setAsset(e.target.value)}
             aria-label="Filter research log by asset"
             className="w-24 rounded-sm border border-bd-subtle bg-bg-base px-2 py-1 font-mono text-[11px] text-text-primary"
@@ -2899,7 +2900,7 @@ function EnqueueSweepDialog({ open, onClose }: { open: boolean; onClose: () => v
   const enqueue = useEnqueueSweep();
   const [strategyCode, setStrategyCode] = useState('TPR');
   const [intervalName, setIntervalName] = useState<EnqueueSweepRequest['interval_name']>('1h');
-  const [instrument, setInstrument] = useState('BTCUSDT');
+  const [instrument, setInstrument] = useState<string>(DEFAULT_SYMBOL);
   const [hypothesis, setHypothesis] = useState('');
   const [iterBudget, setIterBudget] = useState(3);
   const [priority, setPriority] = useState(200);
@@ -3022,13 +3023,18 @@ function EnqueueSweepDialog({ open, onClose }: { open: boolean; onClose: () => v
               <span className="font-mono text-[10px] uppercase tracking-wider text-text-muted">
                 Instrument
               </span>
-              <input
+              <select
                 id="enqueue-instrument"
-                type="text"
                 value={instrument}
                 onChange={(e) => setInstrument(e.target.value)}
                 className="border-bd-default focus:border-accent-primary w-full rounded-sm border bg-bg-base px-2 py-1.5 font-mono text-[12px] text-text-primary focus:outline-none"
-              />
+              >
+                {SUPPORTED_SYMBOLS.map((s) => (
+                  <option key={s} value={s}>
+                    {s}
+                  </option>
+                ))}
+              </select>
             </label>
           </div>
 

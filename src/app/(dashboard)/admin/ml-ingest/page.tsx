@@ -32,6 +32,13 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Skeleton } from '@/components/ui/skeleton';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { useAuthHydrated } from '@/store/authStore';
 import { useIsAdmin } from '@/hooks/useIsAdmin';
 import {
@@ -52,6 +59,7 @@ import {
   type MlSourceHealth,
   type MlSourceHealthStatus,
 } from '@/types/mlIngest';
+import { SUPPORTED_SYMBOLS, DEFAULT_SYMBOL } from '@/lib/symbols';
 
 const SOURCE_ORDER: MlSource[] = [
   'fred',
@@ -450,7 +458,7 @@ function BackfillDialog({
   const symbolId = useId();
 
   const [{ start, end }, setRange] = useState(defaultBackfillRange);
-  const [symbol, setSymbol] = useState('BTCUSDT');
+  const [symbol, setSymbol] = useState<string>(DEFAULT_SYMBOL);
 
   const open = source !== null;
   const symbolRequired = source === 'binance_macro' || source === 'coinmetrics';
@@ -518,12 +526,18 @@ function BackfillDialog({
           {symbolRequired ? (
             <div>
               <Label htmlFor={symbolId}>Symbol</Label>
-              <Input
-                id={symbolId}
-                value={symbol}
-                onChange={(e) => setSymbol(e.target.value.toUpperCase())}
-                placeholder="BTCUSDT"
-              />
+              <Select value={symbol} onValueChange={setSymbol}>
+                <SelectTrigger id={symbolId} className="font-mono">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {SUPPORTED_SYMBOLS.map((s) => (
+                    <SelectItem key={s} value={s} className="font-mono">
+                      {s}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           ) : null}
 

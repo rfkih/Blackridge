@@ -20,6 +20,12 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { ALLOC_MAX_PCT, INTERVALS, strategyControlsRiskSizing } from '@/lib/constants';
+import {
+  SUPPORTED_SYMBOLS,
+  DEFAULT_SYMBOL,
+  hasSupportedStrategies,
+  isStrategySupportedForSymbol,
+} from '@/lib/symbols';
 import { normalizeError } from '@/lib/api/client';
 import { useCreateStrategy } from '@/hooks/useStrategies';
 import { useStrategyDefinitions } from '@/hooks/useStrategyDefinitions';
@@ -59,7 +65,7 @@ function initialState(defaultAccountId?: string): FormState {
 
     strategyCode: '',
     presetName: '',
-    symbol: 'BTCUSDT',
+    symbol: DEFAULT_SYMBOL,
     intervalName: '1h',
     allowLong: true,
     allowShort: false,
@@ -104,14 +110,30 @@ export function NewStrategyDialog({
     [strategyDefinitions],
   );
 
+  /**
+   * Per-symbol validation gate. A strategy is offered for selection only if
+   * its code is in {@link SUPPORTED_STRATEGIES_BY_SYMBOL} for the currently
+   * picked symbol. When the operator switches symbol mid-flow, the strategy
+   * field auto-clears if it falls out of the allowlist. ETH starts with an
+   * empty allowlist per the 2026-05-17 validation verdict.
+   */
+  const symbolHasStrategies = hasSupportedStrategies(form.symbol);
+  const validDefinitions = useMemo(
+    () => activeDefinitions.filter((d) => isStrategySupportedForSymbol(d.strategyCode, form.symbol)),
+    [activeDefinitions, form.symbol],
+  );
+
   useEffect(() => {
     if (!open) return;
-    if (activeDefinitions.length === 0) return;
-    const codeStillValid = activeDefinitions.some((d) => d.strategyCode === form.strategyCode);
-    if (!form.strategyCode || !codeStillValid) {
-      setForm((s) => ({ ...s, strategyCode: activeDefinitions[0].strategyCode }));
+    if (validDefinitions.length === 0) {
+      if (form.strategyCode) setForm((s) => ({ ...s, strategyCode: '' }));
+      return;
     }
-  }, [open, activeDefinitions, form.strategyCode]);
+    const codeStillValid = validDefinitions.some((d) => d.strategyCode === form.strategyCode);
+    if (!form.strategyCode || !codeStillValid) {
+      setForm((s) => ({ ...s, strategyCode: validDefinitions[0].strategyCode }));
+    }
+  }, [open, validDefinitions, form.strategyCode]);
 
   const riskSizingApplies = form.strategyCode
     ? strategyControlsRiskSizing(form.strategyCode)
@@ -127,6 +149,7 @@ export function NewStrategyDialog({
     Boolean(form.accountId) &&
     Boolean(form.strategyCode) &&
     form.symbol.trim().length >= 3 &&
+    isStrategySupportedForSymbol(form.strategyCode, form.symbol) &&
     Boolean(form.intervalName) &&
     Number(form.maxOpenPositions) >= 1 &&
     Number(form.capitalAllocationPct) > 0 &&
@@ -208,46 +231,23 @@ export function NewStrategyDialog({
 
           <div className="flex flex-col gap-1.5">
             <Label className="text-xs uppercase tracking-wider text-[var(--text-muted)]">
-              Strategy
+              Symbol
             </Label>
             <Select
-              value={form.strategyCode}
-              onValueChange={(v) => setForm((s) => ({ ...s, strategyCode: v }))}
-              disabled={isDefinitionsLoading || activeDefinitions.length === 0}
+              value={form.symbol}
+              onValueChange={(v) => setForm((s) => ({ ...s, symbol: v }))}
             >
-              <SelectTrigger>
-                <SelectValue
-                  placeholder={
-                    isDefinitionsLoading
-                      ? 'Loading strategies…'
-                      : activeDefinitions.length === 0
-                        ? 'No active strategies'
-                        : 'Select a strategy'
-                  }
-                />
+              <SelectTrigger className="font-mono">
+                <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {activeDefinitions.map((def) => (
-                  <SelectItem key={def.id || def.strategyCode} value={def.strategyCode}>
-                    <span className="flex flex-col">
-                      <span className="font-mono text-xs">{def.strategyCode}</span>
-                      {def.strategyName && def.strategyName !== def.strategyCode && (
-                        <span className="text-[10px] text-[var(--text-muted)]">
-                          {def.strategyName}
-                          {def.strategyType ? ` · ${def.strategyType}` : ''}
-                        </span>
-                      )}
-                    </span>
+                {SUPPORTED_SYMBOLS.map((s) => (
+                  <SelectItem key={s} value={s} className="font-mono">
+                    {s}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
-            {!isDefinitionsLoading && activeDefinitions.length === 0 && (
-              <p className="text-[10px] text-[var(--color-warning)]">
-                No ACTIVE strategy definitions exist. Ask an admin to register one via the strategy
-                catalogue before creating a preset.
-              </p>
-            )}
           </div>
 
           <div className="flex flex-col gap-1.5">
@@ -271,16 +271,64 @@ export function NewStrategyDialog({
             </Select>
           </div>
 
-          <div className="flex flex-col gap-1.5">
+          <div className="col-span-2 flex flex-col gap-1.5">
             <Label className="text-xs uppercase tracking-wider text-[var(--text-muted)]">
-              Symbol
+              Strategy
             </Label>
-            <Input
-              value={form.symbol}
-              onChange={(e) => setForm((s) => ({ ...s, symbol: e.target.value }))}
-              className="font-mono"
-              placeholder="BTCUSDT"
-            />
+            <Select
+              value={form.strategyCode}
+              onValueChange={(v) => setForm((s) => ({ ...s, strategyCode: v }))}
+              disabled={
+                isDefinitionsLoading ||
+                activeDefinitions.length === 0 ||
+                validDefinitions.length === 0
+              }
+            >
+              <SelectTrigger>
+                <SelectValue
+                  placeholder={
+                    isDefinitionsLoading
+                      ? 'Loading strategies…'
+                      : activeDefinitions.length === 0
+                        ? 'No active strategies'
+                        : validDefinitions.length === 0
+                          ? `No strategies validated for ${form.symbol} yet`
+                          : 'Select a strategy'
+                  }
+                />
+              </SelectTrigger>
+              <SelectContent>
+                {validDefinitions.map((def) => (
+                  <SelectItem key={def.id || def.strategyCode} value={def.strategyCode}>
+                    <span className="flex flex-col">
+                      <span className="font-mono text-xs">{def.strategyCode}</span>
+                      {def.strategyName && def.strategyName !== def.strategyCode && (
+                        <span className="text-[10px] text-[var(--text-muted)]">
+                          {def.strategyName}
+                          {def.strategyType ? ` · ${def.strategyType}` : ''}
+                        </span>
+                      )}
+                    </span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {!isDefinitionsLoading && activeDefinitions.length === 0 ? (
+              <p className="text-[10px] text-[var(--color-warning)]">
+                No ACTIVE strategy definitions exist. Ask an admin to register one via the strategy
+                catalogue before creating a preset.
+              </p>
+            ) : !symbolHasStrategies ? (
+              <p className="text-[10px] text-[var(--color-warning)]">
+                No strategies are validated for {form.symbol} yet. Run a backtest sweep and confirm
+                walk-forward gates before this symbol can host a live preset.
+              </p>
+            ) : validDefinitions.length === 0 ? (
+              <p className="text-[10px] text-[var(--color-warning)]">
+                None of the active strategies are validated for {form.symbol}. Validate one via /research
+                first, or pick a different symbol.
+              </p>
+            ) : null}
           </div>
 
           <div className="col-span-2 flex flex-col gap-1.5">

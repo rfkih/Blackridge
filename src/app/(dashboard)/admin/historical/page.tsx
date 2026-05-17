@@ -58,8 +58,7 @@ import {
   type JobStatus,
   type SubmitJobRequest,
 } from '@/lib/api/historical';
-
-const COMMON_SYMBOLS = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'BNBUSDT', 'XRPUSDT'];
+import { SUPPORTED_SYMBOLS, DEFAULT_SYMBOL } from '@/lib/symbols';
 
 type ActionKey = 'warmup' | 'rangeFill' | 'recompute' | 'fundingHistory' | `patch:${string}`;
 
@@ -105,7 +104,7 @@ export default function AdminHistoricalPage() {
 function HistoricalIntegrityConsole() {
   const defaults = useMemo(defaultDateRange, []);
 
-  const [symbol, setSymbol] = useState('BTCUSDT');
+  const [symbol, setSymbol] = useState<string>(DEFAULT_SYMBOL);
   const [interval, setIntervalValue] = useState<string>('1h');
   const [from, setFrom] = useState<string>(defaults.from);
   const [to, setTo] = useState<string>(defaults.to);
@@ -465,32 +464,18 @@ function ScopeCard(props: ScopeCardProps) {
             <Label htmlFor={symId} className="label-caps">
               Symbol
             </Label>
-            <div className="flex gap-2">
-              <Input
-                id={symId}
-                value={symbol}
-                onChange={(e) => setSymbol(e.target.value.toUpperCase())}
-                placeholder="BTCUSDT"
-                className="font-mono"
-                autoComplete="off"
-                spellCheck={false}
-              />
-              <Select
-                value={COMMON_SYMBOLS.includes(symbol) ? symbol : ''}
-                onValueChange={setSymbol}
-              >
-                <SelectTrigger className="w-[140px]">
-                  <SelectValue placeholder="Common…" />
-                </SelectTrigger>
-                <SelectContent>
-                  {COMMON_SYMBOLS.map((s) => (
-                    <SelectItem key={s} value={s}>
-                      {s}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            <Select value={symbol} onValueChange={setSymbol}>
+              <SelectTrigger id={symId} className="font-mono">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {SUPPORTED_SYMBOLS.map((s) => (
+                  <SelectItem key={s} value={s} className="font-mono">
+                    {s}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="space-y-1.5">
@@ -1164,7 +1149,7 @@ function BackfillCandleRangeCard({
 }: {
   onJobsSubmitted: (ids: string[]) => void;
 }) {
-  const [symbol, setSymbol] = useState('BTCUSDT');
+  const [symbol, setSymbol] = useState<string>(DEFAULT_SYMBOL);
   const [from, setFrom] = useState<string>('2020-01-01T00:00');
   const [to, setTo] = useState<string>(format(subYears(new Date(), 3), "yyyy-MM-dd'T'HH:mm"));
 
@@ -1244,28 +1229,18 @@ function BackfillCandleRangeCard({
       <div className="space-y-4 p-4">
         <div className="space-y-1.5">
           <Label className="label-caps">Symbol</Label>
-          <div className="flex gap-2">
-            <Input
-              value={symbol}
-              onChange={(e) => setSymbol(e.target.value.toUpperCase())}
-              placeholder="BTCUSDT"
-              className="font-mono"
-              autoComplete="off"
-              spellCheck={false}
-            />
-            <Select value={COMMON_SYMBOLS.includes(symbol) ? symbol : ''} onValueChange={setSymbol}>
-              <SelectTrigger className="w-[140px]">
-                <SelectValue placeholder="Common…" />
-              </SelectTrigger>
-              <SelectContent>
-                {COMMON_SYMBOLS.map((s) => (
-                  <SelectItem key={s} value={s}>
-                    {s}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          <Select value={symbol} onValueChange={setSymbol}>
+            <SelectTrigger className="font-mono">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {SUPPORTED_SYMBOLS.map((s) => (
+                <SelectItem key={s} value={s} className="font-mono">
+                  {s}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         <div className="grid grid-cols-2 gap-3">

@@ -44,6 +44,11 @@ const COLORS: Record<string, StrategyColor> = {
     bg: 'rgba(20, 184, 166, 0.12)',
     border: 'rgba(20, 184, 166, 0.3)',
   },
+  DCB: {
+    fg: '#06b6d4',
+    bg: 'rgba(6, 182, 212, 0.12)',
+    border: 'rgba(6, 182, 212, 0.3)',
+  },
 };
 
 const DEFAULT_COLOR: StrategyColor = {

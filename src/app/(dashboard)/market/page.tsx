@@ -17,6 +17,7 @@ import { REFETCH_INTERVALS } from '@/lib/charts/chartTheme';
 import type { CandlestickChartIndicators } from '@/components/charts/CandlestickChart';
 import type { CandleData, ChartInterval, IndicatorData } from '@/types/market';
 import { cn } from '@/lib/utils';
+import { DEFAULT_SYMBOL } from '@/lib/symbols';
 
 const CandlestickChart = nextDynamic(
   () => import('@/components/charts/CandlestickChart').then((m) => m.CandlestickChart),
@@ -42,7 +43,7 @@ function narrowInterval(raw: string | null): ChartInterval {
 
 function readFilters(params: URLSearchParams): MarketFilters {
   return {
-    symbol: (params.get('symbol') || 'BTCUSDT').toUpperCase(),
+    symbol: (params.get('symbol') || DEFAULT_SYMBOL).toUpperCase(),
     interval: narrowInterval(params.get('interval')),
   };
 }

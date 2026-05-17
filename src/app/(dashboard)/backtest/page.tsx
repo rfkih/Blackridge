@@ -424,7 +424,7 @@ function BacktestListContent() {
             type="text"
             value={filters.symbol}
             onChange={(e) => patchFilters({ symbol: e.target.value.toUpperCase() })}
-            placeholder="BTCUSDT"
+            placeholder="e.g. BTCUSDT, ETHUSDT"
             className="h-8 w-[120px] rounded-md border border-bd-subtle bg-bg-base px-2 font-mono text-[12px] uppercase text-text-primary placeholder:normal-case placeholder:text-[var(--text-muted)] focus:border-[var(--accent-primary)] focus:outline-none"
           />
         </div>

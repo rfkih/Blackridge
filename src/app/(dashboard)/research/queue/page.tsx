@@ -28,6 +28,7 @@ import type {
   ResearchQueueItem,
   ResearchQueueStatus,
 } from '@/types/research-queue';
+import { SUPPORTED_SYMBOLS, DEFAULT_SYMBOL } from '@/lib/symbols';
 
 /**
  * Admin-only research queue manager. Mirrors `queue-strategy.sh` so the
@@ -357,7 +358,7 @@ function NewQueueItemDialog({ onClose }: { onClose: () => void }) {
   const create = useCreateQueueItem();
   const [strategyCode, setStrategyCode] = useState('');
   const [intervalName, setIntervalName] = useState<string>('1h');
-  const [instrument, setInstrument] = useState('BTCUSDT');
+  const [instrument, setInstrument] = useState<string>(DEFAULT_SYMBOL);
   const [hypothesis, setHypothesis] = useState('');
   const [iterBudget, setIterBudget] = useState(4);
   const [priority, setPriority] = useState(100);
@@ -447,18 +448,17 @@ function NewQueueItemDialog({ onClose }: { onClose: () => void }) {
             </select>
           </Field>
           <Field label="Instrument">
-            <input
-              type="text"
+            <select
               value={instrument}
               onChange={(e) => setInstrument(e.target.value)}
-              placeholder="BTCUSDT"
-              list="research-instrument-options"
-              className="w-full rounded-sm border border-bd-subtle bg-bg-base px-2.5 py-1.5 font-mono text-[12px] uppercase text-text-primary placeholder:text-text-muted focus:border-[var(--accent-primary)] focus:outline-none"
-            />
-            <datalist id="research-instrument-options">
-              <option value="BTCUSDT" />
-              <option value="ETHUSDT" />
-            </datalist>
+              className="w-full rounded-sm border border-bd-subtle bg-bg-base px-2.5 py-1.5 font-mono text-[12px] uppercase text-text-primary focus:border-[var(--accent-primary)] focus:outline-none"
+            >
+              {SUPPORTED_SYMBOLS.map((s) => (
+                <option key={s} value={s}>
+                  {s}
+                </option>
+              ))}
+            </select>
           </Field>
           <Field label="Iter budget (1..64)">
             <input

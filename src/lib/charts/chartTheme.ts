@@ -46,22 +46,3 @@ export const INTERVAL_SECONDS: Record<string, number> = {
   '1d': 86_400,
 };
 
-export const POPULAR_SYMBOLS = [
-  'BTCUSDT',
-  'ETHUSDT',
-  'SOLUSDT',
-  'BNBUSDT',
-  'XRPUSDT',
-  'DOGEUSDT',
-  'ADAUSDT',
-] as const;
-
-export const BASE_PRICES: Record<string, number> = {
-  BTCUSDT: 63_000,
-  ETHUSDT: 3_100,
-  SOLUSDT: 145,
-  BNBUSDT: 580,
-  XRPUSDT: 0.52,
-  DOGEUSDT: 0.155,
-  ADAUSDT: 0.44,
-};
