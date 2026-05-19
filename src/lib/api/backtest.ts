@@ -159,6 +159,7 @@ function mapBacktestRun(b: BackendBacktestRun): BacktestRun {
     completedAt,
     errorMessage: b.errorMessage ?? null,
     paramSnapshot: mapParamSnapshot(b.paramSnapshot),
+    effectiveParamsSnapshot: mapParamSnapshot(b.effectiveParamsSnapshot),
     gitCommitSha: b.gitCommitSha ?? null,
     appVersion: b.appVersion ?? null,
     triggeredBy: b.triggeredBy === 'RESEARCHER' ? 'RESEARCHER' : 'USER',

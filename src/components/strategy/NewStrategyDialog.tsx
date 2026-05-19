@@ -29,6 +29,8 @@ import {
 import { normalizeError } from '@/lib/api/client';
 import { useCreateStrategy } from '@/hooks/useStrategies';
 import { useStrategyDefinitions } from '@/hooks/useStrategyDefinitions';
+import { useSymbolApprovals } from '@/hooks/useSymbolApprovals';
+import { useIsAdmin } from '@/hooks/useIsAdmin';
 import { toast } from '@/hooks/useToast';
 import type { AccountSummary } from '@/types/account';
 
@@ -89,6 +91,8 @@ export function NewStrategyDialog({
   const createMutation = useCreateStrategy();
   const { data: strategyDefinitions = [], isLoading: isDefinitionsLoading } =
     useStrategyDefinitions();
+  const { data: approvals = [], isLoading: isApprovalsLoading } = useSymbolApprovals();
+  const isAdmin = useIsAdmin();
 
   useEffect(() => {
     if (open) {
@@ -112,15 +116,16 @@ export function NewStrategyDialog({
 
   /**
    * Per-symbol validation gate. A strategy is offered for selection only if
-   * its code is in {@link SUPPORTED_STRATEGIES_BY_SYMBOL} for the currently
-   * picked symbol. When the operator switches symbol mid-flow, the strategy
-   * field auto-clears if it falls out of the allowlist. ETH starts with an
-   * empty allowlist per the 2026-05-17 validation verdict.
+   * the {@code (symbol, code)} pair has an active row in
+   * `symbol_strategy_approval`. Approvals are read at runtime via
+   * {@link useSymbolApprovals}; admins manage them in `/admin/strategies`.
+   * When the operator switches symbol mid-flow, the strategy field
+   * auto-clears if it falls out of the allowlist.
    */
-  const symbolHasStrategies = hasSupportedStrategies(form.symbol);
+  const symbolHasStrategies = hasSupportedStrategies(form.symbol, approvals);
   const validDefinitions = useMemo(
-    () => activeDefinitions.filter((d) => isStrategySupportedForSymbol(d.strategyCode, form.symbol)),
-    [activeDefinitions, form.symbol],
+    () => activeDefinitions.filter((d) => isStrategySupportedForSymbol(d.strategyCode, form.symbol, approvals)),
+    [activeDefinitions, form.symbol, approvals],
   );
 
   useEffect(() => {
@@ -149,7 +154,7 @@ export function NewStrategyDialog({
     Boolean(form.accountId) &&
     Boolean(form.strategyCode) &&
     form.symbol.trim().length >= 3 &&
-    isStrategySupportedForSymbol(form.strategyCode, form.symbol) &&
+    isStrategySupportedForSymbol(form.strategyCode, form.symbol, approvals) &&
     Boolean(form.intervalName) &&
     Number(form.maxOpenPositions) >= 1 &&
     Number(form.capitalAllocationPct) > 0 &&
@@ -318,10 +323,23 @@ export function NewStrategyDialog({
                 No ACTIVE strategy definitions exist. Ask an admin to register one via the strategy
                 catalogue before creating a preset.
               </p>
+            ) : isApprovalsLoading ? (
+              <p className="text-[10px] text-[var(--text-muted)]">Loading approvals…</p>
             ) : !symbolHasStrategies ? (
               <p className="text-[10px] text-[var(--color-warning)]">
                 No strategies are validated for {form.symbol} yet. Run a backtest sweep and confirm
                 walk-forward gates before this symbol can host a live preset.
+                {isAdmin && (
+                  <>
+                    {' '}
+                    <a
+                      href={`/admin/strategies?symbol=${form.symbol}#approvals`}
+                      className="underline underline-offset-2 hover:text-[var(--text-primary)]"
+                    >
+                      Manage approvals →
+                    </a>
+                  </>
+                )}
               </p>
             ) : validDefinitions.length === 0 ? (
               <p className="text-[10px] text-[var(--color-warning)]">

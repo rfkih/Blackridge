@@ -611,10 +611,16 @@ function ReproducibilityPanel({ run }: { run: BacktestRun }) {
   const sha = run.gitCommitSha ?? '—';
   const shortSha = sha !== '—' && sha !== 'unknown' ? sha.slice(0, 12) : sha;
   const version = run.appVersion ?? '—';
-  const snapshotEntries = run.paramSnapshot
+  const overrideEntries = run.paramSnapshot
     ? Object.entries(run.paramSnapshot).filter(([, kv]) => kv && Object.keys(kv).length > 0)
     : [];
-  const overrideCount = snapshotEntries.reduce((acc, [, kv]) => acc + Object.keys(kv).length, 0);
+  const overrideCount = overrideEntries.reduce((acc, [, kv]) => acc + Object.keys(kv).length, 0);
+  const effectiveEntries = run.effectiveParamsSnapshot
+    ? Object.entries(run.effectiveParamsSnapshot).filter(
+        ([, kv]) => kv && Object.keys(kv).length > 0,
+      )
+    : [];
+  const effectiveCount = effectiveEntries.reduce((acc, [, kv]) => acc + Object.keys(kv).length, 0);
 
   return (
     <section className="rounded-xl border border-bd-subtle bg-bg-surface shadow-panel">
@@ -645,33 +651,57 @@ function ReproducibilityPanel({ run }: { run: BacktestRun }) {
           )}
         </ManifestField>
       </dl>
-      {snapshotEntries.length > 0 && (
+      {overrideEntries.length > 0 && (
         <div className="border-t border-bd-subtle px-4 py-3">
           <p className="mb-2 font-mono text-[9px] uppercase tracking-wider text-text-muted">
-            Override values
+            Override values <span className="text-text-muted/70 ml-1 normal-case">(deltas vs defaults)</span>
           </p>
-          <div className="space-y-3">
-            {snapshotEntries.map(([code, kv]) => (
-              <div key={code}>
-                <p className="font-mono text-[11px] font-semibold text-text-primary">{code}</p>
-                <table className="mt-1 w-full font-mono text-[11px]">
-                  <tbody>
-                    {Object.entries(kv).map(([k, v]) => (
-                      <tr key={k} className="border-bd-subtle/60 border-t">
-                        <td className="py-1 pr-3 text-text-secondary">{k}</td>
-                        <td className="py-1 tabular-nums text-text-primary">
-                          {formatOverrideValue(v)}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            ))}
-          </div>
+          <ParamSnapshotTables entries={overrideEntries} />
         </div>
       )}
+      {effectiveEntries.length > 0 && (
+        <details className="border-t border-bd-subtle px-4 py-3">
+          <summary className="cursor-pointer select-none font-mono text-[9px] uppercase tracking-wider text-text-muted">
+            Effective params{' '}
+            <span className="text-text-muted/70 normal-case">
+              ({effectiveCount} key{effectiveCount === 1 ? '' : 's'}, defaults + overrides — what
+              activation replays)
+            </span>
+          </summary>
+          <div className="mt-2">
+            <ParamSnapshotTables entries={effectiveEntries} />
+          </div>
+        </details>
+      )}
     </section>
+  );
+}
+
+function ParamSnapshotTables({
+  entries,
+}: {
+  entries: Array<[string, Record<string, unknown>]>;
+}) {
+  return (
+    <div className="space-y-3">
+      {entries.map(([code, kv]) => (
+        <div key={code}>
+          <p className="font-mono text-[11px] font-semibold text-text-primary">{code}</p>
+          <table className="mt-1 w-full font-mono text-[11px]">
+            <tbody>
+              {Object.entries(kv).map(([k, v]) => (
+                <tr key={k} className="border-bd-subtle/60 border-t">
+                  <td className="py-1 pr-3 text-text-secondary">{k}</td>
+                  <td className="py-1 tabular-nums text-text-primary">
+                    {formatOverrideValue(v)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ))}
+    </div>
   );
 }
 

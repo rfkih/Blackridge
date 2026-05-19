@@ -75,12 +75,16 @@ export function BacktestActivateStrategyDialog({ run, open, onClose }: Props) {
 
   const matchingStrategies = useMemo(() => {
     if (!strategiesQ.data || !selectedCode) return [];
+    const runSymbol = run.symbol.toUpperCase();
+    const runInterval = run.interval;
     return strategiesQ.data.filter(
       (s) =>
         s.ownedByCurrentUser &&
-        s.strategyCode.toUpperCase() === selectedCode.toUpperCase(),
+        s.strategyCode.toUpperCase() === selectedCode.toUpperCase() &&
+        s.symbol.toUpperCase() === runSymbol &&
+        s.interval === runInterval,
     );
-  }, [strategiesQ.data, selectedCode]);
+  }, [strategiesQ.data, selectedCode, run.symbol, run.interval]);
 
   const selectedStrategy = useMemo(
     () => matchingStrategies.find((s) => s.id === selectedStrategyId) ?? null,
@@ -293,7 +297,7 @@ function ConfigureStep({
           <div className="flex items-start gap-2 rounded-sm border border-bd-subtle bg-tint-warning px-3 py-2 text-[11px] text-warning">
             <AlertTriangle size={12} className="mt-0.5 shrink-0" />
             <span>
-              No {selectedCode} strategy found in your account.{' '}
+              No {selectedCode} strategy found in your account for {run.symbol} · {run.interval}.{' '}
               <button
                 type="button"
                 onClick={() => window.open('/strategies', '_blank')}

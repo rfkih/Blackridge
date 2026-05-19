@@ -63,55 +63,47 @@ export function isSupportedSymbol(s: string): s is SupportedSymbol {
 }
 
 /**
- * Validated strategies per symbol. A strategy code only appears in this map
- * after its defaults have been validated for that symbol (out-of-sample
- * walk-forward + V11/V60 gates passing on backtest history). Listed here →
- * selectable in /strategies "New Strategy" flow; absent → blocked.
+ * Validated strategies per symbol — now sourced from the backend
+ * `symbol_strategy_approval` table (V102+). The static
+ * `SUPPORTED_STRATEGIES_BY_SYMBOL` constant was removed: approvals are
+ * managed via `/admin/strategies` (the symbol-approvals section embedded
+ * there) and read at runtime via {@link useSymbolApprovals}.
  *
- * <h3>Why frontend-only?</h3>
+ * <p>Pickers must fetch the approval list themselves and pass it to these
+ * helpers. The functions are pure; they don't hit the query cache directly,
+ * which keeps them SSR-safe and trivially unit-testable.
  *
- * The backend has no per-symbol defaults table — defaults are hardcoded in
- * Java and apply to every symbol. This map is the operator's *intent*
- * (which symbols a strategy is approved-to-run on) layered on top. Backtest
- * and research pages do NOT consult this map — that's where validation
- * happens, and gating it would create a chicken-and-egg trap.
- *
- * <h3>Adding ETHUSDT support for a strategy</h3>
- *
- * 1. Validate via /research sweeps on ETH history.
- * 2. Confirm V11+V60 gates pass.
- * 3. Add the strategy code to {@link SUPPORTED_STRATEGIES_BY_SYMBOL.ETHUSDT}.
- *
- * Per the 2026-05-17 ETH validation verdict, LSR/VCB/VBO all FAILED on ETH
- * with BTC-tuned defaults — so ETH starts empty.
+ * <p>Adding a symbol/strategy pair: validate via /research sweeps + walk-
+ * forward, then approve via the admin UI (the backend gate enforces the
+ * per-symbol thresholds).
  */
-export const SUPPORTED_STRATEGIES_BY_SYMBOL: Record<SupportedSymbol, readonly string[]> = {
-    // Each code below has *realistic-capital backtest evidence* on BTCUSDT
-    // (≥$1k initial, ≥1yr window, ≥30 trades, every run positive). See
-    // memory/feedback_proven_profitable_only.md for the methodology and the
-    // counter-pattern (averaging tiny-capital parameter sweeps is misleading).
-    BTCUSDT: ['DCB', 'LSR', 'VBO', 'VCB'],
-    // 2026-05-17: ETH has zero validated codes — LSR/VCB/VBO failed V11+V60
-    // gates with BTC-tuned defaults; DCB hasn't been ETH-tested. Add codes
-    // here only after fresh ETH-tuned validation.
-    ETHUSDT: [],
-};
+
+/** Minimal shape required by the helpers — re-typed locally to avoid a
+ *  cycle with the `useSymbolApprovals` module. */
+interface ApprovalLike {
+    symbol: string;
+    strategyCode: string;
+}
 
 /**
  * Returns the validated strategy codes for a symbol. Unknown symbols return
  * an empty list (fail-closed: no rows can be created on a symbol the
- * frontend doesn't know about).
+ * approval table has no entries for).
  */
-export function getSupportedStrategies(symbol: string): readonly string[] {
-    return (SUPPORTED_STRATEGIES_BY_SYMBOL as Record<string, readonly string[]>)[symbol] ?? [];
+export function getSupportedStrategies(symbol: string, approvals: readonly ApprovalLike[]): string[] {
+    return approvals.filter((a) => a.symbol === symbol).map((a) => a.strategyCode);
 }
 
 /** True when at least one validated strategy exists for the symbol. */
-export function hasSupportedStrategies(symbol: string): boolean {
-    return getSupportedStrategies(symbol).length > 0;
+export function hasSupportedStrategies(symbol: string, approvals: readonly ApprovalLike[]): boolean {
+    return approvals.some((a) => a.symbol === symbol);
 }
 
 /** True when the strategy is validated for the symbol. */
-export function isStrategySupportedForSymbol(strategyCode: string, symbol: string): boolean {
-    return getSupportedStrategies(symbol).includes(strategyCode);
+export function isStrategySupportedForSymbol(
+    strategyCode: string,
+    symbol: string,
+    approvals: readonly ApprovalLike[],
+): boolean {
+    return approvals.some((a) => a.symbol === symbol && a.strategyCode === strategyCode);
 }

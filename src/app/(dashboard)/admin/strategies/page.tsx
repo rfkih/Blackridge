@@ -18,6 +18,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { Button } from '@/components/ui/button';
 import { StrategyDefinitionDialog } from '@/components/admin/StrategyDefinitionDialog';
+import { SymbolApprovalsSection } from '@/components/admin/symbol-approval/SymbolApprovalsSection';
 import {
   useDeprecateStrategyDefinition,
   useStrategyDefinitions,
@@ -186,6 +187,8 @@ export default function AdminStrategiesPage() {
         existing={editing}
         replicateFrom={replicating}
       />
+
+      <SymbolApprovalsSection />
     </div>
   );
 }

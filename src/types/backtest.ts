@@ -60,6 +60,10 @@ export interface BackendBacktestRun {
   createdAt?: ISO8601 | null;
   completedAt?: ISO8601 | null;
   paramSnapshot?: unknown;
+  /** V104 — full effective per-strategy params (defaults merged with
+   *  overrides) captured at submission. Same outer shape as paramSnapshot.
+   *  Null on legacy rows submitted before V104. */
+  effectiveParamsSnapshot?: unknown;
   /** Reproducibility manifest — git SHA + app version stamped at submit. */
   gitCommitSha?: string | null;
   appVersion?: string | null;
@@ -211,8 +215,16 @@ export interface BacktestRun {
   completedAt: ISO8601 | null;
   /** Non-null only on FAILED runs. */
   errorMessage: string | null;
-  /** JSONB param snapshot captured at submission — drives "Re-run with params". */
+  /** JSONB param snapshot captured at submission — drives "Re-run with params".
+   *  This is the *overrides only* (deltas vs defaults) view. Use
+   *  {@link effectiveParamsSnapshot} when you need the full effective tuning. */
   paramSnapshot: Record<string, Record<string, unknown>> | null;
+  /** V104 — Full per-strategy effective parameters (defaults merged with
+   *  overrides) captured at submission. The activation path writes these
+   *  verbatim into the new active preset, so the live runtime resolves to
+   *  exactly what the backtest used regardless of any subsequent code-default
+   *  drift. Null on rows submitted before V104. */
+  effectiveParamsSnapshot: Record<string, Record<string, unknown>> | null;
   /** Reproducibility manifest — together with paramSnapshot, asset, interval,
    *  fromDate, and toDate, these uniquely identify the run for replay. */
   gitCommitSha: string | null;
