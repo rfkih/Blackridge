@@ -9,6 +9,14 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { format } from 'date-fns';
 import { WizardBreadcrumb } from './WizardBreadcrumb';
 import { BacktestParamDiffBadge } from './BacktestParamDiffBadge';
@@ -40,6 +48,10 @@ import type { LsrParams, VboParams, VcbParams } from '@/types/strategy';
 const LSR_CODES = new Set(['LSR', 'LSR_V2']);
 const VCB_CODES = new Set(['VCB']);
 const VBO_CODES = new Set(['VBO']);
+
+/** Mirror of backend `app.backtest.limit.regular-user`. Keep in sync with
+ *  `application.properties` — the gate enforces this server-side regardless. */
+const BACKTEST_QUEUE_LIMIT = 3;
 
 function isLsr(code: string): boolean {
   return LSR_CODES.has(code);
@@ -183,7 +195,9 @@ export function BacktestParamTuner() {
 
   const createMutation = useCreateBacktestRun();
   const { count: activeBacktestCount, isLoading: activeCountLoading, firstActiveId } = useActiveBacktestCount();
-  const isAtLimit = activeBacktestCount > 0;
+  const isAtLimit = activeBacktestCount >= BACKTEST_QUEUE_LIMIT;
+  const hasQueued = activeBacktestCount > 0 && !isAtLimit;
+  const [confirmQueueOpen, setConfirmQueueOpen] = useState(false);
   const lsrSaveMutation = useReplaceLsrParams(
     isLsr(activeTab) ? config?.strategyAccountStrategyIds[activeTab] : undefined,
   );
@@ -227,17 +241,10 @@ export function BacktestParamTuner() {
       router.push(`/backtest/${run.id}`);
       resetWizard();
     } catch (err) {
-      const is429 =
-        err != null &&
-        typeof err === 'object' &&
-        (err as { response?: { status?: number } }).response?.status === 429;
-
-      if (!is429) {
-        toast.error({
-          title: 'Could not submit backtest',
-          description: normalizeError(err),
-        });
-      }
+      toast.error({
+        title: 'Could not submit backtest',
+        description: normalizeError(err),
+      });
     }
   }, [
     config,
@@ -255,16 +262,28 @@ export function BacktestParamTuner() {
     router,
   ]);
 
+  /** Gate the actual submit through a confirmation dialog when the user is
+   *  adding to a non-empty queue. Empty queue → submit straight away. At the
+   *  cap → do nothing (button is disabled, this is a belt-and-braces guard). */
+  const handleRunClick = useCallback(() => {
+    if (isAtLimit) return;
+    if (hasQueued) {
+      setConfirmQueueOpen(true);
+      return;
+    }
+    handleRun();
+  }, [isAtLimit, hasQueued, handleRun]);
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
         e.preventDefault();
-        handleRun();
+        handleRunClick();
       }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [handleRun]);
+  }, [handleRunClick]);
 
   if (!config) {
     return null;
@@ -410,12 +429,21 @@ export function BacktestParamTuner() {
 
       {}
       <footer className="flex flex-col gap-2 rounded-xl border border-bd-subtle bg-bg-surface px-4 py-3">
-        {isAtLimit && (
-          <div className="flex items-center justify-between gap-3 rounded-sm border border-[rgba(245,158,11,0.3)] bg-tint-warning px-3 py-2 text-[11px] text-warning">
+        {(hasQueued || isAtLimit) && (
+          <div
+            className={cn(
+              'flex items-center justify-between gap-3 rounded-sm border px-3 py-2 text-[11px]',
+              isAtLimit
+                ? 'border-[rgba(245,158,11,0.3)] bg-tint-warning text-warning'
+                : 'border-bd-subtle bg-bg-base text-text-secondary',
+            )}
+          >
             <div className="flex items-center gap-2">
               <Clock size={12} strokeWidth={2} className="shrink-0" />
               <span>
-                A backtest is already running or queued — submit is blocked until that slot frees up.
+                {isAtLimit
+                  ? `Queue full (${activeBacktestCount}/${BACKTEST_QUEUE_LIMIT}) — wait for one to finish before submitting.`
+                  : `${activeBacktestCount} of ${BACKTEST_QUEUE_LIMIT} queue slots used. New runs start after the current queue finishes.`}
               </span>
             </div>
             {firstActiveId && (
@@ -444,7 +472,7 @@ export function BacktestParamTuner() {
 
           <button
             type="button"
-            onClick={handleRun}
+            onClick={handleRunClick}
             disabled={createMutation.isPending || defaultsLoading || isAtLimit || activeCountLoading}
             className={cn(
               'inline-flex items-center gap-1.5 rounded-sm bg-profit px-4 py-2 text-[12px] font-semibold text-text-inverse',
@@ -463,6 +491,11 @@ export function BacktestParamTuner() {
                 <Loader2 size={14} strokeWidth={2} className="animate-spin" />
                 Checking…
               </>
+            ) : hasQueued ? (
+              <>
+                <Play size={13} strokeWidth={2} />
+                Add to Queue ({activeBacktestCount}/{BACKTEST_QUEUE_LIMIT})
+              </>
             ) : (
               <>
                 <Play size={13} strokeWidth={2} />
@@ -472,6 +505,64 @@ export function BacktestParamTuner() {
           </button>
         </div>
       </footer>
+
+      <Dialog open={confirmQueueOpen} onOpenChange={setConfirmQueueOpen}>
+        <DialogContent className="max-w-md border-[var(--border-default)] bg-[var(--bg-surface)] text-[var(--text-primary)]">
+          <DialogHeader>
+            <DialogTitle className="font-display text-lg">
+              Add to queue?
+            </DialogTitle>
+            <DialogDescription className="text-[var(--text-secondary)]">
+              You already have {activeBacktestCount} backtest
+              {activeBacktestCount === 1 ? '' : 's'} pending or running. This run
+              will start automatically after the current queue finishes. Queue
+              capacity is {BACKTEST_QUEUE_LIMIT}.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="rounded-md border border-[var(--border-subtle)] bg-[var(--bg-elevated)] p-3 text-xs">
+            <p className="font-mono">
+              <span className="text-[var(--text-muted)]">Symbol:</span>{' '}
+              <span className="text-[var(--text-primary)]">
+                {config?.symbol} · {config?.interval}
+              </span>
+            </p>
+            <p className="font-mono">
+              <span className="text-[var(--text-muted)]">Strategies:</span>{' '}
+              <span className="text-[var(--text-primary)]">
+                {strategyCodes.join(', ')}
+              </span>
+            </p>
+            <p className="font-mono">
+              <span className="text-[var(--text-muted)]">Queue position:</span>{' '}
+              <span className="text-[var(--text-primary)]">
+                #{activeBacktestCount + 1} of {BACKTEST_QUEUE_LIMIT}
+              </span>
+            </p>
+          </div>
+
+          <DialogFooter>
+            <button
+              type="button"
+              onClick={() => setConfirmQueueOpen(false)}
+              className="rounded-md border border-[var(--border-default)] bg-[var(--bg-elevated)] px-3 py-1.5 text-xs text-[var(--text-primary)] transition-colors hover:bg-[var(--bg-hover)]"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setConfirmQueueOpen(false);
+                handleRun();
+              }}
+              disabled={createMutation.isPending}
+              className="rounded-md bg-profit px-3 py-1.5 text-xs font-semibold text-text-inverse transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Add to queue
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

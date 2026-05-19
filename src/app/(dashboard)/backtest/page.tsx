@@ -27,6 +27,7 @@ import { cn } from '@/lib/utils';
 
 const STATUSES: Array<{ value: '' | BacktestStatus; label: string }> = [
   { value: '', label: 'All' },
+  { value: 'PENDING', label: 'Pending' },
   { value: 'RUNNING', label: 'Running' },
   { value: 'COMPLETED', label: 'Complete' },
   { value: 'FAILED', label: 'Failed' },
@@ -65,7 +66,7 @@ const SORTABLE_KEYS: BacktestSortKey[] = [
 
 function readFilters(params: URLSearchParams): Filters {
   const rawStatus = (params.get('status') ?? '').toUpperCase();
-  const status = ['RUNNING', 'COMPLETED', 'FAILED'].includes(rawStatus)
+  const status = ['PENDING', 'RUNNING', 'COMPLETED', 'FAILED'].includes(rawStatus)
     ? (rawStatus as BacktestStatus)
     : '';
   const rawSource = (params.get('source') ?? 'USER').toUpperCase();
@@ -245,6 +246,16 @@ function BacktestListContent() {
             {safeDateFmt(row.original.fromDate)}
             <span className="mx-1 text-text-muted">→</span>
             {safeDateFmt(row.original.toDate)}
+          </span>
+        ),
+      },
+      {
+        id: 'createdAt',
+        accessorKey: 'createdAt',
+        header: 'Run at',
+        cell: ({ row }) => (
+          <span className="num whitespace-nowrap text-[11px] text-text-secondary">
+            {safeDateTimeFmt(row.original.createdAt)}
           </span>
         ),
       },
@@ -446,23 +457,23 @@ function BacktestListContent() {
         </div>
 
         <div className="flex items-center gap-2 text-[11px] text-text-muted">
-          <span>From</span>
+          <span>Run from</span>
           <DatePicker
             id="backtest-list-from"
             value={filters.from}
             onChange={(v) => patchFilters({ from: v })}
-            placeholder="Created from"
+            placeholder="Run from"
             clearable
             className="h-8 px-2 text-[12px]"
           />
         </div>
         <div className="flex items-center gap-2 text-[11px] text-text-muted">
-          <span>To</span>
+          <span>Run to</span>
           <DatePicker
             id="backtest-list-to"
             value={filters.to}
             onChange={(v) => patchFilters({ to: v })}
-            placeholder="Created to"
+            placeholder="Run to"
             clearable
             className="h-8 px-2 text-[12px]"
           />
@@ -591,6 +602,13 @@ function safeDateFmt(value: string | null | undefined): string {
   const d = new Date(value);
   if (Number.isNaN(d.getTime())) return '—';
   return format(d, 'yyyy-MM-dd');
+}
+
+function safeDateTimeFmt(value: string | null | undefined): string {
+  if (!value) return '—';
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return '—';
+  return format(d, 'yyyy-MM-dd HH:mm');
 }
 
 interface StatusStyle {
