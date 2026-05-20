@@ -130,6 +130,10 @@ export interface BackendAccountStrategy {
   killSwitchGateEnabled?: boolean | null;
   correlationGateEnabled?: boolean | null;
   concurrentCapGateEnabled?: boolean | null;
+  /** V105 / Phase 3.5 — live order-placement mode.
+   *  `MARKET | LIMIT_MAKER | TWAP`. Older cached responses missing this field
+   *  are mapped to `MARKET` (the column default). */
+  executionStyle?: 'MARKET' | 'LIMIT_MAKER' | 'TWAP' | null;
   /** Kelly/bankroll sizing (V45) — PSR-discounted half-Kelly multiplier. */
   kellySizingEnabled?: boolean | null;
   kellyMaxFraction?: number | string | null;

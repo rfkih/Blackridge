@@ -69,8 +69,7 @@ export function EditAccountDialog({ account, open, onOpenChange }: EditAccountDi
   const dirty = trimmed !== account.label || exchange !== account.exchange;
   const canSubmit = !usernameError && dirty && !mutation.isPending;
 
-  const handleSubmit = (e?: React.FormEvent) => {
-    e?.preventDefault();
+  const handleSubmit = () => {
     setTouched(true);
     if (!canSubmit) return;
     setSubmitError(null);
@@ -115,7 +114,15 @@ export function EditAccountDialog({ account, open, onOpenChange }: EditAccountDi
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} noValidate className="grid grid-cols-2 gap-4">
+        <div
+          className="grid grid-cols-2 gap-4"
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+              e.preventDefault();
+              handleSubmit();
+            }
+          }}
+        >
           <div className="col-span-2 flex flex-col gap-1.5">
             <Label className="text-[10px] uppercase tracking-[0.18em] text-text-secondary">
               Label
@@ -181,7 +188,12 @@ export function EditAccountDialog({ account, open, onOpenChange }: EditAccountDi
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={!canSubmit} className="gap-2">
+            <Button
+              type="button"
+              onClick={handleSubmit}
+              disabled={!canSubmit}
+              className="gap-2"
+            >
               {mutation.isPending ? (
                 <>
                   <Loader2 size={14} className="animate-spin" /> Saving
@@ -191,7 +203,7 @@ export function EditAccountDialog({ account, open, onOpenChange }: EditAccountDi
               )}
             </Button>
           </DialogFooter>
-        </form>
+        </div>
       </DialogContent>
     </Dialog>
   );

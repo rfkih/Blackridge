@@ -179,7 +179,14 @@ export default function ForgotPasswordPage() {
             </Link>
           </div>
         ) : (
-          <form onSubmit={submit} noValidate>
+          <div
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                void submit();
+              }
+            }}
+          >
             <div style={{ marginBottom: 16 }}>
               <label htmlFor="email" style={FIELD_LABEL_STYLE}>
                 Email
@@ -219,7 +226,8 @@ export default function ForgotPasswordPage() {
             )}
 
             <button
-              type="submit"
+              type="button"
+              onClick={() => void submit()}
               disabled={isSubmitting}
               style={{
                 width: '100%',
@@ -263,7 +271,7 @@ export default function ForgotPasswordPage() {
             >
               <ArrowLeft size={12} /> Back to sign in
             </Link>
-          </form>
+          </div>
         )}
       </AuthCard>
     </AuthShell>

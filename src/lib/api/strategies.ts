@@ -53,6 +53,10 @@ export function mapAccountStrategy(s: BackendAccountStrategy): AccountStrategy {
     killSwitchGateEnabled: Boolean(s.killSwitchGateEnabled),
     correlationGateEnabled: Boolean(s.correlationGateEnabled),
     concurrentCapGateEnabled: Boolean(s.concurrentCapGateEnabled),
+    // V105 / Phase 3.5 — live order-placement mode. Backend default is MARKET
+    // for both legacy rows (pre-V105 backfill) and new rows. Coerce nullish
+    // back to MARKET so the UI never displays an empty cell for an old row.
+    executionStyle: (s.executionStyle as 'MARKET' | 'LIMIT_MAKER' | 'TWAP' | undefined) ?? 'MARKET',
     kellySizingEnabled: Boolean(s.kellySizingEnabled),
     kellyMaxFraction: toNum(s.kellyMaxFraction) || 0.25,
     useRiskBasedSizing: Boolean(s.useRiskBasedSizing),
@@ -172,6 +176,10 @@ export interface AccountStrategyPatch {
   correlationGateEnabled?: boolean;
   /** V62 — account-level concurrent-position cap gate. */
   concurrentCapGateEnabled?: boolean;
+  /** V105 / Phase 3.5 — live order-placement mode. Backend rejects 409 if
+   *  open trades exist (mid-position flip is unsafe). TWAP is reserved but
+   *  not wired into the live trade path; it falls through to MARKET. */
+  executionStyle?: 'MARKET' | 'LIMIT_MAKER' | 'TWAP';
 }
 
 export async function updateAccountStrategy(

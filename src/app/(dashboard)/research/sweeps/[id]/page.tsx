@@ -51,13 +51,13 @@ export default function SweepDetailPage({ params }: PageProps) {
   const rankedResults = useMemo(() => {
     const copy = [...filteredResults];
     copy.sort((a, b) => {
-      const av = (a as unknown as Record<string, unknown>)[sortKey as string];
-      const bv = (b as unknown as Record<string, unknown>)[sortKey as string];
+      const av: unknown = a[sortKey];
+      const bv: unknown = b[sortKey];
 
       if (typeof av === 'string' || typeof bv === 'string') {
-        const as = (av as string) ?? '';
-        const bs = (bv as string) ?? '';
-        return sortDir === 'asc' ? as.localeCompare(bs) : bs.localeCompare(as);
+        const asv = typeof av === 'string' ? av : '';
+        const bsv = typeof bv === 'string' ? bv : '';
+        return sortDir === 'asc' ? asv.localeCompare(bsv) : bsv.localeCompare(asv);
       }
       const aNum = typeof av === 'number' ? av : null;
       const bNum = typeof bv === 'number' ? bv : null;

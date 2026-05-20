@@ -65,6 +65,13 @@ function isVbo(code: string): boolean {
   return VBO_CODES.has(code);
 }
 
+/** Erase a typed param shape to a generic record so it can be iterated by key.
+ *  The narrowing back to specific shapes happens at the form layer via
+ *  `mergeParams` + the typed *ParamsForm components. */
+function toParamRecord(obj: object): Record<string, unknown> {
+  return obj as Record<string, unknown>;
+}
+
 function countDiff(
   defaults: Record<string, unknown> | undefined,
   overrides: Record<string, unknown> | undefined,
@@ -157,11 +164,9 @@ export function BacktestParamTuner() {
   const defaultsByCode = useMemo<Record<string, Record<string, unknown>>>(() => {
     const map: Record<string, Record<string, unknown>> = {};
     for (const code of strategyCodes) {
-      if (isLsr(code) && lsrDefaults) map[code] = lsrDefaults as unknown as Record<string, unknown>;
-      else if (isVcb(code) && vcbDefaults)
-        map[code] = vcbDefaults as unknown as Record<string, unknown>;
-      else if (isVbo(code) && vboDefaults)
-        map[code] = vboDefaults as unknown as Record<string, unknown>;
+      if (isLsr(code) && lsrDefaults) map[code] = toParamRecord(lsrDefaults);
+      else if (isVcb(code) && vcbDefaults) map[code] = toParamRecord(vcbDefaults);
+      else if (isVbo(code) && vboDefaults) map[code] = toParamRecord(vboDefaults);
       else if (specByCode[code]) map[code] = specByCode[code].params as Record<string, unknown>;
       else map[code] = {};
     }

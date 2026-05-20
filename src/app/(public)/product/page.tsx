@@ -282,12 +282,14 @@ function EquityChart({ data, height = 180 }: { data: number[]; height?: number }
   const pb = 24;
   const min = Math.min(...data) * 0.995;
   const max = Math.max(...data) * 1.005;
-  const xs = data.map((_, i) => pl + (i / (data.length - 1)) * (w - pl - pr));
-  const ys = data.map((v) => pt + (1 - (v - min) / (max - min)) * (h - pt - pb));
-  const path = data
-    .map((_, i) => `${i === 0 ? 'M' : 'L'} ${xs[i]!.toFixed(2)} ${ys[i]!.toFixed(2)}`)
+  const points = data.map((v, i) => ({
+    x: pl + (i / (data.length - 1)) * (w - pl - pr),
+    y: pt + (1 - (v - min) / (max - min)) * (h - pt - pb),
+  }));
+  const path = points
+    .map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x.toFixed(2)} ${p.y.toFixed(2)}`)
     .join(' ');
-  const lastX = xs[xs.length - 1]!;
+  const lastX = points[points.length - 1]?.x ?? pl;
   const area = `${path} L ${lastX.toFixed(2)} ${(h - pb).toFixed(2)} L ${pl} ${(h - pb).toFixed(2)} Z`;
   const yTicks = 4;
   const yLabels = Array.from({ length: yTicks }, (_, i) => {
@@ -319,7 +321,13 @@ function EquityChart({ data, height = 180 }: { data: number[]; height?: number }
       <path d={area} className="qp-chart-area" />
       <path d={path} className="qp-chart-line" />
       {xMarks.map((m) => (
-        <text key={m.label} x={xs[m.idx]} y={h - 8} textAnchor="middle" className="qp-chart-axis">
+        <text
+          key={m.label}
+          x={points[m.idx]?.x}
+          y={h - 8}
+          textAnchor="middle"
+          className="qp-chart-axis"
+        >
           {m.label}
         </text>
       ))}

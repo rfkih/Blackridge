@@ -136,35 +136,34 @@ export function useSearchSweeps(q: SweepsQuery) {
  * dedicated /defaults endpoints. Booleans / non-numeric values are filtered
  * out so the UI only offers tunable keys.
  */
+function pickNumericFields(raw: unknown): Record<string, number> {
+  if (!raw || typeof raw !== 'object') return {};
+  const out: Record<string, number> = {};
+  for (const [k, v] of Object.entries(raw as { [key: string]: unknown })) {
+    if (typeof v === 'number' && Number.isFinite(v)) out[k] = v;
+    else if (typeof v === 'string') {
+      const n = Number(v);
+      if (Number.isFinite(n)) out[k] = n;
+    }
+  }
+  return out;
+}
+
 export function useStrategyDefaults(strategyCode: string | null | undefined) {
   const userId = useAuthStore((s) => s.user?.id);
   return useQuery({
     queryKey: ['strategy-defaults', strategyCode],
     queryFn: async (): Promise<Record<string, number>> => {
-      let raw: Record<string, unknown> | null = null;
       switch ((strategyCode ?? '').toUpperCase()) {
         case 'TPR':
-          raw = (await getTprParams()) as unknown as Record<string, unknown>;
-          break;
+          return pickNumericFields(await getTprParams());
         case 'VCB':
-          raw = (await getVcbDefaults()) as unknown as Record<string, unknown>;
-          break;
+          return pickNumericFields(await getVcbDefaults());
         case 'LSR':
-          raw = (await getLsrDefaults()) as unknown as Record<string, unknown>;
-          break;
+          return pickNumericFields(await getLsrDefaults());
         default:
           return {};
       }
-      if (!raw) return {};
-      const out: Record<string, number> = {};
-      for (const [k, v] of Object.entries(raw)) {
-        if (typeof v === 'number' && Number.isFinite(v)) out[k] = v;
-        else if (typeof v === 'string') {
-          const n = Number(v);
-          if (Number.isFinite(n)) out[k] = n;
-        }
-      }
-      return out;
     },
     enabled: Boolean(strategyCode) && Boolean(userId),
     staleTime: 5 * 60_000,

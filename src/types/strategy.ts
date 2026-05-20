@@ -56,6 +56,15 @@ export interface AccountStrategy {
   /** Account-level concurrent-position cap gate (V62) — when true, account
    *  maxConcurrentLongs/Shorts/Trades apply at entry time. */
   concurrentCapGateEnabled: boolean;
+  /** V105 / Phase 3.5 — live order-placement mode.
+   *  - `MARKET` (default for every existing row): single MARKET fill via the
+   *    legacy `binanceMarketOrder` path. Bit-identical to pre-Phase-1 behavior.
+   *  - `LIMIT_MAKER`: routes through `LimitOrderService` — posts a passive
+   *    LIMIT_MAKER, polls, cancels on timeout, falls back to MARKET.
+   *  - `TWAP`: reserved on the column; not yet wired into the live trade
+   *    path (falls through to MARKET). UI should render this option as
+   *    disabled with a "not yet wired" tooltip. */
+  executionStyle: 'MARKET' | 'LIMIT_MAKER' | 'TWAP';
   /** Kelly/bankroll sizing (V45) — PSR-discounted half-Kelly position-size multiplier. */
   kellySizingEnabled: boolean;
   /** Hard cap on the Kelly fraction [0.05, 1.00]. Default 0.25. */

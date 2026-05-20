@@ -376,8 +376,7 @@ function SupportSection() {
   const trimmedBody = body.trim();
   const valid = trimmedSubject.length > 0 && trimmedBody.length >= 10;
 
-  const onSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const onSubmit = async () => {
     if (!valid || submitting) return;
     setSubmitting(true);
     try {
@@ -445,7 +444,18 @@ function SupportSection() {
         </div>
       )}
 
-      <form onSubmit={onSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+      <div
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' && !e.shiftKey) {
+            const target = e.target as HTMLElement;
+            if (target.tagName !== 'TEXTAREA') {
+              e.preventDefault();
+              void onSubmit();
+            }
+          }
+        }}
+        style={{ display: 'flex', flexDirection: 'column', gap: 14 }}
+      >
         <div>
           <label htmlFor="support-subject" className="mm-label">
             Subject
@@ -549,7 +559,8 @@ function SupportSection() {
 
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
           <button
-            type="submit"
+            type="button"
+            onClick={() => void onSubmit()}
             className="mm-btn mm-btn-mint"
             disabled={!valid || submitting}
             style={{
@@ -564,7 +575,7 @@ function SupportSection() {
             {submitting ? 'Sending\u2026' : 'Send message'}
           </button>
         </div>
-      </form>
+      </div>
     </section>
   );
 }

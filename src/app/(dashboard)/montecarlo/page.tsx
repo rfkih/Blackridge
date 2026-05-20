@@ -90,8 +90,7 @@ export default function MonteCarloPage() {
     setErrors((prev) => ({ ...prev, [key]: undefined }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async () => {
     setSubmitError(null);
 
     const parsed = formSchema.safeParse({
@@ -198,7 +197,7 @@ export default function MonteCarloPage() {
             type="button"
             className="mm-btn mm-btn-mint"
             disabled={mutation.isPending || !form.backtestRunId}
-            onClick={handleSubmit}
+            onClick={() => void handleSubmit()}
             style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
           >
             {mutation.isPending ? (
@@ -216,9 +215,17 @@ export default function MonteCarloPage() {
       </section>
 
       {}
-      <form
-        onSubmit={handleSubmit}
+      <div
         className="mm-card"
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' && !e.shiftKey) {
+            const target = e.target as HTMLElement;
+            if (target.tagName !== 'SELECT' && target.tagName !== 'TEXTAREA') {
+              e.preventDefault();
+              void handleSubmit();
+            }
+          }
+        }}
         style={{
           padding: '16px 22px',
           display: 'grid',
@@ -340,7 +347,7 @@ export default function MonteCarloPage() {
             <AlertCircle size={14} strokeWidth={1.75} /> {submitError}
           </div>
         )}
-      </form>
+      </div>
 
       {}
       {mutation.isPending && <RunningSkeleton />}

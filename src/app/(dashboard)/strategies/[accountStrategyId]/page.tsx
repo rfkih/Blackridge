@@ -222,6 +222,8 @@ function StrategyDetail({ strategy }: { strategy: AccountStrategy }) {
 
       <RiskGatesPanel strategy={strategy} />
 
+      <ExecutionStylePanel strategy={strategy} />
+
       <DirectionPanel strategy={strategy} />
 
       <KellySizingPanel strategy={strategy} />
@@ -515,6 +517,112 @@ function RiskGatesPanel({ strategy }: { strategy: AccountStrategy }) {
           you validate it.
         </span>
       )}
+    </div>
+  );
+}
+
+/**
+ * V105 / Phase 3.5 — execution-style picker. Per-strategy selection of how
+ * live orders reach Binance:
+ *   - MARKET (default): single MARKET fill via the legacy path. Bit-identical
+ *     to pre-Phase-1 behavior. LSR/VCB/VBO should stay here.
+ *   - LIMIT_MAKER: routes through LimitOrderService — posts a passive
+ *     LIMIT_MAKER, polls, cancels on timeout, falls back to MARKET. Earns
+ *     maker rebates when the order rests.
+ *   - TWAP: column-reserved but NOT yet wired into the live trade path.
+ *     Currently falls through to MARKET. UI shows the option as disabled
+ *     with a tooltip to set expectations.
+ *
+ * Backend safety: the PATCH endpoint refuses a style change when the
+ * strategy has open trades (mid-position flip is unsafe). The handler maps
+ * the 409 IllegalStateException to a user-readable toast.
+ */
+const EXECUTION_STYLES: Array<{
+  value: AccountStrategy['executionStyle'];
+  label: string;
+  description: string;
+  disabled?: boolean;
+}> = [
+  {
+    value: 'MARKET',
+    label: 'Market',
+    description: 'Single MARKET fill. Legacy default — safest for production.',
+  },
+  {
+    value: 'LIMIT_MAKER',
+    label: 'Limit Maker',
+    description:
+      'Passive LIMIT_MAKER at the decision price; cancels on timeout + falls back to MARKET. Captures maker rebate when resting.',
+  },
+  {
+    value: 'TWAP',
+    label: 'TWAP',
+    description:
+      'Not yet wired into the live trade path. Setting this currently falls through to MARKET.',
+    disabled: true,
+  },
+];
+
+function ExecutionStylePanel({ strategy }: { strategy: AccountStrategy }) {
+  const updateMut = useUpdateStrategy();
+  const current = strategy.executionStyle ?? 'MARKET';
+
+  const onSelect = async (next: AccountStrategy['executionStyle']) => {
+    if (next === current) return;
+    try {
+      await updateMut.mutateAsync({
+        id: strategy.id,
+        patch: { executionStyle: next },
+      });
+      toast.success({ title: `Execution style → ${next}` });
+    } catch (err) {
+      toast.error({
+        title: 'Could not change execution style',
+        description: normalizeError(err),
+      });
+    }
+  };
+
+  return (
+    <div className="flex flex-col gap-2 rounded-lg border border-bd-subtle bg-bg-surface px-4 py-2.5">
+      <div className="flex flex-wrap items-center gap-2">
+        <ShieldCheck size={14} className="shrink-0 text-text-muted" aria-hidden="true" />
+        <span className="font-mono text-[10px] uppercase tracking-wider text-text-muted">
+          Execution style
+        </span>
+        {EXECUTION_STYLES.map((opt) => {
+          const active = current === opt.value;
+          const disabled = Boolean(opt.disabled) || updateMut.isPending;
+          return (
+            <button
+              key={opt.value}
+              type="button"
+              onClick={() => onSelect(opt.value)}
+              disabled={disabled}
+              title={opt.description}
+              className={cn(
+                'inline-flex items-center gap-1.5 rounded-sm border px-2.5 py-1 font-mono text-[11px] uppercase tracking-wider transition-colors disabled:cursor-not-allowed disabled:opacity-60',
+                active
+                  ? 'border-[var(--color-profit)]/40 bg-[var(--color-profit)]/10 hover:bg-[var(--color-profit)]/20 text-[var(--color-profit)]'
+                  : 'border-bd-subtle bg-bg-base text-text-muted hover:border-text-muted hover:text-text-primary',
+              )}
+              aria-pressed={active}
+            >
+              {active && <Check size={10} strokeWidth={2.5} aria-hidden="true" />}
+              {opt.label}
+            </button>
+          );
+        })}
+        {updateMut.isPending && (
+          <span className="font-mono text-[10px] text-text-muted">Saving…</span>
+        )}
+      </div>
+      <span className="font-mono text-[10px] text-text-muted">
+        ·{' '}
+        {EXECUTION_STYLES.find((o) => o.value === current)?.description ??
+          'Single MARKET fill.'}{' '}
+        Backend refuses a style change while open trades exist.
+      </span>
     </div>
   );
 }

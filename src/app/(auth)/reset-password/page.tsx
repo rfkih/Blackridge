@@ -216,7 +216,14 @@ function ResetPasswordContent() {
             </p>
           </div>
         ) : (
-          <form onSubmit={submit} noValidate>
+          <div
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                void submit();
+              }
+            }}
+          >
             <div style={{ marginBottom: 12 }}>
               <label htmlFor="newPassword" style={FIELD_LABEL_STYLE}>
                 New password
@@ -300,7 +307,8 @@ function ResetPasswordContent() {
             )}
 
             <button
-              type="submit"
+              type="button"
+              onClick={() => void submit()}
               disabled={isSubmitting}
               style={{
                 width: '100%',
@@ -344,7 +352,7 @@ function ResetPasswordContent() {
             >
               <ArrowLeft size={12} /> Back to sign in
             </Link>
-          </form>
+          </div>
         )}
       </AuthCard>
     </AuthShell>

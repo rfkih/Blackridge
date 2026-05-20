@@ -19,6 +19,7 @@ import { EmptyState } from '@/components/shared/EmptyState';
 import { Button } from '@/components/ui/button';
 import { StrategyDefinitionDialog } from '@/components/admin/StrategyDefinitionDialog';
 import { SymbolApprovalsSection } from '@/components/admin/symbol-approval/SymbolApprovalsSection';
+import { PortfolioRebalanceSection } from '@/components/admin/portfolio-rebalance/PortfolioRebalanceSection';
 import {
   useDeprecateStrategyDefinition,
   useStrategyDefinitions,
@@ -189,6 +190,8 @@ export default function AdminStrategiesPage() {
       />
 
       <SymbolApprovalsSection />
+
+      <PortfolioRebalanceSection />
     </div>
   );
 }
