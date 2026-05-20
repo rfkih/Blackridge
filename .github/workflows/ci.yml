@@ -1,0 +1,155 @@
+name: CI
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Lint / typecheck / test / build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20.x"
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck
+        run: pnpm tsc --noEmit
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Unit tests
+        run: pnpm test
+
+      - name: Build
+        # Build-time NEXT_PUBLIC_* are baked into the bundle. Use the prod URLs here
+        # once the VPS is wired; for now point at localhost so the build succeeds
+        # without secrets.
+        env:
+          NEXT_PUBLIC_API_URL: ${{ vars.NEXT_PUBLIC_API_URL || 'http://localhost:8080' }}
+          NEXT_PUBLIC_RESEARCH_URL: ${{ vars.NEXT_PUBLIC_RESEARCH_URL || 'http://localhost:8081' }}
+          NEXT_PUBLIC_WS_URL: ${{ vars.NEXT_PUBLIC_WS_URL || 'ws://localhost:8080/ws' }}
+        run: pnpm build
+
+      - name: Upload Next build artifact
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+        uses: actions/upload-artifact@v4
+        with:
+          name: blackridge-frontend-next
+          path: |
+            .next
+            public
+            package.json
+            pnpm-lock.yaml
+            next.config.mjs
+          retention-days: 14
+
+  deploy:
+    name: Deploy to VPS (next start under systemd, fronted by cloudflared)
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master' && vars.DEPLOY_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    environment: production-vps
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download Next build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: blackridge-frontend-next
+          path: ./release
+
+      - name: Configure SSH
+        env:
+          SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+          SSH_HOST: ${{ secrets.VPS_HOST }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "$SSH_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H "$SSH_HOST" >> ~/.ssh/known_hosts
+
+      - name: Stage release tarball on VPS
+        # Ship build output + manifest only; node_modules is installed on the host
+        # via `pnpm install --prod` so we don't rsync pnpm's symlinked store.
+        env:
+          SSH_HOST: ${{ secrets.VPS_HOST }}
+          SSH_USER: ${{ secrets.VPS_USER }}
+        run: |
+          VERSION="${GITHUB_SHA::8}"
+          REMOTE_DIR="/opt/blackheart-frontend/releases/${VERSION}"
+          tar -czf release.tar.gz -C release .
+          ssh "${SSH_USER}@${SSH_HOST}" "sudo install -d -o blackheart-frontend -g blackheart-frontend -m 755 ${REMOTE_DIR}"
+          scp release.tar.gz "${SSH_USER}@${SSH_HOST}:/tmp/release-${VERSION}.tar.gz"
+          ssh "${SSH_USER}@${SSH_HOST}" "sudo tar -xzf /tmp/release-${VERSION}.tar.gz -C ${REMOTE_DIR} && sudo chown -R blackheart-frontend:blackheart-frontend ${REMOTE_DIR} && rm /tmp/release-${VERSION}.tar.gz"
+          echo "REMOTE_DIR=${REMOTE_DIR}" >> "$GITHUB_ENV"
+          echo "VERSION=${VERSION}" >> "$GITHUB_ENV"
+
+      - name: Install production dependencies on host
+        env:
+          SSH_HOST: ${{ secrets.VPS_HOST }}
+          SSH_USER: ${{ secrets.VPS_USER }}
+        run: |
+          ssh "${SSH_USER}@${SSH_HOST}" "sudo -u blackheart-frontend bash -lc 'cd ${REMOTE_DIR} && pnpm install --prod --frozen-lockfile'"
+
+      - name: Capture rollback target
+        env:
+          SSH_HOST: ${{ secrets.VPS_HOST }}
+          SSH_USER: ${{ secrets.VPS_USER }}
+        run: |
+          PREV=$(ssh "${SSH_USER}@${SSH_HOST}" "readlink /opt/blackheart-frontend/current 2>/dev/null || echo NONE")
+          echo "PREV_DIR=${PREV}" >> "$GITHUB_ENV"
+          echo "Previous symlink target: ${PREV}"
+
+      - name: Stop -> swap symlink -> start
+        env:
+          SSH_HOST: ${{ secrets.VPS_HOST }}
+          SSH_USER: ${{ secrets.VPS_USER }}
+        run: |
+          ssh "${SSH_USER}@${SSH_HOST}" <<EOF
+            set -e
+            sudo systemctl stop blackheart-frontend || true
+            sudo ln -sfn "${REMOTE_DIR}" /opt/blackheart-frontend/current
+            sudo systemctl start blackheart-frontend
+          EOF
+
+      - name: Healthcheck (with rollback on failure)
+        env:
+          SSH_HOST: ${{ secrets.VPS_HOST }}
+          SSH_USER: ${{ secrets.VPS_USER }}
+        run: |
+          set +e
+          ssh "${SSH_USER}@${SSH_HOST}" 'for i in 1 2 3 4 5 6 7 8 9 10 11 12; do curl -fsS -o /dev/null http://127.0.0.1:3000/ && exit 0; sleep 5; done; exit 1'
+          HEALTH=$?
+          set -e
+          if [ "$HEALTH" -ne 0 ]; then
+            echo "::error::Healthcheck failed. Rolling back to ${PREV_DIR}."
+            if [ "${PREV_DIR}" != "NONE" ]; then
+              ssh "${SSH_USER}@${SSH_HOST}" <<EOF
+                set -e
+                sudo systemctl stop blackheart-frontend
+                sudo ln -sfn "${PREV_DIR}" /opt/blackheart-frontend/current
+                sudo systemctl start blackheart-frontend
+              EOF
+            fi
+            exit 1
+          fi
+          echo "Deploy ${VERSION} healthy."

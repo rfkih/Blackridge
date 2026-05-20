@@ -1,0 +1,90 @@
+# Blackheart frontend (blackridge-frontend) — systemd unit.
+#
+# Next.js 14 App Router served via `next start`, bound to 127.0.0.1:3000.
+# Inbound traffic enters via the host's existing Cloudflare Tunnel (cloudflared
+# already runs on this VPS). No direct internet exposure of port 3000.
+#
+# Layout (mirrors gateway):
+#
+#   /opt/blackheart-frontend/
+#     releases/<sha>/
+#       .next/                # built artifact (from CI runner)
+#       public/
+#       node_modules/         # `pnpm install --prod` ran on the host
+#       package.json
+#       pnpm-lock.yaml
+#       next.config.mjs
+#     current -> releases/<sha>
+#     logs/
+#
+# Install:    sudo cp deploy/systemd/blackheart-frontend.service /etc/systemd/system/
+#             sudo systemctl daemon-reload && sudo systemctl enable blackheart-frontend
+# Upgrade:    stop -> ln -sfn -> start  (NEVER systemctl restart for code upgrades).
+
+[Unit]
+Description=Blackheart frontend (Next.js)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=blackheart-frontend
+Group=blackheart-frontend
+WorkingDirectory=/opt/blackheart-frontend/current
+
+# 512 MB heap is generous for `next start` on this app's surface area. Source
+# maps stay on so journald-captured stack traces point at original source.
+Environment=NODE_OPTIONS=--max-old-space-size=512 --enable-source-maps
+Environment=NODE_ENV=production
+Environment=PORT=3000
+Environment=HOSTNAME=127.0.0.1
+
+# Optional runtime overrides (log level, telemetry knobs). Most NEXT_PUBLIC_*
+# values are baked into the build on the CI runner and do NOT belong here.
+EnvironmentFile=-/etc/blackheart/frontend.env
+
+# Resolve `next` through node_modules directly — avoids needing pnpm in the
+# runtime path. Symlinked by pnpm at install time on the host.
+ExecStart=/usr/bin/node node_modules/next/dist/bin/next start -p 3000 -H 127.0.0.1
+
+# ── Resource isolation ────────────────────────────────────────────────────
+# 2 GB host total — frontend stays well under 1 GB. CPU light; this is mostly
+# I/O serving static assets and SSR-rendered routes.
+CPUQuota=80%
+MemoryMax=768M
+TasksMax=256
+
+IOSchedulingClass=best-effort
+IOSchedulingPriority=4
+Nice=0
+
+# ── Lifecycle ─────────────────────────────────────────────────────────────
+Restart=on-failure
+RestartSec=5
+StartLimitBurst=5
+StartLimitIntervalSec=300
+
+KillMode=mixed
+KillSignal=SIGTERM
+TimeoutStopSec=20
+
+# ── Hardening ─────────────────────────────────────────────────────────────
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/blackheart-frontend/logs
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictNamespaces=true
+LockPersonality=true
+RestrictRealtime=true
+
+# ── Output ────────────────────────────────────────────────────────────────
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=blackheart-frontend
+
+[Install]
+WantedBy=multi-user.target
