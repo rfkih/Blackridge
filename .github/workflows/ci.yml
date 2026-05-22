@@ -62,7 +62,10 @@ jobs:
         run: pnpm exec next build --no-lint
 
       - name: Upload Next build artifact
-        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+        # Upload whenever the deploy job might run (push to master OR manual
+        # dispatch). PRs and feature branches skip the upload to save artifact
+        # storage — they're never deployed.
+        if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/master'
         uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
         with:
           name: blackridge-frontend-next
