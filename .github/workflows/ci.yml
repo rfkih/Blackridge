@@ -94,14 +94,20 @@ jobs:
           path: ./release
 
       - name: Configure SSH
+        # Trim whitespace from SSH_HOST defensively — if the secret was set with
+        # a trailing newline (`gh secret set < file` or PowerShell pipe quirks),
+        # scp errors with "hostname contains invalid characters". Same `tr -d`
+        # idiom the trading repo uses for psql captures.
         env:
           SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
-          SSH_HOST: ${{ secrets.VPS_HOST }}
+          SSH_HOST_RAW: ${{ secrets.VPS_HOST }}
         run: |
           mkdir -p ~/.ssh
           echo "$SSH_KEY" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
+          SSH_HOST=$(printf '%s' "$SSH_HOST_RAW" | tr -d '[:space:]')
           ssh-keyscan -H "$SSH_HOST" >> ~/.ssh/known_hosts
+          echo "SSH_HOST=${SSH_HOST}" >> "$GITHUB_ENV"
 
       - name: Stage release tarball on VPS
         # Ship build output + manifest only; node_modules is installed on the host
@@ -109,9 +115,9 @@ jobs:
         # starsky owns /tmp and is in the blackheart-frontend group; /opt/blackheart-frontend
         # is 775 so starsky can create release dirs without sudo.
         env:
-          SSH_HOST: ${{ secrets.VPS_HOST }}
-          SSH_USER: ${{ secrets.VPS_USER }}
+          SSH_USER_RAW: ${{ secrets.VPS_USER }}
         run: |
+          SSH_USER=$(printf '%s' "$SSH_USER_RAW" | tr -d '[:space:]')
           VERSION="${GITHUB_SHA::8}"
           REMOTE_DIR="/opt/blackheart-frontend/releases/${VERSION}"
           tar -czf release.tar.gz -C release .
@@ -119,30 +125,22 @@ jobs:
           ssh -i ~/.ssh/id_ed25519 "${SSH_USER}@${SSH_HOST}" "set -e && mkdir -p ${REMOTE_DIR} && tar -xzf /tmp/release-${VERSION}.tar.gz -C ${REMOTE_DIR} && rm /tmp/release-${VERSION}.tar.gz"
           echo "REMOTE_DIR=${REMOTE_DIR}" >> "$GITHUB_ENV"
           echo "VERSION=${VERSION}" >> "$GITHUB_ENV"
+          echo "SSH_USER=${SSH_USER}" >> "$GITHUB_ENV"
 
       - name: Install production dependencies on host
         # Run as starsky directly (already in the blackheart-frontend group with write
         # access to the release dir). Chown to blackheart-frontend happens after install
         # so the service account owns the final tree.
-        env:
-          SSH_HOST: ${{ secrets.VPS_HOST }}
-          SSH_USER: ${{ secrets.VPS_USER }}
         run: |
           ssh -i ~/.ssh/id_ed25519 "${SSH_USER}@${SSH_HOST}" "set -e && cd ${REMOTE_DIR} && pnpm install --prod --frozen-lockfile"
 
       - name: Hand release tree to service account
         # sudoers whitelist: BLACKHEART_FRONTEND_DEPLOY allows this exact chown pattern
         # on /opt/blackheart-frontend/releases/*.
-        env:
-          SSH_HOST: ${{ secrets.VPS_HOST }}
-          SSH_USER: ${{ secrets.VPS_USER }}
         run: |
           ssh -i ~/.ssh/id_ed25519 "${SSH_USER}@${SSH_HOST}" "sudo chown -R blackheart-frontend:blackheart-frontend ${REMOTE_DIR}"
 
       - name: Capture rollback target
-        env:
-          SSH_HOST: ${{ secrets.VPS_HOST }}
-          SSH_USER: ${{ secrets.VPS_USER }}
         run: |
           PREV=$(ssh -i ~/.ssh/id_ed25519 "${SSH_USER}@${SSH_HOST}" "readlink /opt/blackheart-frontend/current 2>/dev/null || echo NONE")
           echo "PREV_DIR=${PREV}" >> "$GITHUB_ENV"
@@ -152,9 +150,6 @@ jobs:
         # Single-line ssh (no heredoc). Heredocs in YAML block-scalars hit indentation
         # traps where the closing EOF is read as content, hanging bash parsing.
         # NOTE: sudoers whitelist uses `ln -sf` (not `-sfn`); keep the flag exact.
-        env:
-          SSH_HOST: ${{ secrets.VPS_HOST }}
-          SSH_USER: ${{ secrets.VPS_USER }}
         run: |
           ssh -i ~/.ssh/id_ed25519 "${SSH_USER}@${SSH_HOST}" "set -e && sudo systemctl stop blackheart-frontend && sudo ln -sf ${REMOTE_DIR} /opt/blackheart-frontend/current && sudo systemctl start blackheart-frontend"
 
@@ -162,9 +157,6 @@ jobs:
         # 12 attempts × 10s = 120s. Next.js cold-boot is ~5–8s; 120s absorbs first-
         # request compile + GC warmup variance. If readiness never returns 200 we
         # re-point the symlink at PREV_DIR and bounce the service.
-        env:
-          SSH_HOST: ${{ secrets.VPS_HOST }}
-          SSH_USER: ${{ secrets.VPS_USER }}
         run: |
           set +e
           ssh -i ~/.ssh/id_ed25519 "${SSH_USER}@${SSH_HOST}" 'for i in $(seq 1 12); do curl -fsS -o /dev/null http://127.0.0.1:3000/ && exit 0; sleep 10; done; exit 1'
