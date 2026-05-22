@@ -151,7 +151,7 @@ jobs:
         # traps where the closing EOF is read as content, hanging bash parsing.
         # NOTE: sudoers whitelist uses `ln -sf` (not `-sfn`); keep the flag exact.
         run: |
-          ssh -i ~/.ssh/id_ed25519 "${SSH_USER}@${SSH_HOST}" "set -e && sudo systemctl stop blackheart-frontend && sudo ln -sf ${REMOTE_DIR} /opt/blackheart-frontend/current && sudo systemctl start blackheart-frontend"
+          ssh -i ~/.ssh/id_ed25519 "${SSH_USER}@${SSH_HOST}" "set -e && sudo systemctl stop blackheart-frontend && sudo ln -sfn ${REMOTE_DIR} /opt/blackheart-frontend/current && sudo systemctl start blackheart-frontend"
 
       - name: Healthcheck (with rollback on failure)
         # 12 attempts × 10s = 120s. Next.js cold-boot is ~5–8s; 120s absorbs first-
@@ -165,7 +165,7 @@ jobs:
           if [ "$HEALTH" -ne 0 ]; then
             echo "::error::Healthcheck failed. Rolling back to ${PREV_DIR}."
             if [ "${PREV_DIR}" != "NONE" ]; then
-              ssh -i ~/.ssh/id_ed25519 "${SSH_USER}@${SSH_HOST}" "set -e && sudo systemctl stop blackheart-frontend && sudo ln -sf ${PREV_DIR} /opt/blackheart-frontend/current && sudo systemctl start blackheart-frontend"
+              ssh -i ~/.ssh/id_ed25519 "${SSH_USER}@${SSH_HOST}" "set -e && sudo systemctl stop blackheart-frontend && sudo ln -sfn ${PREV_DIR} /opt/blackheart-frontend/current && sudo systemctl start blackheart-frontend"
             fi
             exit 1
           fi
