@@ -14,8 +14,22 @@ const DEFAULT_WS_URL = 'ws://localhost:8080/ws';
 
 const DEFAULT_RESEARCH_URL = 'http://localhost:8081';
 
-function read(name: string, fallback: string): string {
-  const raw = process.env[name]?.trim();
+/**
+ * IMPORTANT: each NEXT_PUBLIC_* value MUST be referenced via dot notation
+ * (process.env.NAME) for Next.js's webpack DefinePlugin to inline it into
+ * the browser bundle. Bracket notation (process.env[name]) is NOT inlined —
+ * at runtime in the browser, process.env is an empty object and bracket
+ * access returns undefined, which here triggered the "required in production"
+ * throw even though .env.production.local had the value set.
+ */
+const PUBLIC_ENV = {
+  NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
+  NEXT_PUBLIC_RESEARCH_URL: process.env.NEXT_PUBLIC_RESEARCH_URL,
+  NEXT_PUBLIC_WS_URL: process.env.NEXT_PUBLIC_WS_URL,
+} as const;
+
+function read(name: keyof typeof PUBLIC_ENV, fallback: string): string {
+  const raw = PUBLIC_ENV[name]?.trim();
   if (raw) return raw;
 
   if (process.env.NODE_ENV === 'production') {
@@ -35,8 +49,8 @@ function read(name: string, fallback: string): string {
  * Used for `researchUrl`, where unset means "fall back to apiUrl" so the
  * frontend keeps working against a single-JVM deployment.
  */
-function readOptional(name: string): string {
-  return process.env[name]?.trim() ?? '';
+function readOptional(name: keyof typeof PUBLIC_ENV): string {
+  return PUBLIC_ENV[name]?.trim() ?? '';
 }
 
 const apiUrlResolved = read('NEXT_PUBLIC_API_URL', DEFAULT_API_URL);
