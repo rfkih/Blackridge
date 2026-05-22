@@ -35,7 +35,13 @@
         ]
       }
     ],
-    "no-restricted-syntax": "off",
+    "no-restricted-syntax": [
+      "error",
+      {
+        "selector": "MemberExpression[object.object.name='process'][object.property.name='env'][computed=true]",
+        "message": "Use dot-notation process.env.NAME so Next.js's webpack DefinePlugin can inline NEXT_PUBLIC_* values into the browser bundle; bracket access returns undefined at runtime in the browser. See src/lib/env.ts for the canonical pattern."
+      }
+    ],
     "no-underscore-dangle": "off",
     "@typescript-eslint/no-unused-vars": [
       "error",
