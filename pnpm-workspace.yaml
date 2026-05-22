@@ -1,3 +1,9 @@
+# pnpm reads this file (even in a single-package repo) for build-allowlists.
+# Once present, pnpm 9+ requires a `packages` field. We list the repo root so
+# `pnpm install`, `pnpm store path` etc. resolve to a single workspace.
+packages:
+  - '.'
+
 allowBuilds:
   esbuild: true
   unrs-resolver: true
