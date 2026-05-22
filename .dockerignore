@@ -1,4 +1,5 @@
 node_modules/
+.next/
 .git/
 .idea/
 .claude/
@@ -11,5 +12,14 @@ playwright-report/
 test-results/
 coverage/
 out/
-# NOTE: .next/ is intentionally NOT excluded - manage.ps1 builds it on the
-# host (it has cached Google Fonts; the in-container build can't reach them).
+Dockerfile
+.dockerignore
+README.md
+SECURITY_*.md
+API_CONTRACT.md
+docs/
+deploy/
+tests/
+playwright.config.ts
+vitest.config.ts
+*.ps1
