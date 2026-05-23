@@ -156,8 +156,8 @@ jobs:
         # Same `tr -d` idiom the trading repo uses for psql captures.
         env:
           SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
-          SSH_HOST_RAW: ${{ secrets.VPS_HOST }}
-          SSH_USER_RAW: ${{ secrets.VPS_USER }}
+          SSH_HOST_RAW: ${{ vars.VPS_HOST }}
+          SSH_USER_RAW: ${{ vars.VPS_USER }}
         run: |
           mkdir -p ~/.ssh
           echo "$SSH_KEY" > ~/.ssh/id_ed25519
