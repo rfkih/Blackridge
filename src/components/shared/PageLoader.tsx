@@ -136,7 +136,7 @@ export function PageLoader({ label = 'Loading', fullscreen = true, className }: 
           {}
           <div
             className="relative h-[2px] w-[160px] overflow-hidden rounded-full"
-            style={{ backgroundColor: 'var(--border-subtle)' }}
+            style={{ backgroundColor: 'var(--border-default)' }}
           >
             <span
               className="absolute inset-y-0 w-1/3 animate-[mm-scan_1.8s_cubic-bezier(0.65,0,0.35,1)_infinite] rounded-full"

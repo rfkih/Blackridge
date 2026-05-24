@@ -70,7 +70,7 @@ export function BacktestProgressBar({ run, className }: BacktestProgressBarProps
 
       <div
         className="mt-3 h-[6px] w-full overflow-hidden rounded-full"
-        style={{ backgroundColor: 'var(--border-subtle)' }}
+        style={{ backgroundColor: 'var(--border-default)' }}
       >
         <div
           className={cn(
