@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { AlertTriangle, Play, RefreshCw, Save, Wallet } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, Play, RefreshCw, Rocket, Save, Wallet, XCircle } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useActiveAccount } from '@/hooks/useAccounts';
 import { usePortfolio } from '@/hooks/usePortfolio';
@@ -9,15 +9,18 @@ import {
   useAssetPolicy,
   useAssetTargets,
   useComputeAssetRebalancePlan,
+  useExecuteRebalance,
   useUpdateAssetPolicy,
   useUpsertAssetTargets,
 } from '@/hooks/useAssetAllocation';
 import { useCurrencyFormatter } from '@/hooks/useCurrency';
 import type {
   AssetDriftItem,
+  AssetRebalanceHistoryView,
   AssetRebalancePlan,
   AssetRebalancePolicy,
   AssetTradeLeg,
+  ExecutionLeg,
 } from '@/types/assetAllocation';
 import type { PortfolioAsset } from '@/types/portfolio';
 
@@ -41,6 +44,7 @@ export default function AssetAllocationPage() {
   const upsertTargets = useUpsertAssetTargets();
   const updatePolicy = useUpdateAssetPolicy();
   const computePlan = useComputeAssetRebalancePlan();
+  const executeMut = useExecuteRebalance();
 
   if (accountsLoading || !accountId) {
     return (
@@ -97,6 +101,12 @@ export default function AssetAllocationPage() {
         error={computePlan.error?.message ?? null}
         onGenerate={async (persist) => {
           await computePlan.mutateAsync({ accountId, persist });
+        }}
+        executing={executeMut.isPending}
+        executeError={executeMut.error?.message ?? null}
+        executionResult={executeMut.data}
+        onExecute={async (rebalanceId) => {
+          await executeMut.mutateAsync({ rebalanceId });
         }}
       />
     </div>
@@ -516,6 +526,9 @@ function PolicyEditor({
         <PolicyField label="Fee assumed (bps)" hint="Per-leg exchange fee estimate.">
           <input type="number" min="0" step="0.5" className={INPUT_CLS} value={form.feeBpsAssumed ?? ''} onChange={setNum('feeBpsAssumed')} />
         </PolicyField>
+        <PolicyField label="Max per execute (USDT)" hint="Sum of |leg notional| must be ≤ this for Execute to proceed. Safety cap.">
+          <input type="number" min="0.0001" step="10" className={INPUT_CLS} value={form.maxPerExecuteUsdt ?? ''} onChange={setNum('maxPerExecuteUsdt')} />
+        </PolicyField>
         <PolicyField label="Require manual approval" hint="When true, plans persist as PROPOSED and need an operator to execute.">
           <input type="checkbox" checked={!!form.requireManualApproval} onChange={setBool('requireManualApproval')} />
         </PolicyField>
@@ -570,13 +583,32 @@ function PlanSection({
   plan,
   error,
   onGenerate,
+  executing,
+  executeError,
+  executionResult,
+  onExecute,
 }: {
   running: boolean;
   plan: AssetRebalancePlan | undefined;
   error: string | null;
   onGenerate: (persist: boolean) => Promise<void>;
+  executing: boolean;
+  executeError: string | null;
+  executionResult: AssetRebalanceHistoryView | undefined;
+  onExecute: (rebalanceId: string) => Promise<void>;
 }) {
   const formatCurrency = useCurrencyFormatter();
+  const [confirmOpen, setConfirmOpen] = useState(false);
+
+  // Once an execution result lands, prefer showing it over the original plan
+  // (the original plan is now stale relative to filled state).
+  const hasResult = !!executionResult;
+  const canExecute =
+    !!plan &&
+    plan.rebalanceId != null &&
+    plan.status === 'PROPOSED' &&
+    plan.tradePlan.length > 0 &&
+    !hasResult;
 
   return (
     <section className="rounded-xl border border-bd-subtle bg-bg-surface p-4 shadow-panel">
@@ -584,14 +616,15 @@ function PlanSection({
         <div>
           <h2 className="font-display text-[14px] font-semibold text-text-primary">Rebalance plan</h2>
           <p className="text-[11px] text-text-muted">
-            Computes drift vs targets and proposes trade legs. Execution is manual (Phase 4 wires the click-to-execute path).
+            Drift vs targets, trade legs, cost estimate. Persisted plans can be executed via the button on the right —
+            trades submit through Binance, capped at the policy&apos;s max-per-execute USDT.
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <button
             type="button"
             onClick={() => onGenerate(false)}
-            disabled={running}
+            disabled={running || executing}
             className="inline-flex items-center gap-1.5 rounded-full border border-bd-subtle bg-bg-base px-3 py-1.5 text-[12px] text-text-primary hover:bg-bg-hover disabled:opacity-60"
           >
             <Play size={12} /> Preview
@@ -599,11 +632,21 @@ function PlanSection({
           <button
             type="button"
             onClick={() => onGenerate(true)}
-            disabled={running}
+            disabled={running || executing}
             className="inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-[12px] font-semibold disabled:opacity-60"
-            style={{ background: 'var(--color-profit)', color: 'var(--text-inverse)' }}
+            style={{ background: 'var(--bg-elevated)', color: 'var(--text-primary)' }}
           >
             <Play size={12} /> Generate + persist
+          </button>
+          <button
+            type="button"
+            onClick={() => setConfirmOpen(true)}
+            disabled={!canExecute || executing}
+            title={canExecute ? 'Submit this plan to Binance' : 'Persist a PROPOSED plan first'}
+            className="inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-[12px] font-semibold disabled:cursor-not-allowed disabled:opacity-50"
+            style={{ background: 'var(--color-loss)', color: 'var(--text-inverse)' }}
+          >
+            <Rocket size={12} /> {executing ? 'Executing…' : 'Execute now'}
           </button>
         </div>
       </div>
@@ -613,15 +656,214 @@ function PlanSection({
           <AlertTriangle size={12} /> {error}
         </div>
       )}
+      {executeError && (
+        <div className="mb-2 inline-flex items-center gap-2 rounded-md border border-[rgba(229,72,77,0.4)] bg-[rgba(229,72,77,0.06)] px-3 py-2 text-[11px] text-[var(--color-loss)]">
+          <AlertTriangle size={12} /> Execute failed: {executeError}
+        </div>
+      )}
 
-      {plan ? (
+      {hasResult ? (
+        <ExecutionResultView result={executionResult!} formatCurrency={formatCurrency} />
+      ) : plan ? (
         <PlanView plan={plan} formatCurrency={formatCurrency} />
       ) : (
         <p className="text-[12px] text-text-muted">
           {running ? 'Computing plan…' : 'No plan generated yet. Click Preview to see what would happen.'}
         </p>
       )}
+
+      {confirmOpen && plan?.rebalanceId && (
+        <ExecuteConfirmDialog
+          plan={plan}
+          formatCurrency={formatCurrency}
+          onCancel={() => setConfirmOpen(false)}
+          onConfirm={async () => {
+            setConfirmOpen(false);
+            await onExecute(plan.rebalanceId!);
+          }}
+        />
+      )}
     </section>
+  );
+}
+
+function ExecuteConfirmDialog({
+  plan,
+  formatCurrency,
+  onCancel,
+  onConfirm,
+}: {
+  plan: AssetRebalancePlan;
+  formatCurrency: (n: number) => string;
+  onCancel: () => void;
+  onConfirm: () => void | Promise<void>;
+}) {
+  const [typed, setTyped] = useState('');
+  const totalNotional = plan.tradePlan.reduce((s, l) => s + l.estQuoteQtyUsdt, 0);
+  const armed = typed.trim() === 'EXECUTE';
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+      onClick={onCancel}
+    >
+      <div
+        className="w-full max-w-md rounded-xl border border-bd-subtle bg-bg-surface p-5 shadow-float"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="mb-3 flex items-center gap-2">
+          <Rocket size={16} className="text-[var(--color-loss)]" />
+          <h3 className="font-display text-[15px] font-semibold text-text-primary">Confirm execute</h3>
+        </div>
+        <p className="text-[12px] text-text-secondary">
+          You&apos;re about to submit <span className="font-semibold text-text-primary">{plan.tradePlan.length}</span>{' '}
+          trade{plan.tradePlan.length === 1 ? '' : 's'} for a total notional of{' '}
+          <span className="font-mono text-text-primary">{formatCurrency(totalNotional)}</span> on your live
+          Binance account. Trades fire immediately.
+        </p>
+        <ul className="my-3 space-y-1 rounded-md border border-bd-subtle bg-bg-base p-2 font-mono text-[11px]">
+          {plan.tradePlan.map((l, i) => (
+            <li key={i} className="flex items-center justify-between gap-3">
+              <span style={{ color: l.action === 'SELL' ? 'var(--color-loss)' : 'var(--color-profit)' }}>
+                {l.action}
+              </span>
+              <span className="flex-1 text-text-primary">{l.asset}</span>
+              <span className="tabular-nums text-text-secondary">{formatCurrency(l.estQuoteQtyUsdt)}</span>
+            </li>
+          ))}
+        </ul>
+        <label className="block text-[11px] text-text-muted">
+          Type <span className="font-mono font-bold text-text-primary">EXECUTE</span> to confirm:
+        </label>
+        <input
+          type="text"
+          className="mt-1 w-full rounded border border-bd-subtle bg-bg-base px-2 py-1.5 font-mono text-[13px] uppercase tracking-wider text-text-primary focus:border-bd-focus focus:outline-none"
+          value={typed}
+          onChange={(e) => setTyped(e.target.value)}
+          autoFocus
+        />
+        <div className="mt-4 flex justify-end gap-2">
+          <button
+            type="button"
+            onClick={onCancel}
+            className="rounded-full border border-bd-subtle bg-bg-base px-4 py-1.5 text-[12px] text-text-primary hover:bg-bg-hover"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            disabled={!armed}
+            onClick={onConfirm}
+            className="rounded-full px-4 py-1.5 text-[12px] font-semibold disabled:cursor-not-allowed disabled:opacity-50"
+            style={{ background: 'var(--color-loss)', color: 'var(--text-inverse)' }}
+          >
+            Submit trades
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ExecutionResultView({
+  result,
+  formatCurrency,
+}: {
+  result: AssetRebalanceHistoryView;
+  formatCurrency: (n: number) => string;
+}) {
+  const sum = result.executionSummary;
+  const statusStyle = statusBadge(result.status);
+  const success = result.status === 'COMPLETED';
+  return (
+    <div className="space-y-3">
+      <div className="flex flex-wrap items-center gap-3 text-[12px]">
+        <span
+          className="rounded-full px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wider"
+          style={{ backgroundColor: statusStyle.bg, color: statusStyle.fg }}
+        >
+          {result.status}
+        </span>
+        {success ? (
+          <span className="inline-flex items-center gap-1 text-[var(--color-profit)]">
+            <CheckCircle2 size={14} /> Trades submitted
+          </span>
+        ) : (
+          <span className="inline-flex items-center gap-1 text-[var(--color-loss)]">
+            <XCircle size={14} /> Execution failed
+          </span>
+        )}
+        {sum && (
+          <span className="text-text-secondary">
+            {sum.succeeded}/{sum.totalLegs} legs · actual notional{' '}
+            <span className="font-mono text-text-primary">{formatCurrency(sum.actualNotionalUsdt)}</span>
+          </span>
+        )}
+      </div>
+
+      {result.failedReason && (
+        <p className="rounded-md border border-[rgba(229,72,77,0.4)] bg-[rgba(229,72,77,0.06)] px-3 py-2 text-[11px] text-[var(--color-loss)]">
+          {result.failedReason}
+        </p>
+      )}
+
+      {sum && sum.legs.length > 0 && (
+        <ExecutionLegTable legs={sum.legs} formatCurrency={formatCurrency} />
+      )}
+    </div>
+  );
+}
+
+function ExecutionLegTable({
+  legs,
+  formatCurrency,
+}: {
+  legs: ExecutionLeg[];
+  formatCurrency: (n: number) => string;
+}) {
+  return (
+    <div className="overflow-hidden rounded-md border border-bd-subtle">
+      <table className="w-full font-mono text-[11px]">
+        <thead>
+          <tr className="bg-bg-elevated text-text-muted">
+            <th className="px-3 py-1.5 text-left font-mono text-[9px] uppercase tracking-wider">Action</th>
+            <th className="px-3 py-1.5 text-left font-mono text-[9px] uppercase tracking-wider">Asset</th>
+            <th className="px-3 py-1.5 text-right font-mono text-[9px] uppercase tracking-wider">Filled USDT</th>
+            <th className="px-3 py-1.5 text-right font-mono text-[9px] uppercase tracking-wider">Filled qty</th>
+            <th className="px-3 py-1.5 text-right font-mono text-[9px] uppercase tracking-wider">Avg price</th>
+            <th className="px-3 py-1.5 text-left font-mono text-[9px] uppercase tracking-wider">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {legs.map((l, i) => (
+            <tr key={i} className="border-bd-subtle/60 border-t">
+              <td className="px-3 py-1.5 font-semibold" style={{ color: l.action === 'SELL' ? 'var(--color-loss)' : 'var(--color-profit)' }}>
+                {l.action}
+              </td>
+              <td className="px-3 py-1.5 text-text-primary">{l.asset}</td>
+              <td className="px-3 py-1.5 text-right tabular-nums text-text-primary">
+                {l.filledQuoteUsdt == null ? '—' : formatCurrency(l.filledQuoteUsdt)}
+              </td>
+              <td className="px-3 py-1.5 text-right tabular-nums text-text-secondary">
+                {l.filledBaseQty == null ? '—' : l.filledBaseQty.toFixed(6)}
+              </td>
+              <td className="px-3 py-1.5 text-right tabular-nums text-text-secondary">
+                {l.averagePrice == null ? '—' : formatCurrency(l.averagePrice)}
+              </td>
+              <td className="px-3 py-1.5">
+                {l.succeeded ? (
+                  <span className="text-[var(--color-profit)]">{l.binanceStatus ?? 'OK'}</span>
+                ) : (
+                  <span className="text-[var(--color-loss)]" title={l.errorMessage ?? ''}>
+                    {l.errorMessage ?? l.binanceStatus ?? 'FAILED'}
+                  </span>
+                )}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }
 

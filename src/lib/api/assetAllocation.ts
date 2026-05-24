@@ -1,5 +1,6 @@
 import type {
   AssetAllocationTarget,
+  AssetRebalanceHistoryView,
   AssetRebalancePlan,
   AssetRebalancePolicy,
   UpdateAssetPolicyRequest,
@@ -30,10 +31,30 @@ function mapPolicy(raw: any): AssetRebalancePolicy {
     slippageBpsAssumed: toNum(raw.slippageBpsAssumed, 10),
     feeBpsAssumed: toNum(raw.feeBpsAssumed, 4),
     usdtReserveFloorPct: toNum(raw.usdtReserveFloorPct, 20),
+    maxPerExecuteUsdt: toNum(raw.maxPerExecuteUsdt, 50),
     requireManualApproval: Boolean(raw.requireManualApproval),
     enabled: Boolean(raw.enabled),
     persisted: Boolean(raw.persisted),
     updatedTime: raw.updatedTime ?? null,
+  };
+}
+
+function mapHistoryView(raw: any): AssetRebalanceHistoryView {
+  return {
+    id: raw.id,
+    accountId: raw.accountId,
+    method: raw.method,
+    status: raw.status,
+    triggeredBy: raw.triggeredBy,
+    estimatedCostUsdt:    raw.estimatedCostUsdt    == null ? null : toNum(raw.estimatedCostUsdt),
+    estimatedBenefitUsdt: raw.estimatedBenefitUsdt == null ? null : toNum(raw.estimatedBenefitUsdt),
+    proposedAt: raw.proposedAt,
+    executedAt: raw.executedAt ?? null,
+    completedAt: raw.completedAt ?? null,
+    failedReason: raw.failedReason ?? null,
+    driftSnapshot: raw.driftSnapshot ?? [],
+    tradePlan: raw.tradePlan ?? [],
+    executionSummary: raw.executionSummary ?? null,
   };
 }
 
@@ -108,4 +129,14 @@ export async function computeAssetRebalancePlan(
     { params: { accountId, persist } },
   );
   return mapPlan(data);
+}
+
+export async function fetchRebalanceById(rebalanceId: string): Promise<AssetRebalanceHistoryView> {
+  const { data } = await apiClient.get<any>(`/api/v1/portfolio/assets/rebalance/${rebalanceId}`);
+  return mapHistoryView(data);
+}
+
+export async function executeRebalance(rebalanceId: string): Promise<AssetRebalanceHistoryView> {
+  const { data } = await apiClient.post<any>(`/api/v1/portfolio/assets/rebalance/${rebalanceId}/execute`);
+  return mapHistoryView(data);
 }

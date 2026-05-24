@@ -18,6 +18,8 @@ export interface AssetRebalancePolicy {
   slippageBpsAssumed: number;
   feeBpsAssumed: number;
   usdtReserveFloorPct: number;
+  /** Phase 4 — sum of |leg notional| must be ≤ this for /execute to proceed. */
+  maxPerExecuteUsdt: number;
   requireManualApproval: boolean;
   enabled: boolean;
   /** False when this is a defaults-only DTO (no row yet in asset_rebalance_policy). */
@@ -94,6 +96,52 @@ export interface UpdateAssetPolicyRequest {
   slippageBpsAssumed?: number;
   feeBpsAssumed?: number;
   usdtReserveFloorPct?: number;
+  maxPerExecuteUsdt?: number;
   requireManualApproval?: boolean;
   enabled?: boolean;
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// Phase 4 — execution
+
+/** Per-leg result inside an execution_summary JSONB. */
+export interface ExecutionLeg {
+  asset: string;
+  action: 'BUY' | 'SELL';
+  symbol: string;
+  clientOrderId: string;
+  succeeded: boolean;
+  binanceStatus: string | null;
+  binanceOrderId: number | null;
+  requestedBaseQty: number;
+  filledBaseQty: number | null;
+  filledQuoteUsdt: number | null;
+  averagePrice: number | null;
+  errorMessage: string | null;
+}
+
+export interface ExecutionSummary {
+  totalLegs: number;
+  succeeded: number;
+  failed: number;
+  actualNotionalUsdt: number;
+  legs: ExecutionLeg[];
+}
+
+/** View shape from GET /rebalance/{id} and POST /rebalance/{id}/execute. */
+export interface AssetRebalanceHistoryView {
+  id: UUID;
+  accountId: UUID;
+  method: string;
+  status: AssetRebalancePlanStatus;
+  triggeredBy: string;
+  estimatedCostUsdt: number | null;
+  estimatedBenefitUsdt: number | null;
+  proposedAt: ISO8601;
+  executedAt: ISO8601 | null;
+  completedAt: ISO8601 | null;
+  failedReason: string | null;
+  driftSnapshot: AssetDriftItem[] | unknown;
+  tradePlan: AssetTradeLeg[] | unknown;
+  executionSummary: ExecutionSummary | null;
 }
