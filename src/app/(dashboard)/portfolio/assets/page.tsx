@@ -67,6 +67,11 @@ export default function AssetAllocationPage() {
         <TargetsEditor
           accountId={accountId}
           targets={targetsQ.data ?? []}
+          heldAssets={
+            (portfolio.data?.assets ?? [])
+              .filter((a) => a.usdtValue > 0)
+              .map((a) => a.asset.toUpperCase())
+          }
           loading={targetsQ.isLoading}
           saving={upsertTargets.isPending}
           onSave={async (items) => {
@@ -239,9 +244,19 @@ interface TargetRow {
   minBandPp: string;
 }
 
+/**
+ * Curated common-asset pick list. Expand as needed; the union with the
+ * account's currently-held assets is the dropdown's actual option set so any
+ * coin you already hold can be targeted even if it's not in this list.
+ */
+const COMMON_ASSETS = [
+  'USDT', 'USDC', 'BTC', 'ETH', 'BNB', 'SOL', 'XRP', 'ADA', 'DOGE',
+];
+
 function TargetsEditor({
   accountId,
   targets,
+  heldAssets,
   loading,
   saving,
   onSave,
@@ -249,6 +264,7 @@ function TargetsEditor({
 }: {
   accountId: string;
   targets: Array<{ asset: string; targetPct: number; minBandPp: number }>;
+  heldAssets: string[];
   loading: boolean;
   saving: boolean;
   onSave: (items: Array<{ asset: string; targetPct: number; minBandPp: number }>) => Promise<void>;
@@ -277,14 +293,33 @@ function TargetsEditor({
   );
   const sumOk = Math.abs(sum - 100) < 0.011;
 
+  // Dropdown option set: curated common assets ∪ assets currently held.
+  // Sorted with USDT first (most-likely target), then alphabetical.
+  const allAssetOptions = useMemo(() => {
+    const set = new Set<string>();
+    for (const a of COMMON_ASSETS) set.add(a);
+    for (const a of heldAssets) set.add(a.toUpperCase());
+    return Array.from(set).sort((a, b) => {
+      if (a === 'USDT') return -1;
+      if (b === 'USDT') return 1;
+      return a.localeCompare(b);
+    });
+  }, [heldAssets]);
+
   const update = (i: number, patch: Partial<TargetRow>) => {
     setTouched(true);
     setRows((rs) => rs.map((r, idx) => (idx === i ? { ...r, ...patch } : r)));
   };
+
   const addRow = () => {
     setTouched(true);
-    setRows((rs) => [...rs, { asset: '', targetPct: '0', minBandPp: '5' }]);
+    setRows((rs) => {
+      const taken = new Set(rs.map((r) => r.asset).filter(Boolean));
+      const firstFree = allAssetOptions.find((a) => !taken.has(a)) ?? '';
+      return [...rs, { asset: firstFree, targetPct: '0', minBandPp: '5' }];
+    });
   };
+
   const removeRow = (i: number) => {
     setTouched(true);
     setRows((rs) => rs.filter((_, idx) => idx !== i));
@@ -329,14 +364,30 @@ function TargetsEditor({
               <span className="text-right">Band pp</span>
               <span />
             </div>
-            {rows.map((r, i) => (
+            {rows.map((r, i) => {
+              const takenElsewhere = new Set(
+                rows.filter((_, idx) => idx !== i).map((x) => x.asset).filter(Boolean),
+              );
+              return (
               <div key={i} className="grid grid-cols-[1fr_90px_90px_30px] items-center gap-2">
-                <input
+                <select
                   className="rounded border border-bd-subtle bg-bg-base px-2 py-1 text-[12px] uppercase text-text-primary focus:border-bd-focus focus:outline-none"
                   value={r.asset}
-                  onChange={(e) => update(i, { asset: e.target.value.toUpperCase() })}
-                  placeholder="USDT"
-                />
+                  onChange={(e) => update(i, { asset: e.target.value })}
+                >
+                  {!r.asset && <option value="" disabled>Select asset</option>}
+                  {/* If the current row's value isn't in the curated/held set (legacy row),
+                      keep it selectable so we don't silently drop it on first edit. */}
+                  {r.asset && !allAssetOptions.includes(r.asset) && (
+                    <option value={r.asset}>{r.asset}</option>
+                  )}
+                  {allAssetOptions.map((a) => (
+                    <option key={a} value={a} disabled={takenElsewhere.has(a)}>
+                      {a}
+                      {takenElsewhere.has(a) ? ' (used)' : ''}
+                    </option>
+                  ))}
+                </select>
                 <input
                   type="number"
                   className="rounded border border-bd-subtle bg-bg-base px-2 py-1 text-right font-mono text-[12px] tabular-nums text-text-primary focus:border-bd-focus focus:outline-none"
@@ -364,7 +415,8 @@ function TargetsEditor({
                   ×
                 </button>
               </div>
-            ))}
+              );
+            })}
           </div>
           <div className="mt-3 flex items-center gap-2">
             <button
