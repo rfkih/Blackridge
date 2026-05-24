@@ -1,6 +1,6 @@
 'use client';
 
-import { format } from 'date-fns';
+import { format, formatDistanceToNow } from 'date-fns';
 import { AlertCircle, RefreshCw } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/shared/EmptyState';
@@ -52,9 +52,12 @@ export function WeightsTable({ accountId }: WeightsTableProps = {}) {
     );
   }
 
+  const lastRebalance = resolveLastRebalance(data.items);
+  const scoped = accountId !== undefined;
+
   return (
     <section className="overflow-hidden rounded-xl border border-bd-subtle bg-bg-surface">
-      <div className="flex items-center justify-between border-b border-bd-subtle px-4 py-3">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-bd-subtle px-4 py-3">
         <h3 className="font-display text-[13px] font-semibold text-text-primary">
           Current weights
           <span className="ml-2 font-mono text-[11px] text-text-muted">{data.items.length}</span>
@@ -62,6 +65,31 @@ export function WeightsTable({ accountId }: WeightsTableProps = {}) {
         <div className="font-mono text-[10px] text-text-muted">
           guardrails [{data.guardrails.min_weight}, {data.guardrails.max_weight}]
         </div>
+      </div>
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 border-b border-bd-subtle bg-bg-elevated px-4 py-2 font-mono text-[11px] text-text-muted">
+        {scoped && (
+          <span>
+            last rebalance{' '}
+            <span className="text-text-primary">
+              {lastRebalance.at
+                ? `${formatDistanceToNow(lastRebalance.at, { addSuffix: true })}${
+                    lastRebalance.label ? ` · ${lastRebalance.label}` : ''
+                  }`
+                : 'never'}
+            </span>
+          </span>
+        )}
+        <span>
+          managed <span className="text-text-primary">{lastRebalance.managed}</span>
+        </span>
+        <span>
+          equal-weight <span className="text-text-primary">{lastRebalance.equalWeight}</span>
+        </span>
+        {lastRebalance.manual > 0 && (
+          <span>
+            manual <span className="text-[color:var(--color-warning)]">{lastRebalance.manual}</span>
+          </span>
+        )}
       </div>
       <div className="overflow-x-auto">
         <table className="w-full">
@@ -145,6 +173,38 @@ function resolveSource(source: PortfolioWeightSource): { bg: string; fg: string 
     default:
       return { bg: 'var(--bg-elevated)', fg: 'var(--text-muted)' };
   }
+}
+
+interface LastRebalance {
+  at: Date | null;
+  label: string;
+  managed: number;
+  equalWeight: number;
+  manual: number;
+}
+
+function resolveLastRebalance(items: PortfolioWeightRow[]): LastRebalance {
+  let at: Date | null = null;
+  let label = '';
+  let managed = 0;
+  let equalWeight = 0;
+  let manual = 0;
+  for (const row of items) {
+    if (row.weight_source === 'EQUAL_WEIGHT') equalWeight += 1;
+    else managed += 1;
+    if (row.weight_source === 'MANUAL') manual += 1;
+    // Only HRP / MEAN_VARIANCE count as "rebalance". MANUAL is an operator
+    // hot-fix surfaced via the separate `manual` counter, not a rebalance.
+    if (row.weight_source !== 'HRP' && row.weight_source !== 'MEAN_VARIANCE') continue;
+    if (!row.weight_updated_at) continue;
+    const d = new Date(row.weight_updated_at);
+    if (Number.isNaN(d.getTime())) continue;
+    if (!at || d.getTime() > at.getTime()) {
+      at = d;
+      label = row.weight_source;
+    }
+  }
+  return { at, label, managed, equalWeight, manual };
 }
 
 function safeDateFmt(value: string | null | undefined): string {

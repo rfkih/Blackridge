@@ -4,10 +4,12 @@ import { useMemo } from 'react';
 import { AlertCircle, RefreshCw, Wallet } from 'lucide-react';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { Skeleton } from '@/components/ui/skeleton';
+import { PortfolioRebalanceSection } from '@/components/admin/portfolio-rebalance/PortfolioRebalanceSection';
 import { usePortfolio } from '@/hooks/usePortfolio';
 import { usePnlSummary } from '@/hooks/useTrades';
 import { useActiveAccount } from '@/hooks/useAccounts';
 import { useCurrencyFormatter } from '@/hooks/useCurrency';
+import { useIsAdmin } from '@/hooks/useIsAdmin';
 import type { PortfolioAsset } from '@/types/portfolio';
 
 interface EnrichedAsset extends PortfolioAsset {
@@ -20,6 +22,7 @@ export default function PortfolioPage() {
   const { data: pnlToday } = usePnlSummary('today');
   const { accounts } = useActiveAccount();
   const formatCurrency = useCurrencyFormatter();
+  const isAdmin = useIsAdmin();
 
   const totalUsdt = data?.totalUsdt ?? 0;
   const availableUsdt = data?.availableUsdt ?? 0;
@@ -177,6 +180,8 @@ export default function PortfolioPage() {
         <RiskCard totalUsdt={totalUsdt} rows={rows} lockedUsdt={lockedUsdt} />
         <PerformanceCard />
       </section>
+
+      {isAdmin && <PortfolioRebalanceSection />}
 
       {}
       <section

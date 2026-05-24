@@ -1,0 +1,30 @@
+node_modules/
+.git/
+.idea/
+.claude/
+.vscode/
+logs/
+*.log
+.DS_Store
+.env*.local
+playwright-report/
+test-results/
+coverage/
+out/
+Dockerfile
+Dockerfile.host
+.dockerignore
+Dockerfile.host.dockerignore
+README.md
+SECURITY_*.md
+API_CONTRACT.md
+docs/
+deploy/
+tests/
+playwright.config.ts
+vitest.config.ts
+*.ps1
+# NOTE: .next/ deliberately NOT excluded — the hybrid Dockerfile.host
+# (used by the home docker-compose) copies the host-built .next into the
+# image. The CI-side Dockerfile uses .dockerignore (which DOES exclude
+# .next/) because CI builds it inside the container.

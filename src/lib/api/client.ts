@@ -1,4 +1,3 @@
-
 import axios, { type AxiosError, type AxiosInstance } from 'axios';
 import { useAuthStore } from '@/store/authStore';
 import { env } from '@/lib/env';
@@ -39,6 +38,42 @@ export const apiClient: AxiosInstance = createApiClient(env.apiUrl);
 export const researchClient: AxiosInstance = apiClient;
 
 /**
+ * One-shot boot diagnostic for the localhost↔127.0.0.1 footgun
+ * (2026-05-23). When {@code NEXT_PUBLIC_API_URL} resolves to a
+ * hostname different from the page's own hostname, the browser
+ * treats them as different sites under SameSite=Lax — the JWT cookie
+ * the backend sets is then NOT sent on the AJAX call that triggers
+ * the auth check, and the operator sees an immediate redirect back
+ * to /login after a successful login.
+ *
+ * <p>This check runs once at module load on the client (Next inlines
+ * apiClient into shared chunks). Dev-only — production deployments
+ * are expected to terminate both the frontend and the API on the
+ * same origin via reverse proxy, so the check would mostly false-
+ * positive there.
+ */
+if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
+  try {
+    const apiHost = new URL(env.apiUrl).hostname;
+    const pageHost = window.location.hostname;
+    if (apiHost !== pageHost) {
+      // eslint-disable-next-line no-console -- intentional dev-only auth-config warning
+      console.warn(
+        `[auth] NEXT_PUBLIC_API_URL host "${apiHost}" differs from page host "${pageHost}". ` +
+          `Browsers treat these as different sites under SameSite=Lax — the auth cookie ` +
+          `the backend sets on a login response to "${apiHost}" will NOT be sent on ` +
+          `subsequent AJAX from "${pageHost}", and you'll be bounced back to /login. ` +
+          `Standardize: visit the dashboard at http://${apiHost}:3000 (or set ` +
+          `NEXT_PUBLIC_API_URL=http://${pageHost}:8080).`,
+      );
+    }
+  } catch {
+    /* env.apiUrl wasn't a valid URL — env.ts would have caught the empty case;
+       a malformed value is the operator's problem to surface another way. */
+  }
+}
+
+/**
  * Ship Axios failures into the error_log pipeline. 5xx and network errors
  * (no response) are reported; 4xx is skipped because client mistakes are
  * not bugs to track. Reporting is fire-and-forget — the original promise
@@ -55,10 +90,7 @@ function reportApiFailure(error: AxiosError) {
   const path = cfg?.url ?? '(unknown url)';
   const fullUrl = cfg?.baseURL ? `${cfg.baseURL}${path}` : path;
 
-  const fingerprint = isNetwork
-    ?
-      'frontendnetworkerror'.padEnd(64, '0')
-    : undefined;
+  const fingerprint = isNetwork ? 'frontendnetworkerror'.padEnd(64, '0') : undefined;
 
   reportError({
     loggerName: 'frontend.api',
@@ -136,8 +168,7 @@ function markSessionExpired() {
   if (typeof window === 'undefined') return;
   try {
     window.sessionStorage.setItem(SESSION_EXPIRED_FLAG, '1');
-  } catch {
-  }
+  } catch {}
 }
 
 export function consumeSessionExpiredFlag(): boolean {
@@ -183,6 +214,7 @@ function sharedErrorHandler(error: AxiosError) {
   logDevAxiosFailure(error);
   reportApiFailure(error);
   if (error.response?.status === 401) {
+    logAuthWipeDiagnostic(error);
     const { clearAuth } = useAuthStore.getState();
     clearAuth();
 
@@ -199,4 +231,53 @@ function sharedErrorHandler(error: AxiosError) {
     }
   }
   return Promise.reject(error);
+}
+
+/**
+ * Dev-mode diagnostic for the "I just logged in and got immediately
+ * bounced back to /login" footgun. The browser doesn't tell us why
+ * the JWT cookie wasn't honoured (HttpOnly, can't inspect from JS),
+ * but we can surface enough surrounding state to point the next
+ * iteration at the right thing:
+ *
+ * - WHICH endpoint 401'd (e.g. {@code /api/v1/users/me} on first page
+ *   load after login indicates the auth cookie isn't being sent).
+ * - WHETHER the signal cookie ({@code blackheart-session}) was even
+ *   set — if not, the login response handler didn't run to completion.
+ * - WHETHER the API host matches the page host — the cross-origin
+ *   variant ({@code localhost} vs {@code 127.0.0.1}) is the #1 cause
+ *   of "cookies are set but not sent" on local dev.
+ *
+ * Prod builds skip the console output to keep the log clean.
+ */
+function logAuthWipeDiagnostic(error: AxiosError) {
+  if (process.env.NODE_ENV === 'production') return;
+  if (typeof window === 'undefined') return;
+  const cfg = error.config;
+  const method = cfg?.method?.toUpperCase() ?? '?';
+  const url = cfg?.url ?? '(unknown)';
+  const baseURL = cfg?.baseURL ?? '(unknown)';
+  const signalCookiePresent =
+    typeof document !== 'undefined' && document.cookie.includes('blackheart-session=');
+  let apiHost = '(unparseable)';
+  try {
+    apiHost = new URL(baseURL).hostname;
+  } catch {
+    /* keep default */
+  }
+  const pageHost = window.location.hostname;
+  const originMismatch = apiHost !== '(unparseable)' && apiHost !== pageHost;
+  // eslint-disable-next-line no-console -- intentional auth-flow diagnostic
+  console.error('[auth] 401 wiped session — investigating the bounce-to-login loop?', {
+    failingRequest: `${method} ${baseURL}${url}`,
+    signalCookiePresent,
+    apiHost,
+    pageHost,
+    originMismatch,
+    hint: originMismatch
+      ? `API host "${apiHost}" differs from page host "${pageHost}". Cookies set on one are NOT sent on requests to the other (different sites under SameSite=Lax). Standardize NEXT_PUBLIC_API_URL and the URL you're visiting on the SAME hostname (both "localhost" or both "127.0.0.1").`
+      : !signalCookiePresent
+        ? 'Signal cookie is absent — the login response either failed or its handler never ran. Check the network tab for the login POST itself.'
+        : 'Signal cookie present but server rejected the JWT. Most likely: JWT_SECRET rotated since this cookie was issued (clear the blackheart-token cookie and try again), or the JWT genuinely expired.',
+  });
 }

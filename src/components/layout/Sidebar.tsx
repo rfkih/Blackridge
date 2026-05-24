@@ -65,6 +65,7 @@ const NAV_GROUPS: NavGroup[] = [
       { label: 'Backtest', href: '/backtest', icon: FlaskConical },
       { label: 'Markets', href: '/market', icon: CandlestickChart },
       { label: 'Sweeps', href: '/research/sweeps', icon: Grid3x3 },
+      { label: 'ML', href: '/ml/monitor', icon: Brain },
       { label: 'Forward Projections', href: '/montecarlo', icon: Dices },
       { label: 'P&L', href: '/pnl', icon: BarChart3 },
     ],
