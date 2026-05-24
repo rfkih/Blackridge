@@ -352,7 +352,6 @@ function EquityPanel({ balance, changeToday, changePct, points, period, setPerio
         <MiniEquityChart
           data={chartData.length ? chartData : fallbackCurve()}
           height={220}
-          color={isUp ? 'var(--color-profit)' : 'var(--color-loss)'}
         />
       </div>
     </div>
@@ -762,7 +761,7 @@ function fallbackCurve(): number[] {
 function MiniEquityChart({
   data,
   height,
-  color = 'var(--color-profit)',
+  color = 'var(--text-secondary)',
 }: {
   data: number[];
   height: number;
