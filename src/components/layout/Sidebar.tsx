@@ -55,6 +55,7 @@ const NAV_GROUPS: NavGroup[] = [
     items: [
       { label: 'Dashboard', href: '/', icon: Home },
       { label: 'Portfolio', href: '/portfolio', icon: Wallet },
+      { label: 'Asset Targets', href: '/portfolio/assets', icon: Wallet },
       { label: 'Trades', href: '/trades', icon: Book },
       { label: 'Strategies', href: '/strategies', icon: Zap },
     ],
