@@ -349,7 +349,11 @@ function EquityPanel({ balance, changeToday, changePct, points, period, setPerio
       </div>
 
       <div style={{ flex: 1, minHeight: 220 }}>
-        <MiniEquityChart data={chartData.length ? chartData : fallbackCurve()} height={220} />
+        <MiniEquityChart
+          data={chartData.length ? chartData : fallbackCurve()}
+          height={220}
+          color={isUp ? 'var(--color-profit)' : 'var(--color-loss)'}
+        />
       </div>
     </div>
   );
@@ -755,7 +759,15 @@ function fallbackCurve(): number[] {
   return out;
 }
 
-function MiniEquityChart({ data, height }: { data: number[]; height: number }) {
+function MiniEquityChart({
+  data,
+  height,
+  color = 'var(--color-profit)',
+}: {
+  data: number[];
+  height: number;
+  color?: string;
+}) {
   const width = 480;
   if (!data.length) return null;
   const { min, max } = minMax(data);
@@ -776,7 +788,7 @@ function MiniEquityChart({ data, height }: { data: number[]; height: number }) {
     <svg
       viewBox={`0 0 ${width} ${height}`}
       preserveAspectRatio="none"
-      style={{ display: 'block', width: '100%', height, color: 'var(--brand-500)' }}
+      style={{ display: 'block', width: '100%', height, color }}
     >
       <defs>
         <linearGradient id="br-mini-area" x1="0" y1="0" x2="0" y2="1">
