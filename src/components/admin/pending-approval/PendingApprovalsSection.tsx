@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/button';
 import { PendingApprovalCard } from './PendingApprovalCard';
 import { usePendingApprovals } from '@/hooks/usePendingApprovals';
 
+const VERDICT_PRIORITY: Record<string, number> = { PROMOTE: 0, HOLD: 1 };
+
 /**
  * Embeddable section that renders the curator's pending-approval inbox.
  *
@@ -41,7 +43,16 @@ export function PendingApprovalsSection() {
     return Object.keys(seen).sort();
   }, [rows]);
 
-  const visible = symbolFilter ? rows.filter((r) => r.symbol === symbolFilter) : rows;
+  const visible = useMemo(() => {
+    const filtered = symbolFilter ? rows.filter((r) => r.symbol === symbolFilter) : rows;
+    return [...filtered].sort((a, b) => {
+      const pa = VERDICT_PRIORITY[a.verdict] ?? 99;
+      const pb = VERDICT_PRIORITY[b.verdict] ?? 99;
+      if (pa !== pb) return pa - pb;
+      // Tie-breaker: latest first (stable for equal times)
+      return (b.createdTime || '').localeCompare(a.createdTime || '');
+    });
+  }, [rows, symbolFilter]);
 
   const isFirstLoad = isLoading && rows.length === 0;
 

@@ -2,7 +2,14 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { format } from 'date-fns';
-import { CheckCircle2, AlertTriangle, RefreshCw, CheckCheck, XCircle } from 'lucide-react';
+import {
+  CheckCircle2,
+  AlertTriangle,
+  RefreshCw,
+  CheckCheck,
+  XCircle,
+  ExternalLink,
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { ConcernsPanel } from './ConcernsPanel';
@@ -133,16 +140,16 @@ export function PendingApprovalCard({ row, onDialogOpenChange }: PendingApproval
             {/* Verdict badge */}
             <span
               className={cn(
-                'inline-flex items-center gap-1 rounded-sm px-1.5 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wider',
+                'inline-flex items-center gap-1.5 rounded px-2 py-1 text-[12px] font-bold uppercase tracking-wide',
                 isPromote
-                  ? 'bg-[var(--tint-profit)] text-[var(--color-profit)]'
-                  : 'bg-[var(--tint-warning)] text-[var(--color-warning)]',
+                  ? 'bg-[var(--color-profit)] text-[var(--bg-base)]'
+                  : 'bg-[var(--color-warning)] text-[var(--bg-base)]',
               )}
             >
               {isPromote ? (
-                <CheckCircle2 className="h-2.5 w-2.5" />
+                <CheckCircle2 className="h-3 w-3" />
               ) : (
-                <AlertTriangle className="h-2.5 w-2.5" />
+                <AlertTriangle className="h-3 w-3" />
               )}
               {row.verdict}
             </span>
@@ -157,10 +164,23 @@ export function PendingApprovalCard({ row, onDialogOpenChange }: PendingApproval
             <span className="font-mono text-[12px] text-text-secondary">{row.interval}</span>
           </div>
 
-          <span className="shrink-0 font-mono text-[11px] text-text-muted">
-            {formatCreatedTime(row.createdTime)}
-            {row.createdBy && <span className="text-text-tertiary ml-1">by {row.createdBy}</span>}
-          </span>
+          <div className="flex shrink-0 flex-wrap items-center gap-2">
+            <span className="font-mono text-[11px] text-text-muted">
+              {formatCreatedTime(row.createdTime)}
+              {row.createdBy && <span className="text-text-tertiary ml-1">by {row.createdBy}</span>}
+            </span>
+            <a
+              href={`/backtest/${row.backtestRunId}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 text-[11px] text-text-secondary hover:text-text-primary"
+              title="Open the cited backtest run"
+              aria-label={`View backtest ${row.backtestRunId.slice(0, 8)}`}
+            >
+              <ExternalLink className="h-3 w-3" />
+              backtest
+            </a>
+          </div>
         </div>
 
         <div className="flex flex-col gap-4 p-4">
@@ -207,13 +227,21 @@ export function PendingApprovalCard({ row, onDialogOpenChange }: PendingApproval
             </div>
           </div>
 
-          {/* Gate-checks row */}
+          {/* Gate-checks row — failures pinned first for fast triage */}
           <div className="flex flex-wrap items-center gap-1.5">
             <span className="text-[11px] text-text-muted">Gates:</span>
-            <GateCheckCell label="cagr" check={row.gateCheck.cagr} />
-            <GateCheckCell label="capital" check={row.gateCheck.capital} />
-            <GateCheckCell label="window" check={row.gateCheck.window} />
-            <GateCheckCell label="trades" check={row.gateCheck.trades} />
+            {(
+              [
+                ['cagr', row.gateCheck.cagr],
+                ['capital', row.gateCheck.capital],
+                ['window', row.gateCheck.window],
+                ['trades', row.gateCheck.trades],
+              ] as [string, GateCheck][]
+            )
+              .sort(([, a], [, b]) => Number(a.passed) - Number(b.passed))
+              .map(([label, check]) => (
+                <GateCheckCell key={label} label={label} check={check} />
+              ))}
           </div>
 
           {/* E2: Always show a HOLD banner even when concerns=[] — HOLD means
@@ -267,10 +295,10 @@ export function PendingApprovalCard({ row, onDialogOpenChange }: PendingApproval
             </Button>
             <Button
               type="button"
-              variant="outline"
+              variant="ghost"
               size="sm"
               onClick={handleDismissOpen}
-              className="gap-1.5 text-[var(--color-loss)] hover:bg-[rgba(229,72,77,0.12)] hover:text-[var(--color-loss)]"
+              className="gap-1.5 text-text-secondary hover:bg-[rgba(229,72,77,0.08)] hover:text-[var(--color-loss)]"
             >
               <XCircle className="h-3.5 w-3.5" />
               Dismiss
