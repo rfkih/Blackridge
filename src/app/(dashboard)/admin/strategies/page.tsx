@@ -19,6 +19,7 @@ import { EmptyState } from '@/components/shared/EmptyState';
 import { Button } from '@/components/ui/button';
 import { StrategyDefinitionDialog } from '@/components/admin/StrategyDefinitionDialog';
 import { SymbolApprovalsSection } from '@/components/admin/symbol-approval/SymbolApprovalsSection';
+import { PendingApprovalsSection } from '@/components/admin/pending-approval/PendingApprovalsSection';
 import { PortfolioRebalanceSection } from '@/components/admin/portfolio-rebalance/PortfolioRebalanceSection';
 import {
   useDeprecateStrategyDefinition,
@@ -188,6 +189,8 @@ export default function AdminStrategiesPage() {
         existing={editing}
         replicateFrom={replicating}
       />
+
+      <PendingApprovalsSection />
 
       <SymbolApprovalsSection />
 
