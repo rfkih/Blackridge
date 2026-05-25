@@ -145,16 +145,10 @@ export function ReplicationsPanel({
               <div className="ml-auto flex items-center gap-3">
                 {renderMetric('ag90', originalEvidence.ag90, row.metricsSummary?.ag90)}
                 {renderMetric('n_trades', originalEvidence.n_trades, row.metricsSummary?.n_trades)}
-                {row.metricsSummary?.psr !== undefined &&
-                  renderMetric('psr', 0, row.metricsSummary.psr)}
-                {row.metricsSummary?.profit_factor !== undefined && (
-                  <span className="text-[11px] text-text-secondary">
-                    pf=
-                    <span className="font-mono tabular-nums">
-                      {row.metricsSummary.profit_factor}
-                    </span>
-                  </span>
-                )}
+                {/* psr + profit_factor on replications are intentionally NOT shown side-by-side here:
+                    EvidenceSummary (the original curator metrics) doesn't carry them, so we can't
+                    color-code deviation. Operator who needs raw values can click "View backtest" on
+                    the strategy-detail page once the V102 row is created. */}
                 {row.error && (
                   <span className="text-danger text-[11px]" title={row.error}>
                     error

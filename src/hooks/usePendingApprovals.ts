@@ -27,8 +27,16 @@ function listKey(params: ListPendingApprovalsParams) {
  * cycle. Status filter defaults to PENDING because that's the admin's
  * active queue; pass status='APPROVED'|'DISMISSED'|'SUPERSEDED' to see
  * history (no UI for that in this PR -- backend supports it).
+ *
+ * Pass `options.pollingPaused = true` to suspend the 30s refetchInterval
+ * and window-focus refetch while an admin is mid-interaction in a dialog.
+ * This prevents the row being yanked out from under a Dismiss reason or an
+ * Approve confirmation when the curator upserts the same row in-place.
  */
-export function usePendingApprovals(params: ListPendingApprovalsParams = {}) {
+export function usePendingApprovals(
+  params: ListPendingApprovalsParams = {},
+  options: { pollingPaused?: boolean } = {},
+) {
   // Normalize the params object so the queryKey is stable across renders
   // even if the caller passes a fresh literal each time.
   const normalized: ListPendingApprovalsParams = {
@@ -38,16 +46,23 @@ export function usePendingApprovals(params: ListPendingApprovalsParams = {}) {
   return useQuery({
     queryKey: listKey(normalized),
     queryFn: () => listPendingApprovals(normalized),
-    refetchInterval: 30_000,
-    refetchOnWindowFocus: true,
+    refetchInterval: options.pollingPaused ? false : 30_000,
+    refetchOnWindowFocus: !options.pollingPaused,
   });
 }
 
-function invalidateAll(queryClient: ReturnType<typeof useQueryClient>) {
+/** Invalidates only the pending-approvals cache (Replicate, Dismiss). */
+function invalidatePending(queryClient: ReturnType<typeof useQueryClient>) {
   queryClient.invalidateQueries({ queryKey: ROOT_KEY });
-  // Approve also writes a V102 row -- bust that cache too so the
-  // SymbolApprovalsSection on the same page picks up the new approval
-  // without a manual refresh.
+}
+
+/**
+ * Invalidates pending-approvals AND symbol-approvals (Approve only).
+ * Approve creates a V102 row — bust that cache too so SymbolApprovalsSection
+ * on the same page picks up the new approval without a manual refresh.
+ */
+function invalidatePendingAndSymbol(queryClient: ReturnType<typeof useQueryClient>) {
+  queryClient.invalidateQueries({ queryKey: ROOT_KEY });
   queryClient.invalidateQueries({ queryKey: ['symbol-approvals'] });
 }
 
@@ -56,7 +71,7 @@ export function useReplicatePendingApproval() {
   return useMutation({
     mutationFn: ({ id, request }: { id: string; request: ReplicateRequest }) =>
       replicatePendingApproval(id, request),
-    onSuccess: () => invalidateAll(queryClient),
+    onSuccess: () => invalidatePending(queryClient),
   });
 }
 
@@ -65,7 +80,7 @@ export function useApprovePendingApproval() {
   return useMutation({
     mutationFn: ({ id, request }: { id: string; request: ApproveRequest }) =>
       approvePendingApproval(id, request),
-    onSuccess: () => invalidateAll(queryClient),
+    onSuccess: () => invalidatePendingAndSymbol(queryClient),
   });
 }
 
@@ -74,7 +89,7 @@ export function useDismissPendingApproval() {
   return useMutation({
     mutationFn: ({ id, request }: { id: string; request: DismissRequest }) =>
       dismissPendingApproval(id, request),
-    onSuccess: () => invalidateAll(queryClient),
+    onSuccess: () => invalidatePending(queryClient),
   });
 }
 

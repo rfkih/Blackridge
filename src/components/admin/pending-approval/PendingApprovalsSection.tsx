@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { Inbox, RefreshCw } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
@@ -19,7 +19,18 @@ import { usePendingApprovals } from '@/hooks/usePendingApprovals';
  */
 export function PendingApprovalsSection() {
   const [symbolFilter, setSymbolFilter] = useState<string>('');
-  const { data: rows = [], isLoading, isFetching, refetch } = usePendingApprovals();
+  const [openDialogCount, setOpenDialogCount] = useState(0);
+  const {
+    data: rows = [],
+    isLoading,
+    isFetching,
+    refetch,
+  } = usePendingApprovals({}, { pollingPaused: openDialogCount > 0 });
+
+  const handleDialogOpenChange = useCallback(
+    (delta: 1 | -1) => setOpenDialogCount((c) => Math.max(0, c + delta)),
+    [],
+  );
 
   /** All distinct symbols in the current PENDING list. */
   const symbols = useMemo(() => {
@@ -111,7 +122,11 @@ export function PendingApprovalsSection() {
       ) : (
         <div className="space-y-4">
           {visible.map((row) => (
-            <PendingApprovalCard key={row.id} row={row} />
+            <PendingApprovalCard
+              key={row.id}
+              row={row}
+              onDialogOpenChange={handleDialogOpenChange}
+            />
           ))}
         </div>
       )}

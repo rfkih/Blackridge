@@ -1,7 +1,8 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { Info } from 'lucide-react';
+import { AlertCircle, Info } from 'lucide-react';
+import { AxiosError } from 'axios';
 import {
   Dialog,
   DialogContent,
@@ -17,6 +18,7 @@ import { useApprovePendingApproval } from '@/hooks/usePendingApprovals';
 import { useToast } from '@/hooks/useToast';
 import { normalizeError } from '@/lib/api/errorMap';
 import type { PendingApproval } from '@/types/pendingApproval';
+import type { GateFailureBody } from '@/types/symbolApproval';
 
 /** The literal the admin must type verbatim before approval is enabled. */
 const CONFIRM_TOKEN = 'CONFIRM';
@@ -84,15 +86,17 @@ export function ConfirmApproveDialog({
   onOpenChange,
 }: ConfirmApproveDialogProps) {
   const [typed, setTyped] = useState('');
+  const [gateFailure, setGateFailure] = useState<GateFailureBody | null>(null);
   const toast = useToast();
   const approve = useApprovePendingApproval();
 
   const open = row !== null;
 
-  // Reset typed confirmation whenever the dialog closes.
+  // Reset typed confirmation and gate-failure state whenever the dialog closes.
   useEffect(() => {
     if (!open) {
       setTyped('');
+      setGateFailure(null);
     }
   }, [open]);
 
@@ -119,33 +123,35 @@ export function ConfirmApproveDialog({
     setTyped(e.target.value);
   }, []);
 
-  const handleSubmit = useCallback(() => {
+  const handleSubmit = useCallback(async () => {
     if (!row || !isConfirmed) return;
 
-    approve.mutate(
-      {
+    setGateFailure(null);
+    try {
+      await approve.mutateAsync({
         id: row.id,
         request: {
           actor: '',
           citedBacktestRunId: effectiveCitedId || undefined,
         },
-      },
-      {
-        onSuccess: () => {
-          toast.success({
-            title: 'Approved',
-            description: `${row.strategyCode} / ${row.symbol} approved and surfaced to public picker.`,
-          });
-          handleOpenChange(false);
-        },
-        onError: (err) => {
-          toast.error({
-            title: 'Approval failed',
-            description: normalizeError(err),
-          });
-        },
-      },
-    );
+      });
+      toast.success({
+        title: 'Approved',
+        description: `${row.strategyCode} / ${row.symbol} approved and surfaced to public picker.`,
+      });
+      handleOpenChange(false);
+    } catch (err) {
+      const ax = err as AxiosError<GateFailureBody>;
+      if (ax.response?.status === 422 && ax.response.data?.error === 'GATE_FAILED') {
+        // Render per-check failures inline — do NOT show a toast.
+        setGateFailure(ax.response.data);
+      } else {
+        toast.error({
+          title: 'Approval failed',
+          description: normalizeError(err),
+        });
+      }
+    }
   }, [row, isConfirmed, approve, effectiveCitedId, toast, handleOpenChange]);
 
   return (
@@ -207,6 +213,25 @@ export function ConfirmApproveDialog({
                         <span className="text-warning">{c.severity}</span>
                       </div>
                       <p className="text-text-primary">{c.message}</p>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* 422 GATE_FAILED inline render — mirrors V102 NewApprovalDialog pattern */}
+            {gateFailure && (
+              <div className="border-warning/30 bg-warning/5 space-y-1 rounded-sm border px-3 py-2">
+                <div className="flex items-center gap-1.5 text-[11px] font-semibold text-warning">
+                  <AlertCircle className="h-3 w-3 shrink-0" />
+                  Gate rejected this approval — {gateFailure.failedChecks.length} threshold
+                  {gateFailure.failedChecks.length === 1 ? '' : 's'} not met
+                </div>
+                <ul className="space-y-0.5 pl-4 text-[11px] text-warning">
+                  {gateFailure.failedChecks.map((c) => (
+                    <li key={c.name} className="font-mono">
+                      {c.name}: threshold <span className="font-semibold">{c.threshold}</span> &gt;
+                      actual <span className="font-semibold">{c.actual}</span>
                     </li>
                   ))}
                 </ul>

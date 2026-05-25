@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { format } from 'date-fns';
 import { CheckCircle2, AlertTriangle, RefreshCw, CheckCheck, XCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -17,6 +17,9 @@ import type { PendingApproval, GateCheck } from '@/types/pendingApproval';
 
 interface PendingApprovalCardProps {
   row: PendingApproval;
+  /** Called with +1 when a dialog opens, -1 when it closes.
+   *  PendingApprovalsSection uses this to pause polling while admin is mid-typing. */
+  onDialogOpenChange?: (delta: 1 | -1) => void;
 }
 
 function formatCreatedTime(iso: string): string {
@@ -58,10 +61,16 @@ function GateCheckCell({ label, check }: { label: string; check: GateCheck }) {
   );
 }
 
-export function PendingApprovalCard({ row }: PendingApprovalCardProps) {
+export function PendingApprovalCard({ row, onDialogOpenChange }: PendingApprovalCardProps) {
   const [citedBacktestRunId, setCitedBacktestRunId] = useState<string>(row.backtestRunId);
   const [approveOpen, setApproveOpen] = useState(false);
   const [dismissOpen, setDismissOpen] = useState(false);
+
+  // E1: Reset citedBacktestRunId when the curator upserts the row in-place
+  // (PR #1 PendingApprovalService.updateInPlace) with a new backtestRunId.
+  useEffect(() => {
+    setCitedBacktestRunId(row.backtestRunId);
+  }, [row.backtestRunId]);
 
   const replicate = useReplicatePendingApproval();
 
@@ -82,11 +91,31 @@ export function PendingApprovalCard({ row }: PendingApprovalCardProps) {
     );
   }, [row.id, replicate]);
 
-  const handleApproveOpen = useCallback(() => setApproveOpen(true), []);
-  const handleApproveOpenChange = useCallback((open: boolean) => setApproveOpen(open), []);
+  const handleApproveOpen = useCallback(() => {
+    setApproveOpen(true);
+    onDialogOpenChange?.(1);
+  }, [onDialogOpenChange]);
 
-  const handleDismissOpen = useCallback(() => setDismissOpen(true), []);
-  const handleDismissOpenChange = useCallback((open: boolean) => setDismissOpen(open), []);
+  const handleApproveOpenChange = useCallback(
+    (open: boolean) => {
+      setApproveOpen(open);
+      if (!open) onDialogOpenChange?.(-1);
+    },
+    [onDialogOpenChange],
+  );
+
+  const handleDismissOpen = useCallback(() => {
+    setDismissOpen(true);
+    onDialogOpenChange?.(1);
+  }, [onDialogOpenChange]);
+
+  const handleDismissOpenChange = useCallback(
+    (open: boolean) => {
+      setDismissOpen(open);
+      if (!open) onDialogOpenChange?.(-1);
+    },
+    [onDialogOpenChange],
+  );
 
   const isPromote = row.verdict === 'PROMOTE';
 
@@ -186,6 +215,17 @@ export function PendingApprovalCard({ row }: PendingApprovalCardProps) {
             <GateCheckCell label="window" check={row.gateCheck.window} />
             <GateCheckCell label="trades" check={row.gateCheck.trades} />
           </div>
+
+          {/* E2: Always show a HOLD banner even when concerns=[] — HOLD means
+              "promote with caveats" and a missing concerns list should not
+              make the verdict invisible. ConcernsPanel returns null on empty. */}
+          {row.verdict === 'HOLD' && row.concerns.length === 0 && (
+            <div className="border-warning/30 bg-warning/5 rounded-lg border p-3 text-[12px] text-warning">
+              <AlertTriangle className="inline h-3 w-3" /> HOLD verdict with no specific concerns
+              recorded — curator soft-failed on V102 gate margin (see gate-check row above). Review
+              the gap value before approving.
+            </div>
+          )}
 
           {/* Concerns — default-open on HOLD */}
           <ConcernsPanel concerns={row.concerns} defaultOpen={row.verdict === 'HOLD'} />
