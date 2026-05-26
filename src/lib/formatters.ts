@@ -20,6 +20,14 @@ export function formatPercent(n: number | null | undefined): string {
   return `${sign}${n.toFixed(2)}%`;
 }
 
+/** Parse an ISO 8601 string as UTC. asyncpg serialises TIMESTAMP (no-tz)
+ *  columns without a timezone suffix; Date.parse would treat those as local
+ *  time in non-UTC environments. Appending 'Z' forces UTC interpretation. */
+export function parseIsoUtc(iso: string): number {
+  const s = iso.endsWith('Z') || iso.includes('+') || /[+-]\d{2}:\d{2}$/.test(iso) ? iso : `${iso}Z`;
+  return Date.parse(s);
+}
+
 export function formatDate(ms: number | null | undefined): string {
   if (ms == null || !Number.isFinite(ms)) return '—';
   return format(new Date(ms), 'yyyy-MM-dd HH:mm:ss');

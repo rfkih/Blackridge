@@ -32,6 +32,8 @@ import {
   ChevronRight,
   Bot,
   Brain,
+  Target,
+  FileText,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { BlackridgeMark } from '@/components/brand/BlackridgeMark';
@@ -55,7 +57,7 @@ const NAV_GROUPS: NavGroup[] = [
     items: [
       { label: 'Dashboard', href: '/', icon: Home },
       { label: 'Portfolio', href: '/portfolio', icon: Wallet },
-      { label: 'Asset Targets', href: '/portfolio/assets', icon: Wallet },
+      { label: 'Asset Targets', href: '/portfolio/assets', icon: Target },
       { label: 'Trades', href: '/trades', icon: Book },
       { label: 'Strategies', href: '/strategies', icon: Zap },
     ],
@@ -66,6 +68,7 @@ const NAV_GROUPS: NavGroup[] = [
       { label: 'Backtest', href: '/backtest', icon: FlaskConical },
       { label: 'Markets', href: '/market', icon: CandlestickChart },
       { label: 'Sweeps', href: '/research/sweeps', icon: Grid3x3 },
+      { label: 'Papers', href: '/research/papers', icon: FileText },
       { label: 'ML', href: '/ml/monitor', icon: Brain },
       { label: 'Forward Projections', href: '/montecarlo', icon: Dices },
       { label: 'P&L', href: '/pnl', icon: BarChart3 },
@@ -81,20 +84,40 @@ const NAV_GROUPS: NavGroup[] = [
   },
 ];
 
-const ADMIN_NAV_ITEMS: NavItem[] = [
-  { label: 'Ops Dashboard', href: '/research', icon: Activity },
-  { label: 'Research Queue', href: '/research/queue', icon: ListChecks },
-  { label: 'Catalogue', href: '/admin/strategies', icon: ShieldCheck },
-  { label: 'Historical Data', href: '/admin/historical', icon: Database },
-  { label: 'ML Data Sources', href: '/admin/ml-ingest', icon: Brain },
-  { label: 'Inbox', href: '/admin/inbox', icon: Inbox },
-  { label: 'Alerts', href: '/admin/alerts', icon: Bell },
-  { label: 'Errors', href: '/admin/errors', icon: AlertOctagon },
-  { label: 'Walk-forward', href: '/research/walk-forward', icon: Repeat },
-  { label: 'Spec Trace', href: '/admin/spec-trace', icon: Binary },
-  { label: 'Spec History', href: '/admin/strategy-history', icon: GitBranch },
-  { label: 'Research Log', href: '/research/log', icon: Microscope },
-  { label: 'Research Activity', href: '/admin/research-activity', icon: Bot },
+interface AdminNavGroup {
+  label: string;
+  items: NavItem[];
+}
+
+const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
+  {
+    label: 'Operations',
+    items: [
+      { label: 'Ops Dashboard', href: '/research', icon: Activity },
+      { label: 'Inbox', href: '/admin/inbox', icon: Inbox },
+      { label: 'Alerts', href: '/admin/alerts', icon: Bell },
+      { label: 'Errors', href: '/admin/errors', icon: AlertOctagon },
+    ],
+  },
+  {
+    label: 'Research',
+    items: [
+      { label: 'Research Queue', href: '/research/queue', icon: ListChecks },
+      { label: 'Walk-forward', href: '/research/walk-forward', icon: Repeat },
+      { label: 'Research Log', href: '/research/log', icon: Microscope },
+      { label: 'Research Activity', href: '/admin/research-activity', icon: Bot },
+    ],
+  },
+  {
+    label: 'Data & Strategy',
+    items: [
+      { label: 'Catalogue', href: '/admin/strategies', icon: ShieldCheck },
+      { label: 'Historical Data', href: '/admin/historical', icon: Database },
+      { label: 'ML Data Sources', href: '/admin/ml-ingest', icon: Brain },
+      { label: 'Spec Trace', href: '/admin/spec-trace', icon: Binary },
+      { label: 'Spec History', href: '/admin/strategy-history', icon: GitBranch },
+    ],
+  },
 ];
 
 interface SidebarProps {
@@ -229,8 +252,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                         fontSize: 14,
                         fontWeight: active ? 600 : 500,
                         textDecoration: 'none',
-                        transition:
-                          'background var(--dur-fast), color var(--dur-fast)',
+                        transition: 'background var(--dur-fast), color var(--dur-fast)',
                       }}
                     >
                       <Icon
@@ -304,40 +326,68 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                 </span>
               </button>
               {adminOpen &&
-                ADMIN_NAV_ITEMS.map(({ label, href, icon: Icon }) => {
-                  const active = isActive(href);
-                  return (
-                    <Link
-                      key={href}
-                      href={href}
-                      onClick={onClose}
-                      aria-current={active ? 'page' : undefined}
+                ADMIN_NAV_GROUPS.map((group) => (
+                  <div key={group.label}>
+                    <div
                       style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 10,
-                        padding: '7px 12px 7px 32px',
-                        borderRadius: 8,
-                        color: active ? '#F2F5F8' : '#A8B0BC',
-                        background: active ? 'rgba(255,255,255,0.06)' : 'transparent',
-                        fontSize: 13,
-                        fontWeight: active ? 600 : 400,
-                        textDecoration: 'none',
+                        fontSize: 9,
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.14em',
+                        color: '#5C6470',
+                        fontWeight: 700,
+                        padding: '8px 12px 3px 32px',
                       }}
                     >
-                      <Icon
-                        size={15}
-                        strokeWidth={1.6}
-                        style={{
-                          flexShrink: 0,
-
-                          color: active ? '#F2F5F8' : '#8C95A2',
-                        }}
-                      />
-                      <span>{label}</span>
-                    </Link>
-                  );
-                })}
+                      {group.label}
+                    </div>
+                    {group.items.map(({ label, href, icon: Icon }) => {
+                      const active = isActive(href);
+                      return (
+                        <Link
+                          key={href}
+                          href={href}
+                          onClick={onClose}
+                          aria-current={active ? 'page' : undefined}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 10,
+                            padding: '7px 12px 7px 32px',
+                            borderRadius: 8,
+                            color: active ? '#F2F5F8' : '#A8B0BC',
+                            background: active ? 'rgba(255,255,255,0.08)' : 'transparent',
+                            fontSize: 13,
+                            fontWeight: active ? 600 : 400,
+                            textDecoration: 'none',
+                            transition: 'background 120ms, color 120ms',
+                          }}
+                          onMouseEnter={(e) => {
+                            if (!active) {
+                              (e.currentTarget as HTMLAnchorElement).style.background =
+                                'rgba(255,255,255,0.04)';
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            if (!active) {
+                              (e.currentTarget as HTMLAnchorElement).style.background =
+                                'transparent';
+                            }
+                          }}
+                        >
+                          <Icon
+                            size={15}
+                            strokeWidth={1.6}
+                            style={{
+                              flexShrink: 0,
+                              color: active ? '#F2F5F8' : '#8C95A2',
+                            }}
+                          />
+                          <span>{label}</span>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                ))}
             </div>
           )}
         </nav>

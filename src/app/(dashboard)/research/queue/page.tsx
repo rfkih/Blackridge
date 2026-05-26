@@ -2,7 +2,10 @@
 
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
-import { ChevronRight, Inbox, Loader2, Plus, ShieldCheck, X } from 'lucide-react';
+import { ChevronRight, FileText, Inbox, Loader2, Plus, ShieldCheck, X } from 'lucide-react';
+import { useEffect } from 'react';
+import { useMutation } from '@tanstack/react-query';
+import { generatePaper } from '@/lib/api/researchPapers';
 import { useIsAdmin } from '@/hooks/useIsAdmin';
 import {
   useCancelQueueItem,
@@ -173,9 +176,30 @@ function QueueRow({ row }: { row: ResearchQueueItem }) {
   const update = useUpdateQueuePriority();
   const [editing, setEditing] = useState(false);
   const [draftPriority, setDraftPriority] = useState(row.priority);
+  const [generatedPaperId, setGeneratedPaperId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const stored = localStorage.getItem(`paper:${row.queueId}`);
+    if (stored) setGeneratedPaperId(stored);
+  }, [row.queueId]);
 
   const isTerminal =
     row.status === 'COMPLETED' || row.status === 'FAILED' || row.status === 'PARKED';
+  const canGeneratePaper = row.status === 'COMPLETED' || row.status === 'PARKED';
+
+  const generatePaperMutation = useMutation({
+    mutationFn: () => generatePaper(row.queueId, crypto.randomUUID()),
+    onSuccess: (result) => {
+      setGeneratedPaperId(result.paper_id);
+      localStorage.setItem(`paper:${row.queueId}`, result.paper_id);
+      toast.show({
+        title: 'Paper generated',
+        description: result.paper_id,
+        variant: 'success',
+      });
+    },
+    onError: (err) => toast.error({ title: 'Generate failed', description: normalizeError(err) }),
+  });
 
   const handleCancel = () => {
     if (
@@ -289,19 +313,45 @@ function QueueRow({ row }: { row: ResearchQueueItem }) {
         {row.createdTime ? formatDate(Date.parse(row.createdTime)) : '—'}
       </Td>
       <Td align="right">
-        <button
-          type="button"
-          onClick={handleCancel}
-          disabled={cancel.isPending || isTerminal}
-          className="border-bd-default rounded-sm border bg-bg-surface px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-text-secondary hover:bg-bg-hover disabled:cursor-not-allowed disabled:opacity-40"
-          title={isTerminal ? 'Already terminal' : 'Soft-cancel — preserves audit trail'}
-        >
-          {cancel.isPending && cancel.variables === row.queueId ? (
-            <Loader2 size={10} className="animate-spin" />
-          ) : (
-            'Cancel'
+        <div className="flex items-center justify-end gap-1.5">
+          {canGeneratePaper && (
+            generatedPaperId ? (
+              <Link
+                href={`/research/papers/${generatedPaperId}`}
+                className="inline-flex items-center gap-1 rounded-sm border border-bd-subtle bg-bg-surface px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-[var(--accent-primary)] hover:bg-bg-hover"
+              >
+                <FileText size={10} /> View →
+              </Link>
+            ) : (
+              <button
+                type="button"
+                onClick={() => generatePaperMutation.mutate()}
+                disabled={generatePaperMutation.isPending}
+                className="border-bd-default inline-flex items-center gap-1 rounded-sm border bg-bg-surface px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-text-secondary hover:bg-bg-hover disabled:cursor-not-allowed disabled:opacity-40"
+                title="Generate or regenerate the research paper for this sweep"
+              >
+                {generatePaperMutation.isPending ? (
+                  <Loader2 size={10} className="animate-spin" />
+                ) : (
+                  <><FileText size={10} /> Paper</>
+                )}
+              </button>
+            )
           )}
-        </button>
+          <button
+            type="button"
+            onClick={handleCancel}
+            disabled={cancel.isPending || isTerminal}
+            className="border-bd-default rounded-sm border bg-bg-surface px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-text-secondary hover:bg-bg-hover disabled:cursor-not-allowed disabled:opacity-40"
+            title={isTerminal ? 'Already terminal' : 'Soft-cancel — preserves audit trail'}
+          >
+            {cancel.isPending && cancel.variables === row.queueId ? (
+              <Loader2 size={10} className="animate-spin" />
+            ) : (
+              'Cancel'
+            )}
+          </button>
+        </div>
       </Td>
     </tr>
   );
