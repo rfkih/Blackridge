@@ -27,6 +27,7 @@ import { useActiveAccount } from '@/hooks/useAccounts';
 import { useStrategyDefinitions } from '@/hooks/useStrategyDefinitions';
 import { useBacktestParamStore } from '@/store/backtestParamStore';
 import { BACKTEST_MIN_NOTIONAL_USDT } from '@/lib/backtest/buildBacktestPayload';
+import { useSignalNames } from '@/lib/api/ml';
 import { cn } from '@/lib/utils';
 import type { BacktestWizardConfig } from '@/types/backtest';
 import type { AccountStrategy } from '@/types/strategy';
@@ -74,6 +75,10 @@ const configSchema = z
     strategyRegimeOverrides: z.record(z.string(), z.boolean()).optional(),
     strategyCorrelationOverrides: z.record(z.string(), z.boolean()).optional(),
     strategyConcurrentCapOverrides: z.record(z.string(), z.boolean()).optional(),
+    /** V100 — per-strategy ML gate overrides. */
+    strategyMlGateOverrides: z.record(z.string(), z.boolean()).optional(),
+    strategyMlSignalNameOverrides: z.record(z.string(), z.string()).optional(),
+    strategyMlShadowModeOverrides: z.record(z.string(), z.boolean()).optional(),
     strategyIntervals: z
       .record(
         z.string(),
@@ -197,6 +202,18 @@ export function BacktestConfigForm() {
   const [strategyConcurrentCapOverrides, setStrategyConcurrentCapOverrides] = useState<
     Record<string, boolean>
   >(savedConfig?.strategyConcurrentCapOverrides ?? {});
+
+  const [strategyMlGateOverrides, setStrategyMlGateOverrides] = useState<Record<string, boolean>>(
+    savedConfig?.strategyMlGateOverrides ?? {},
+  );
+  const [strategyMlSignalNameOverrides, setStrategyMlSignalNameOverrides] = useState<
+    Record<string, string>
+  >(savedConfig?.strategyMlSignalNameOverrides ?? {});
+  const [strategyMlShadowModeOverrides, setStrategyMlShadowModeOverrides] = useState<
+    Record<string, boolean>
+  >(savedConfig?.strategyMlShadowModeOverrides ?? {});
+
+  const availableSignalNames = useSignalNames();
 
   const [showGateOverrides, setShowGateOverrides] = useState<boolean>(false);
 
@@ -396,6 +413,9 @@ const strategyOptionsByCode = useMemo(() => {
     const regimeMap: Record<string, boolean> = {};
     const correlationMap: Record<string, boolean> = {};
     const concurrentCapMap: Record<string, boolean> = {};
+    const mlGateMap: Record<string, boolean> = {};
+    const mlSignalMap: Record<string, string> = {};
+    const mlShadowMap: Record<string, boolean> = {};
     for (const code of selectedStrategies) {
       if (typeof strategyAllowLong[code] === 'boolean')
         allowLongMap[code] = strategyAllowLong[code];
@@ -409,6 +429,12 @@ const strategyOptionsByCode = useMemo(() => {
         correlationMap[code] = strategyCorrelationOverrides[code];
       if (typeof strategyConcurrentCapOverrides[code] === 'boolean')
         concurrentCapMap[code] = strategyConcurrentCapOverrides[code];
+      if (typeof strategyMlGateOverrides[code] === 'boolean')
+        mlGateMap[code] = strategyMlGateOverrides[code];
+      if (strategyMlSignalNameOverrides[code]?.trim())
+        mlSignalMap[code] = strategyMlSignalNameOverrides[code].trim();
+      if (typeof strategyMlShadowModeOverrides[code] === 'boolean')
+        mlShadowMap[code] = strategyMlShadowModeOverrides[code];
     }
 
     const parsed = configSchema.safeParse({
@@ -431,6 +457,9 @@ const strategyOptionsByCode = useMemo(() => {
         ? concurrentCapMap
         : undefined,
       strategyIntervals: Object.keys(intervals).length ? intervals : undefined,
+      strategyMlGateOverrides: Object.keys(mlGateMap).length ? mlGateMap : undefined,
+      strategyMlSignalNameOverrides: Object.keys(mlSignalMap).length ? mlSignalMap : undefined,
+      strategyMlShadowModeOverrides: Object.keys(mlShadowMap).length ? mlShadowMap : undefined,
       evaluationMode,
       allowLong,
       allowShort,
@@ -473,6 +502,9 @@ const strategyOptionsByCode = useMemo(() => {
     strategyCorrelationOverrides,
     strategyConcurrentCapOverrides,
     strategyIntervals,
+    strategyMlGateOverrides,
+    strategyMlSignalNameOverrides,
+    strategyMlShadowModeOverrides,
     evaluationMode,
     allowLong,
     allowShort,
@@ -949,6 +981,112 @@ const strategyOptionsByCode = useMemo(() => {
                             />
                           </div>
                         ))}
+                      </div>
+
+                      {}
+                      <div className="mt-3 border-t border-bd-subtle pt-3">
+                        <p className="mb-1 font-mono text-[9px] uppercase tracking-wider text-text-muted">
+                          ML regime gate (V100)
+                        </p>
+                        <p className="mb-2 text-[10px] text-text-muted">
+                          Override the ML gate per strategy. Enables A/B paired backtests
+                          without touching live settings. Gate fails-open on missing signal
+                          data.
+                        </p>
+                        <div className="grid grid-cols-1 gap-1.5">
+                          <div className="grid grid-cols-[5rem_1fr_2fr_1fr] items-center gap-2 border-b border-bd-subtle pb-1 font-mono text-[9px] uppercase tracking-wider text-text-muted">
+                            <span></span>
+                            <span>Gate</span>
+                            <span>Signal name</span>
+                            <span>Mode</span>
+                          </div>
+                          {selectedStrategies.map((code) => {
+                            const gateEnabled = strategyMlGateOverrides[code];
+                            return (
+                              <div
+                                key={code}
+                                className="grid grid-cols-[5rem_1fr_2fr_1fr] items-center gap-2"
+                              >
+                                <span className="truncate font-mono text-[11px] font-semibold text-text-primary">
+                                  {code}
+                                </span>
+                                <GateOverrideSelect
+                                  code={code}
+                                  gate="ml-gate"
+                                  value={gateEnabled}
+                                  onChange={(next) =>
+                                    setStrategyMlGateOverrides((prev) => {
+                                      const out = { ...prev };
+                                      if (next === undefined) delete out[code];
+                                      else out[code] = next;
+                                      return out;
+                                    })
+                                  }
+                                />
+                                <Select
+                                  value={strategyMlSignalNameOverrides[code] ?? ''}
+                                  onValueChange={(v) =>
+                                    setStrategyMlSignalNameOverrides((prev) => ({
+                                      ...prev,
+                                      [code]: v,
+                                    }))
+                                  }
+                                  disabled={gateEnabled !== true}
+                                >
+                                  <SelectTrigger
+                                    className="h-7 font-mono text-[10px]"
+                                    aria-label={`${code} ML signal name`}
+                                  >
+                                    <SelectValue placeholder="signal name" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {availableSignalNames.length === 0 ? (
+                                      <SelectItem value="__none__" disabled>
+                                        No signals available
+                                      </SelectItem>
+                                    ) : (
+                                      availableSignalNames.map((name) => (
+                                        <SelectItem key={name} value={name} className="font-mono">
+                                          {name}
+                                        </SelectItem>
+                                      ))
+                                    )}
+                                  </SelectContent>
+                                </Select>
+                                <Select
+                                  value={
+                                    strategyMlShadowModeOverrides[code] === undefined
+                                      ? INHERIT_GATE
+                                      : strategyMlShadowModeOverrides[code]
+                                        ? 'true'
+                                        : 'false'
+                                  }
+                                  onValueChange={(v) =>
+                                    setStrategyMlShadowModeOverrides((prev) => {
+                                      const out = { ...prev };
+                                      if (v === INHERIT_GATE) delete out[code];
+                                      else out[code] = v === 'true';
+                                      return out;
+                                    })
+                                  }
+                                  disabled={gateEnabled !== true}
+                                >
+                                  <SelectTrigger
+                                    className="h-7 font-mono text-[10px]"
+                                    aria-label={`${code} ML shadow mode`}
+                                  >
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value={INHERIT_GATE}>Auto</SelectItem>
+                                    <SelectItem value="true">Shadow</SelectItem>
+                                    <SelectItem value="false">Live</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            );
+                          })}
+                        </div>
                       </div>
                     </div>
                   )}

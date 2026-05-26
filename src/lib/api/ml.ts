@@ -200,6 +200,25 @@ export function useSignals(params: SignalsListParams) {
   });
 }
 
+/** Returns a sorted list of signal names for active and shadow signals.
+ *  Used by the backtest wizard to populate the ML signal name dropdown.
+ *  Returns an empty array (no error) when the orchestrator is unreachable. */
+export function useSignalNames(): string[] {
+  const { data } = useQuery({
+    queryKey: ['ml', 'signal-names'] as const,
+    queryFn: async () => {
+      const res = await fetchSignals({ status: undefined, limit: 200 });
+      return res.signals
+        .filter((r) => r.status === 'active' || r.status === 'shadow')
+        .map((r) => r.signalName)
+        .sort();
+    },
+    staleTime: 60_000,
+    retry: 0,
+  });
+  return data ?? [];
+}
+
 export function useSignal(signalId: string | undefined) {
   return useQuery({
     queryKey: ['ml', 'signal', signalId] as const,

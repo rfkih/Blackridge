@@ -150,6 +150,10 @@ export function buildBacktestPayload(
     strategyConcurrentCapOverrides: trimBoolMap(config.strategyConcurrentCapOverrides),
 
     strategyIntervals: trimIntervals(config.strategyIntervals),
+
+    strategyMlGateOverrides: trimBoolMap(config.strategyMlGateOverrides),
+    strategyMlSignalNameOverrides: trimStringMap(config.strategyMlSignalNameOverrides),
+    strategyMlShadowModeOverrides: trimBoolMap(config.strategyMlShadowModeOverrides),
   };
 
   if (!options.useCalibratedSlippage) {
@@ -204,6 +208,17 @@ function trimBoolMap(
   const out: Record<string, boolean> = {};
   for (const [code, v] of Object.entries(raw)) {
     if (typeof v === 'boolean') out[code] = v;
+  }
+  return Object.keys(out).length ? out : undefined;
+}
+
+function trimStringMap(
+  raw: Record<string, string> | undefined,
+): Record<string, string> | undefined {
+  if (!raw) return undefined;
+  const out: Record<string, string> = {};
+  for (const [code, v] of Object.entries(raw)) {
+    if (typeof v === 'string' && v.trim() !== '') out[code] = v.trim();
   }
   return Object.keys(out).length ? out : undefined;
 }

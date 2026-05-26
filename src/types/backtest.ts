@@ -91,6 +91,10 @@ export interface BackendBacktestRun {
   strategyIntervals?: Record<string, string> | null;
   /** Flat funding-rate stub (basis points per 8h). Null on legacy runs. */
   fundingRateBpsPer8h?: number | string | null;
+  /** V100 — per-strategy ML gate overrides from the submission. */
+  strategyMlGateOverrides?: Record<string, boolean> | null;
+  strategyMlSignalNameOverrides?: Record<string, string> | null;
+  strategyMlShadowModeOverrides?: Record<string, boolean> | null;
   metrics?: BackendBacktestRunMetrics | null;
 
   backtestRunId?: UUID | null;
@@ -254,6 +258,11 @@ export interface BacktestRun {
   /** Flat funding-rate stub captured at submit (bps per 8h). Null on
    *  legacy runs that pre-date V22. */
   fundingRateBpsPer8h: number | null;
+  /** V100 — per-strategy ML gate overrides captured at submission.
+   *  Null on runs submitted before V100. */
+  strategyMlGateOverrides: Record<string, boolean> | null;
+  strategyMlSignalNameOverrides: Record<string, string> | null;
+  strategyMlShadowModeOverrides: Record<string, boolean> | null;
 }
 
 /**
@@ -321,6 +330,10 @@ export interface BacktestRunPayload {
    *  each strategy fires on its own timeframe's bar closes. When omitted,
    *  all strategies share the run's primary interval. */
   strategyIntervals?: Record<string, string>;
+  /** V100 — per-strategy ML gate override maps. See BacktestWizardConfig for semantics. */
+  strategyMlGateOverrides?: Record<string, boolean>;
+  strategyMlSignalNameOverrides?: Record<string, string>;
+  strategyMlShadowModeOverrides?: Record<string, boolean>;
 }
 
 /** Wizard state — the user-facing fields the form collects before we shape a payload. */
@@ -350,6 +363,13 @@ export interface BacktestWizardConfig {
   strategyConcurrentCapOverrides?: Record<string, boolean>;
   /** Phase B2 — per-strategy interval override (e.g. {"LSR": "15m", "VCB": "1h"}). */
   strategyIntervals?: Record<string, string>;
+  /** V100 — per-strategy ML regime gate override for this run only.
+   *  true = force enable, false = force disable. Key absent = use account_strategy setting. */
+  strategyMlGateOverrides?: Record<string, boolean>;
+  /** V100 — per-strategy ML signal name override (e.g. {"DCB": "regime_eth_v2"}). */
+  strategyMlSignalNameOverrides?: Record<string, string>;
+  /** V100 — per-strategy ML shadow-mode override. true = shadow (log only), false = live (blocks). */
+  strategyMlShadowModeOverrides?: Record<string, boolean>;
   /** Phase B2 wizard-only mode. 'multi' auto-fills strategyIntervals
    *  from each strategy's registered interval and suppresses the
    *  "interval mismatch" warning. Not sent to the backend — payload

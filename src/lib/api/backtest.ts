@@ -178,6 +178,9 @@ function mapBacktestRun(b: BackendBacktestRun): BacktestRun {
     strategyConcurrentCapOverrides: coerceStrategyBoolMap(b.strategyConcurrentCapOverrides),
     strategyIntervals: coerceStrategyIntervals(b.strategyIntervals),
     fundingRateBpsPer8h: coerceNullableNumber(b.fundingRateBpsPer8h),
+    strategyMlGateOverrides: coerceStrategyBoolMap(b.strategyMlGateOverrides),
+    strategyMlSignalNameOverrides: coerceStrategyIntervals(b.strategyMlSignalNameOverrides),
+    strategyMlShadowModeOverrides: coerceStrategyBoolMap(b.strategyMlShadowModeOverrides),
   };
 }
 
