@@ -70,8 +70,7 @@ export function MlMonitorTable() {
   if (rows.length === 0) {
     return (
       <div className="rounded-md border border-dashed border-zinc-800 px-4 py-8 text-center text-sm text-zinc-500">
-        No ML signals are wired to any live gate yet. Wire one from a strategy detail page → ML Gate
-        tab to make it appear here.
+        No active or shadow signals registered yet. Train and register a model to see it here.
       </div>
     );
   }
