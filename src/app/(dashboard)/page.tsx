@@ -43,6 +43,8 @@ export default function DashboardPage() {
   const firstName = (user?.name ?? 'Trader').split(' ')[0];
 
   const balance = portfolio?.totalUsdt ?? pnlSummary?.totalPnl ?? 0;
+  const availableUsdt = portfolio?.availableUsdt ?? 0;
+  const lockedUsdt = portfolio?.lockedUsdt ?? 0;
   const realizedToday = pnlSummary?.realizedPnl ?? 0;
   const unrealizedToday = pnlSummary?.unrealizedPnl ?? 0;
   const changeToday = realizedToday + unrealizedToday;
@@ -82,6 +84,8 @@ export default function DashboardPage() {
         <CompactBalanceCard
           firstName={firstName}
           balance={balance}
+          availableUsdt={availableUsdt}
+          lockedUsdt={lockedUsdt}
           changeToday={changeToday}
           changePct={changePct}
           scopeLabel={scopeLabel}
@@ -181,6 +185,8 @@ function PromoTileColumn() {
 interface CompactBalanceCardProps {
   firstName: string;
   balance: number;
+  availableUsdt: number;
+  lockedUsdt: number;
   changeToday: number;
   changePct: number;
   scopeLabel: string;
@@ -188,6 +194,8 @@ interface CompactBalanceCardProps {
 
 function CompactBalanceCard({
   balance,
+  availableUsdt,
+  lockedUsdt,
   changeToday,
   changePct,
   scopeLabel,
@@ -195,6 +203,7 @@ function CompactBalanceCard({
   const formatCurrency = useCurrencyFormatter();
   const isUp = changeToday >= 0;
   const balanceText = formatCurrency(balance);
+  const marginUsedPct = balance > 0 ? (lockedUsdt / balance) * 100 : 0;
 
   return (
     <section
@@ -243,9 +252,9 @@ function CompactBalanceCard({
         className="mt-5 flex gap-6 pt-4"
         style={{ borderTop: '1px solid rgba(255,255,255,0.18)' }}
       >
-        <BalanceMini label="Available" value={formatCurrency(balance * 0.31)} />
-        <BalanceMini label="In positions" value={formatCurrency(balance * 0.59)} />
-        <BalanceMini label="Margin used" value="12.4%" />
+        <BalanceMini label="Available" value={formatCurrency(availableUsdt)} />
+        <BalanceMini label="In positions" value={formatCurrency(lockedUsdt)} />
+        <BalanceMini label="Margin used" value={`${marginUsedPct.toFixed(1)}%`} />
       </div>
     </section>
   );
