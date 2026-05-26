@@ -60,6 +60,7 @@ export interface SignalRow {
   intervalName: string | null;
   boundStrategyCodes: string[];
   createdAt: string;
+  gauntletVerdict: 'PASS' | 'FAIL' | null;
 }
 
 export interface SignalListResponse {
@@ -158,6 +159,15 @@ export interface ApplyMlGateRequest {
   shadowMode: boolean;
   /** Operator echoes the strategy code to confirm — tamper guard on the JVM. */
   confirmedStrategyCode: string;
+}
+
+// ── /ml/streaming-status ────────────────────────────────────────────────────
+
+export interface StreamingStatus {
+  status: 'ok' | 'lagging' | 'offline';
+  stalledSignals: string[];
+  checkedAt: string;
+  totalSignals: number;
 }
 
 // ── promotion (read-only Phase 1 spec stub; write enabled in Phase 2) ───────

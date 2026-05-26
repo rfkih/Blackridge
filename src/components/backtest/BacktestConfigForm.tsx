@@ -431,9 +431,9 @@ const strategyOptionsByCode = useMemo(() => {
         concurrentCapMap[code] = strategyConcurrentCapOverrides[code];
       if (typeof strategyMlGateOverrides[code] === 'boolean')
         mlGateMap[code] = strategyMlGateOverrides[code];
-      if (strategyMlSignalNameOverrides[code]?.trim())
+      if (mlGateMap[code] === true && strategyMlSignalNameOverrides[code]?.trim())
         mlSignalMap[code] = strategyMlSignalNameOverrides[code].trim();
-      if (typeof strategyMlShadowModeOverrides[code] === 'boolean')
+      if (mlGateMap[code] === true && typeof strategyMlShadowModeOverrides[code] === 'boolean')
         mlShadowMap[code] = strategyMlShadowModeOverrides[code];
     }
 

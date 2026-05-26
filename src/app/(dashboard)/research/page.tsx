@@ -56,6 +56,7 @@ import {
 import { useSearchStrategyDefinitions } from '@/hooks/useStrategyDefinitions';
 import type { StrategyDefinition } from '@/types/strategyDefinition';
 import { useJvmTelemetry, useServiceHealth, type ServiceHealthMap } from '@/hooks/useTelemetry';
+import { StrategyRankingTable } from '@/components/research/StrategyRankingTable';
 import {
   useEnqueueSweep,
   useJournalListInfinite,
@@ -217,6 +218,7 @@ export default function ResearchDashboardPage() {
         <LeaderboardPanel />
         <RecentIterationsPanel />
       </div>
+      <StrategyRankingTable />
       <WalkForwardCandidatesPanel />
       <QueuePanel />
       <JournalPanel />

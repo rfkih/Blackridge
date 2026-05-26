@@ -23,6 +23,7 @@ import type {
   SignalListResponse,
   SignalSource,
   SignalStatus,
+  StreamingStatus,
 } from '@/types/ml';
 
 const ORCH = '/api/v1/research-orch';
@@ -32,6 +33,11 @@ const TRADING = '/api/v1/account-strategies';
 
 async function fetchMlMonitor(): Promise<MlMonitorResponse> {
   const { data } = await apiClient.get<MlMonitorResponse>(`${ORCH}/ml/monitor`);
+  return data;
+}
+
+async function fetchStreamingStatus(): Promise<StreamingStatus> {
+  const { data } = await apiClient.get<StreamingStatus>(`${ORCH}/ml/streaming-status`);
   return data;
 }
 
@@ -181,6 +187,16 @@ async function applyMlGate(
 }
 
 // ── TanStack hooks ─────────────────────────────────────────────────────────
+
+export function useStreamingStatus() {
+  return useQuery({
+    queryKey: ['ml', 'streaming-status'] as const,
+    queryFn: fetchStreamingStatus,
+    staleTime: 60_000,
+    refetchInterval: 120_000,
+    retry: 0,
+  });
+}
 
 export function useMlMonitor() {
   return useQuery({

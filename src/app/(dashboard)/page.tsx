@@ -42,7 +42,7 @@ export default function DashboardPage() {
 
   const firstName = (user?.name ?? 'Trader').split(' ')[0];
 
-  const balance = portfolio?.totalUsdt ?? pnlSummary?.totalPnl ?? 0;
+  const balance = portfolio?.totalUsdt ?? 0;
   const availableUsdt = portfolio?.availableUsdt ?? 0;
   const lockedUsdt = portfolio?.lockedUsdt ?? 0;
   const realizedToday = pnlSummary?.realizedPnl ?? 0;
