@@ -327,7 +327,7 @@ function ApplyParamsDialog({ open, paper, best, onClose }: ApplyParamsDialogProp
   }
 
   return (
-    <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
+    <Dialog open={open} onOpenChange={(v) => { if (!v) { setStrategyId(''); onClose(); } }}>
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>Apply params to strategy</DialogTitle>
