@@ -169,7 +169,7 @@ function useSentiment(): {
   const query = useQuery({
     queryKey: ['market-sentiment', 'fng'],
     queryFn: async (): Promise<SentimentSnapshot> => {
-      const res = await fetch('https://api.alternative.me/fng/?limit=2');
+      const res = await fetch('/api/fng');
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const json = (await res.json()) as AlternativeMeResponse;
       const [today, yesterday] = json.data;
