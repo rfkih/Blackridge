@@ -275,7 +275,7 @@ function AdditionalInfo({
   const [open, setOpen] = useState(true);
 
   return (
-    <div className="print:hidden">
+    <div id="additional-info" className="print:hidden">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}

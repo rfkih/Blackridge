@@ -8,6 +8,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ExportButtons } from '@/components/research/papers/ExportButtons';
 import { PaperActionButtons } from '@/components/research/papers/PaperActionButtons';
+import { PaperChapters } from '@/components/research/papers/PaperChapters';
 import { RegenerateButton } from '@/components/research/papers/RegenerateButton';
 import { getPaper, getPaperChartData } from '@/lib/api/researchPapers';
 import { formatDate, parseIsoUtc } from '@/lib/formatters';
@@ -505,6 +506,7 @@ export default function PaperPage({ params }: { params: { id: string } }) {
   const hasAuditNotes = !!best?.quant_audit_notes;
   const hasJournal = paper.journal_entries.length > 0;
   const hasParams = best && Object.keys(best.params).length > 0;
+  const hasSections = (paper.sections?.length ?? 0) > 0;
 
   // Figure counter
   let figNum = 0;
@@ -514,20 +516,30 @@ export default function PaperPage({ params }: { params: { id: string } }) {
   let secNum = 0;
   const nextSec = () => `${++secNum}.`;
 
-  const tocItems = [
-    { id: 'abstract', label: '1. Abstract' },
-    ...(best ? [{ id: 'metrics', label: '2. Key Results' }] : []),
-    { id: 'equity', label: `${best ? 3 : 2}. Equity Curve` },
-    { id: 'monthly', label: `${best ? 4 : 3}. Monthly Returns` },
-    { id: 'trades', label: `${best ? 5 : 4}. Trade P&L` },
-    ...(hasWf ? [{ id: 'walk-forward', label: 'Walk-Forward' }] : []),
-    { id: 'gates', label: 'Stat. Gates' },
-    ...(hasParams ? [{ id: 'parameters', label: 'Parameters ▸' }] : []),
-    ...(paper.top_iterations.length > 0 ? [{ id: 'iterations', label: 'Iterations ▸' }] : []),
-    ...(hasSlippage || hasRegime ? [{ id: 'robustness', label: 'Robustness ▸' }] : []),
-    ...(hasAuditNotes || hasJournal ? [{ id: 'notes', label: 'Notes ▸' }] : []),
-    ...(paper.citations.length > 0 ? [{ id: 'references', label: 'References ▸' }] : []),
-  ];
+  const tocItems = hasSections
+    ? [
+        ...(paper.abstract ? [{ id: 'abstract', label: 'Abstract' }] : []),
+        ...(paper.sections ?? []).map((s) => ({
+          id: `chapter-${s.chapter}`,
+          label: `${s.chapter}. ${s.title}`,
+        })),
+        { id: 'additional-info', label: 'Additional Information' },
+        ...(paper.citations.length > 0 ? [{ id: 'references', label: 'References' }] : []),
+      ]
+    : [
+        { id: 'abstract', label: '1. Abstract' },
+        ...(best ? [{ id: 'metrics', label: '2. Key Results' }] : []),
+        { id: 'equity', label: `${best ? 3 : 2}. Equity Curve` },
+        { id: 'monthly', label: `${best ? 4 : 3}. Monthly Returns` },
+        { id: 'trades', label: `${best ? 5 : 4}. Trade P&L` },
+        ...(hasWf ? [{ id: 'walk-forward', label: 'Walk-Forward' }] : []),
+        { id: 'gates', label: 'Stat. Gates' },
+        ...(hasParams ? [{ id: 'parameters', label: 'Parameters ▸' }] : []),
+        ...(paper.top_iterations.length > 0 ? [{ id: 'iterations', label: 'Iterations ▸' }] : []),
+        ...(hasSlippage || hasRegime ? [{ id: 'robustness', label: 'Robustness ▸' }] : []),
+        ...(hasAuditNotes || hasJournal ? [{ id: 'notes', label: 'Notes ▸' }] : []),
+        ...(paper.citations.length > 0 ? [{ id: 'references', label: 'References ▸' }] : []),
+      ];
 
   return (
     <div className="space-y-5 print:space-y-4">
@@ -616,7 +628,15 @@ export default function PaperPage({ params }: { params: { id: string } }) {
             </header>
 
             {/* Sections */}
-            <div className="space-y-10">
+            {hasSections ? (
+              <PaperChapters
+                paper={paper}
+                chartData={chartData}
+                chartLoading={chartLoading}
+                equityPoints={equityPoints}
+              />
+            ) : (
+              <div className="space-y-10">
 
               {/* 1. Abstract */}
               <Section id="abstract" num={nextSec()} title="Abstract">
@@ -826,7 +846,8 @@ export default function PaperPage({ params }: { params: { id: string } }) {
                 </CollapsibleSection>
               )}
 
-            </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
