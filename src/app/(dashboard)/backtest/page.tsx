@@ -387,7 +387,7 @@ function BacktestListContent() {
                 className={cn(
                   'rounded-full px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider transition-colors',
                   active
-                    ? 'bg-[var(--accent-subtle)] text-[var(--accent-primary)]'
+                    ? 'bg-white/10 text-white'
                     : 'text-text-muted hover:bg-bg-hover hover:text-text-secondary',
                 )}
                 aria-pressed={active}

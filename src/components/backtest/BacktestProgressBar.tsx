@@ -43,7 +43,7 @@ export function BacktestProgressBar({ run, className }: BacktestProgressBarProps
             <Clock size={14} className="shrink-0 text-[var(--color-warning)]" />
           )}
           {isRunning && (
-            <Loader2 size={14} className="animate-spin shrink-0 text-[var(--accent-primary)]" />
+            <Loader2 size={14} className="animate-spin shrink-0 text-[var(--color-info)]" />
           )}
           <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-[var(--text-secondary)]">
             {isPending
@@ -83,7 +83,7 @@ export function BacktestProgressBar({ run, className }: BacktestProgressBarProps
               ? 'var(--color-loss)'
               : isPending
                 ? 'var(--color-warning)'
-                : 'linear-gradient(90deg, var(--brand-500) 0%, color-mix(in srgb, var(--brand-500) 60%, transparent) 100%)',
+                : 'linear-gradient(90deg, var(--color-info) 0%, color-mix(in srgb, var(--color-info) 60%, transparent) 100%)',
             boxShadow:
               isFailed || isPending ? 'none' : '0 0 12px var(--accent-glow)',
           }}
