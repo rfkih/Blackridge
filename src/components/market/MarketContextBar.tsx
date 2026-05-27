@@ -151,61 +151,96 @@ interface SentimentSnapshot {
   asOf: string;
 }
 
-function usePlaceholderSentiment(): SentimentSnapshot {
-  return useMemo(
-    () => ({
-      value: 68,
-      yesterday: 63,
-      asOf: new Date().toISOString().slice(0, 10),
-    }),
-    [],
-  );
+interface AlternativeMeEntry {
+  value: string;
+  value_classification: string;
+  timestamp: string;
+}
+
+interface AlternativeMeResponse {
+  data: AlternativeMeEntry[];
+}
+
+function useSentiment(): {
+  snapshot: SentimentSnapshot | undefined;
+  isLoading: boolean;
+  isError: boolean;
+} {
+  const query = useQuery({
+    queryKey: ['market-sentiment', 'fng'],
+    queryFn: async (): Promise<SentimentSnapshot> => {
+      const res = await fetch('https://api.alternative.me/fng/?limit=2');
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const json = (await res.json()) as AlternativeMeResponse;
+      const [today, yesterday] = json.data;
+      if (!today) throw new Error('No data from alternative.me');
+      return {
+        value: Number(today.value),
+        yesterday: Number(yesterday?.value ?? today.value),
+        asOf: new Date(Number(today.timestamp) * 1000).toISOString().slice(0, 10),
+      };
+    },
+    staleTime: 60 * 60_000,
+    retry: 1,
+  });
+  return { snapshot: query.data, isLoading: query.isLoading, isError: query.isError };
 }
 
 function SentimentCard() {
-  const snapshot = usePlaceholderSentiment();
-  const verdict = classifySentiment(snapshot.value);
-  const delta = snapshot.value - snapshot.yesterday;
+  const { snapshot, isLoading, isError } = useSentiment();
+  const verdict = snapshot ? classifySentiment(snapshot.value) : null;
+  const delta = snapshot ? snapshot.value - snapshot.yesterday : 0;
 
   return (
     <ContextCard
       eyebrow="Market sentiment"
       source="Fear & Greed · alternative.me · daily"
-      loading={false}
-      error={false}
+      loading={isLoading}
+      error={isError}
     >
-      <div className="flex items-baseline justify-between gap-3">
-        <div className="flex items-baseline gap-2">
-          <span
-            className="font-display text-[28px] font-bold tabular-nums leading-none"
-            style={{ color: toneColor(verdict.tone), letterSpacing: '-0.02em' }}
-          >
-            {snapshot.value}
-          </span>
-          <span
-            className="font-display text-[18px] font-semibold"
-            style={{ color: 'var(--text-primary)', letterSpacing: '-0.01em' }}
-          >
-            {verdict.label}
-          </span>
-        </div>
-        <span
-          className="font-mono text-[11px] font-semibold uppercase tracking-[0.06em]"
-          style={{ color: verdict.tone === 'warning' ? toneColor('warning') : 'var(--text-muted)' }}
-        >
-          {verdict.tag}
-        </span>
-      </div>
+      {snapshot && verdict && (
+        <>
+          <div className="flex items-baseline justify-between gap-3">
+            <div className="flex items-baseline gap-2">
+              <span
+                className="font-display text-[28px] font-bold tabular-nums leading-none"
+                style={{ color: toneColor(verdict.tone), letterSpacing: '-0.02em' }}
+              >
+                {snapshot.value}
+              </span>
+              <span
+                className="font-display text-[18px] font-semibold"
+                style={{ color: 'var(--text-primary)', letterSpacing: '-0.01em' }}
+              >
+                {verdict.label}
+              </span>
+            </div>
+            <span
+              className="font-mono text-[11px] font-semibold uppercase tracking-[0.06em]"
+              style={{
+                color: verdict.tone === 'warning' ? toneColor('warning') : 'var(--text-muted)',
+              }}
+            >
+              {verdict.tag}
+            </span>
+          </div>
 
-      <ScaleBar position={(snapshot.value - 50) / 50} leftLabel="Fear" rightLabel="Greed" tone={verdict.tone} />
+          <ScaleBar
+            position={(snapshot.value - 50) / 50}
+            leftLabel="Fear"
+            rightLabel="Greed"
+            tone={verdict.tone}
+          />
 
-      <div
-        className="font-mono text-[11px] tabular-nums"
-        style={{ color: 'var(--text-muted)' }}
-      >
-        {delta >= 0 ? '+' : ''}
-        {delta.toFixed(0)} vs yesterday  ·  as of {snapshot.asOf}
-      </div>
+          <div
+            className="font-mono text-[11px] tabular-nums"
+            style={{ color: 'var(--text-muted)' }}
+          >
+            {delta >= 0 ? '+' : ''}
+            {delta.toFixed(0)} vs yesterday · as of {snapshot.asOf}
+          </div>
+        </>
+      )}
     </ContextCard>
   );
 }

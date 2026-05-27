@@ -63,6 +63,11 @@ export function CandlestickChart({
   const onClickRef = useRef(onCandleClick);
   onClickRef.current = onCandleClick;
 
+  // Tracks the latest candles so the async chart-init effect can seed them
+  // immediately after the TV library loads, without needing another render.
+  const candlesRef = useRef(candles);
+  candlesRef.current = candles;
+
   const lineStyleRef = useRef<typeof LineStyle | null>(null);
 
   useEffect(() => {
@@ -102,6 +107,32 @@ export function CandlestickChart({
         wickDownColor: TV.LOSS,
       });
       candleSeriesRef.current = cs;
+
+      // Seed candles that arrived before the TV library finished loading.
+      const initialCandles = candlesRef.current;
+      if (initialCandles.length > 0) {
+        const seen = new Set<number>();
+        const valid = initialCandles
+          .filter((c) => Number.isFinite(c.time))
+          .sort((a, b) => a.time - b.time)
+          .filter((c) => {
+            if (seen.has(c.time)) return false;
+            seen.add(c.time);
+            return true;
+          });
+        if (valid.length > 0) {
+          cs.setData(
+            valid.map((c) => ({
+              time: c.time as Time,
+              open: c.open,
+              high: c.high,
+              low: c.low,
+              close: c.close,
+            })),
+          );
+          chart.timeScale().fitContent();
+        }
+      }
 
       const clickHandler = (param: MouseEventParams<Time>) => {
         if (!param.time) return;
