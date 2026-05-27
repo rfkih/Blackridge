@@ -49,7 +49,8 @@ export interface GateCheck {
 
 export interface GateCheckBundle {
   cagr: GateCheck;
-  capital: GateCheck;
+  /** Optional — V120 removed the capital gate (min_initial_capital_usd set to 0). */
+  capital?: GateCheck;
   window: GateCheck;
   trades: GateCheck;
 }

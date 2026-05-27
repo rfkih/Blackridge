@@ -236,8 +236,9 @@ export function PendingApprovalCard({ row, onDialogOpenChange }: PendingApproval
                 ['capital', row.gateCheck.capital],
                 ['window', row.gateCheck.window],
                 ['trades', row.gateCheck.trades],
-              ] as [string, GateCheck][]
+              ] as [string, GateCheck | undefined][]
             )
+              .filter((entry): entry is [string, GateCheck] => entry[1] !== undefined)
               .sort(([, a], [, b]) => Number(a.passed) - Number(b.passed))
               .map(([label, check]) => (
                 <GateCheckCell key={label} label={label} check={check} />
