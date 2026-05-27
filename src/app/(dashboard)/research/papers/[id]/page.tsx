@@ -7,6 +7,7 @@ import { ArrowLeft, CheckCircle2, XCircle, ChevronDown, ChevronRight } from 'luc
 import { useQuery } from '@tanstack/react-query';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ExportButtons } from '@/components/research/papers/ExportButtons';
+import { PaperActionButtons } from '@/components/research/papers/PaperActionButtons';
 import { RegenerateButton } from '@/components/research/papers/RegenerateButton';
 import { getPaper, getPaperChartData } from '@/lib/api/researchPapers';
 import { formatDate, parseIsoUtc } from '@/lib/formatters';
@@ -539,6 +540,7 @@ export default function PaperPage({ params }: { params: { id: string } }) {
           <ArrowLeft size={12} /> Research library
         </Link>
         <div className="flex items-center gap-2">
+          <PaperActionButtons paper={paper} />
           <RegenerateButton paperId={id} queueId={paper.queue_id} currentVersion={paper.version} />
           <ExportButtons paperId={id} />
         </div>
