@@ -260,6 +260,10 @@ export function useTopRunsForStrategy(
 ) {
   const { enabled = true } = options;
 
+  const cutoff = new Date();
+  cutoff.setFullYear(cutoff.getFullYear() - 2);
+  const cutoffStr = cutoff.toISOString();
+
   const query = useQuery({
     queryKey: ['top-runs', strategyCode, symbol, interval],
     queryFn: () =>
@@ -268,7 +272,7 @@ export function useTopRunsForStrategy(
         strategyCode,
         symbol,
         interval,
-        size: 50,
+        size: 200,
         sortBy: 'createdAt',
         sortDir: 'DESC',
       }),
@@ -276,11 +280,9 @@ export function useTopRunsForStrategy(
     staleTime: 60_000,
   });
 
+  // Client-side rank: API has no sortBy=ag90 or profitFactor filter param.
   const topRuns = useMemo(() => {
     if (!query.data) return [];
-    const cutoff = new Date();
-    cutoff.setFullYear(cutoff.getFullYear() - 2);
-    const cutoffStr = cutoff.toISOString();
     return query.data.content
       .filter((r) => {
         if (!r.metrics) return false;
@@ -295,7 +297,7 @@ export function useTopRunsForStrategy(
         return ag90B - ag90A;
       })
       .slice(0, 5);
-  }, [query.data]);
+  }, [query.data, cutoffStr]);
 
   return { topRuns, isLoading: query.isLoading, isError: query.isError };
 }
