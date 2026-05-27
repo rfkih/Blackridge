@@ -554,7 +554,7 @@ export default function PaperPage({ params }: { params: { id: string } }) {
         <div className="flex items-center gap-2">
           <PaperActionButtons paper={paper} />
           <RegenerateButton paperId={id} queueId={paper.queue_id} currentVersion={paper.version} />
-          <ExportButtons paperId={id} />
+          <ExportButtons paperId={id} paper={paper} />
         </div>
       </div>
 

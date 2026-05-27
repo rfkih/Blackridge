@@ -53,3 +53,7 @@ export async function generatePaper(
 export function paperLatexHref(paperId: string): string {
   return `${env.apiUrl}${BASE}/${paperId}/export/latex`;
 }
+
+export function paperPdfHref(paperId: string): string {
+  return `${env.apiUrl}${BASE}/${paperId}/export/pdf`;
+}
