@@ -251,3 +251,51 @@ export function useBacktestProgressStream(runId: string | undefined): void {
     return unsubscribe;
   }, [runId, connected, queryClient]);
 }
+
+export function useTopRunsForStrategy(
+  strategyCode: string,
+  symbol: string,
+  interval: string,
+  options: { enabled?: boolean } = {},
+) {
+  const { enabled = true } = options;
+
+  const query = useQuery({
+    queryKey: ['top-runs', strategyCode, symbol, interval],
+    queryFn: () =>
+      listBacktestRuns({
+        status: 'COMPLETED',
+        strategyCode,
+        symbol,
+        interval,
+        size: 50,
+        sortBy: 'createdAt',
+        sortDir: 'DESC',
+      }),
+    enabled: enabled && Boolean(strategyCode) && Boolean(symbol) && Boolean(interval),
+    staleTime: 60_000,
+  });
+
+  const topRuns = useMemo(() => {
+    if (!query.data) return [];
+    const cutoff = new Date();
+    cutoff.setFullYear(cutoff.getFullYear() - 2);
+    const cutoffStr = cutoff.toISOString();
+    return query.data.content
+      .filter((r) => {
+        if (!r.metrics) return false;
+        if ((r.metrics.profitFactor ?? 0) <= 1.0) return false;
+        return r.fromDate <= cutoffStr;
+      })
+      .sort((a, b) => {
+        const ag90A =
+          a.metrics?.geometricReturnPctAtAlloc90 ?? a.metrics?.totalReturnPct ?? -Infinity;
+        const ag90B =
+          b.metrics?.geometricReturnPctAtAlloc90 ?? b.metrics?.totalReturnPct ?? -Infinity;
+        return ag90B - ag90A;
+      })
+      .slice(0, 5);
+  }, [query.data]);
+
+  return { topRuns, isLoading: query.isLoading, isError: query.isError };
+}
