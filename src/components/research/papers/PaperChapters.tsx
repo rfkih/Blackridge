@@ -162,7 +162,7 @@ function ChapterSection({ section }: { section: PaperSection }) {
         {section.chapter}. {section.title}
       </h2>
       {paragraphs.map((para, i) => (
-        <p key={i} className="text-[14px] leading-relaxed text-text-secondary">
+        <p key={i} className="text-[14px] leading-relaxed text-text-primary">
           {para}
         </p>
       ))}
@@ -188,7 +188,7 @@ function ChartsBlock({ meta, chartData, chartLoading, equityPoints, hasWf }: Cha
   return (
     <div className="mt-6 space-y-6">
       <div>
-        <p className="mb-1.5 text-center font-mono text-[10px] text-text-muted">
+        <p className="mb-1.5 text-center font-mono text-[11px] text-text-muted">
           {nextFig()} Normalised equity curve (base 100) · {meta.instrument} {meta.interval_name}
         </p>
         {chartLoading ? (
@@ -203,7 +203,7 @@ function ChartsBlock({ meta, chartData, chartLoading, equityPoints, hasWf }: Cha
       </div>
 
       <div>
-        <p className="mb-1.5 text-center font-mono text-[10px] text-text-muted">
+        <p className="mb-1.5 text-center font-mono text-[11px] text-text-muted">
           {nextFig()} Monthly return heatmap (in-sample)
         </p>
         {chartLoading ? (
@@ -218,7 +218,7 @@ function ChartsBlock({ meta, chartData, chartLoading, equityPoints, hasWf }: Cha
       </div>
 
       <div>
-        <p className="mb-1.5 text-center font-mono text-[10px] text-text-muted">
+        <p className="mb-1.5 text-center font-mono text-[11px] text-text-muted">
           {nextFig()} Per-trade P&amp;L (%) — chronological order
         </p>
         {chartLoading ? (
@@ -234,7 +234,7 @@ function ChartsBlock({ meta, chartData, chartLoading, equityPoints, hasWf }: Cha
 
       {hasWf && (
         <div>
-          <p className="mb-1.5 text-center font-mono text-[10px] text-text-muted">
+          <p className="mb-1.5 text-center font-mono text-[11px] text-text-muted">
             {nextFig()} In-sample equity (green) vs walk-forward out-of-sample (blue)
           </p>
           <PaperEquityCurveChart
@@ -272,7 +272,7 @@ function AdditionalInfo({
   hasAuditNotes,
   hasJournal,
 }: AdditionalInfoProps) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(true);
 
   return (
     <div className="print:hidden">
