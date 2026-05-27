@@ -14,6 +14,7 @@ import {
   Radio,
   ShieldAlert,
   Trash2,
+  TrendingUp,
   Zap,
 } from 'lucide-react';
 import { StrategyBadge } from '@/components/trading/StrategyBadge';
@@ -24,6 +25,7 @@ import { CloneStrategyDialog } from '@/components/strategy/CloneStrategyDialog';
 import { RearmKillSwitchDialog } from '@/components/strategy/RearmKillSwitchDialog';
 import { SwitchToLiveDialog } from '@/components/strategy/SwitchToLiveDialog';
 import { StartStrategyMenu, SwitchModeButton } from '@/components/strategy/StrategyModeControls';
+import { StrategyTopRunsDialog } from '@/components/strategy/StrategyTopRunsDialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   Select,
@@ -93,6 +95,7 @@ function StrategyCard({
   onDeactivate,
   onIntervalChange,
   onRearm,
+  onTopRuns,
   onStartAsPaper,
   onStartAsLive,
   onSwitchToPaper,
@@ -120,6 +123,7 @@ function StrategyCard({
   onDeactivate: (s: AccountStrategy) => void;
   onIntervalChange: (s: AccountStrategy, intervalName: string) => void;
   onRearm: (s: AccountStrategy) => void;
+  onTopRuns: (s: AccountStrategy) => void;
   onStartAsPaper: (s: AccountStrategy) => void;
   onStartAsLive: (s: AccountStrategy) => void;
   onSwitchToPaper: (s: AccountStrategy) => void;
@@ -351,21 +355,35 @@ function StrategyCard({
               Inactive
             </span>
           )}
-          {isRunning ? (
-            <SwitchModeButton
-              strategy={strategy}
-              onSwitchToPaper={onSwitchToPaper}
-              onSwitchToLive={onSwitchToLive}
-              isPending={isActivating || isPromoting}
-            />
-          ) : (
-            <StartStrategyMenu
-              strategy={strategy}
-              onStartAsPaper={onStartAsPaper}
-              onStartAsLive={onStartAsLive}
-              isPending={isActivating || isPromoting}
-            />
-          )}
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onTopRuns(strategy);
+              }}
+              className="inline-flex h-7 items-center gap-1 rounded-sm border border-[var(--border-subtle)] bg-[var(--bg-base)] px-2 text-[11px] text-text-secondary transition-colors hover:border-[var(--border-default)] hover:bg-[var(--bg-hover)] hover:text-text-primary"
+            >
+              <TrendingUp size={11} strokeWidth={1.75} />
+              Top runs
+            </button>
+            {isRunning ? (
+              <SwitchModeButton
+                strategy={strategy}
+                onSwitchToPaper={onSwitchToPaper}
+                onSwitchToLive={onSwitchToLive}
+                isPending={isActivating || isPromoting}
+              />
+            ) : (
+              <StartStrategyMenu
+                strategy={strategy}
+                onStartAsPaper={onStartAsPaper}
+                onStartAsLive={onStartAsLive}
+                isPending={isActivating || isPromoting}
+              />
+            )}
+          </div>
         </div>
       )}
     </div>
@@ -712,6 +730,7 @@ function IntervalGroupSortable({
   onDeactivate,
   onIntervalChange,
   onRearm,
+  onTopRuns,
   onReorder,
   onStartAsPaper,
   onStartAsLive,
@@ -732,6 +751,7 @@ function IntervalGroupSortable({
   onDeactivate: (s: AccountStrategy) => void;
   onIntervalChange: (s: AccountStrategy, intervalName: string) => void;
   onRearm: (s: AccountStrategy) => void;
+  onTopRuns: (s: AccountStrategy) => void;
   onReorder: (sourceId: string, targetId: string, ordered: AccountStrategy[]) => void;
   onStartAsPaper: (s: AccountStrategy) => void;
   onStartAsLive: (s: AccountStrategy) => void;
@@ -785,6 +805,7 @@ function IntervalGroupSortable({
             onDeactivate={onDeactivate}
             onIntervalChange={onIntervalChange}
             onRearm={onRearm}
+            onTopRuns={onTopRuns}
             onStartAsPaper={onStartAsPaper}
             onStartAsLive={onStartAsLive}
             onSwitchToPaper={onSwitchToPaper}
@@ -832,10 +853,12 @@ function PublicStrategiesSection({
   strategies,
   presetsByTuple,
   onClone,
+  onTopRuns,
 }: {
   strategies: AccountStrategy[];
   presetsByTuple: Map<string, number>;
   onClone: (s: AccountStrategy) => void;
+  onTopRuns: (s: AccountStrategy) => void;
 }) {
   const noop = () => {};
 
@@ -887,6 +910,7 @@ function PublicStrategiesSection({
                     onDeactivate={noop}
                     onIntervalChange={noop}
                     onRearm={noop}
+                    onTopRuns={onTopRuns}
                     onStartAsPaper={noop}
                     onStartAsLive={noop}
                     onSwitchToPaper={noop}
@@ -936,6 +960,7 @@ export default function StrategiesPage() {
   const [deleteTarget, setDeleteTarget] = useState<AccountStrategy | null>(null);
   const [cloneTarget, setCloneTarget] = useState<AccountStrategy | null>(null);
   const [rearmTarget, setRearmTarget] = useState<AccountStrategy | null>(null);
+  const [topRunsTarget, setTopRunsTarget] = useState<AccountStrategy | null>(null);
   const [liveConfirmTarget, setLiveConfirmTarget] = useState<{
     strategy: AccountStrategy;
     fromStopped: boolean;
@@ -1126,6 +1151,8 @@ export default function StrategiesPage() {
     }
   };
 
+  const handleTopRuns = (strategy: AccountStrategy) => setTopRunsTarget(strategy);
+
   const handleMaxTradesChange = (accountId: string, value: number | null) => {
     const wireValue = value == null || value < 1 ? 0 : Math.trunc(value);
     riskConfigMutation.mutate(
@@ -1287,6 +1314,7 @@ export default function StrategiesPage() {
               onDeactivate={handleDeactivate}
               onIntervalChange={handleIntervalChange}
               onRearm={setRearmTarget}
+              onTopRuns={handleTopRuns}
               onReorder={handleReorder}
               onStartAsPaper={handleStartAsPaper}
               onStartAsLive={(s) => setLiveConfirmTarget({ strategy: s, fromStopped: true })}
@@ -1310,6 +1338,7 @@ export default function StrategiesPage() {
               strategies={publicStrategies}
               presetsByTuple={presetsByTuple}
               onClone={setCloneTarget}
+              onTopRuns={handleTopRuns}
             />
           )}
         </>
@@ -1365,6 +1394,11 @@ export default function StrategiesPage() {
         }
         onConfirm={confirmSwitchToLive}
       />
+      <StrategyTopRunsDialog
+        open={topRunsTarget != null}
+        onOpenChange={(open) => { if (!open) setTopRunsTarget(null); }}
+        strategy={topRunsTarget}
+      />
     </div>
   );
 }
@@ -1392,6 +1426,7 @@ function AccountsAndIntervalsView({
   onDeactivate,
   onIntervalChange,
   onRearm,
+  onTopRuns,
   onReorder,
   onStartAsPaper,
   onStartAsLive,
@@ -1413,6 +1448,7 @@ function AccountsAndIntervalsView({
   onDeactivate: (s: AccountStrategy) => void;
   onIntervalChange: (s: AccountStrategy, intervalName: string) => void;
   onRearm: (s: AccountStrategy) => void;
+  onTopRuns: (s: AccountStrategy) => void;
   onReorder: (sourceId: string, targetId: string, ordered: AccountStrategy[]) => void;
   onStartAsPaper: (s: AccountStrategy) => void;
   onStartAsLive: (s: AccountStrategy) => void;
@@ -1485,6 +1521,7 @@ function AccountsAndIntervalsView({
                   onDeactivate={onDeactivate}
                   onIntervalChange={onIntervalChange}
                   onRearm={onRearm}
+                  onTopRuns={onTopRuns}
                   onReorder={onReorder}
                   onStartAsPaper={onStartAsPaper}
                   onStartAsLive={onStartAsLive}
