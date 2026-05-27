@@ -523,7 +523,7 @@ export default function PaperPage({ params }: { params: { id: string } }) {
           id: `chapter-${s.chapter}`,
           label: `${s.chapter}. ${s.title}`,
         })),
-        { id: 'additional-info', label: 'Additional Information' },
+        ...((hasParams || paper.top_iterations.length > 0 || hasSlippage || hasRegime || hasAuditNotes || hasJournal) ? [{ id: 'additional-info', label: 'Additional Information' }] : []),
         ...(paper.citations.length > 0 ? [{ id: 'references', label: 'References' }] : []),
       ]
     : [
