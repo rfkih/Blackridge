@@ -995,7 +995,7 @@ function ProgressBar({ done, total }: { done: number; total: number }) {
           className="h-full"
           style={{
             width: `${pct}%`,
-            background: 'var(--accent-primary)',
+            background: 'var(--color-info)',
             transition: 'width 200ms ease-out',
           }}
         />
@@ -1010,7 +1010,7 @@ function ProgressBar({ done, total }: { done: number; total: number }) {
 function StatusBadge({ status }: { status: JobStatus }) {
   const map: Record<JobStatus, { color: string; bg: string; label: string }> = {
     PENDING: { color: 'var(--color-info)', bg: 'rgba(59,130,246,0.12)', label: 'PENDING' },
-    RUNNING: { color: 'var(--accent-primary)', bg: 'var(--accent-glow)', label: 'RUNNING' },
+    RUNNING: { color: 'var(--color-info)', bg: 'rgba(59,130,246,0.12)', label: 'RUNNING' },
     SUCCESS: { color: 'var(--color-profit)', bg: 'rgba(46,196,138,0.12)', label: 'SUCCESS' },
     FAILED: { color: 'var(--color-loss)', bg: 'rgba(255,90,90,0.12)', label: 'FAILED' },
     CANCELLED: { color: 'var(--color-warning)', bg: 'rgba(245,166,35,0.12)', label: 'CANCELLED' },
