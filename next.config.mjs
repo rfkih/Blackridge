@@ -11,6 +11,17 @@
 // applies the same rule so the runtime URL and the CSP allow-list always
 // agree.
 const isProd = process.env.NODE_ENV === 'production';
+
+// Server-side only (no NEXT_PUBLIC prefix — never exposed to the browser).
+// Used by Next.js rewrites to forward browser API calls to the JVMs.
+// In Docker compose all services share blackheart_default bridge, so the
+// service names resolve. Override via env var for non-compose topologies.
+const INTERNAL_API_URL =
+  process.env.INTERNAL_API_URL || (isProd ? 'http://trading:8080' : 'http://localhost:8080');
+const INTERNAL_RESEARCH_URL =
+  process.env.INTERNAL_RESEARCH_URL ||
+  (isProd ? 'http://research:8081' : 'http://localhost:8081');
+
 function requireProdEnv(name, fallback) {
   const raw = process.env[name];
   if (raw && raw.trim()) return raw.trim();
@@ -76,6 +87,28 @@ const nextConfig = {
   poweredByHeader: false,
   // Enforce strict ESLint/TS; a prod build should never ship with header config errors.
   reactStrictMode: true,
+
+  // Proxy API + actuator calls to the JVMs. In production the browser sends
+  // all requests to the Tailscale URL (NEXT_PUBLIC_API_URL); these rewrites
+  // forward them server-side to the actual JVM containers via Docker DNS.
+  // WebSocket (/ws) is NOT covered here — WS proxying requires a separate
+  // reverse proxy (caddy/nginx) ahead of Next.js.
+  async rewrites() {
+    return [
+      {
+        source: '/api/:path*',
+        destination: `${INTERNAL_API_URL}/api/:path*`,
+      },
+      {
+        source: '/actuator/:path*',
+        destination: `${INTERNAL_API_URL}/actuator/:path*`,
+      },
+      {
+        source: '/research-actuator/:path*',
+        destination: `${INTERNAL_RESEARCH_URL}/research-actuator/:path*`,
+      },
+    ];
+  },
 
   async headers() {
     return [
