@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Download, FileCode, FileText } from 'lucide-react';
-import { paperLatexHref, paperPdfHref } from '@/lib/api/researchPapers';
+import { downloadPaperExport } from '@/lib/api/researchPapers';
 import { buildIeeeDocx } from '@/lib/export/buildIeeeDocx';
 import { toast } from '@/hooks/useToast';
 import { normalizeError } from '@/lib/api/client';
@@ -13,55 +13,86 @@ interface ExportButtonsProps {
   paper: PaperDetail;
 }
 
-export function ExportButtons({ paperId, paper }: ExportButtonsProps) {
-  const [wordPending, setWordPending] = useState(false);
+type Format = 'latex' | 'pdf' | 'word';
 
-  async function handleWord() {
-    setWordPending(true);
-    let url: string | null = null;
-    const a = document.createElement('a');
+function triggerDownload(blob: Blob, filename: string): void {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  try {
+    a.click();
+  } finally {
+    document.body.removeChild(a);
+    // Defer revoke so the browser finishes streaming the blob to disk
+    // before the URL is invalidated.
+    setTimeout(() => URL.revokeObjectURL(url), 0);
+  }
+}
+
+export function ExportButtons({ paperId, paper }: ExportButtonsProps) {
+  const [pending, setPending] = useState<Format | null>(null);
+
+  async function handleServerExport(format: 'latex' | 'pdf') {
+    if (pending) return;
+    setPending(format);
     try {
-      const blob = await buildIeeeDocx(paper);
-      url = URL.createObjectURL(blob);
-      a.href = url;
-      a.download = `${paperId}.docx`;
-      document.body.appendChild(a);
-      a.click();
+      const blob = await downloadPaperExport(paperId, format);
+      const ext = format === 'pdf' ? 'pdf' : 'tex';
+      triggerDownload(blob, `${paperId}.${ext}`);
     } catch (err) {
-      toast.error({ title: 'Word export failed', description: normalizeError(err) });
+      const label = format === 'pdf' ? 'PDF' : 'LaTeX';
+      toast.error({ title: `${label} export failed`, description: normalizeError(err) });
     } finally {
-      if (document.body.contains(a)) document.body.removeChild(a);
-      if (url) URL.revokeObjectURL(url);
-      setWordPending(false);
+      setPending(null);
     }
   }
 
+  async function handleWord() {
+    if (pending) return;
+    setPending('word');
+    try {
+      const blob = await buildIeeeDocx(paper);
+      triggerDownload(blob, `${paperId}.docx`);
+    } catch (err) {
+      toast.error({ title: 'Word export failed', description: normalizeError(err) });
+    } finally {
+      setPending(null);
+    }
+  }
+
+  const buttonClass =
+    'inline-flex items-center gap-1.5 rounded-sm border border-bd-subtle bg-bg-surface px-3 py-1.5 text-[12px] font-semibold text-text-secondary transition-colors hover:bg-bg-hover disabled:opacity-50';
+
   return (
     <div className="flex items-center gap-2">
-      <a
-        href={paperLatexHref(paperId)}
-        download
-        className="inline-flex items-center gap-1.5 rounded-sm border border-bd-subtle bg-bg-surface px-3 py-1.5 text-[12px] font-semibold text-text-secondary transition-colors hover:bg-bg-hover"
+      <button
+        type="button"
+        onClick={() => handleServerExport('latex')}
+        disabled={pending !== null}
+        className={buttonClass}
       >
         <FileCode size={12} strokeWidth={1.75} />
-        LaTeX
-      </a>
-      <a
-        href={paperPdfHref(paperId)}
-        download
-        className="inline-flex items-center gap-1.5 rounded-sm border border-bd-subtle bg-bg-surface px-3 py-1.5 text-[12px] font-semibold text-text-secondary transition-colors hover:bg-bg-hover"
+        {pending === 'latex' ? 'Exporting…' : 'LaTeX'}
+      </button>
+      <button
+        type="button"
+        onClick={() => handleServerExport('pdf')}
+        disabled={pending !== null}
+        className={buttonClass}
       >
         <FileText size={12} strokeWidth={1.75} />
-        PDF
-      </a>
+        {pending === 'pdf' ? 'Exporting…' : 'PDF'}
+      </button>
       <button
         type="button"
         onClick={handleWord}
-        disabled={wordPending}
-        className="inline-flex items-center gap-1.5 rounded-sm border border-bd-subtle bg-bg-surface px-3 py-1.5 text-[12px] font-semibold text-text-secondary transition-colors hover:bg-bg-hover disabled:opacity-50"
+        disabled={pending !== null}
+        className={buttonClass}
       >
         <Download size={12} strokeWidth={1.75} />
-        {wordPending ? 'Exporting…' : 'Word'}
+        {pending === 'word' ? 'Exporting…' : 'Word'}
       </button>
     </div>
   );

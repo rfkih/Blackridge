@@ -52,32 +52,33 @@ interface PaperChaptersProps {
   paper: PaperDetail;
   chartData: ChartData | undefined;
   chartLoading: boolean;
+  chartError: boolean;
   equityPoints: BacktestEquityPoint[];
+  hasAdditional: boolean;
+  hasParams: boolean;
+  hasSlippage: boolean;
+  hasRegime: boolean;
+  hasAuditNotes: boolean;
+  hasJournal: boolean;
 }
 
 export function PaperChapters({
   paper,
   chartData,
   chartLoading,
+  chartError,
   equityPoints,
+  hasAdditional,
+  hasParams,
+  hasSlippage,
+  hasRegime,
+  hasAuditNotes,
+  hasJournal,
 }: PaperChaptersProps) {
-  const sections = paper.sections ?? [];
+  const sections = paper.sections;
   const best = hasBestIter(paper.best_iteration) ? paper.best_iteration : null;
   const meta = paper.metadata;
-  const hasWf = !!(chartData?.wf_equity_curve?.length);
-
-  const hasParams = best !== null && Object.keys(best.params ?? {}).length > 0;
-  const hasSlippage = Object.keys(paper.robustness?.slippage_sensitivity ?? {}).length > 0;
-  const hasRegime = Object.keys(paper.robustness?.regime_breakdown ?? {}).length > 0;
-  const hasAuditNotes = !!(best?.quant_audit_notes);
-  const hasJournal = paper.journal_entries.length > 0;
-  const hasAdditional =
-    hasParams ||
-    paper.top_iterations.length > 0 ||
-    hasSlippage ||
-    hasRegime ||
-    hasAuditNotes ||
-    hasJournal;
+  const hasWf = !!chartData?.wf_equity_curve?.length;
 
   const resultsIdx = sections.findIndex((s) => s.title.toLowerCase().includes('result'));
   const chartsAfterIdx = resultsIdx !== -1 ? resultsIdx : sections.length - 1;
@@ -89,9 +90,7 @@ export function PaperChapters({
           <p className="mb-2 font-mono text-[10px] font-semibold uppercase tracking-widest text-text-muted">
             Abstract
           </p>
-          <p className="text-[13px] italic leading-relaxed text-text-secondary">
-            {paper.abstract}
-          </p>
+          <p className="text-[13px] italic leading-relaxed text-text-secondary">{paper.abstract}</p>
           {meta.hypothesis && (
             <blockquote className="mt-3 border-l-2 border-bd-subtle pl-4">
               <p className="text-[10px] font-semibold uppercase tracking-wider text-text-muted">
@@ -113,6 +112,7 @@ export function PaperChapters({
               meta={meta}
               chartData={chartData}
               chartLoading={chartLoading}
+              chartError={chartError}
               equityPoints={equityPoints}
               hasWf={hasWf}
             />
@@ -138,9 +138,9 @@ export function PaperChapters({
             References
           </h2>
           <ol className="list-inside list-decimal space-y-2">
-            {paper.citations.map((c, i) => (
+            {paper.citations.map((c) => (
               <li key={c.key} className="text-[12px] leading-relaxed text-text-secondary">
-                [{i + 1}] {c.text}
+                {c.text}
               </li>
             ))}
           </ol>
@@ -178,11 +178,31 @@ interface ChartsBlockProps {
   meta: PaperDetail['metadata'];
   chartData: ChartData | undefined;
   chartLoading: boolean;
+  chartError: boolean;
   equityPoints: BacktestEquityPoint[];
   hasWf: boolean;
 }
 
-function ChartsBlock({ meta, chartData, chartLoading, equityPoints, hasWf }: ChartsBlockProps) {
+function chartPlaceholder(
+  loading: boolean,
+  error: boolean,
+  hasData: boolean,
+  empty: string,
+): string {
+  if (loading) return 'Awaiting chart data…';
+  if (error) return 'Chart data failed to load.';
+  if (hasData) return empty;
+  return 'Chart data not yet available.';
+}
+
+function ChartsBlock({
+  meta,
+  chartData,
+  chartLoading,
+  chartError,
+  equityPoints,
+  hasWf,
+}: ChartsBlockProps) {
   let figNum = 0;
   const nextFig = () => `Figure ${++figNum}.`;
   return (
@@ -197,7 +217,7 @@ function ChartsBlock({ meta, chartData, chartLoading, equityPoints, hasWf }: Cha
           <PaperEquityCurveChart curve={chartData.equity_curve} height={240} gradientId="ch-is" />
         ) : (
           <div className="flex h-60 items-center justify-center text-[12px] text-text-muted">
-            {chartData ? 'No equity data.' : 'Chart data not yet available.'}
+            {chartPlaceholder(false, chartError, !!chartData, 'No equity data.')}
           </div>
         )}
       </div>
@@ -212,7 +232,7 @@ function ChartsBlock({ meta, chartData, chartLoading, equityPoints, hasWf }: Cha
           <BacktestMonthlyReturns points={equityPoints} />
         ) : (
           <div className="flex h-32 items-center justify-center text-[12px] text-text-muted">
-            {chartData ? 'Not enough data points.' : 'Awaiting chart data.'}
+            {chartPlaceholder(false, chartError, !!chartData, 'Not enough data points.')}
           </div>
         )}
       </div>
@@ -227,12 +247,14 @@ function ChartsBlock({ meta, chartData, chartLoading, equityPoints, hasWf }: Cha
           <PaperTradeHistogram trades={chartData.trades} height={200} />
         ) : (
           <div className="flex h-48 items-center justify-center text-[12px] text-text-muted">
-            {chartData ? 'No trade data.' : 'Awaiting chart data.'}
+            {chartPlaceholder(false, chartError, !!chartData, 'No trade data.')}
           </div>
         )}
       </div>
 
-      {hasWf && (
+      {chartLoading ? (
+        <Skeleton className="h-60 w-full" />
+      ) : hasWf ? (
         <div>
           <p className="mb-1.5 text-center font-mono text-[11px] text-text-muted">
             {nextFig()} In-sample equity (green) vs walk-forward out-of-sample (blue)
@@ -244,7 +266,7 @@ function ChartsBlock({ meta, chartData, chartLoading, equityPoints, hasWf }: Cha
             gradientId="ch-wf"
           />
         </div>
-      )}
+      ) : null}
     </div>
   );
 }
@@ -306,9 +328,7 @@ function AdditionalInfo({
                   {Object.entries(best!.params).map(([k, v]) => (
                     <tr key={k} className="border-b border-bd-subtle last:border-0">
                       <td className="py-1 pr-4 font-mono text-text-secondary">{k}</td>
-                      <td className="py-1 font-mono tabular-nums text-text-primary">
-                        {String(v)}
-                      </td>
+                      <td className="py-1 font-mono tabular-nums text-text-primary">{String(v)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -379,13 +399,7 @@ function AdditionalInfo({
   );
 }
 
-function AdditionalSection({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}) {
+function AdditionalSection({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div>
       <p className="mb-2 font-mono text-[10px] font-semibold uppercase tracking-widest text-text-muted">
@@ -465,11 +479,7 @@ function GatesTable({ gate }: { gate: VerdictGate }) {
                   style={{ color: 'var(--color-profit)' }}
                 />
               ) : (
-                <XCircle
-                  size={13}
-                  className="ml-auto"
-                  style={{ color: 'var(--color-loss)' }}
-                />
+                <XCircle size={13} className="ml-auto" style={{ color: 'var(--color-loss)' }} />
               )}
             </td>
           </tr>

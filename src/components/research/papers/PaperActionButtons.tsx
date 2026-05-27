@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { FlaskConical, Loader2, Settings2 } from 'lucide-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -14,22 +14,25 @@ import {
 import { useStrategies } from '@/hooks/useStrategies';
 import { useCreateBacktestRun } from '@/hooks/useBacktest';
 import { createStrategyParam } from '@/lib/api/strategy-params';
+import { buildBacktestPayload } from '@/lib/backtest/buildBacktestPayload';
 import { toast } from '@/hooks/useToast';
 import { normalizeError } from '@/lib/api/client';
 import type { BestIteration, PaperDetail } from '@/types/papers';
 import type { AccountStrategy } from '@/types/strategy';
-import type { BacktestRunPayload } from '@/types/backtest';
 
 function hasBestIter(bi: PaperDetail['best_iteration']): bi is BestIteration {
   return 'iteration_id' in bi;
 }
 
-const TODAY = new Date().toISOString().slice(0, 10);
-const TWO_YEARS_AGO = (() => {
+function todayIso(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function twoYearsAgoIso(): string {
   const d = new Date();
   d.setFullYear(d.getFullYear() - 2);
   return d.toISOString().slice(0, 10);
-})();
+}
 
 // ---------------------------------------------------------------------------
 // Public entry point
@@ -51,7 +54,7 @@ export function PaperActionButtons({ paper }: PaperActionButtonsProps) {
       <button
         type="button"
         onClick={() => setRunOpen(true)}
-        className="inline-flex items-center gap-1.5 rounded-sm border border-[var(--color-info)]/30 bg-[var(--color-info)]/10 px-3 py-2 text-[12px] font-semibold text-[var(--color-info)] transition-colors hover:bg-[var(--color-info)]/20"
+        className="border-[var(--color-info)]/30 bg-[var(--color-info)]/10 hover:bg-[var(--color-info)]/20 inline-flex items-center gap-1.5 rounded-sm border px-3 py-2 text-[12px] font-semibold text-[var(--color-info)] transition-colors"
       >
         <FlaskConical size={13} strokeWidth={1.75} />
         Run backtest
@@ -97,19 +100,15 @@ function StrategySelector({ strategyCode, value, onChange }: StrategySelectorPro
 
   if (isLoading) {
     return (
-      <div
-        className="h-9 animate-pulse rounded-sm"
-        style={{ background: 'var(--bg-hover)' }}
-      />
+      <div className="h-9 animate-pulse rounded-sm" style={{ background: 'var(--bg-hover)' }} />
     );
   }
 
   if (!matching.length) {
     return (
       <p className="text-[11px] text-text-muted">
-        No strategies with code{' '}
-        <span className="font-mono">{strategyCode}</span> found. Create one on
-        the Strategies page first.
+        No strategies with code <span className="font-mono">{strategyCode}</span> found. Create one
+        on the Strategies page first.
       </p>
     );
   }
@@ -148,9 +147,20 @@ function RunBacktestDialog({ open, paper, best, onClose }: RunBacktestDialogProp
   const { mutateAsync: createRun, isPending } = useCreateBacktestRun();
 
   const [strategyId, setStrategyId] = useState('');
-  const [fromDate, setFromDate] = useState(TWO_YEARS_AGO);
-  const [toDate, setToDate] = useState(TODAY);
+  const [fromDate, setFromDate] = useState(() => twoYearsAgoIso());
+  const [toDate, setToDate] = useState(() => todayIso());
   const [capital, setCapital] = useState('10000');
+
+  // Reset all fields whenever the dialog reopens so a previous (cancelled)
+  // selection doesn't carry over into the next paper's submission.
+  useEffect(() => {
+    if (!open) {
+      setStrategyId('');
+      setFromDate(twoYearsAgoIso());
+      setToDate(todayIso());
+      setCapital('10000');
+    }
+  }, [open]);
 
   async function handleSubmit() {
     const strategy = all.find((s) => s.id === strategyId);
@@ -158,26 +168,44 @@ function RunBacktestDialog({ open, paper, best, onClose }: RunBacktestDialogProp
       toast.error({ title: 'Pick a strategy first' });
       return;
     }
-    const payload: BacktestRunPayload = {
-      accountStrategyId: strategy.id,
-      strategyAccountStrategyIds: { [meta.strategy_code]: strategy.id },
-      strategyCodes: [meta.strategy_code],
-      asset: meta.instrument,
-      interval: meta.interval_name,
-      startTime: `${fromDate}T00:00:00`,
-      endTime: `${toDate}T00:00:00`,
-      initialCapital: Number(capital) || 10_000,
-      riskPerTradePct: 0.9,
-      feeRate: 0.00075,
-      slippageRate: 0,
-      minNotional: 7,
-      minQty: 0.000001,
-      qtyStep: 0.000001,
-      maxOpenPositions: 1,
-      allowLong: strategy.allowLong,
-      allowShort: strategy.allowShort,
-      strategyParamOverrides: { [meta.strategy_code]: best.params },
-    };
+    if (!fromDate || !toDate || fromDate >= toDate) {
+      toast.error({
+        title: 'Invalid date range',
+        description: 'From-date must be before to-date.',
+      });
+      return;
+    }
+    const capitalNum = Number(capital);
+    if (!Number.isFinite(capitalNum) || capitalNum < 100) {
+      toast.error({
+        title: 'Invalid capital',
+        description: 'Initial capital must be at least 100 USDT.',
+      });
+      return;
+    }
+
+    let payload;
+    try {
+      payload = buildBacktestPayload(
+        {
+          symbol: meta.instrument,
+          interval: meta.interval_name,
+          fromDate,
+          toDate,
+          initialCapital: capitalNum,
+          strategyCodes: [meta.strategy_code],
+          strategyAccountStrategyIds: { [meta.strategy_code]: strategy.id },
+          allowLong: strategy.allowLong,
+          allowShort: strategy.allowShort,
+        },
+        { [meta.strategy_code]: best.params },
+        {},
+      );
+    } catch (err) {
+      toast.error({ title: 'Could not build payload', description: normalizeError(err) });
+      return;
+    }
+
     try {
       await createRun(payload);
       toast.success({ title: 'Backtest queued', description: 'Redirecting to backtest list…' });
@@ -269,7 +297,7 @@ function RunBacktestDialog({ open, paper, best, onClose }: RunBacktestDialogProp
               type="button"
               onClick={handleSubmit}
               disabled={isPending || !strategyId}
-              className="inline-flex items-center gap-1.5 rounded-sm border border-[var(--color-info)]/30 bg-[var(--color-info)]/10 px-3 py-2 text-[12px] font-semibold text-[var(--color-info)] hover:bg-[var(--color-info)]/20 disabled:opacity-50"
+              className="border-[var(--color-info)]/30 bg-[var(--color-info)]/10 hover:bg-[var(--color-info)]/20 inline-flex items-center gap-1.5 rounded-sm border px-3 py-2 text-[12px] font-semibold text-[var(--color-info)] disabled:opacity-50"
             >
               {isPending && <Loader2 size={12} className="animate-spin" />}
               Queue backtest
@@ -296,6 +324,12 @@ function ApplyParamsDialog({ open, paper, best, onClose }: ApplyParamsDialogProp
   const meta = paper.metadata;
   const queryClient = useQueryClient();
   const [strategyId, setStrategyId] = useState('');
+
+  // Reset on every open/close transition so the Radix exit-animation race
+  // (open→close→open within ~150ms) can never reuse a stale selection.
+  useEffect(() => {
+    if (!open) setStrategyId('');
+  }, [open]);
 
   const { mutate: applyParams, isPending } = useMutation({
     mutationFn: (accountStrategyId: string) =>
@@ -327,7 +361,7 @@ function ApplyParamsDialog({ open, paper, best, onClose }: ApplyParamsDialogProp
   }
 
   return (
-    <Dialog open={open} onOpenChange={(v) => { if (!v) { setStrategyId(''); onClose(); } }}>
+    <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>Apply params to strategy</DialogTitle>
@@ -380,7 +414,7 @@ function ApplyParamsDialog({ open, paper, best, onClose }: ApplyParamsDialogProp
               type="button"
               onClick={handleSubmit}
               disabled={isPending || !strategyId}
-              className="inline-flex items-center gap-1.5 rounded-sm border border-[var(--color-profit)]/30 bg-[var(--color-profit)]/10 px-3 py-2 text-[12px] font-semibold text-[var(--color-profit)] hover:bg-[var(--color-profit)]/20 disabled:opacity-50"
+              className="border-[var(--color-profit)]/30 bg-[var(--color-profit)]/10 hover:bg-[var(--color-profit)]/20 inline-flex items-center gap-1.5 rounded-sm border px-3 py-2 text-[12px] font-semibold text-[var(--color-profit)] disabled:opacity-50"
             >
               {isPending && <Loader2 size={12} className="animate-spin" />}
               Apply params

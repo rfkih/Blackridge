@@ -145,7 +145,7 @@ export interface PaperDetail {
   verdict_gate: VerdictGate;
   journal_entries: PaperJournalEntry[];
   citations: PaperCitation[];
-  sections: PaperSection[] | null;
+  sections: PaperSection[];
   next_actions?: Array<{ kind: string; method: string; path: string; description?: string }>;
 }
 
