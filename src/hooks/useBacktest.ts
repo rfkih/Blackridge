@@ -252,6 +252,15 @@ export function useBacktestProgressStream(runId: string | undefined): void {
   }, [runId, connected, queryClient]);
 }
 
+/** Converts a total compounded return % to annualized (CAGR) %. */
+export function annualizeReturnPct(totalPct: number, fromDate: string, toDate: string): number {
+  if (!isFinite(totalPct)) return totalPct;
+  const years =
+    (new Date(toDate).getTime() - new Date(fromDate).getTime()) / (365.25 * 24 * 3600 * 1000);
+  if (years <= 0) return totalPct;
+  return ((1 + totalPct / 100) ** (1 / years) - 1) * 100;
+}
+
 export function useTopRunsForStrategy(
   strategyCode: string,
   symbol: string,
@@ -260,12 +269,15 @@ export function useTopRunsForStrategy(
 ) {
   const { enabled = true } = options;
 
-  const cutoff = new Date();
-  cutoff.setFullYear(cutoff.getFullYear() - 2);
-  const cutoffStr = cutoff.toISOString();
+  // Stable cutoff — computed once on mount; 2-year threshold doesn't need per-render precision.
+  const cutoffStr = useMemo(() => {
+    const cutoff = new Date();
+    cutoff.setFullYear(cutoff.getFullYear() - 2);
+    return cutoff.toISOString();
+  }, []);
 
   const query = useQuery({
-    queryKey: ['top-runs', strategyCode, symbol, interval],
+    queryKey: ['top-runs', 'COMPLETED', 200, strategyCode, symbol, interval],
     queryFn: () =>
       listBacktestRuns({
         status: 'COMPLETED',
@@ -280,7 +292,7 @@ export function useTopRunsForStrategy(
     staleTime: 60_000,
   });
 
-  // Client-side rank: API has no sortBy=ag90 or profitFactor filter param.
+  // Client-side rank: API has no sortBy=ag90/yr or profitFactor filter param.
   const topRuns = useMemo(() => {
     if (!query.data) return [];
     return query.data.content
@@ -290,10 +302,16 @@ export function useTopRunsForStrategy(
         return r.fromDate <= cutoffStr;
       })
       .sort((a, b) => {
-        const ag90A =
-          a.metrics?.geometricReturnPctAtAlloc90 ?? a.metrics?.totalReturnPct ?? -Infinity;
-        const ag90B =
-          b.metrics?.geometricReturnPctAtAlloc90 ?? b.metrics?.totalReturnPct ?? -Infinity;
+        const ag90A = annualizeReturnPct(
+          a.metrics?.geometricReturnPctAtAlloc90 ?? a.metrics?.totalReturnPct ?? -Infinity,
+          a.fromDate,
+          a.toDate,
+        );
+        const ag90B = annualizeReturnPct(
+          b.metrics?.geometricReturnPctAtAlloc90 ?? b.metrics?.totalReturnPct ?? -Infinity,
+          b.fromDate,
+          b.toDate,
+        );
         return ag90B - ag90A;
       })
       .slice(0, 5);

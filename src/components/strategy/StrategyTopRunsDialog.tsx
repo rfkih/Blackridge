@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import {
@@ -11,7 +11,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useTopRunsForStrategy } from '@/hooks/useBacktest';
+import { annualizeReturnPct, useTopRunsForStrategy } from '@/hooks/useBacktest';
 import { cn } from '@/lib/utils';
 import type { AccountStrategy } from '@/types/strategy';
 import type { BacktestRun } from '@/types/backtest';
@@ -28,6 +28,10 @@ export function StrategyTopRunsDialog({
   strategy,
 }: StrategyTopRunsDialogProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!open) setExpandedId(null);
+  }, [open]);
 
   const { topRuns, isLoading, isError } = useTopRunsForStrategy(
     strategy?.strategyCode ?? '',
@@ -80,12 +84,12 @@ export function StrategyTopRunsDialog({
             <table className="w-full">
               <thead>
                 <tr className="border-b border-[var(--border-subtle)]">
-                  {['#', 'Period', 'ag90', 'Sharpe', 'PF', 'Max DD', 'Params', ''].map((h) => (
+                  {['#', 'Period', 'ag90/yr', 'Sharpe', 'PF', 'Max DD', 'Params', ''].map((h) => (
                     <th
                       key={h}
                       className={cn(
                         'pb-2 font-mono text-[10px] font-semibold uppercase tracking-wider text-text-muted',
-                        h === 'ag90' || h === 'Sharpe' || h === 'PF' || h === 'Max DD'
+                        h === 'ag90/yr' || h === 'Sharpe' || h === 'PF' || h === 'Max DD'
                           ? 'text-right'
                           : 'text-left',
                       )}
@@ -147,7 +151,8 @@ function RunRow({
   onToggle: () => void;
 }) {
   const { metrics, fromDate, toDate, paramSnapshot } = run;
-  const ag90 = metrics?.geometricReturnPctAtAlloc90 ?? null;
+  const rawAg90 = metrics?.geometricReturnPctAtAlloc90 ?? null;
+  const ag90 = rawAg90 !== null ? annualizeReturnPct(rawAg90, fromDate, toDate) : null;
   const sharpe = metrics?.sharpe ?? null;
   const pf = metrics?.profitFactor ?? null;
   const maxDD = metrics?.maxDrawdownPct ?? null;
