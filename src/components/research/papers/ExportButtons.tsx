@@ -18,19 +18,20 @@ export function ExportButtons({ paperId, paper }: ExportButtonsProps) {
 
   async function handleWord() {
     setWordPending(true);
+    let url: string | null = null;
+    const a = document.createElement('a');
     try {
       const blob = await buildIeeeDocx(paper);
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
+      url = URL.createObjectURL(blob);
       a.href = url;
       a.download = `${paperId}.docx`;
       document.body.appendChild(a);
       a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
     } catch (err) {
       toast.error({ title: 'Word export failed', description: normalizeError(err) });
     } finally {
+      if (document.body.contains(a)) document.body.removeChild(a);
+      if (url) URL.revokeObjectURL(url);
       setWordPending(false);
     }
   }
