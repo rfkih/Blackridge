@@ -311,7 +311,7 @@ function StrategyCard({
             className="flex items-center justify-end border-t pt-3"
             style={{ borderColor: 'var(--mm-hair-2)' }}
           >
-            <span className="flex items-center gap-1 text-xs font-semibold text-[var(--text-secondary)] transition-colors group-hover:text-[var(--accent-primary)]">
+            <span className="flex items-center gap-1 text-xs font-semibold text-[var(--text-secondary)] transition-colors group-hover:text-text-primary">
               Edit params
               <ChevronRight size={12} />
             </span>
