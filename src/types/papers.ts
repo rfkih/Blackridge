@@ -118,6 +118,12 @@ export interface PaperCitation {
   text: string;
 }
 
+export interface PaperSection {
+  chapter: number;
+  title: string;
+  body: string;
+}
+
 export interface PaperDetail {
   paper_id: string;
   queue_id: UUID;
@@ -139,6 +145,7 @@ export interface PaperDetail {
   verdict_gate: VerdictGate;
   journal_entries: PaperJournalEntry[];
   citations: PaperCitation[];
+  sections: PaperSection[] | null;
   next_actions?: Array<{ kind: string; method: string; path: string; description?: string }>;
 }
 
