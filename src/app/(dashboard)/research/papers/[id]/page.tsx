@@ -2,7 +2,8 @@
 
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
-import { ArrowLeft, CheckCircle2, XCircle } from 'lucide-react';
+import { useState } from 'react';
+import { ArrowLeft, CheckCircle2, XCircle, ChevronDown, ChevronRight } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ExportButtons } from '@/components/research/papers/ExportButtons';
@@ -67,24 +68,25 @@ function hasBestIter(bi: PaperDetail['best_iteration']): bi is BestIteration {
 }
 
 // ---------------------------------------------------------------------------
-// Section shell
+// Paper section — numbered, always visible
 // ---------------------------------------------------------------------------
 
 function Section({
   id,
+  num,
   title,
   children,
-  className = '',
 }: {
   id: string;
+  num: string;
   title: string;
   children: React.ReactNode;
-  className?: string;
 }) {
   return (
-    <section id={id} className={`scroll-mt-4 space-y-3 ${className}`}>
-      <div className="border-b border-bd-subtle pb-1.5">
-        <h2 className="font-display text-[14px] font-semibold uppercase tracking-widest text-text-muted">
+    <section id={id} className="scroll-mt-6 space-y-4">
+      <div className="flex items-baseline gap-2 border-b border-bd-subtle pb-1">
+        <span className="font-mono text-[11px] text-text-muted">{num}</span>
+        <h2 className="font-display text-[13px] font-semibold uppercase tracking-widest text-text-muted">
           {title}
         </h2>
       </div>
@@ -93,141 +95,282 @@ function Section({
   );
 }
 
-function ChartPanel({ title, children }: { title: string; children: React.ReactNode }) {
+// ---------------------------------------------------------------------------
+// Collapsible section — for extended / detail content
+// ---------------------------------------------------------------------------
+
+function CollapsibleSection({
+  id,
+  num,
+  title,
+  summary,
+  children,
+  defaultOpen = false,
+}: {
+  id: string;
+  num: string;
+  title: string;
+  summary: string;
+  children: React.ReactNode;
+  defaultOpen?: boolean;
+}) {
+  const [open, setOpen] = useState(defaultOpen);
   return (
-    <div className="overflow-hidden rounded-xl border border-bd-subtle bg-bg-surface">
-      <div className="border-b border-bd-subtle px-4 py-2.5">
-        <h3 className="font-display text-[12px] font-semibold text-text-primary">{title}</h3>
-      </div>
-      <div className="px-2 pb-2 pt-3">{children}</div>
-    </div>
+    <section id={id} className="scroll-mt-6">
+      <button
+        onClick={() => setOpen((o) => !o)}
+        className="group flex w-full items-baseline gap-2 border-b border-bd-subtle pb-1 text-left transition-colors hover:border-text-muted"
+      >
+        <span className="font-mono text-[11px] text-text-muted">{num}</span>
+        <h2 className="font-display text-[13px] font-semibold uppercase tracking-widest text-text-muted group-hover:text-text-secondary">
+          {title}
+        </h2>
+        <span className="ml-2 font-mono text-[11px] text-text-muted">{summary}</span>
+        <span className="ml-auto text-text-muted">
+          {open ? <ChevronDown size={13} /> : <ChevronRight size={13} />}
+        </span>
+      </button>
+      {open && <div className="mt-4 space-y-4">{children}</div>}
+    </section>
   );
 }
 
 // ---------------------------------------------------------------------------
-// Metric grid
+// Figure wrapper
 // ---------------------------------------------------------------------------
 
-function MetricCell({
+function Figure({ num, caption, children }: { num: string; caption: string; children: React.ReactNode }) {
+  return (
+    <figure className="space-y-2">
+      <div className="overflow-hidden rounded-lg border border-bd-subtle bg-bg-surface">
+        <div className="px-2 pb-2 pt-3">{children}</div>
+      </div>
+      <figcaption className="text-center font-mono text-[10px] italic text-text-muted">
+        {num} {caption}
+      </figcaption>
+    </figure>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Compact metrics row (paper style — one line)
+// ---------------------------------------------------------------------------
+
+function MetricPill({
   label,
   value,
-  sub,
   tone,
+  sub,
 }: {
   label: string;
   value: string;
-  sub?: string;
   tone?: Tone;
+  sub?: string;
 }) {
   return (
-    <div className="space-y-0.5">
-      <p className="text-[10px] font-semibold uppercase tracking-wider text-text-muted">{label}</p>
-      <p
-        className="font-display text-[18px] font-semibold tabular-nums leading-none text-text-primary"
-        style={tone ? { color: toneColor(tone) } : undefined}
+    <div className="flex flex-col items-center gap-0.5 px-4 first:pl-0 last:pr-0">
+      <span className="font-mono text-[9px] font-semibold uppercase tracking-widest text-text-muted">
+        {label}
+      </span>
+      <span
+        className="font-display text-[20px] font-semibold tabular-nums leading-none"
+        style={tone ? { color: toneColor(tone) } : { color: 'var(--text-primary)' }}
       >
         {value}
-      </p>
-      {sub && <p className="font-mono text-[10px] text-text-muted">{sub}</p>}
+      </span>
+      {sub && <span className="font-mono text-[9px] text-text-muted">{sub}</span>}
     </div>
   );
 }
 
-function MetricsGrid({ m }: { m: BestIterationMetrics }) {
+function MetricsRow({ m }: { m: BestIterationMetrics }) {
   const dd = m.max_drawdown_pct;
   const ddTone: Tone = dd != null && dd < -15 ? 'loss' : dd != null && dd < -8 ? 'warning' : 'muted';
-
   return (
-    <div className="grid grid-cols-3 gap-4 sm:grid-cols-6">
-      <MetricCell
+    <div className="flex flex-wrap items-start divide-x divide-bd-subtle">
+      <MetricPill
         label="CAGR"
         value={fmt(m.cagr, 1, '%')}
         tone={m.cagr != null && m.cagr >= 10 ? 'profit' : 'warning'}
       />
-      <MetricCell
+      <MetricPill
         label="Profit Factor"
         value={fmt(m.profit_factor)}
-        sub={
-          m.pf_ci_low != null && m.pf_ci_high != null
-            ? `CI [${fmt(m.pf_ci_low)}, ${fmt(m.pf_ci_high)}]`
-            : undefined
-        }
+        sub={m.pf_ci_low != null ? `CI low ${fmt(m.pf_ci_low)}` : undefined}
         tone={m.profit_factor != null && m.profit_factor > 1 ? 'profit' : 'loss'}
       />
-      <MetricCell label="DSR" value={fmt(m.dsr, 3)} tone={m.dsr != null && m.dsr >= 0.95 ? 'profit' : 'warning'} />
-      <MetricCell label="Max Drawdown" value={fmt(dd, 1, '%')} tone={ddTone} />
-      <MetricCell label="Sharpe" value={fmt(m.sharpe_ratio)} />
-      <MetricCell label="Trades" value={m.trade_count?.toString() ?? '—'} />
+      <MetricPill
+        label="DSR"
+        value={fmt(m.dsr, 3)}
+        tone={m.dsr != null && m.dsr >= 0.95 ? 'profit' : 'warning'}
+      />
+      <MetricPill label="Max Drawdown" value={fmt(dd, 1, '%')} tone={ddTone} />
+      <MetricPill label="Sharpe" value={fmt(m.sharpe_ratio)} />
+      <MetricPill label="Trades" value={m.trade_count?.toString() ?? '—'} />
     </div>
   );
 }
 
 // ---------------------------------------------------------------------------
-// Parameters table
+// Stat gates — academic table style
 // ---------------------------------------------------------------------------
 
-function ParamsTable({ params }: { params: Record<string, unknown> }) {
-  const entries = Object.entries(params);
-  if (!entries.length) return <p className="text-[12px] text-text-muted">No parameters recorded.</p>;
+function StatGatesTable({ gate }: { gate: VerdictGate }) {
+  const rows = [
+    {
+      ok: gate.n_trades_ok,
+      criterion: `Trades ≥ ${gate.n_trades_threshold}`,
+      actual: String(gate.n_trades_value),
+    },
+    {
+      ok: gate.pf_ci_ok,
+      criterion: 'PF 95% CI lower > 1.0',
+      actual: gate.pf_ci_low != null ? gate.pf_ci_low.toFixed(2) : '—',
+    },
+    {
+      ok: gate.dsr_ok,
+      criterion: `DSR ≥ ${gate.dsr_threshold}`,
+      actual: gate.dsr_value != null ? gate.dsr_value.toFixed(3) : '—',
+    },
+    {
+      ok: gate.stat_verdict_ok,
+      criterion: 'Statistical verdict',
+      actual: gate.stat_verdict ?? '—',
+    },
+    {
+      ok: gate.cagr_ok,
+      criterion: `CAGR ≥ ${gate.cagr_threshold}% (90% Kelly, ann.)`,
+      actual: gate.cagr_value != null ? gate.cagr_value.toFixed(1) + '%' : '—',
+    },
+  ];
+
   return (
-    <div className="overflow-hidden rounded-md border border-bd-subtle">
+    <div className="space-y-2">
       <table className="w-full text-[11px]">
-        <tbody>
-          {entries.map(([k, v]) => (
-            <tr key={k} className="border-b border-bd-subtle last:border-0">
-              <td className="w-1/2 bg-bg-base px-3 py-1.5 font-mono text-text-secondary">{k}</td>
-              <td className="px-3 py-1.5 font-mono tabular-nums text-text-primary">
-                {String(v)}
+        <thead>
+          <tr className="border-b border-bd-subtle">
+            <th className="pb-1.5 pr-4 text-left font-mono text-[10px] font-semibold uppercase tracking-wider text-text-muted">
+              Criterion
+            </th>
+            <th className="pb-1.5 pr-4 text-right font-mono text-[10px] font-semibold uppercase tracking-wider text-text-muted">
+              Actual
+            </th>
+            <th className="pb-1.5 text-right font-mono text-[10px] font-semibold uppercase tracking-wider text-text-muted">
+              Result
+            </th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-bd-subtle">
+          {rows.map((r) => (
+            <tr key={r.criterion}>
+              <td className="py-1.5 pr-4 text-text-secondary">{r.criterion}</td>
+              <td className="py-1.5 pr-4 text-right font-mono tabular-nums text-text-primary">
+                {r.actual}
+              </td>
+              <td className="py-1.5 text-right">
+                {r.ok ? (
+                  <CheckCircle2 size={12} className="ml-auto" style={{ color: toneColor('profit') }} />
+                ) : (
+                  <XCircle size={12} className="ml-auto" style={{ color: toneColor('loss') }} />
+                )}
               </td>
             </tr>
           ))}
         </tbody>
+        <tfoot>
+          <tr className="border-t border-bd-subtle">
+            <td colSpan={2} className="pt-2 text-[11px] font-semibold text-text-secondary">
+              Overall verdict
+            </td>
+            <td className="pt-2 text-right">
+              <span
+                className="font-mono text-[10px] font-semibold uppercase tracking-wider"
+                style={{ color: toneColor(gate.all_gates_passed ? 'profit' : 'loss') }}
+              >
+                {gate.all_gates_passed ? 'Pass' : 'Fail'}
+              </span>
+            </td>
+          </tr>
+        </tfoot>
       </table>
     </div>
   );
 }
 
 // ---------------------------------------------------------------------------
-// Top iterations table
+// Academic-style parameter table (horizontal rules only)
+// ---------------------------------------------------------------------------
+
+function ParamsTable({ params }: { params: Record<string, unknown> }) {
+  const entries = Object.entries(params);
+  if (!entries.length) return <p className="text-[12px] text-text-muted">No parameters recorded.</p>;
+  return (
+    <table className="w-full text-[11px]">
+      <thead>
+        <tr className="border-b border-bd-subtle">
+          <th className="pb-1.5 pr-6 text-left font-mono text-[10px] font-semibold uppercase tracking-wider text-text-muted">
+            Parameter
+          </th>
+          <th className="pb-1.5 text-right font-mono text-[10px] font-semibold uppercase tracking-wider text-text-muted">
+            Value
+          </th>
+        </tr>
+      </thead>
+      <tbody className="divide-y divide-bd-subtle">
+        {entries.map(([k, v]) => (
+          <tr key={k}>
+            <td className="py-1 pr-6 font-mono text-text-secondary">{k}</td>
+            <td className="py-1 text-right font-mono tabular-nums text-text-primary">{String(v)}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Top iterations — academic table
 // ---------------------------------------------------------------------------
 
 function TopIterationsTable({ rows }: { rows: TopIteration[] }) {
   if (!rows.length) return <p className="text-[12px] text-text-muted">No iterations recorded.</p>;
   return (
-    <div className="overflow-x-auto rounded-md border border-bd-subtle">
-      <table className="w-full min-w-[640px] text-[11px]">
+    <div className="overflow-x-auto">
+      <table className="w-full min-w-[540px] text-[11px]">
         <thead>
-          <tr className="border-b border-bd-subtle bg-bg-base">
-            {['#', 'CAGR', 'PF', 'PF CI low', 'DSR', 'Max DD', 'Trades', 'Verdict'].map((h) => (
+          <tr className="border-b border-bd-subtle">
+            {['#', 'CAGR', 'Profit Factor', 'PF CI low', 'DSR', 'Max DD', 'Trades', 'Verdict'].map((h) => (
               <th
                 key={h}
-                className="px-2.5 py-1.5 text-left text-[10px] font-semibold uppercase tracking-wider text-text-muted"
+                className="pb-1.5 pr-3 text-left font-mono text-[10px] font-semibold uppercase tracking-wider text-text-muted last:pr-0"
               >
                 {h}
               </th>
             ))}
           </tr>
         </thead>
-        <tbody>
+        <tbody className="divide-y divide-bd-subtle">
           {rows.map((r, i) => (
-            <tr key={i} className="border-b border-bd-subtle bg-bg-surface last:border-0 hover:bg-bg-hover">
-              <td className="px-2.5 py-1.5 font-mono text-text-muted">{r.iteration_number ?? i + 1}</td>
-              <td className="px-2.5 py-1.5 font-mono tabular-nums"
-                style={{ color: r.cagr != null && r.cagr >= 10 ? toneColor('profit') : toneColor('muted') }}>
+            <tr key={i} className="hover:bg-bg-hover">
+              <td className="py-1.5 pr-3 font-mono text-text-muted">{r.iteration_number ?? i + 1}</td>
+              <td
+                className="py-1.5 pr-3 font-mono tabular-nums font-semibold"
+                style={{ color: r.cagr != null && r.cagr >= 10 ? toneColor('profit') : toneColor('muted') }}
+              >
                 {fmt(r.cagr, 1, '%')}
               </td>
-              <td className="px-2.5 py-1.5 font-mono tabular-nums text-text-primary">{fmt(r.profit_factor)}</td>
-              <td className="px-2.5 py-1.5 font-mono tabular-nums text-text-secondary">{fmt(r.pf_ci_low)}</td>
-              <td className="px-2.5 py-1.5 font-mono tabular-nums text-text-secondary">{fmt(r.dsr, 3)}</td>
-              <td className="px-2.5 py-1.5 font-mono tabular-nums text-text-secondary">{fmt(r.max_drawdown_pct, 1, '%')}</td>
-              <td className="px-2.5 py-1.5 font-mono tabular-nums text-text-secondary">{r.trade_count ?? '—'}</td>
-              <td className="px-2.5 py-1.5">
+              <td className="py-1.5 pr-3 font-mono tabular-nums text-text-primary">{fmt(r.profit_factor)}</td>
+              <td className="py-1.5 pr-3 font-mono tabular-nums text-text-secondary">{fmt(r.pf_ci_low)}</td>
+              <td className="py-1.5 pr-3 font-mono tabular-nums text-text-secondary">{fmt(r.dsr, 3)}</td>
+              <td className="py-1.5 pr-3 font-mono tabular-nums text-text-secondary">{fmt(r.max_drawdown_pct, 1, '%')}</td>
+              <td className="py-1.5 pr-3 font-mono tabular-nums text-text-secondary">{r.trade_count ?? '—'}</td>
+              <td className="py-1.5">
                 {r.verdict && (
                   <span
-                    className="rounded-sm px-1.5 py-0.5 font-mono text-[9px] font-semibold uppercase tracking-wider"
-                    style={{ background: 'rgba(0,0,0,0.25)', color: toneColor(verdictTone(r.verdict)) }}
+                    className="font-mono text-[10px] font-semibold uppercase tracking-wider"
+                    style={{ color: toneColor(verdictTone(r.verdict)) }}
                   >
-                    {r.verdict}
+                    {r.verdict.replace(/_/g, ' ')}
                   </span>
                 )}
               </td>
@@ -240,69 +383,6 @@ function TopIterationsTable({ rows }: { rows: TopIteration[] }) {
 }
 
 // ---------------------------------------------------------------------------
-// Statistical gates checklist
-// ---------------------------------------------------------------------------
-
-function GateRow({ ok, label, detail }: { ok: boolean; label: string; detail: string }) {
-  return (
-    <div className="flex items-start gap-2.5 py-1.5">
-      {ok ? (
-        <CheckCircle2 size={14} className="mt-0.5 shrink-0" style={{ color: toneColor('profit') }} />
-      ) : (
-        <XCircle size={14} className="mt-0.5 shrink-0" style={{ color: toneColor('loss') }} />
-      )}
-      <div className="min-w-0">
-        <span className="text-[12px] text-text-primary">{label}</span>
-        <span className="ml-2 font-mono text-[11px] text-text-muted">{detail}</span>
-      </div>
-    </div>
-  );
-}
-
-function StatGates({ gate }: { gate: VerdictGate }) {
-  return (
-    <div className="divide-y divide-bd-subtle rounded-xl border border-bd-subtle bg-bg-surface px-4">
-      <GateRow
-        ok={gate.n_trades_ok}
-        label={`Trades ≥ ${gate.n_trades_threshold}`}
-        detail={`actual: ${gate.n_trades_value}`}
-      />
-      <GateRow
-        ok={gate.pf_ci_ok}
-        label="PF 95% CI lower > 1.0"
-        detail={`actual: ${gate.pf_ci_low != null ? gate.pf_ci_low.toFixed(2) : '—'}`}
-      />
-      <GateRow
-        ok={gate.dsr_ok}
-        label={`DSR ≥ ${gate.dsr_threshold}`}
-        detail={`actual: ${gate.dsr_value != null ? gate.dsr_value.toFixed(3) : '—'}`}
-      />
-      <GateRow
-        ok={gate.stat_verdict_ok}
-        label="Statistical verdict: SIGNIFICANT_EDGE"
-        detail={gate.stat_verdict ?? '—'}
-      />
-      <GateRow
-        ok={gate.cagr_ok}
-        label={`CAGR ≥ ${gate.cagr_threshold}% (90% Kelly, annualised)`}
-        detail={`actual: ${gate.cagr_value != null ? gate.cagr_value.toFixed(1) + '%' : '—'}`}
-      />
-      <div className="flex items-center gap-2 py-2.5">
-        <span
-          className="rounded-sm px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wider"
-          style={{
-            background: 'rgba(0,0,0,0.3)',
-            color: toneColor(gate.all_gates_passed ? 'profit' : 'loss'),
-          }}
-        >
-          {gate.all_gates_passed ? 'All gates cleared' : 'Gates failed'}
-        </span>
-      </div>
-    </div>
-  );
-}
-
-// ---------------------------------------------------------------------------
 // Robustness tables
 // ---------------------------------------------------------------------------
 
@@ -310,20 +390,18 @@ function ObjectTable({ data }: { data: Record<string, unknown> }) {
   const entries = Object.entries(data);
   if (!entries.length) return <p className="text-[12px] text-text-muted">No data.</p>;
   return (
-    <div className="overflow-hidden rounded-md border border-bd-subtle">
-      <table className="w-full text-[11px]">
-        <tbody>
-          {entries.map(([k, v]) => (
-            <tr key={k} className="border-b border-bd-subtle last:border-0">
-              <td className="w-1/3 bg-bg-base px-3 py-1.5 font-mono text-text-secondary">{k}</td>
-              <td className="px-3 py-1.5 font-mono tabular-nums text-text-primary">
-                {typeof v === 'object' ? JSON.stringify(v) : String(v)}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+    <table className="w-full text-[11px]">
+      <tbody className="divide-y divide-bd-subtle">
+        {entries.map(([k, v]) => (
+          <tr key={k}>
+            <td className="py-1 pr-6 font-mono text-text-secondary">{k}</td>
+            <td className="py-1 text-right font-mono tabular-nums text-text-primary">
+              {typeof v === 'object' ? JSON.stringify(v) : String(v)}
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
   );
 }
 
@@ -333,7 +411,7 @@ function ObjectTable({ data }: { data: Record<string, unknown> }) {
 
 function JournalCard({ entry }: { entry: PaperJournalEntry }) {
   return (
-    <div className="rounded-lg border border-bd-subtle bg-bg-surface p-4 space-y-1.5">
+    <div className="space-y-1 border-l-2 border-bd-subtle pl-4">
       <div className="flex items-center gap-2">
         <span className="font-mono text-[9px] font-semibold uppercase tracking-wider text-text-muted">
           {entry.entry_type.replace(/_/g, ' ')}
@@ -342,25 +420,9 @@ function JournalCard({ entry }: { entry: PaperJournalEntry }) {
           {formatDate(parseIsoUtc(entry.created_time))}
         </span>
       </div>
-      <p className="text-[13px] font-semibold text-text-primary">{entry.title}</p>
+      <p className="text-[12px] font-semibold text-text-primary">{entry.title}</p>
       <p className="text-[12px] leading-relaxed text-text-secondary whitespace-pre-line">{entry.content}</p>
     </div>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Citations
-// ---------------------------------------------------------------------------
-
-function CitationList({ citations }: { citations: PaperCitation[] }) {
-  return (
-    <ol className="space-y-2 list-decimal list-inside">
-      {citations.map((c) => (
-        <li key={c.key} className="text-[12px] leading-relaxed text-text-secondary">
-          {c.text}
-        </li>
-      ))}
-    </ol>
   );
 }
 
@@ -373,9 +435,9 @@ function PageSkeleton() {
     <div className="space-y-6">
       <Skeleton className="h-8 w-80" />
       <Skeleton className="h-6 w-full max-w-lg" />
-      <div className="grid grid-cols-6 gap-4">
+      <div className="flex gap-8">
         {Array.from({ length: 6 }).map((_, i) => (
-          <Skeleton key={i} className="h-14 w-full" />
+          <Skeleton key={i} className="h-14 w-16" />
         ))}
       </div>
       <Skeleton className="h-60 w-full" />
@@ -441,20 +503,29 @@ export default function PaperPage({ params }: { params: { id: string } }) {
   const hasRegime = Object.keys(paper.robustness.regime_breakdown).length > 0;
   const hasAuditNotes = !!best?.quant_audit_notes;
   const hasJournal = paper.journal_entries.length > 0;
+  const hasParams = best && Object.keys(best.params).length > 0;
+
+  // Figure counter
+  let figNum = 0;
+  const nextFig = () => `Figure ${++figNum}.`;
+
+  // Section counter
+  let secNum = 0;
+  const nextSec = () => `${++secNum}.`;
 
   const tocItems = [
-    { id: 'abstract', label: 'Abstract' },
-    ...(best ? [{ id: 'metrics', label: 'Key Metrics' }] : []),
-    { id: 'equity', label: 'Equity Curve' },
-    { id: 'monthly', label: 'Monthly Returns' },
-    { id: 'trades', label: 'Trade P&L' },
+    { id: 'abstract', label: '1. Abstract' },
+    ...(best ? [{ id: 'metrics', label: '2. Key Results' }] : []),
+    { id: 'equity', label: `${best ? 3 : 2}. Equity Curve` },
+    { id: 'monthly', label: `${best ? 4 : 3}. Monthly Returns` },
+    { id: 'trades', label: `${best ? 5 : 4}. Trade P&L` },
     ...(hasWf ? [{ id: 'walk-forward', label: 'Walk-Forward' }] : []),
-    ...(best && Object.keys(best.params).length > 0 ? [{ id: 'parameters', label: 'Parameters' }] : []),
-    ...(paper.top_iterations.length > 0 ? [{ id: 'iterations', label: 'Top Iterations' }] : []),
     { id: 'gates', label: 'Stat. Gates' },
-    ...(hasSlippage || hasRegime ? [{ id: 'robustness', label: 'Robustness' }] : []),
-    ...(hasAuditNotes || hasJournal ? [{ id: 'notes', label: 'Research Notes' }] : []),
-    ...(paper.citations.length > 0 ? [{ id: 'references', label: 'References' }] : []),
+    ...(hasParams ? [{ id: 'parameters', label: 'Parameters ▸' }] : []),
+    ...(paper.top_iterations.length > 0 ? [{ id: 'iterations', label: 'Iterations ▸' }] : []),
+    ...(hasSlippage || hasRegime ? [{ id: 'robustness', label: 'Robustness ▸' }] : []),
+    ...(hasAuditNotes || hasJournal ? [{ id: 'notes', label: 'Notes ▸' }] : []),
+    ...(paper.citations.length > 0 ? [{ id: 'references', label: 'References ▸' }] : []),
   ];
 
   return (
@@ -473,234 +544,288 @@ export default function PaperPage({ params }: { params: { id: string } }) {
         </div>
       </div>
 
-      {/* Paper header */}
-      <div className="space-y-1.5">
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="font-mono text-[11px] text-text-muted">{paper.paper_id}</span>
-          <span className="font-mono text-[10px] text-text-muted">v{paper.version}</span>
-          <span
-            className="rounded-sm px-1.5 py-0.5 font-mono text-[9px] font-semibold uppercase tracking-wider"
-            style={{
-              background: 'rgba(0,0,0,0.25)',
-              color: toneColor(statusTone(paper.paper_status)),
-            }}
-          >
-            {paper.paper_status === 'WORKING_PAPER' ? 'Working Paper' : 'Finalized'}
-          </span>
-          {meta.final_verdict && (
-            <span
-              className="rounded-sm px-1.5 py-0.5 font-mono text-[9px] font-semibold uppercase tracking-wider"
-              style={{
-                background: 'rgba(0,0,0,0.25)',
-                color: toneColor(verdictTone(meta.final_verdict)),
-              }}
-            >
-              {meta.final_verdict.replace(/_/g, ' ')}
-            </span>
-          )}
-        </div>
-        <h1 className="font-display text-[22px] font-semibold leading-snug tracking-tight text-text-primary">
-          {paper.title}
-        </h1>
-        <p className="text-[11px] text-text-muted">
-          {meta.strategy_code} · {meta.instrument} · {meta.interval_name}
-          {meta.n_iterations > 0 && ` · ${meta.n_iterations} iterations`}
-          {paper.created_by && ` · ${paper.created_by}`}
-          {` · ${formatDate(parseIsoUtc(paper.created_time))}`}
-        </p>
-      </div>
+      {/* Paper document */}
+      <div className="rounded-xl border border-bd-subtle bg-bg-surface shadow-xl shadow-black/20">
+        <div className="flex items-start gap-0">
 
-      {/* Two-column layout */}
-      <div className="flex items-start gap-8">
-        {/* Sticky sidebar ToC — desktop only */}
-        <aside className="hidden w-40 shrink-0 lg:block print:hidden">
-          <div className="sticky top-4 space-y-0.5">
-            <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-text-muted">
-              Contents
-            </p>
-            {tocItems.map((item) => (
-              <a
-                key={item.id}
-                href={`#${item.id}`}
-                className="block rounded-sm px-2 py-1 text-[12px] text-text-secondary transition-colors hover:bg-bg-hover hover:text-text-primary"
-              >
-                {item.label}
-              </a>
-            ))}
-          </div>
-        </aside>
+          {/* Sticky sidebar ToC */}
+          <aside className="hidden w-44 shrink-0 lg:block print:hidden">
+            <div className="sticky top-4 px-4 py-6">
+              <p className="mb-3 text-[9px] font-semibold uppercase tracking-widest text-text-muted">
+                Contents
+              </p>
+              <nav className="space-y-0.5">
+                {tocItems.map((item) => (
+                  <a
+                    key={item.id}
+                    href={`#${item.id}`}
+                    className="block rounded px-2 py-1 text-[11px] text-text-secondary transition-colors hover:bg-bg-hover hover:text-text-primary"
+                  >
+                    {item.label}
+                  </a>
+                ))}
+              </nav>
+            </div>
+          </aside>
 
-        {/* Main content */}
-        <div className="min-w-0 flex-1 space-y-10">
+          {/* Divider */}
+          <div className="hidden w-px self-stretch bg-bd-subtle lg:block" />
 
-          {/* 1. Abstract */}
-          <Section id="abstract" title="Abstract">
-            {paper.abstract ? (
-              <p className="text-[14px] leading-relaxed text-text-secondary">{paper.abstract}</p>
-            ) : (
-              <p className="text-[12px] text-text-muted">Abstract not yet generated.</p>
-            )}
-            {meta.hypothesis && (
-              <div className="mt-3 rounded-md border border-bd-subtle bg-bg-base px-4 py-3">
-                <p className="text-[10px] font-semibold uppercase tracking-wider text-text-muted">
-                  Hypothesis
-                </p>
-                <p className="mt-1 text-[13px] italic text-text-secondary">{meta.hypothesis}</p>
+          {/* Main content — paper body */}
+          <div className="min-w-0 flex-1 px-8 py-8 lg:px-12">
+
+            {/* Paper masthead */}
+            <header className="mb-8 space-y-3 border-b border-bd-subtle pb-6">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="font-mono text-[10px] text-text-muted">{paper.paper_id}</span>
+                <span className="font-mono text-[10px] text-text-muted">· v{paper.version}</span>
+                <span
+                  className="rounded-sm px-1.5 py-0.5 font-mono text-[9px] font-semibold uppercase tracking-wider"
+                  style={{
+                    background: 'rgba(0,0,0,0.3)',
+                    color: toneColor(statusTone(paper.paper_status)),
+                  }}
+                >
+                  {paper.paper_status === 'WORKING_PAPER' ? 'Working Paper' : 'Finalized'}
+                </span>
+                {meta.final_verdict && (
+                  <span
+                    className="rounded-sm px-1.5 py-0.5 font-mono text-[9px] font-semibold uppercase tracking-wider"
+                    style={{
+                      background: 'rgba(0,0,0,0.3)',
+                      color: toneColor(verdictTone(meta.final_verdict)),
+                    }}
+                  >
+                    {meta.final_verdict.replace(/_/g, ' ')}
+                  </span>
+                )}
               </div>
-            )}
-          </Section>
 
-          {/* 2. Key metrics */}
-          {best && (
-            <Section id="metrics" title="Key Metrics">
-              <MetricsGrid m={best.metrics} />
-            </Section>
-          )}
+              <h1 className="font-display text-[24px] font-semibold leading-snug tracking-tight text-text-primary">
+                {paper.title}
+              </h1>
 
-          {/* 3. Equity curve */}
-          <Section id="equity" title="Equity Curve">
-            <ChartPanel title={`Normalised equity (base 100) · ${meta.instrument} ${meta.interval_name}`}>
-              {chartLoading ? (
-                <Skeleton className="h-60 w-full" />
-              ) : chartData?.equity_curve.length ? (
-                <PaperEquityCurveChart
-                  curve={chartData.equity_curve}
-                  height={240}
-                  gradientId="is"
-                />
-              ) : (
-                <div className="flex h-60 items-center justify-center text-[12px] text-text-muted">
-                  {chartData ? 'No equity data stored.' : 'Chart data not available — paper may still be generating.'}
-                </div>
-              )}
-            </ChartPanel>
-          </Section>
-
-          {/* 4. Monthly returns */}
-          <Section id="monthly" title="Monthly Returns">
-            {chartLoading ? (
-              <Skeleton className="h-48 w-full" />
-            ) : equityPoints.length >= 2 ? (
-              <BacktestMonthlyReturns points={equityPoints} />
-            ) : (
-              <p className="text-[12px] text-text-muted">
-                {chartData ? 'Not enough data points for monthly breakdown.' : 'Awaiting chart data.'}
-              </p>
-            )}
-          </Section>
-
-          {/* 5. Trade P&L distribution */}
-          <Section id="trades" title="Trade P&L Distribution">
-            <ChartPanel title="Per-trade P&L (%) — chronological">
-              {chartLoading ? (
-                <Skeleton className="h-48 w-full" />
-              ) : chartData?.trades.length ? (
-                <PaperTradeHistogram trades={chartData.trades} height={200} />
-              ) : (
-                <div className="flex h-48 items-center justify-center text-[12px] text-text-muted">
-                  {chartData ? 'No trade data stored.' : 'Awaiting chart data.'}
-                </div>
-              )}
-            </ChartPanel>
-          </Section>
-
-          {/* 6. Walk-forward (conditional) */}
-          {hasWf && (
-            <Section id="walk-forward" title="Walk-Forward Performance">
-              <ChartPanel title="In-sample (green) vs walk-forward OOS (blue)">
-                <PaperEquityCurveChart
-                  curve={chartData!.equity_curve}
-                  wfCurve={chartData!.wf_equity_curve}
-                  height={240}
-                  gradientId="wf"
-                />
-              </ChartPanel>
-            </Section>
-          )}
-
-          {/* 7. Best parameters */}
-          {best && Object.keys(best.params).length > 0 && (
-            <Section id="parameters" title="Best Parameters">
               <p className="text-[11px] text-text-muted">
-                Iteration #{best.iteration_number ?? '—'} ·{' '}
-                {best.statistical_verdict?.replace(/_/g, ' ') ?? 'Not assessed'}
+                {meta.strategy_code} · {meta.instrument} · {meta.interval_name}
+                {meta.n_iterations > 0 && ` · ${meta.n_iterations} iterations`}
+                {paper.created_by && ` · ${paper.created_by}`}
+                {` · ${formatDate(parseIsoUtc(paper.created_time))}`}
               </p>
-              <ParamsTable params={best.params} />
-            </Section>
-          )}
+            </header>
 
-          {/* 8. Top iterations */}
-          {paper.top_iterations.length > 0 && (
-            <Section id="iterations" title="Top Iterations">
-              <p className="text-[11px] text-text-muted">
-                Top {paper.top_iterations.length} configurations ranked by CAGR.
-              </p>
-              <TopIterationsTable rows={paper.top_iterations} />
-            </Section>
-          )}
+            {/* Sections */}
+            <div className="space-y-10">
 
-          {/* 9. Statistical gates */}
-          <Section id="gates" title="Statistical Gate Results">
-            <StatGates gate={paper.verdict_gate} />
-          </Section>
+              {/* 1. Abstract */}
+              <Section id="abstract" num={nextSec()} title="Abstract">
+                {paper.abstract ? (
+                  <p className="text-[14px] leading-relaxed text-text-secondary">{paper.abstract}</p>
+                ) : (
+                  <p className="text-[12px] italic text-text-muted">Abstract not yet generated.</p>
+                )}
+                {meta.hypothesis && (
+                  <blockquote className="mt-2 border-l-2 border-bd-subtle pl-4">
+                    <p className="text-[10px] font-semibold uppercase tracking-wider text-text-muted">
+                      Hypothesis
+                    </p>
+                    <p className="mt-1 text-[13px] italic leading-relaxed text-text-secondary">
+                      {meta.hypothesis}
+                    </p>
+                  </blockquote>
+                )}
+              </Section>
 
-          {/* 10. Robustness */}
-          {(hasSlippage || hasRegime) && (
-            <Section id="robustness" title="Robustness">
-              {hasSlippage && (
-                <div className="space-y-2">
-                  <h3 className="text-[11px] font-semibold uppercase tracking-wider text-text-muted">
-                    Slippage sensitivity
-                  </h3>
-                  <ObjectTable data={paper.robustness.slippage_sensitivity} />
-                </div>
+              {/* 2. Key results */}
+              {best && (
+                <Section id="metrics" num={nextSec()} title="Key Results">
+                  <MetricsRow m={best.metrics} />
+                  {best.statistical_verdict && (
+                    <p className="text-[11px] text-text-muted">
+                      Best iteration #{best.iteration_number ?? '—'} ·{' '}
+                      <span style={{ color: toneColor(verdictTone(best.statistical_verdict)) }}>
+                        {best.statistical_verdict.replace(/_/g, ' ')}
+                      </span>
+                    </p>
+                  )}
+                </Section>
               )}
-              {hasRegime && (
-                <div className="space-y-2">
-                  <h3 className="text-[11px] font-semibold uppercase tracking-wider text-text-muted">
-                    Regime breakdown
-                  </h3>
-                  <ObjectTable data={paper.robustness.regime_breakdown} />
-                </div>
-              )}
-            </Section>
-          )}
 
-          {/* 11. Research notes */}
-          {(hasAuditNotes || hasJournal) && (
-            <Section id="notes" title="Research Notes">
-              {hasAuditNotes && (
-                <div className="rounded-md border border-bd-subtle bg-bg-base p-4">
-                  <p className="text-[10px] font-semibold uppercase tracking-wider text-text-muted">
-                    Quant audit notes
-                  </p>
-                  <p className="mt-1.5 whitespace-pre-line text-[12px] leading-relaxed text-text-secondary">
-                    {best!.quant_audit_notes}
-                  </p>
-                </div>
-              )}
-              {hasJournal && (
-                <div className="space-y-3">
-                  <p className="text-[11px] text-text-muted">
-                    {paper.journal_entries.length} journal entr
-                    {paper.journal_entries.length === 1 ? 'y' : 'ies'} for{' '}
-                    {meta.strategy_code} · {meta.instrument}
-                  </p>
-                  {paper.journal_entries.map((e) => (
-                    <JournalCard key={e.journal_id} entry={e} />
-                  ))}
-                </div>
-              )}
-            </Section>
-          )}
+              {/* 3. Equity curve */}
+              <Section id="equity" num={nextSec()} title="Equity Curve">
+                <Figure
+                  num={nextFig()}
+                  caption={`Normalised equity (base 100) · ${meta.instrument} ${meta.interval_name}`}
+                >
+                  {chartLoading ? (
+                    <Skeleton className="h-60 w-full" />
+                  ) : chartData?.equity_curve.length ? (
+                    <PaperEquityCurveChart curve={chartData.equity_curve} height={240} gradientId="is" />
+                  ) : (
+                    <div className="flex h-60 items-center justify-center text-[12px] text-text-muted">
+                      {chartData
+                        ? 'No equity data stored.'
+                        : 'Chart data not available — paper may still be generating.'}
+                    </div>
+                  )}
+                </Figure>
+              </Section>
 
-          {/* 12. References */}
-          {paper.citations.length > 0 && (
-            <Section id="references" title="References">
-              <CitationList citations={paper.citations} />
-            </Section>
-          )}
+              {/* 4. Monthly returns */}
+              <Section id="monthly" num={nextSec()} title="Monthly Returns">
+                <Figure num={nextFig()} caption="Monthly return heatmap (in-sample)">
+                  {chartLoading ? (
+                    <Skeleton className="h-48 w-full" />
+                  ) : equityPoints.length >= 2 ? (
+                    <BacktestMonthlyReturns points={equityPoints} />
+                  ) : (
+                    <div className="flex h-32 items-center justify-center text-[12px] text-text-muted">
+                      {chartData ? 'Not enough data points.' : 'Awaiting chart data.'}
+                    </div>
+                  )}
+                </Figure>
+              </Section>
 
+              {/* 5. Trade P&L */}
+              <Section id="trades" num={nextSec()} title="Trade P&L Distribution">
+                <Figure num={nextFig()} caption="Per-trade P&L (%) — chronological order">
+                  {chartLoading ? (
+                    <Skeleton className="h-48 w-full" />
+                  ) : chartData?.trades.length ? (
+                    <PaperTradeHistogram trades={chartData.trades} height={200} />
+                  ) : (
+                    <div className="flex h-48 items-center justify-center text-[12px] text-text-muted">
+                      {chartData ? 'No trade data stored.' : 'Awaiting chart data.'}
+                    </div>
+                  )}
+                </Figure>
+              </Section>
+
+              {/* 6. Walk-forward (always visible if present) */}
+              {hasWf && (
+                <Section id="walk-forward" num={nextSec()} title="Walk-Forward Performance">
+                  <Figure
+                    num={nextFig()}
+                    caption="In-sample equity (green) vs walk-forward out-of-sample (blue)"
+                  >
+                    <PaperEquityCurveChart
+                      curve={chartData!.equity_curve}
+                      wfCurve={chartData!.wf_equity_curve}
+                      height={240}
+                      gradientId="wf"
+                    />
+                  </Figure>
+                </Section>
+              )}
+
+              {/* 7. Statistical gates */}
+              <Section id="gates" num={nextSec()} title="Statistical Gate Results">
+                <StatGatesTable gate={paper.verdict_gate} />
+              </Section>
+
+              {/* ── Extended sections (collapsible) ── */}
+
+              {/* Best parameters */}
+              {hasParams && (
+                <CollapsibleSection
+                  id="parameters"
+                  num={nextSec()}
+                  title="Best Parameters"
+                  summary={`${Object.keys(best!.params).length} params · iteration #${best!.iteration_number ?? '—'}`}
+                >
+                  <ParamsTable params={best!.params} />
+                </CollapsibleSection>
+              )}
+
+              {/* Top iterations */}
+              {paper.top_iterations.length > 0 && (
+                <CollapsibleSection
+                  id="iterations"
+                  num={nextSec()}
+                  title="Top Iterations"
+                  summary={`${paper.top_iterations.length} configurations ranked by CAGR`}
+                >
+                  <TopIterationsTable rows={paper.top_iterations} />
+                </CollapsibleSection>
+              )}
+
+              {/* Robustness */}
+              {(hasSlippage || hasRegime) && (
+                <CollapsibleSection
+                  id="robustness"
+                  num={nextSec()}
+                  title="Robustness"
+                  summary={[hasSlippage && 'slippage sensitivity', hasRegime && 'regime breakdown'].filter(Boolean).join(' · ')}
+                >
+                  {hasSlippage && (
+                    <div className="space-y-2">
+                      <p className="text-[10px] font-semibold uppercase tracking-wider text-text-muted">
+                        Slippage sensitivity
+                      </p>
+                      <ObjectTable data={paper.robustness.slippage_sensitivity} />
+                    </div>
+                  )}
+                  {hasRegime && (
+                    <div className="space-y-2">
+                      <p className="text-[10px] font-semibold uppercase tracking-wider text-text-muted">
+                        Regime breakdown
+                      </p>
+                      <ObjectTable data={paper.robustness.regime_breakdown} />
+                    </div>
+                  )}
+                </CollapsibleSection>
+              )}
+
+              {/* Research notes */}
+              {(hasAuditNotes || hasJournal) && (
+                <CollapsibleSection
+                  id="notes"
+                  num={nextSec()}
+                  title="Research Notes"
+                  summary={[
+                    hasAuditNotes && 'quant audit',
+                    hasJournal && `${paper.journal_entries.length} journal entr${paper.journal_entries.length === 1 ? 'y' : 'ies'}`,
+                  ].filter(Boolean).join(' · ')}
+                >
+                  {hasAuditNotes && (
+                    <div className="space-y-1.5">
+                      <p className="text-[10px] font-semibold uppercase tracking-wider text-text-muted">
+                        Quant audit notes
+                      </p>
+                      <p className="whitespace-pre-line text-[12px] leading-relaxed text-text-secondary">
+                        {best!.quant_audit_notes}
+                      </p>
+                    </div>
+                  )}
+                  {hasJournal && (
+                    <div className="space-y-4">
+                      {paper.journal_entries.map((e) => (
+                        <JournalCard key={e.journal_id} entry={e} />
+                      ))}
+                    </div>
+                  )}
+                </CollapsibleSection>
+              )}
+
+              {/* References */}
+              {paper.citations.length > 0 && (
+                <CollapsibleSection
+                  id="references"
+                  num={nextSec()}
+                  title="References"
+                  summary={`${paper.citations.length} citation${paper.citations.length === 1 ? '' : 's'}`}
+                >
+                  <ol className="space-y-2 list-decimal list-inside">
+                    {paper.citations.map((c) => (
+                      <li key={c.key} className="text-[12px] leading-relaxed text-text-secondary">
+                        {c.text}
+                      </li>
+                    ))}
+                  </ol>
+                </CollapsibleSection>
+              )}
+
+            </div>
+          </div>
         </div>
       </div>
     </div>
