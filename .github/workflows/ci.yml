@@ -83,7 +83,7 @@ jobs:
             package.json
             pnpm-lock.yaml
             next.config.mjs
-          retention-days: 14
+          retention-days: 3
 
   build-images:
     name: Build + push GHCR image
