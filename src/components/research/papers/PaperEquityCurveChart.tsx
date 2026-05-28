@@ -44,6 +44,7 @@ interface Zone { x1: number; x2: number; type: ZoneType }
 
 const ZONE_WINDOW = 30;
 const ZONE_THRESHOLD = 1.5;
+const ZONE_NEUTRAL_TOLERANCE = 5;
 
 const ZONE_COLORS: Record<ZoneType, string> = {
   strong: 'rgba(22,179,100,0.11)',
@@ -56,33 +57,49 @@ const ZONE_LEGEND: Record<ZoneType, { label: string; swatch: string }> = {
 };
 
 function computeZones(data: ChartDatum[]): Zone[] {
+  if (data.length <= ZONE_WINDOW) return [];
+
   const segments: Zone[] = [];
   let current: Zone | null = null;
+  let neutralCount = 0;
+  let lastConfirmedT = 0;
 
   for (let i = ZONE_WINDOW; i < data.length; i++) {
     const prev = data[i - ZONE_WINDOW]?.is;
     const now = data[i]?.is;
-    if (prev == null || now == null || prev === 0) {
-      if (current) { segments.push(current); current = null; }
-      continue;
+
+    let type: ZoneType | null = null;
+    if (prev != null && now != null && prev !== 0) {
+      const momentum = ((now - prev) / prev) * 100;
+      type = momentum > ZONE_THRESHOLD ? 'strong' : momentum < -ZONE_THRESHOLD ? 'weak' : null;
     }
 
-    const momentum = ((now - prev) / prev) * 100;
-    const type: ZoneType | null =
-      momentum > ZONE_THRESHOLD ? 'strong' :
-      momentum < -ZONE_THRESHOLD ? 'weak' :
-      null;
-
-    if (type === null) {
-      if (current) { segments.push(current); current = null; }
-    } else if (current && current.type === type) {
+    if (type !== null && type === current?.type) {
       current.x2 = data[i].t;
-    } else {
-      if (current) segments.push(current);
+      lastConfirmedT = data[i].t;
+      neutralCount = 0;
+    } else if (type === null && current !== null) {
+      neutralCount++;
+      if (neutralCount > ZONE_NEUTRAL_TOLERANCE) {
+        current.x2 = lastConfirmedT;
+        segments.push(current);
+        current = null;
+        neutralCount = 0;
+      }
+    } else if (type !== null) {
+      if (current !== null) {
+        current.x2 = lastConfirmedT;
+        segments.push(current);
+      }
       current = { x1: data[i].t, x2: data[i].t, type };
+      lastConfirmedT = data[i].t;
+      neutralCount = 0;
     }
   }
-  if (current) segments.push(current);
+  if (current) {
+    current.x2 = lastConfirmedT;
+    segments.push(current);
+  }
   return segments;
 }
 
@@ -180,8 +197,10 @@ export function PaperEquityCurveChart({
     );
   }
 
+  const tooShort = data.length <= ZONE_WINDOW;
+
   return (
-    <div className="relative" style={{ height }}>
+    <div className="relative" style={{ height: typeof height === 'number' ? `${height}px` : height }}>
       {/* Zone legend — visible only when overlay is on */}
       {showZones && (
         <div
@@ -209,10 +228,10 @@ export function PaperEquityCurveChart({
       )}
 
       {/* Toggle button */}
-      <div className="absolute right-12 top-0 z-10">
+      <div className="absolute right-0 top-0 z-10">
         <button
           type="button"
-          onClick={() => setShowZones((v) => !v)}
+          onClick={() => !tooShort && setShowZones((v) => !v)}
           className="flex items-center gap-1 rounded px-2 py-0.5 transition-colors"
           style={{
             fontSize: 10,
@@ -220,10 +239,11 @@ export function PaperEquityCurveChart({
             letterSpacing: '0.04em',
             background: showZones ? 'rgba(22,179,100,0.12)' : 'transparent',
             border: `1px solid ${showZones ? 'rgba(22,179,100,0.30)' : 'rgba(255,255,255,0.08)'}`,
-            color: showZones ? CHART_COLORS.profit : CHART_COLORS.neutral,
-            cursor: 'pointer',
+            color: tooShort ? CHART_COLORS.axis : showZones ? CHART_COLORS.profit : CHART_COLORS.neutral,
+            cursor: tooShort ? 'not-allowed' : 'pointer',
+            opacity: tooShort ? 0.4 : 1,
           }}
-          title={showZones ? 'Hide performance zones' : 'Show performance zones'}
+          title={tooShort ? `Need >${ZONE_WINDOW} bars for zones` : showZones ? 'Hide performance zones' : 'Show performance zones'}
         >
           <Layers size={9} strokeWidth={2} />
           Zones
