@@ -74,7 +74,7 @@ function computeZones(data: ChartDatum[]): Zone[] {
       type = momentum > ZONE_THRESHOLD ? 'strong' : momentum < -ZONE_THRESHOLD ? 'weak' : null;
     }
 
-    if (type !== null && type === current?.type) {
+    if (type !== null && current !== null && type === current.type) {
       current.x2 = data[i].t;
       lastConfirmedT = data[i].t;
       neutralCount = 0;
