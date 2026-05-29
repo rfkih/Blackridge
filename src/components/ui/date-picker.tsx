@@ -93,9 +93,10 @@ export function DatePicker({
           type="button"
           disabled={disabled}
           className={cn(
-            'mm-input group inline-flex items-center justify-between gap-2 text-left font-mono',
-            'disabled:cursor-not-allowed disabled:opacity-60',
-            !selected && 'text-text-muted',
+            'inline-flex h-9 w-full items-center justify-between gap-2 rounded-md border border-[var(--border-default)] bg-transparent px-3 text-left font-mono text-sm',
+            'focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--accent-primary)]',
+            'disabled:cursor-not-allowed disabled:opacity-50',
+            !selected && 'text-[var(--text-muted)]',
             className,
           )}
           onClick={() => {
@@ -116,7 +117,7 @@ export function DatePicker({
                 e.stopPropagation();
                 onChange('');
               }}
-              className="rounded-sm p-0.5 text-text-muted transition-colors hover:bg-bg-hover hover:text-text-primary"
+              className="rounded-sm p-0.5 text-[var(--text-muted)] transition-colors hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]"
               aria-label="Clear date"
             >
               <X size={12} strokeWidth={1.75} />
@@ -126,13 +127,13 @@ export function DatePicker({
       </PopoverTrigger>
       <PopoverContent
         align="start"
-        className="w-auto rounded-md border-bd-default bg-bg-base p-3 shadow-panel"
+        className="w-auto rounded-md border-[var(--border-default)] bg-[var(--bg-overlay)] p-3 shadow-[var(--shadow-float)]"
       >
         <div className="flex items-center justify-between gap-2 pb-2">
           <button
             type="button"
             onClick={() => setViewDate((d) => subMonths(d, 1))}
-            className="rounded-sm border border-bd-subtle bg-bg-surface p-1 text-text-secondary transition-colors hover:bg-bg-hover hover:text-text-primary"
+            className="rounded border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-1 text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]"
             aria-label="Previous month"
           >
             <ChevronLeft size={12} strokeWidth={1.75} />
@@ -140,7 +141,7 @@ export function DatePicker({
 
           <div className="flex items-center gap-1">
             <select
-              className="rounded-sm border border-bd-subtle bg-bg-surface px-2 py-1 font-mono text-[11px] text-text-primary focus:outline-none focus:ring-1 focus:ring-[var(--accent-primary)]"
+              className="rounded border border-[var(--border-default)] bg-[var(--bg-elevated)] px-1.5 py-0.5 font-mono text-[11px] text-[var(--text-primary)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-primary)]"
               value={viewDate.getMonth()}
               onChange={(e) =>
                 setViewDate((d) => {
@@ -157,7 +158,7 @@ export function DatePicker({
               ))}
             </select>
             <select
-              className="rounded-sm border border-bd-subtle bg-bg-surface px-2 py-1 font-mono text-[11px] text-text-primary focus:outline-none focus:ring-1 focus:ring-[var(--accent-primary)]"
+              className="rounded border border-[var(--border-default)] bg-[var(--bg-elevated)] px-1.5 py-0.5 font-mono text-[11px] text-[var(--text-primary)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-primary)]"
               value={viewDate.getFullYear()}
               onChange={(e) =>
                 setViewDate((d) => {
@@ -178,7 +179,7 @@ export function DatePicker({
           <button
             type="button"
             onClick={() => setViewDate((d) => addMonths(d, 1))}
-            className="rounded-sm border border-bd-subtle bg-bg-surface p-1 text-text-secondary transition-colors hover:bg-bg-hover hover:text-text-primary"
+            className="rounded border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-1 text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]"
             aria-label="Next month"
           >
             <ChevronRight size={12} strokeWidth={1.75} />
@@ -222,7 +223,7 @@ export function DatePicker({
           })}
         </div>
 
-        <div className="mt-2 flex items-center justify-between gap-2 border-t border-bd-subtle pt-2 font-mono text-[10px] uppercase tracking-wider">
+        <div className="mt-2 flex items-center justify-between gap-2 border-t border-[var(--border-subtle)] pt-2 font-mono text-[10px] uppercase tracking-wider">
           <button
             type="button"
             onClick={() => {
