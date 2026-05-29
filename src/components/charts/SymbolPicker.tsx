@@ -38,7 +38,11 @@ export function SymbolPicker({ value, onChange }: SymbolPickerProps) {
           <ChevronDown size={12} className="text-[var(--text-muted)]" />
         </button>
       </PopoverTrigger>
-      <PopoverContent align="start" className="w-44 p-1.5" sideOffset={6}>
+      <PopoverContent
+          align="start"
+          sideOffset={6}
+          className="w-44 p-1.5 bg-[var(--bg-overlay)] border-[var(--border-default)] shadow-[var(--shadow-float)]"
+        >
         <ul className="space-y-0.5" role="listbox">
           {SUPPORTED_SYMBOLS.map((sym) => (
             <li key={sym} role="option" aria-selected={sym === value}>
