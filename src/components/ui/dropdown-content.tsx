@@ -13,7 +13,7 @@ export const DropdownContent = React.forwardRef<
   <PopoverContent
     ref={ref}
     className={cn(
-      'bg-[var(--bg-overlay)] border-[var(--border-default)] shadow-[var(--shadow-float)] p-1.5',
+      'bg-[var(--bg-overlay)] border-[var(--border-default)] shadow-[var(--shadow-float)] text-[var(--text-primary)] p-1.5',
       className,
     )}
     {...props}
