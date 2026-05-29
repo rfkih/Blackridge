@@ -115,6 +115,20 @@ interface BackendSymbolSlippageStats {
   trustworthy?: boolean | null;
 }
 
+export interface FearGreedSnapshot {
+  value: number;
+  yesterday: number;
+  asOf: string;
+}
+
+export async function fetchFearGreed(): Promise<FearGreedSnapshot> {
+  const { data } = await apiClient.get<FearGreedSnapshot | null>(
+    '/api/v1/market/macro/fear-and-greed',
+  );
+  if (!data) throw new Error('No Fear & Greed data');
+  return data;
+}
+
 export async function getSymbolSlippage(symbol: string): Promise<SymbolSlippageStats | null> {
   const { data } = await apiClient.get<BackendSymbolSlippageStats | null>(
     `/api/v1/market/slippage/${encodeURIComponent(symbol)}`,

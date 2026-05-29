@@ -3,7 +3,7 @@
 import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Activity, ArrowDownRight, ArrowUpRight, Minus } from 'lucide-react';
-import { fetchCandles } from '@/lib/api/market';
+import { fetchCandles, fetchFearGreed, type FearGreedSnapshot } from '@/lib/api/market';
 import type { CandleData } from '@/types/market';
 
 const REGIME_SYMBOL = 'BTCUSDT';
@@ -145,41 +145,14 @@ function RegimeIcon({ tone }: { tone: Tone }) {
   return <Minus {...props} style={{ color }} />;
 }
 
-interface SentimentSnapshot {
-  value: number;
-  yesterday: number;
-  asOf: string;
-}
-
-interface AlternativeMeEntry {
-  value: string;
-  value_classification: string;
-  timestamp: string;
-}
-
-interface AlternativeMeResponse {
-  data: AlternativeMeEntry[];
-}
-
 function useSentiment(): {
-  snapshot: SentimentSnapshot | undefined;
+  snapshot: FearGreedSnapshot | undefined;
   isLoading: boolean;
   isError: boolean;
 } {
   const query = useQuery({
     queryKey: ['market-sentiment', 'fng'],
-    queryFn: async (): Promise<SentimentSnapshot> => {
-      const res = await fetch('/api/fng');
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const json = (await res.json()) as AlternativeMeResponse;
-      const [today, yesterday] = json.data;
-      if (!today) throw new Error('No data from alternative.me');
-      return {
-        value: Number(today.value),
-        yesterday: Number(yesterday?.value ?? today.value),
-        asOf: new Date(Number(today.timestamp) * 1000).toISOString().slice(0, 10),
-      };
-    },
+    queryFn: fetchFearGreed,
     staleTime: 60 * 60_000,
     retry: 1,
   });
