@@ -104,7 +104,7 @@ export function DatePicker({
           }}
         >
           <span className="flex min-w-0 items-center gap-2">
-            <Calendar size={12} strokeWidth={1.75} className="shrink-0 text-text-muted" />
+            <Calendar size={12} strokeWidth={1.75} className="shrink-0 text-[var(--text-muted)]" />
             <span className="truncate">
               {selected ? format(selected, DISPLAY_FMT) : placeholder}
             </span>
@@ -190,7 +190,7 @@ export function DatePicker({
           {DOW.map((d) => (
             <div
               key={d}
-              className="py-1 text-center font-mono text-[9px] uppercase tracking-wider text-text-muted"
+              className="py-1 text-center font-mono text-[9px] uppercase tracking-wider text-[var(--text-muted)]"
             >
               {d}
             </div>
@@ -210,8 +210,8 @@ export function DatePicker({
                   'h-7 rounded-sm font-mono text-[11px] tabular-nums transition-colors',
                   'focus:outline-none focus:ring-1 focus:ring-[var(--accent-primary)]',
                   blocked && 'cursor-not-allowed opacity-30',
-                  !blocked && !isSelected && 'hover:bg-bg-hover',
-                  inMonth ? 'text-text-primary' : 'text-text-muted',
+                  !blocked && !isSelected && 'hover:bg-[var(--bg-hover)]',
+                  inMonth ? 'text-[var(--text-primary)]' : 'text-[var(--text-muted)]',
                   isToday && !isSelected && 'ring-1 ring-[var(--border-strong)]',
                   isSelected &&
                     'bg-[var(--accent-primary)] text-[var(--text-inverse)] hover:bg-[var(--accent-primary)]',
@@ -231,7 +231,7 @@ export function DatePicker({
               if (!isDisabled(today, minDate, maxDate)) handleSelect(today);
               else setViewDate(today);
             }}
-            className="text-text-secondary hover:text-text-primary"
+            className="text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
           >
             Today
           </button>
@@ -242,7 +242,7 @@ export function DatePicker({
                 onChange('');
                 setOpen(false);
               }}
-              className="text-text-muted hover:text-[var(--color-loss)]"
+              className="text-[var(--text-muted)] hover:text-[var(--color-loss)]"
             >
               Clear
             </button>
