@@ -156,6 +156,7 @@ export interface PaperDetail {
 export interface EquityPoint {
   t: number;
   value: number;
+  regime?: string | null;
 }
 
 export interface TradePoint {
@@ -164,6 +165,7 @@ export interface TradePoint {
   side: string | null;
   pnl: number | null;
   pnl_pct: number | null;
+  regime?: string | null;
 }
 
 export interface ChartData {

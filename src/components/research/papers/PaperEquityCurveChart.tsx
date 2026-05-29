@@ -12,7 +12,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
-import { Layers } from 'lucide-react';
+import { Layers, TrendingUp } from 'lucide-react';
 import {
   AXIS_TICK,
   CHART_COLORS,
@@ -31,13 +31,19 @@ interface ChartDatum {
   t: number;
   is: number | null;
   wf: number | null;
+  regime: string | null;
 }
 
 interface TooltipPayload {
   t: number;
   is: number | null;
   wf: number | null;
+  regime: string | null;
 }
+
+// ---------------------------------------------------------------------------
+// Performance zones (momentum-based)
+// ---------------------------------------------------------------------------
 
 type ZoneType = 'strong' | 'weak';
 interface Zone { x1: number; x2: number; type: ZoneType }
@@ -103,6 +109,55 @@ function computeZones(data: ChartDatum[]): Zone[] {
   return segments;
 }
 
+// ---------------------------------------------------------------------------
+// Regime zones (market regime from strategy classification)
+// ---------------------------------------------------------------------------
+
+interface RegimeZone { x1: number; x2: number; regime: string }
+
+function regimeFill(regime: string): string {
+  const u = regime.toUpperCase();
+  if (u.startsWith('BULL')) return 'rgba(22,179,100,0.09)';
+  if (u.startsWith('BEAR')) return 'rgba(229,72,77,0.08)';
+  if (u === 'NEUTRAL') return 'rgba(139,147,162,0.07)';
+  return 'rgba(139,147,162,0.05)';
+}
+
+function regimeSwatch(regime: string): string {
+  const u = regime.toUpperCase();
+  if (u.startsWith('BULL')) return 'rgba(22,179,100,0.55)';
+  if (u.startsWith('BEAR')) return 'rgba(229,72,77,0.55)';
+  return 'rgba(139,147,162,0.50)';
+}
+
+function fmtRegime(regime: string): string {
+  return regime.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+function computeRegimeZones(data: ChartDatum[]): RegimeZone[] {
+  const zones: RegimeZone[] = [];
+  let current: RegimeZone | null = null;
+  for (const d of data) {
+    const r = d.regime;
+    if (!r) {
+      if (current) { zones.push(current); current = null; }
+      continue;
+    }
+    if (current && current.regime === r) {
+      current.x2 = d.t;
+    } else {
+      if (current) zones.push(current);
+      current = { x1: d.t, x2: d.t, regime: r };
+    }
+  }
+  if (current) zones.push(current);
+  return zones;
+}
+
+// ---------------------------------------------------------------------------
+// Tooltip
+// ---------------------------------------------------------------------------
+
 const EqTooltip = ({
   active,
   payload,
@@ -133,6 +188,11 @@ const EqTooltip = ({
           <span className="font-normal text-[10px]">({(d.wf - 100).toFixed(2)}%)</span>
         </p>
       )}
+      {d.regime && (
+        <p className="mt-0.5 font-mono text-[10px]" style={{ color: regimeSwatch(d.regime) }}>
+          {fmtRegime(d.regime)}
+        </p>
+      )}
     </div>
   );
 };
@@ -147,6 +207,54 @@ function fmtAxis(ms: number): string {
   return `${d.getUTCMonth() + 1}/${d.getUTCDate()}`;
 }
 
+// ---------------------------------------------------------------------------
+// Toggle pill — shared styling helper
+// ---------------------------------------------------------------------------
+
+function TogglePill({
+  icon,
+  label,
+  active,
+  disabled,
+  title,
+  onClick,
+  activeColor,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  active: boolean;
+  disabled: boolean;
+  title: string;
+  onClick: () => void;
+  activeColor: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="flex items-center gap-1 rounded px-2 py-0.5 transition-colors"
+      style={{
+        fontSize: 10,
+        fontWeight: 600,
+        letterSpacing: '0.04em',
+        background: active ? `${activeColor}1e` : 'transparent',
+        border: `1px solid ${active ? `${activeColor}4d` : 'rgba(255,255,255,0.08)'}`,
+        color: disabled ? CHART_COLORS.axis : active ? activeColor : CHART_COLORS.neutral,
+        cursor: disabled ? 'not-allowed' : 'pointer',
+        opacity: disabled ? 0.4 : 1,
+      }}
+      title={title}
+    >
+      {icon}
+      {label}
+    </button>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Main component
+// ---------------------------------------------------------------------------
+
 export function PaperEquityCurveChart({
   curve,
   wfCurve,
@@ -154,13 +262,18 @@ export function PaperEquityCurveChart({
   gradientId = 'a',
 }: PaperEquityCurveChartProps) {
   const [showZones, setShowZones] = useState(false);
+  const [showRegime, setShowRegime] = useState(false);
 
   const gradIs = `paper-eq-grad-${gradientId}`;
   const gradWf = `paper-wf-grad-${gradientId}`;
 
   const data = useMemo<ChartDatum[]>(() => {
     const isMap = new Map<number, number>();
-    for (const p of curve) isMap.set(p.t, p.value);
+    const regimeMap = new Map<number, string | null>();
+    for (const p of curve) {
+      isMap.set(p.t, p.value);
+      regimeMap.set(p.t, p.regime ?? null);
+    }
     const wfMap = new Map<number, number>();
     for (const p of wfCurve ?? []) wfMap.set(p.t, p.value);
     const allTs = Array.from(new Set([...Array.from(isMap.keys()), ...Array.from(wfMap.keys())])).sort((a, b) => a - b);
@@ -168,13 +281,28 @@ export function PaperEquityCurveChart({
       t,
       is: isMap.has(t) ? isMap.get(t)! : null,
       wf: wfMap.has(t) ? wfMap.get(t)! : null,
+      regime: regimeMap.get(t) ?? null,
     }));
   }, [curve, wfCurve]);
+
+  const hasRegimeData = useMemo(() => curve.some((p) => p.regime != null), [curve]);
 
   const zones = useMemo<Zone[]>(
     () => (showZones ? computeZones(data) : []),
     [data, showZones],
   );
+
+  const regimeZones = useMemo<RegimeZone[]>(
+    () => (showRegime && hasRegimeData ? computeRegimeZones(data) : []),
+    [data, showRegime, hasRegimeData],
+  );
+
+  const regimeLegendLabels = useMemo<string[]>(() => {
+    if (!showRegime) return [];
+    const seen = new Set<string>();
+    for (const z of regimeZones) seen.add(z.regime);
+    return Array.from(seen).sort();
+  }, [regimeZones, showRegime]);
 
   const hasWf = (wfCurve?.length ?? 0) > 0;
 
@@ -198,56 +326,54 @@ export function PaperEquityCurveChart({
   }
 
   const tooShort = data.length <= ZONE_WINDOW;
+  const activeLegend = showRegime ? regimeLegendLabels : showZones ? (Object.keys(ZONE_LEGEND) as ZoneType[]) : [];
 
   return (
     <div className="relative" style={{ height: typeof height === 'number' ? `${height}px` : height }}>
-      {/* Zone legend — visible only when overlay is on */}
-      {showZones && (
+
+      {/* Legend — shown below toggle buttons, left-anchored after Y axis */}
+      {activeLegend.length > 0 && (
         <div
-          className="absolute left-12 top-1 z-10 flex items-center gap-3"
+          className="absolute left-12 top-1 z-10 flex flex-wrap items-center gap-x-3 gap-y-0.5"
           style={{ pointerEvents: 'none' }}
         >
-          {(Object.keys(ZONE_LEGEND) as ZoneType[]).map((type) => (
-            <span key={type} className="flex items-center gap-1">
-              <span
-                style={{
-                  display: 'inline-block',
-                  width: 8,
-                  height: 8,
-                  borderRadius: 2,
-                  background: ZONE_LEGEND[type].swatch,
-                  flexShrink: 0,
-                }}
-              />
-              <span className="font-mono text-[10px]" style={{ color: CHART_COLORS.neutral }}>
-                {ZONE_LEGEND[type].label}
-              </span>
-            </span>
-          ))}
+          {showRegime
+            ? regimeLegendLabels.map((r) => (
+                <span key={r} className="flex items-center gap-1">
+                  <span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: 2, background: regimeSwatch(r), flexShrink: 0 }} />
+                  <span className="font-mono text-[10px]" style={{ color: CHART_COLORS.neutral }}>{fmtRegime(r)}</span>
+                </span>
+              ))
+            : (Object.keys(ZONE_LEGEND) as ZoneType[]).map((type) => (
+                <span key={type} className="flex items-center gap-1">
+                  <span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: 2, background: ZONE_LEGEND[type].swatch, flexShrink: 0 }} />
+                  <span className="font-mono text-[10px]" style={{ color: CHART_COLORS.neutral }}>{ZONE_LEGEND[type].label}</span>
+                </span>
+              ))
+          }
         </div>
       )}
 
-      {/* Toggle button */}
-      <div className="absolute right-0 top-0 z-10">
-        <button
-          type="button"
-          onClick={() => !tooShort && setShowZones((v) => !v)}
-          className="flex items-center gap-1 rounded px-2 py-0.5 transition-colors"
-          style={{
-            fontSize: 10,
-            fontWeight: 600,
-            letterSpacing: '0.04em',
-            background: showZones ? 'rgba(22,179,100,0.12)' : 'transparent',
-            border: `1px solid ${showZones ? 'rgba(22,179,100,0.30)' : 'rgba(255,255,255,0.08)'}`,
-            color: tooShort ? CHART_COLORS.axis : showZones ? CHART_COLORS.profit : CHART_COLORS.neutral,
-            cursor: tooShort ? 'not-allowed' : 'pointer',
-            opacity: tooShort ? 0.4 : 1,
-          }}
+      {/* Toggle buttons — top-right */}
+      <div className="absolute right-0 top-0 z-10 flex items-center gap-1">
+        <TogglePill
+          icon={<TrendingUp size={9} strokeWidth={2} />}
+          label="Regime"
+          active={showRegime}
+          disabled={!hasRegimeData}
+          title={!hasRegimeData ? 'Regenerate paper to get regime data' : showRegime ? 'Hide market regime' : 'Show market regime'}
+          onClick={() => hasRegimeData && setShowRegime((v) => !v)}
+          activeColor="#818cf8"
+        />
+        <TogglePill
+          icon={<Layers size={9} strokeWidth={2} />}
+          label="Zones"
+          active={showZones}
+          disabled={tooShort}
           title={tooShort ? `Need >${ZONE_WINDOW} bars for zones` : showZones ? 'Hide performance zones' : 'Show performance zones'}
-        >
-          <Layers size={9} strokeWidth={2} />
-          Zones
-        </button>
+          onClick={() => !tooShort && setShowZones((v) => !v)}
+          activeColor={CHART_COLORS.profit}
+        />
       </div>
 
       <ResponsiveContainer width="100%" height="100%">
@@ -287,15 +413,14 @@ export function PaperEquityCurveChart({
           <Tooltip content={<EqTooltip />} />
           <ReferenceLine y={100} stroke={CHART_COLORS.axis} strokeDasharray="4 3" />
 
-          {/* Performance zones — rendered before curves so they sit behind */}
+          {/* Regime zones — deepest layer */}
+          {regimeZones.map((z, i) => (
+            <ReferenceArea key={`r${i}`} x1={z.x1} x2={z.x2} fill={regimeFill(z.regime)} stroke="none" />
+          ))}
+
+          {/* Performance zones — on top of regime, below curves */}
           {zones.map((z, i) => (
-            <ReferenceArea
-              key={i}
-              x1={z.x1}
-              x2={z.x2}
-              fill={ZONE_COLORS[z.type]}
-              stroke="none"
-            />
+            <ReferenceArea key={`z${i}`} x1={z.x1} x2={z.x2} fill={ZONE_COLORS[z.type]} stroke="none" />
           ))}
 
           <Area
