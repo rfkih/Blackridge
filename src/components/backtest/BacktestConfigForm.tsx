@@ -586,11 +586,11 @@ const strategyOptionsByCode = useMemo(() => {
           </Field>
 
           <Field label="From Date" error={errors.fromDate}>
-            <DatePicker value={fromDate} onChange={setFromDate} max={toDate} className="h-9" />
+            <DatePicker value={fromDate} onChange={setFromDate} max={toDate} />
           </Field>
 
           <Field label="To Date" error={errors.toDate}>
-            <DatePicker value={toDate} onChange={setToDate} min={fromDate} className="h-9" />
+            <DatePicker value={toDate} onChange={setToDate} min={fromDate} />
           </Field>
 
           <Field label="Initial Capital (USDT)" error={errors.initialCapital}>
