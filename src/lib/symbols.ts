@@ -30,6 +30,7 @@
 export const SUPPORTED_SYMBOLS = [
     'BTCUSDT',
     'ETHUSDT',
+    'SOLUSDT',
 ] as const;
 
 /** Compile-time union of supported symbols. */
