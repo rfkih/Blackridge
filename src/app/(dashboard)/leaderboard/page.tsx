@@ -13,6 +13,7 @@ import { TopStrategiesSection } from '@/components/leaderboard/TopStrategiesSect
 import { DeployStrategyDialog } from '@/components/leaderboard/DeployStrategyDialog';
 import { useTopStrategies, useDeployStrategy } from '@/hooks/useLeaderboard';
 import { useActiveAccount } from '@/hooks/useAccounts';
+import { useLeaderboardStream } from '@/hooks/useLeaderboardStream';
 import type { LeaderboardEntry } from '@/types/leaderboard';
 
 const LIMIT_OPTIONS = [5, 10, 25] as const;
@@ -23,6 +24,9 @@ export default function LeaderboardPage() {
   const { accounts, scopedAccountId } = useActiveAccount();
   const deployMutation = useDeployStrategy();
   const [deployTarget, setDeployTarget] = useState<LeaderboardEntry | null>(null);
+
+  // Live-refresh the ranked list when an approval is created / revoked.
+  useLeaderboardStream();
 
   return (
     <div className="space-y-6">
