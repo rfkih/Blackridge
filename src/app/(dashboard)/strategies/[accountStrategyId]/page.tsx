@@ -31,6 +31,7 @@ import { LsrParamsForm } from '@/components/strategy/LsrParamsForm';
 import { VcbParamsForm } from '@/components/strategy/VcbParamsForm';
 import { CrossWindowPanel } from '@/components/strategy/CrossWindowPanel';
 import { PaperTradePanel } from '@/components/strategy/PaperTradePanel';
+import { StrategyParamPresetPanel } from '@/components/strategy/StrategyParamPresetPanel';
 import {
   useAccountStrategy,
   useActivateStrategy,
@@ -229,6 +230,8 @@ function StrategyDetail({ strategy }: { strategy: AccountStrategy }) {
       <KellySizingPanel strategy={strategy} />
 
       <PositionSizingPanel strategy={strategy} />
+
+      <StrategyParamPresetPanel strategy={strategy} />
 
       <CrossWindowPanel
         strategyCode={strategy.strategyCode}
