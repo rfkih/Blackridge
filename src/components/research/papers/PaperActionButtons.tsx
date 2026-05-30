@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { FlaskConical, Loader2, Settings2 } from 'lucide-react';
+import { FlaskConical, Loader2, Settings2, Zap } from 'lucide-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Dialog,
@@ -11,8 +11,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { BacktestActivateStrategyDialog } from '@/components/backtest/BacktestActivateStrategyDialog';
 import { useStrategies } from '@/hooks/useStrategies';
-import { useCreateBacktestRun } from '@/hooks/useBacktest';
+import { useCreateBacktestRun, useBacktestRun } from '@/hooks/useBacktest';
+import { useIsAdmin } from '@/hooks/useIsAdmin';
 import { createStrategyParam } from '@/lib/api/strategy-params';
 import { buildBacktestPayload } from '@/lib/backtest/buildBacktestPayload';
 import { ALLOC_OPTIONS } from '@/lib/constants';
@@ -82,9 +84,16 @@ interface PaperActionButtonsProps {
 export function PaperActionButtons({ paper }: PaperActionButtonsProps) {
   const [runOpen, setRunOpen] = useState(false);
   const [applyOpen, setApplyOpen] = useState(false);
+  const [activateOpen, setActivateOpen] = useState(false);
+  const isAdmin = useIsAdmin();
   const best = hasBestIter(paper.best_iteration) ? paper.best_iteration : null;
 
   if (!best) return null;
+
+  // Activation replays the paper's best-iteration backtest run, so it needs a
+  // run to point at. Legacy papers whose iteration predates run-linkage have a
+  // null backtest_run_id and can't be activated this way.
+  const canActivate = !!best.backtest_run_id;
 
   return (
     <>
@@ -104,6 +113,22 @@ export function PaperActionButtons({ paper }: PaperActionButtonsProps) {
         <Settings2 size={13} strokeWidth={1.75} />
         Apply to strategy
       </button>
+      {isAdmin && (
+        <button
+          type="button"
+          onClick={() => setActivateOpen(true)}
+          disabled={!canActivate}
+          title={
+            canActivate
+              ? "Activate this paper's parameters on one of your strategies"
+              : 'This paper has no linked backtest run to activate from'
+          }
+          className="border-[var(--color-profit)]/30 bg-[var(--color-profit)]/10 hover:bg-[var(--color-profit)]/20 inline-flex items-center gap-1.5 rounded-sm border px-3 py-2 text-[12px] font-semibold text-[var(--color-profit)] transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          <Zap size={13} strokeWidth={1.75} />
+          Activate strategy
+        </button>
+      )}
 
       <RunBacktestDialog
         open={runOpen}
@@ -117,7 +142,83 @@ export function PaperActionButtons({ paper }: PaperActionButtonsProps) {
         best={best}
         onClose={() => setApplyOpen(false)}
       />
+      {isAdmin && (
+        <ActivateFromPaperDialog
+          open={activateOpen}
+          backtestRunId={best.backtest_run_id}
+          onClose={() => setActivateOpen(false)}
+        />
+      )}
     </>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Activate-strategy dialog (admin) — bridges the paper to the canonical
+// backtest activation flow. We fetch the paper's best-iteration backtest run
+// and hand it to BacktestActivateStrategyDialog, which activates a strategy
+// from that run's effective_params_snapshot — i.e. the paper's parameters.
+// ---------------------------------------------------------------------------
+
+interface ActivateFromPaperDialogProps {
+  open: boolean;
+  backtestRunId: string | null;
+  onClose: () => void;
+}
+
+function ActivateFromPaperDialog({ open, backtestRunId, onClose }: ActivateFromPaperDialogProps) {
+  const {
+    data: run,
+    isLoading,
+    isError,
+  } = useBacktestRun(open && backtestRunId ? backtestRunId : undefined);
+
+  // Activation resolves params from the run's effective_params_snapshot (V104+).
+  // Pre-V104 runs lack it; the backend then falls back to config-snapshot deltas,
+  // which can drift from the paper if code defaults changed since the run. Refuse
+  // to activate those rather than silently activate the wrong parameters.
+  const reproducible =
+    !!run && !!run.effectiveParamsSnapshot && Object.keys(run.effectiveParamsSnapshot).length > 0;
+
+  // Run is ready and faithfully replayable — defer entirely to the canonical dialog.
+  if (open && run && run.status === 'COMPLETED' && reproducible) {
+    return <BacktestActivateStrategyDialog run={run} open onClose={onClose} />;
+  }
+
+  if (!open) return null;
+
+  const message = isLoading
+    ? "Loading the paper's backtest run…"
+    : isError || !run
+      ? 'Could not load the backtest run linked to this paper. It may have been pruned.'
+      : run.status !== 'COMPLETED'
+        ? `The linked backtest run is ${run.status}, not COMPLETED — it cannot be activated.`
+        : "This paper's backtest predates parameter snapshotting (pre-V104), so activating it can't faithfully reproduce its parameters. Re-run the backtest from this paper, then activate from the fresh run.";
+
+  return (
+    <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
+      <DialogContent className="max-w-sm">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2 text-[14px] font-semibold">
+            <Zap size={14} strokeWidth={2} className="text-[var(--color-profit)]" />
+            Activate strategy
+          </DialogTitle>
+          <DialogDescription className="text-[12px] text-text-secondary">
+            {message}
+          </DialogDescription>
+        </DialogHeader>
+        <div className="flex items-center justify-end gap-2 pt-2">
+          {isLoading && <Loader2 size={14} className="animate-spin text-text-muted" />}
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-sm border border-bd-subtle bg-bg-surface px-3 py-1.5 text-[12px] font-semibold text-text-secondary hover:bg-bg-hover"
+          >
+            Close
+          </button>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 

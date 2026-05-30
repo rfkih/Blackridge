@@ -91,13 +91,17 @@ export function BacktestActivateStrategyDialog({ run, open, onClose }: Props) {
     [matchingStrategies, selectedStrategyId],
   );
 
-  const overrideCount = useMemo(() => {
-    const snap = run.paramSnapshot;
+  // Mirror the backend's resolution order: activation applies the full
+  // effective_params_snapshot (defaults + overrides, V104+) when present, and
+  // only falls back to the param_snapshot deltas for older runs. Count whichever
+  // source will actually be written so the dialog doesn't under-report.
+  const paramCount = useMemo(() => {
+    const snap = run.effectiveParamsSnapshot ?? run.paramSnapshot;
     if (!snap) return 0;
     const codeSnap = snap[selectedCode] ?? snap[selectedCode.toUpperCase()] ?? null;
     if (!codeSnap) return 0;
     return Object.keys(codeSnap).length;
-  }, [run.paramSnapshot, selectedCode]);
+  }, [run.effectiveParamsSnapshot, run.paramSnapshot, selectedCode]);
 
   const defaultPresetName = useMemo(() => {
     const date = run.createdAt ? format(new Date(run.createdAt), 'yyyy-MM-dd') : 'N/A';
@@ -157,7 +161,7 @@ export function BacktestActivateStrategyDialog({ run, open, onClose }: Props) {
             presetName={presetName}
             defaultPresetName={defaultPresetName}
             onPresetNameChange={setPresetName}
-            overrideCount={overrideCount}
+            paramCount={paramCount}
             canSubmit={canSubmit}
             isPending={activate.isPending}
             error={activate.error ? normalizeError(activate.error) : null}
@@ -194,7 +198,7 @@ function ConfigureStep({
   presetName,
   defaultPresetName,
   onPresetNameChange,
-  overrideCount,
+  paramCount,
   canSubmit,
   isPending,
   error,
@@ -213,7 +217,7 @@ function ConfigureStep({
   presetName: string;
   defaultPresetName: string;
   onPresetNameChange: (v: string) => void;
-  overrideCount: number;
+  paramCount: number;
   canSubmit: boolean;
   isPending: boolean;
   error: string | null;
@@ -379,10 +383,10 @@ function ConfigureStep({
 
       {}
       <div className="rounded-sm border border-bd-subtle bg-bg-base px-3 py-2 text-[11px] text-text-secondary">
-        <span className="font-semibold text-text-primary">{overrideCount}</span>{' '}
-        parameter override{overrideCount !== 1 ? 's' : ''} from this run will be saved as a
-        new active preset.
-        {overrideCount === 0 && (
+        <span className="font-semibold text-text-primary">{paramCount}</span>{' '}
+        parameter{paramCount !== 1 ? 's' : ''} from this run will be saved as a new active
+        preset.
+        {paramCount === 0 && (
           <span className="ml-1 text-text-muted">
             (Strategy will use its default parameters.)
           </span>
