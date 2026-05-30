@@ -5,12 +5,21 @@ import { useEffect, useState } from 'react';
 import { BookOpen, ChevronRight, Loader2 } from 'lucide-react';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { PaperCard } from '@/components/research/papers/PaperCard';
-import { listPapers } from '@/lib/api/researchPapers';
+import { listPapers, type PaperSortBy } from '@/lib/api/researchPapers';
 import { Skeleton } from '@/components/ui/skeleton';
 import { SUPPORTED_SYMBOLS } from '@/lib/symbols';
 import type { PaperPage, PaperStatus } from '@/types/papers';
 
 const INTERVAL_OPTIONS = ['5m', '15m', '1h', '4h'] as const;
+
+type SortOption = { label: string; sortBy: PaperSortBy; sortDir: 'asc' | 'desc' };
+const SORT_OPTIONS: SortOption[] = [
+  { label: 'Newest',           sortBy: 'created_time',          sortDir: 'desc' },
+  { label: 'Oldest',           sortBy: 'created_time',          sortDir: 'asc'  },
+  { label: 'Last updated',     sortBy: 'updated_time',          sortDir: 'desc' },
+  { label: 'Most profitable',  sortBy: 'annualized_return_pct', sortDir: 'desc' },
+  { label: 'Least profitable', sortBy: 'annualized_return_pct', sortDir: 'asc'  },
+];
 
 export default function ResearchPapersPage() {
   const [statusFilter, setStatusFilter] = useState<PaperStatus | ''>('');
@@ -18,17 +27,21 @@ export default function ResearchPapersPage() {
   const [debouncedStrategyCode, setDebouncedStrategyCode] = useState('');
   const [instrument, setInstrument] = useState('');
   const [intervalName, setIntervalName] = useState('');
+  const [sortIndex, setSortIndex] = useState(0);
 
   useEffect(() => {
     const t = setTimeout(() => setDebouncedStrategyCode(strategyCode), 400);
     return () => clearTimeout(t);
   }, [strategyCode]);
 
+  const activeSort = SORT_OPTIONS[sortIndex];
   const activeFilters = {
     paperStatus: (statusFilter || undefined) as PaperStatus | undefined,
     strategyCode: debouncedStrategyCode.trim().toUpperCase() || undefined,
     instrument: instrument || undefined,
     intervalName: intervalName || undefined,
+    sortBy: activeSort.sortBy,
+    sortDir: activeSort.sortDir,
   };
 
   const { data, isLoading, isError, hasNextPage, fetchNextPage, isFetchingNextPage } =
@@ -73,6 +86,18 @@ export default function ResearchPapersPage() {
       </header>
 
       <div className="flex flex-wrap items-center gap-2">
+        <select
+          value={sortIndex}
+          onChange={(e) => setSortIndex(Number(e.target.value))}
+          className="rounded-sm border border-bd-subtle bg-bg-base px-2.5 py-1.5 font-mono text-[11px] text-text-primary focus:border-[var(--accent-primary)] focus:outline-none"
+        >
+          {SORT_OPTIONS.map((opt, i) => (
+            <option key={opt.label} value={i}>{opt.label}</option>
+          ))}
+        </select>
+
+        <div className="h-4 w-px bg-bd-subtle" />
+
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value as PaperStatus | '')}

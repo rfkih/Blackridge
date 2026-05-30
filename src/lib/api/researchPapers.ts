@@ -9,11 +9,22 @@ import type {
 
 const BASE = '/api/v1/research-orch/papers';
 
+export type PaperSortBy =
+  | 'created_time'
+  | 'updated_time'
+  | 'annualized_return_pct'
+  | 'profit_factor'
+  | 'win_rate'
+  | 'sharpe_ratio'
+  | 'n_trades';
+
 export async function listPapers(params?: {
   paperStatus?: PaperStatus;
   strategyCode?: string;
   instrument?: string;
   intervalName?: string;
+  sortBy?: PaperSortBy;
+  sortDir?: 'asc' | 'desc';
   cursor?: string | null | undefined;
   limit?: number;
 }): Promise<PaperPage> {
@@ -23,6 +34,8 @@ export async function listPapers(params?: {
       strategy_code: params?.strategyCode || undefined,
       instrument: params?.instrument || undefined,
       interval_name: params?.intervalName || undefined,
+      sort_by: params?.sortBy ?? 'created_time',
+      sort_dir: params?.sortDir ?? 'desc',
       cursor: params?.cursor || undefined,
       limit: params?.limit ?? 20,
     },

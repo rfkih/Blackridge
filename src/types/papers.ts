@@ -18,6 +18,13 @@ export interface PaperRow {
   interval_name: string;
   final_verdict: string | null;
   total_iterations: number | null;
+  // Performance metrics (populated from best iteration; null for legacy papers)
+  win_rate: number | null;
+  annualized_return_pct: number | null;
+  profit_factor: number | null;
+  n_trades: number | null;
+  max_drawdown_pct: number | null;
+  sharpe_ratio: number | null;
   created_time: ISO8601;
   updated_time: ISO8601;
 }

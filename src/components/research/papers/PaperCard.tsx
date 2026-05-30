@@ -73,6 +73,22 @@ export function PaperCard({ paper }: PaperCardProps) {
           )}
         </div>
         <div className="flex shrink-0 items-center gap-2">
+          {paper.annualized_return_pct != null && (
+            <span
+              className="font-mono text-[11px] font-semibold tabular-nums"
+              style={{
+                color:
+                  paper.annualized_return_pct >= 10
+                    ? toneColor('profit')
+                    : paper.annualized_return_pct < 0
+                      ? toneColor('loss')
+                      : toneColor('muted'),
+              }}
+            >
+              {paper.annualized_return_pct >= 0 ? '+' : ''}
+              {paper.annualized_return_pct.toFixed(1)}%/yr
+            </span>
+          )}
           {paper.final_verdict && (
             <span
               className="rounded-sm px-1.5 py-0.5 font-mono text-[9px] font-semibold uppercase tracking-wider"
