@@ -34,6 +34,7 @@ import {
   Brain,
   Target,
   FileText,
+  Trophy,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { BlackridgeMark } from '@/components/brand/BlackridgeMark';
@@ -56,6 +57,7 @@ const NAV_GROUPS: NavGroup[] = [
     label: 'TRADE',
     items: [
       { label: 'Dashboard', href: '/', icon: Home },
+      { label: 'Leaderboard', href: '/leaderboard', icon: Trophy },
       { label: 'Portfolio', href: '/portfolio', icon: Wallet },
       { label: 'Asset Targets', href: '/portfolio/assets', icon: Target },
       { label: 'Trades', href: '/trades', icon: Book },
