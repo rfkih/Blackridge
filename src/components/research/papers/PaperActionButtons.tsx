@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { FlaskConical, Loader2, Settings2 } from 'lucide-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -15,9 +15,10 @@ import { useStrategies } from '@/hooks/useStrategies';
 import { useCreateBacktestRun } from '@/hooks/useBacktest';
 import { createStrategyParam } from '@/lib/api/strategy-params';
 import { buildBacktestPayload } from '@/lib/backtest/buildBacktestPayload';
+import { ALLOC_OPTIONS } from '@/lib/constants';
 import { toast } from '@/hooks/useToast';
 import { normalizeError } from '@/lib/api/client';
-import type { BestIteration, PaperDetail } from '@/types/papers';
+import type { BestIteration, PaperDetail, PaperMetadata } from '@/types/papers';
 import type { AccountStrategy } from '@/types/strategy';
 
 function hasBestIter(bi: PaperDetail['best_iteration']): bi is BestIteration {
@@ -32,6 +33,42 @@ function twoYearsAgoIso(): string {
   const d = new Date();
   d.setFullYear(d.getFullYear() - 2);
   return d.toISOString().slice(0, 10);
+}
+
+/**
+ * Best account-strategy to *bind* a paper replica to. The paper's own params
+ * are applied as overrides regardless, so this binding only satisfies the
+ * NOT-NULL account_strategy_id and the run's symbol-approval attribution —
+ * prefer one whose symbol + interval already match the paper.
+ */
+function pickReplicaBinding(
+  candidates: AccountStrategy[],
+  instrument: string,
+  intervalName: string,
+): AccountStrategy | null {
+  if (!candidates.length) return null;
+  return (
+    candidates.find((s) => s.symbol === instrument && s.interval === intervalName) ??
+    candidates.find((s) => s.symbol === instrument) ??
+    candidates[0]
+  );
+}
+
+/**
+ * The paper's backtest_period.start/end are ISO datetimes; the date inputs
+ * want YYYY-MM-DD. Fall back when the paper carries no period (legacy papers).
+ */
+function paperDateOr(iso: string | null | undefined, fallback: string): string {
+  if (!iso) return fallback;
+  const d = iso.slice(0, 10);
+  return /^\d{4}-\d{2}-\d{2}$/.test(d) ? d : fallback;
+}
+
+/** Initial-capital default from the paper, clamped to the dialog's floor. */
+function paperCapital(meta: PaperMetadata): string {
+  return meta.initial_capital != null && meta.initial_capital >= 100
+    ? String(meta.initial_capital)
+    : '10000';
 }
 
 // ---------------------------------------------------------------------------
@@ -143,29 +180,50 @@ interface RunBacktestDialogProps {
 function RunBacktestDialog({ open, paper, best, onClose }: RunBacktestDialogProps) {
   const router = useRouter();
   const meta = paper.metadata;
-  const { data: all = [] } = useStrategies();
+  const { data: all = [], isLoading: strategiesLoading } = useStrategies();
   const { mutateAsync: createRun, isPending } = useCreateBacktestRun();
 
-  const [strategyId, setStrategyId] = useState('');
-  const [fromDate, setFromDate] = useState(() => twoYearsAgoIso());
-  const [toDate, setToDate] = useState(() => todayIso());
-  const [capital, setCapital] = useState('10000');
+  // Account-strategies that can carry this paper's strategy code. Any of them
+  // works as a binding — the paper supplies the params either way.
+  const matching = useMemo(
+    () => all.filter((s) => s.strategyCode === meta.strategy_code),
+    [all, meta.strategy_code],
+  );
 
-  // Reset all fields whenever the dialog reopens so a previous (cancelled)
-  // selection doesn't carry over into the next paper's submission.
+  const [strategyId, setStrategyId] = useState('');
+  const [fromDate, setFromDate] = useState(() =>
+    paperDateOr(meta.backtest_period.start, twoYearsAgoIso()),
+  );
+  const [toDate, setToDate] = useState(() => paperDateOr(meta.backtest_period.end, todayIso()));
+  const [capital, setCapital] = useState(() => paperCapital(meta));
+  // '' = Auto (fall back to the bound account-strategy's saved allocation).
+  const [allocationPct, setAllocationPct] = useState('');
+
+  // Reset every field to the paper's own values whenever the dialog reopens so
+  // a previous (cancelled) edit doesn't carry over and the next open faithfully
+  // reflects this paper.
   useEffect(() => {
     if (!open) {
       setStrategyId('');
-      setFromDate(twoYearsAgoIso());
-      setToDate(todayIso());
-      setCapital('10000');
+      setFromDate(paperDateOr(meta.backtest_period.start, twoYearsAgoIso()));
+      setToDate(paperDateOr(meta.backtest_period.end, todayIso()));
+      setCapital(paperCapital(meta));
+      setAllocationPct('');
     }
-  }, [open]);
+  }, [open, meta]);
+
+  // Auto-pick the binding once the strategies have loaded — the user shouldn't
+  // have to know which preset corresponds to the paper.
+  useEffect(() => {
+    if (!open || strategyId || strategiesLoading) return;
+    const pick = pickReplicaBinding(matching, meta.instrument, meta.interval_name);
+    if (pick) setStrategyId(pick.id);
+  }, [open, strategyId, strategiesLoading, matching, meta.instrument, meta.interval_name]);
 
   async function handleSubmit() {
     const strategy = all.find((s) => s.id === strategyId);
     if (!strategy) {
-      toast.error({ title: 'Pick a strategy first' });
+      toast.error({ title: 'No matching strategy to bind' });
       return;
     }
     if (!fromDate || !toDate || fromDate >= toDate) {
@@ -184,6 +242,12 @@ function RunBacktestDialog({ open, paper, best, onClose }: RunBacktestDialogProp
       return;
     }
 
+    const allocNum = Number(allocationPct);
+    const strategyAllocations =
+      allocationPct && Number.isFinite(allocNum) && allocNum > 0
+        ? { [meta.strategy_code]: allocNum }
+        : undefined;
+
     let payload;
     try {
       payload = buildBacktestPayload(
@@ -197,6 +261,7 @@ function RunBacktestDialog({ open, paper, best, onClose }: RunBacktestDialogProp
           strategyAccountStrategyIds: { [meta.strategy_code]: strategy.id },
           allowLong: strategy.allowLong,
           allowShort: strategy.allowShort,
+          ...(strategyAllocations ? { strategyAllocations } : {}),
         },
         { [meta.strategy_code]: best.params },
         {},
@@ -220,9 +285,10 @@ function RunBacktestDialog({ open, paper, best, onClose }: RunBacktestDialogProp
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Run backtest from paper</DialogTitle>
+          <DialogTitle>Replicate backtest from paper</DialogTitle>
           <DialogDescription>
-            Uses the best-iteration params from this paper as overrides.{' '}
+            Pre-filled to reproduce the paper — its window, capital, and parameters are applied
+            automatically.{' '}
             <span className="font-mono">
               {meta.strategy_code} · {meta.instrument} · {meta.interval_name}
             </span>
@@ -230,12 +296,36 @@ function RunBacktestDialog({ open, paper, best, onClose }: RunBacktestDialogProp
         </DialogHeader>
 
         <div className="space-y-4 pt-2">
-          <Field label="Account strategy">
-            <StrategySelector
-              strategyCode={meta.strategy_code}
-              value={strategyId}
-              onChange={setStrategyId}
-            />
+          <Field label="Account binding (auto-selected)">
+            {strategiesLoading ? (
+              <div
+                className="h-9 animate-pulse rounded-sm"
+                style={{ background: 'var(--bg-hover)' }}
+              />
+            ) : matching.length === 0 ? (
+              <p className="text-[11px] text-text-muted">
+                No account-strategy with code{' '}
+                <span className="font-mono">{meta.strategy_code}</span> exists in your account yet.
+                Create one on the Strategies page first — the run needs a binding even though the
+                paper supplies its own parameters.
+              </p>
+            ) : (
+              <select
+                value={strategyId}
+                onChange={(e) => setStrategyId(e.target.value)}
+                className="w-full rounded-sm border border-bd-subtle bg-bg-base px-2.5 py-2 font-mono text-[11px] text-text-primary focus:border-[var(--accent-primary)] focus:outline-none"
+              >
+                {matching.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.presetName} — {s.symbol} {s.interval}
+                  </option>
+                ))}
+              </select>
+            )}
+            <p className="text-[10px] text-text-muted">
+              Only attributes the run to one of your strategies — the paper&apos;s parameters below
+              are applied regardless of which preset is bound.
+            </p>
           </Field>
 
           <div className="grid grid-cols-2 gap-3">
@@ -257,20 +347,36 @@ function RunBacktestDialog({ open, paper, best, onClose }: RunBacktestDialogProp
             </Field>
           </div>
 
-          <Field label="Initial capital (USDT)">
-            <input
-              type="number"
-              value={capital}
-              min={100}
-              step={100}
-              onChange={(e) => setCapital(e.target.value)}
-              className="w-full rounded-sm border border-bd-subtle bg-bg-base px-2.5 py-2 font-mono text-[11px] text-text-primary focus:border-[var(--accent-primary)] focus:outline-none"
-            />
-          </Field>
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Initial capital (USDT)">
+              <input
+                type="number"
+                value={capital}
+                min={100}
+                step={100}
+                onChange={(e) => setCapital(e.target.value)}
+                className="w-full rounded-sm border border-bd-subtle bg-bg-base px-2.5 py-2 font-mono text-[11px] text-text-primary focus:border-[var(--accent-primary)] focus:outline-none"
+              />
+            </Field>
+            <Field label="Asset allocation">
+              <select
+                value={allocationPct}
+                onChange={(e) => setAllocationPct(e.target.value)}
+                className="w-full rounded-sm border border-bd-subtle bg-bg-base px-2.5 py-2 font-mono text-[11px] text-text-primary focus:border-[var(--accent-primary)] focus:outline-none"
+              >
+                <option value="">Auto (account default)</option>
+                {ALLOC_OPTIONS.map((v) => (
+                  <option key={v} value={String(v)}>
+                    {v}% of capital
+                  </option>
+                ))}
+              </select>
+            </Field>
+          </div>
 
           <div className="rounded-sm border border-bd-subtle bg-bg-base p-3">
             <p className="mb-1.5 font-mono text-[10px] font-semibold uppercase tracking-widest text-text-muted">
-              Param overrides ({Object.keys(best.params).length})
+              Paper parameters · applied automatically ({Object.keys(best.params).length})
             </p>
             <div className="max-h-28 space-y-0.5 overflow-y-auto">
               {Object.entries(best.params).map(([k, v]) => (
