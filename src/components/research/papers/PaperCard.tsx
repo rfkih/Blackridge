@@ -23,6 +23,8 @@ function verdictTone(verdict: string | null): Tone {
 }
 
 export function PaperCard({ paper }: PaperCardProps) {
+  const annRet = paper.annualized_return_pct != null ? Number(paper.annualized_return_pct) : null;
+
   return (
     <Link
       href={`/research/papers/${paper.paper_id}`}
@@ -73,20 +75,20 @@ export function PaperCard({ paper }: PaperCardProps) {
           )}
         </div>
         <div className="flex shrink-0 items-center gap-2">
-          {paper.annualized_return_pct != null && (
+          {annRet != null && (
             <span
               className="font-mono text-[11px] font-semibold tabular-nums"
               style={{
                 color:
-                  paper.annualized_return_pct >= 10
+                  annRet >= 10
                     ? toneColor('profit')
-                    : paper.annualized_return_pct < 0
+                    : annRet < 0
                       ? toneColor('loss')
                       : toneColor('muted'),
               }}
             >
-              {paper.annualized_return_pct >= 0 ? '+' : ''}
-              {paper.annualized_return_pct.toFixed(1)}%/yr
+              {annRet >= 0 ? '+' : ''}
+              {annRet.toFixed(1)}%/yr
             </span>
           )}
           {paper.final_verdict && (
