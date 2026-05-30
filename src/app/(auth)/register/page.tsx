@@ -14,10 +14,15 @@ const formSchema = z
     lastName: z.string().max(40).optional().or(z.literal('')),
     email: z.string().min(1, 'Email is required').email('Enter a valid email'),
     password: z.string().min(8, 'Password must be at least 8 characters').max(100),
+    confirmPassword: z.string().min(1, 'Please confirm your password'),
     inviteCode: z.string().max(40).optional().or(z.literal('')),
     agreed: z.boolean(),
   })
-  .refine((v) => v.agreed, { message: 'You must accept the terms', path: ['agreed'] });
+  .refine((v) => v.agreed, { message: 'You must accept the terms', path: ['agreed'] })
+  .refine((v) => v.password === v.confirmPassword, {
+    message: 'Passwords do not match',
+    path: ['confirmPassword'],
+  });
 
 type FormState = z.infer<typeof formSchema>;
 
@@ -26,6 +31,7 @@ const EMPTY: FormState = {
   lastName: '',
   email: '',
   password: '',
+  confirmPassword: '',
   inviteCode: '',
   agreed: false,
 };
@@ -55,11 +61,14 @@ function scorePassword(pw: string): Strength {
   return { score: clamped, label: labels[clamped] };
 }
 
+// Use --text-* tokens (scoped directly to [data-theme]) rather than --mm-ink-*
+// (which requires the .mm class ancestor to cascade correctly). This prevents
+// white text on white auth card when the .mm scope doesn't resolve in time.
 const FIELD_LABEL_STYLE: React.CSSProperties = {
   display: 'block',
   fontSize: 11,
   fontWeight: 600,
-  color: 'var(--mm-ink-1, #384151)',
+  color: 'var(--text-secondary, #384151)',
   marginBottom: 6,
   textTransform: 'uppercase',
   letterSpacing: '0.04em',
@@ -68,14 +77,30 @@ const FIELD_LABEL_STYLE: React.CSSProperties = {
 const FIELD_INPUT_STYLE: React.CSSProperties = {
   width: '100%',
   padding: '12px 14px',
-  border: '1px solid var(--mm-hair-2, rgba(14,17,22,0.1))',
+  border: '1px solid var(--border-default, rgba(14,17,22,0.1))',
   borderRadius: 10,
   fontSize: 14,
   fontFamily: 'inherit',
   boxSizing: 'border-box',
-  background: '#FFFFFF',
-  color: 'var(--mm-ink-0, #0E1116)',
+  background: 'var(--bg-elevated, #FFFFFF)',
+  color: 'var(--text-primary, #0E1116)',
   outline: 'none',
+};
+
+const TOGGLE_BTN_STYLE: React.CSSProperties = {
+  position: 'absolute',
+  right: 12,
+  top: '50%',
+  transform: 'translateY(-50%)',
+  fontSize: 12,
+  background: 'transparent',
+  border: 'none',
+  color: 'var(--text-muted, #6B7280)',
+  cursor: 'pointer',
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: 4,
+  padding: '4px 6px',
 };
 
 function RegisterPageContent() {
@@ -89,6 +114,7 @@ function RegisterPageContent() {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   const setField = useCallback(<K extends keyof FormState>(key: K, value: FormState[K]) => {
     setState((prev) => ({ ...prev, [key]: value }));
@@ -128,12 +154,24 @@ function RegisterPageContent() {
     }
   }, [registerUser, state]);
 
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === 'Enter' && !isSubmitting) void submit();
+    },
+    [isSubmitting, submit],
+  );
+
   return (
     <AuthShell
       maxWidth={480}
       topRight={{ label: 'Already a trader?', cta: 'Sign in →', href: '/login' }}
     >
-      <div role="form" aria-label="Create account" aria-busy={isSubmitting}>
+      <div
+        role="form"
+        aria-label="Create account"
+        aria-busy={isSubmitting}
+        onKeyDown={handleKeyDown}
+      >
         <AuthCard>
           {success ? (
             <SuccessScreen firstName={state.firstName || 'Trader'} />
@@ -149,7 +187,7 @@ function RegisterPageContent() {
                   letterSpacing: '-0.025em',
                   lineHeight: 1.1,
                   margin: '0 0 6px',
-                  color: 'var(--mm-ink-0, #0E1116)',
+                  color: 'var(--text-primary, #0E1116)',
                 }}
               >
                 Open your desk
@@ -157,51 +195,22 @@ function RegisterPageContent() {
               <p
                 style={{
                   fontSize: 14,
-                  color: 'var(--mm-ink-1, #384151)',
-                  margin: '0 0 20px',
+                  color: 'var(--text-secondary, #384151)',
+                  margin: '0 0 24px',
                   lineHeight: 1.5,
                 }}
               >
                 Backtest, simulate, deploy. One account, one ledger.
               </p>
 
-              <div
-                className="font-mono"
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 8,
-                  fontSize: 10,
-                  letterSpacing: '0.15em',
-                  color: 'var(--mm-ink-2, #6B7280)',
-                  marginBottom: 20,
-                }}
-              >
-                <span style={{ color: 'var(--brand-700, #0A7E3F)' }}>● 01 ACCOUNT</span>
-                <span
-                  style={{
-                    flex: 1,
-                    height: 1,
-                    background: 'var(--mm-hair-2, rgba(14,17,22,0.1))',
-                  }}
-                />
-                <span>○ 02 PROFILE</span>
-                <span
-                  style={{
-                    flex: 1,
-                    height: 1,
-                    background: 'var(--mm-hair-2, rgba(14,17,22,0.1))',
-                  }}
-                />
-                <span>○ 03 VERIFY</span>
-              </div>
-
+              {/* Name row — alignItems:start prevents firstName error from shifting lastName input */}
               <div
                 style={{
                   display: 'grid',
                   gridTemplateColumns: '1fr 1fr',
                   gap: 10,
                   marginBottom: 12,
+                  alignItems: 'start',
                 }}
               >
                 <div>
@@ -211,19 +220,25 @@ function RegisterPageContent() {
                   <input
                     id="firstName"
                     autoComplete="given-name"
+                    placeholder="e.g. Taylor"
+                    required
                     value={state.firstName}
                     onChange={(e) => setField('firstName', e.target.value)}
                     disabled={isSubmitting}
                     aria-invalid={Boolean(errors.firstName)}
+                    aria-describedby={errors.firstName ? 'firstName-error' : undefined}
                     style={FIELD_INPUT_STYLE}
                   />
-                  {errors.firstName && (
+                  {errors.firstName ? (
                     <p
+                      id="firstName-error"
                       role="alert"
                       style={{ marginTop: 4, fontSize: 11, color: 'var(--color-loss)' }}
                     >
                       {errors.firstName}
                     </p>
+                  ) : (
+                    <div style={{ marginTop: 4, minHeight: 17 }} />
                   )}
                 </div>
                 <div>
@@ -233,30 +248,35 @@ function RegisterPageContent() {
                   <input
                     id="lastName"
                     autoComplete="family-name"
+                    placeholder="e.g. Chen"
                     value={state.lastName}
                     onChange={(e) => setField('lastName', e.target.value)}
                     disabled={isSubmitting}
                     style={FIELD_INPUT_STYLE}
                   />
+                  <div style={{ marginTop: 4, minHeight: 17 }} />
                 </div>
               </div>
 
               <div style={{ marginBottom: 12 }}>
                 <label htmlFor="email" style={FIELD_LABEL_STYLE}>
-                  Work email
+                  Email
                 </label>
                 <input
                   id="email"
                   type="email"
                   autoComplete="email"
+                  required
                   value={state.email}
                   onChange={(e) => setField('email', e.target.value)}
                   disabled={isSubmitting}
                   aria-invalid={Boolean(errors.email)}
+                  aria-describedby={errors.email ? 'email-error' : undefined}
                   style={FIELD_INPUT_STYLE}
                 />
                 {errors.email ? (
                   <p
+                    id="email-error"
                     role="alert"
                     style={{ marginTop: 6, fontSize: 11, color: 'var(--color-loss)' }}
                   >
@@ -267,13 +287,13 @@ function RegisterPageContent() {
                     style={{
                       marginTop: 6,
                       fontSize: 11,
-                      color: 'var(--mm-ink-2, #6B7280)',
+                      color: 'var(--text-muted, #6B7280)',
                       display: 'flex',
                       alignItems: 'center',
                       gap: 6,
                     }}
                   >
-                    <span style={{ color: 'var(--brand-700, #0A7E3F)' }}>✓</span>
+                    <span style={{ color: 'var(--color-profit, #0E9F50)' }}>✓</span>
                     Looks valid
                   </div>
                 ) : null}
@@ -292,45 +312,74 @@ function RegisterPageContent() {
                     onChange={(e) => setField('password', e.target.value)}
                     disabled={isSubmitting}
                     aria-invalid={Boolean(errors.password)}
+                    aria-describedby={errors.password ? 'password-error' : 'password-hint'}
                     style={{ ...FIELD_INPUT_STYLE, paddingRight: 56 }}
                   />
                   <button
                     type="button"
-                    tabIndex={-1}
                     onClick={() => setShowPassword((v) => !v)}
                     aria-label={showPassword ? 'Hide password' : 'Show password'}
-                    style={{
-                      position: 'absolute',
-                      right: 12,
-                      top: '50%',
-                      transform: 'translateY(-50%)',
-                      fontSize: 12,
-                      background: 'transparent',
-                      border: 'none',
-                      color: 'var(--mm-ink-2, #6B7280)',
-                      cursor: 'pointer',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: 4,
-                    }}
+                    style={TOGGLE_BTN_STYLE}
                   >
-                    {showPassword ? <EyeOff size={12} /> : <Eye size={12} />}
+                    {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
                     {showPassword ? 'hide' : 'show'}
                   </button>
                 </div>
-                <StrengthBars strength={strength} />
+                {state.password.length > 0 && <StrengthBars strength={strength} />}
                 {errors.password ? (
                   <p
+                    id="password-error"
                     role="alert"
                     style={{ marginTop: 4, fontSize: 11, color: 'var(--color-loss)' }}
                   >
                     {errors.password}
                   </p>
-                ) : (
-                  <div style={{ fontSize: 11, color: 'var(--mm-ink-2, #6B7280)', marginTop: 6 }}>
-                    {strength.label}
-                    {state.password.length > 0 && ` · ${state.password.length} characters`}
+                ) : state.password.length > 0 ? (
+                  <div
+                    id="password-hint"
+                    style={{ fontSize: 11, color: 'var(--text-muted, #6B7280)', marginTop: 6 }}
+                  >
+                    {strength.label} · {state.password.length} characters
                   </div>
+                ) : null}
+              </div>
+
+              <div style={{ marginBottom: 12 }}>
+                <label htmlFor="confirmPassword" style={FIELD_LABEL_STYLE}>
+                  Confirm password
+                </label>
+                <div style={{ position: 'relative' }}>
+                  <input
+                    id="confirmPassword"
+                    type={showConfirm ? 'text' : 'password'}
+                    autoComplete="new-password"
+                    value={state.confirmPassword}
+                    onChange={(e) => setField('confirmPassword', e.target.value)}
+                    disabled={isSubmitting}
+                    aria-invalid={Boolean(errors.confirmPassword)}
+                    aria-describedby={
+                      errors.confirmPassword ? 'confirmPassword-error' : undefined
+                    }
+                    style={{ ...FIELD_INPUT_STYLE, paddingRight: 56 }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirm((v) => !v)}
+                    aria-label={showConfirm ? 'Hide confirm password' : 'Show confirm password'}
+                    style={TOGGLE_BTN_STYLE}
+                  >
+                    {showConfirm ? <EyeOff size={14} /> : <Eye size={14} />}
+                    {showConfirm ? 'hide' : 'show'}
+                  </button>
+                </div>
+                {errors.confirmPassword && (
+                  <p
+                    id="confirmPassword-error"
+                    role="alert"
+                    style={{ marginTop: 4, fontSize: 11, color: 'var(--color-loss)' }}
+                  >
+                    {errors.confirmPassword}
+                  </p>
                 )}
               </div>
 
@@ -352,6 +401,7 @@ function RegisterPageContent() {
                 />
               </div>
 
+              {/* Checkbox — wrapped in <label> for implicit association; no extra aria-label */}
               <label
                 style={{
                   display: 'flex',
@@ -359,8 +409,8 @@ function RegisterPageContent() {
                   gap: 10,
                   fontSize: 12,
                   lineHeight: 1.5,
-                  color: 'var(--mm-ink-1, #384151)',
-                  margin: '12px 0 18px',
+                  color: 'var(--text-secondary, #384151)',
+                  margin: '12px 0 4px',
                   cursor: 'pointer',
                 }}
               >
@@ -368,11 +418,10 @@ function RegisterPageContent() {
                   type="checkbox"
                   checked={state.agreed}
                   onChange={(e) => setField('agreed', e.target.checked)}
-                  aria-label="Accept terms"
                   style={{
                     width: 15,
                     height: 15,
-                    accentColor: 'var(--brand-500, #16B364)',
+                    accentColor: 'var(--brand-500, #121924)',
                     marginTop: 2,
                     flexShrink: 0,
                     cursor: 'pointer',
@@ -383,10 +432,11 @@ function RegisterPageContent() {
                   <Link
                     href="/terms"
                     target="_blank"
+                    rel="noopener noreferrer"
                     style={{
-                      color: 'var(--mm-ink-0, #0E1116)',
+                      color: 'var(--text-primary, #0E1116)',
                       textDecoration: 'underline',
-                      textDecorationColor: 'var(--mm-hair-2, rgba(14,17,22,0.1))',
+                      textDecorationColor: 'var(--border-default, rgba(14,17,22,0.2))',
                     }}
                   >
                     Terms
@@ -395,10 +445,11 @@ function RegisterPageContent() {
                   <Link
                     href="/privacy"
                     target="_blank"
+                    rel="noopener noreferrer"
                     style={{
-                      color: 'var(--mm-ink-0, #0E1116)',
+                      color: 'var(--text-primary, #0E1116)',
                       textDecoration: 'underline',
-                      textDecorationColor: 'var(--mm-hair-2, rgba(14,17,22,0.1))',
+                      textDecorationColor: 'var(--border-default, rgba(14,17,22,0.2))',
                     }}
                   >
                     Privacy Policy
@@ -409,7 +460,7 @@ function RegisterPageContent() {
               {errors.agreed && (
                 <p
                   role="alert"
-                  style={{ fontSize: 11, color: 'var(--color-loss)', marginBottom: 12 }}
+                  style={{ fontSize: 11, color: 'var(--color-loss)', margin: '4px 0 12px' }}
                 >
                   {errors.agreed}
                 </p>
@@ -425,7 +476,7 @@ function RegisterPageContent() {
                     border: '1px solid rgba(229,72,77,0.4)',
                     background: 'rgba(229,72,77,0.08)',
                     color: 'var(--color-loss)',
-                    margin: '0 0 12px',
+                    margin: '12px 0 12px',
                   }}
                 >
                   {submitError}
@@ -438,8 +489,9 @@ function RegisterPageContent() {
                 onClick={() => void submit()}
                 style={{
                   width: '100%',
+                  marginTop: 14,
                   padding: '14px',
-                  background: 'var(--mm-ink-0, #0E1116)',
+                  background: 'var(--text-primary, #0E1116)',
                   color: '#FFFFFF',
                   border: 'none',
                   borderRadius: 12,
@@ -469,12 +521,12 @@ function RegisterPageContent() {
                 style={{
                   textAlign: 'center',
                   fontSize: 11,
-                  color: 'var(--mm-ink-2, #6B7280)',
+                  color: 'var(--text-muted, #6B7280)',
                   marginTop: 16,
                   lineHeight: 1.5,
                 }}
               >
-                Protected by 2FA. We never custody funds.
+                We never custody funds.
               </div>
             </>
           )}
@@ -485,6 +537,16 @@ function RegisterPageContent() {
 }
 
 function StrengthBars({ strength }: { strength: Strength }) {
+  const scoreColor: Record<Strength['score'], string> = {
+    0: 'transparent',
+    1: '#EF4444',
+    2: '#F97316',
+    3: '#EAB308',
+    4: '#22C55E',
+    5: '#16A34A',
+  };
+  const barColor = scoreColor[strength.score];
+
   return (
     <div aria-live="polite" style={{ display: 'flex', gap: 4, marginTop: 8 }}>
       {[1, 2, 3, 4, 5].map((i) => {
@@ -496,7 +558,7 @@ function StrengthBars({ strength }: { strength: Strength }) {
               flex: 1,
               height: 3,
               borderRadius: 2,
-              background: on ? 'var(--brand-500, #16B364)' : 'var(--mm-hair-2, rgba(14,17,22,0.1))',
+              background: on ? barColor : 'var(--border-subtle, rgba(14,17,22,0.08))',
               transition: 'background 120ms',
             }}
           />
@@ -528,7 +590,7 @@ function SuccessScreen({ firstName }: { firstName: string }) {
           border: '1px solid rgba(22,179,100,0.45)',
         }}
       >
-        <CheckCircle2 size={32} style={{ color: 'var(--brand-700, #0A7E3F)' }} />
+        <CheckCircle2 size={32} style={{ color: 'var(--color-profit, #0A7E3F)' }} />
       </div>
       <h2
         className="font-display"
@@ -536,7 +598,7 @@ function SuccessScreen({ firstName }: { firstName: string }) {
           marginTop: 20,
           fontSize: 28,
           letterSpacing: '-0.02em',
-          color: 'var(--mm-ink-0, #0E1116)',
+          color: 'var(--text-primary, #0E1116)',
         }}
       >
         Welcome, {firstName}.
@@ -546,7 +608,7 @@ function SuccessScreen({ firstName }: { firstName: string }) {
           marginTop: 8,
           maxWidth: 340,
           fontSize: 13,
-          color: 'var(--mm-ink-1, #384151)',
+          color: 'var(--text-secondary, #384151)',
         }}
       >
         Your desk is ready. Connect a broker and configure your first strategy.
@@ -565,7 +627,7 @@ function SuccessScreen({ firstName }: { firstName: string }) {
           href="/"
           style={{
             padding: '12px 16px',
-            background: 'var(--mm-ink-0, #0E1116)',
+            background: 'var(--text-primary, #0E1116)',
             color: '#FFFFFF',
             borderRadius: 12,
             fontSize: 14,
@@ -584,8 +646,8 @@ function SuccessScreen({ firstName }: { firstName: string }) {
           style={{
             padding: '12px 16px',
             background: 'transparent',
-            color: 'var(--mm-ink-0, #0E1116)',
-            border: '1px solid var(--mm-hair-2, rgba(14,17,22,0.1))',
+            color: 'var(--text-primary, #0E1116)',
+            border: '1px solid var(--border-default, rgba(14,17,22,0.1))',
             borderRadius: 12,
             fontSize: 14,
             fontWeight: 600,

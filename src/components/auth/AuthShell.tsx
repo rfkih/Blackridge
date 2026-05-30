@@ -123,13 +123,16 @@ export function AuthShell({
             </span>
           </Link>
           {topRight && (
-            <Link
-              href={topRight.href}
-              className="text-[13px] font-semibold"
-              style={{ color: 'var(--brand-600)' }}
-            >
-              {topRight.cta}
-            </Link>
+            <span style={{ fontSize: 13, color: 'var(--text-secondary)', fontWeight: 500 }}>
+              {topRight.label}{' '}
+              <Link
+                href={topRight.href}
+                className="font-semibold"
+                style={{ color: 'var(--brand-700)', textDecoration: 'none' }}
+              >
+                {topRight.cta}
+              </Link>
+            </span>
           )}
         </div>
 
@@ -198,7 +201,7 @@ export function AuthCard({ children }: { children: ReactNode }) {
 
 function TrustStrip() {
   const items = [
-    { Icon: Shield, label: 'SOC 2 in progress' },
+    { Icon: Shield, label: 'Encrypted at rest' },
     { Icon: Zap, label: '42ms order latency' },
     { Icon: Globe, label: '24/7 on-call' },
     { Icon: Clock, label: 'Non-custodial' },
