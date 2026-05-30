@@ -143,7 +143,11 @@ export function disconnectStompClient(): void {
 
 export function subscribeToTopic(topic: string, callback: (body: string) => void): () => void {
   const client = stompClient;
-  if (!client?.active) return () => {};
+  if (!client?.active) {
+    // eslint-disable-next-line no-console -- intentional: helps diagnose broken WS setups
+    console.warn('[stomp] subscribeToTopic: client not active — subscription dropped for', topic);
+    return () => {};
+  }
   const sub: StompSubscription = client.subscribe(topic, (msg) => {
     callback(msg.body);
   });
