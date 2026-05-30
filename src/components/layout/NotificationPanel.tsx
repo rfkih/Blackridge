@@ -7,16 +7,18 @@ import {
   CheckCircle2,
   Globe2,
   History,
+  Loader2,
   ShieldAlert,
+  X,
 } from 'lucide-react';
 import Link from 'next/link';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useStrategies } from '@/hooks/useStrategies';
-import { useBacktestRuns } from '@/hooks/useBacktest';
 import { useQuery } from '@tanstack/react-query';
 import { formatDate } from '@/lib/formatters';
 import { useIsAdmin } from '@/hooks/useIsAdmin';
 import { listAlerts, type AlertEvent } from '@/lib/api/alerts';
+import { listBacktestRuns } from '@/lib/api/backtest';
 import { getServerIpStatus } from '@/lib/api/server';
 import { useAuthStore } from '@/store/authStore';
 
@@ -32,11 +34,16 @@ interface Notification {
   href?: string;
   /** Severity drives the leading icon + colour. */
   severity: 'critical' | 'warning' | 'info' | 'success';
+  /** When true a × dismiss button is rendered on the row. */
+  dismissible?: boolean;
 }
 
-// Key is scoped to the user ID so two users sharing a browser don't
-// bleed "already read" state into each other's notification panels.
+// ── Per-user localStorage helpers ─────────────────────────────────────────────
+// All keys are scoped to userId so two users sharing a browser never bleed
+// "already read" or "dismissed" state into each other.
+
 const readFlagKey = (userId: string) => `blackheart:notifications:lastSeenTs:${userId}`;
+const dismissedKey = (userId: string) => `blackheart:notifications:dismissed:${userId}`;
 
 function readLastSeenTs(userId: string): number {
   if (typeof window === 'undefined') return 0;
@@ -50,31 +57,86 @@ function readLastSeenTs(userId: string): number {
 
 function writeLastSeenTs(userId: string, ts: number) {
   if (typeof window === 'undefined') return;
+  // Guard: never persist NaN — a corrupt value makes the badge permanently stuck.
+  if (!Number.isFinite(ts)) return;
   try {
     window.localStorage.setItem(readFlagKey(userId), String(ts));
+  } catch {}
+}
+
+function readDismissed(userId: string): Set<string> {
+  if (typeof window === 'undefined') return new Set();
+  try {
+    const v = window.localStorage.getItem(dismissedKey(userId));
+    const arr = v ? (JSON.parse(v) as unknown) : [];
+    return new Set(Array.isArray(arr) ? (arr as string[]) : []);
   } catch {
+    return new Set();
   }
 }
 
+function writeDismissed(userId: string, ids: Set<string>) {
+  if (typeof window === 'undefined') return;
+  try {
+    window.localStorage.setItem(dismissedKey(userId), JSON.stringify(Array.from(ids)));
+  } catch {}
+}
+
+// ── Component ─────────────────────────────────────────────────────────────────
+
 export function NotificationPanel() {
   const userId = useAuthStore((s) => s.user?.id ?? '');
+  const isAdmin = useIsAdmin();
   const { data: strategies = [] } = useStrategies();
+
+  // IP status — admin only; regular users don't manage the VPS/Binance whitelist.
   const ipStatus = useQuery({
     queryKey: ['server', 'ip-status'],
     queryFn: getServerIpStatus,
     staleTime: 60_000,
     retry: 0,
+    enabled: isAdmin,
   });
-  const recentBacktests = useBacktestRuns({ status: 'COMPLETED', size: 5 });
 
-  const isAdmin = useIsAdmin();
+  // Direct useQuery (not via useBacktestRuns) so we can add refetchInterval.
+  // useBacktestRuns never polls a COMPLETED-only list — its refetchInterval
+  // callback always returns false when no PENDING/RUNNING rows are present,
+  // meaning new completions never surface during a session without this.
+  const recentBacktests = useQuery({
+    queryKey: ['backtest-runs', 'COMPLETED', null, null, null, null, null, 'createdAt', 'DESC', 0, 3, null],
+    queryFn: () => listBacktestRuns({ status: 'COMPLETED', size: 3 }),
+    staleTime: 2_000,
+    refetchInterval: 30_000,
+    refetchOnWindowFocus: true,
+  });
+
   const recentAlerts = useQuery({
     queryKey: ['alerts', 'recent-popover'],
-    queryFn: () => listAlerts({ size: 10, includeSuppressed: false }),
+    queryFn: () => listAlerts({ size: 5, includeSuppressed: false }),
     staleTime: 30_000,
     enabled: isAdmin,
     retry: 0,
+    refetchOnWindowFocus: true,
   });
+
+  // Dismissed notification IDs — persisted per user so sticky warnings
+  // (e.g. IP change) can be manually cleared after the user has acted on them.
+  const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set());
+  useEffect(() => {
+    if (userId) setDismissedIds(readDismissed(userId));
+  }, [userId]);
+
+  const dismiss = useCallback(
+    (id: string) => {
+      if (!userId) return;
+      setDismissedIds((prev) => {
+        const next = new Set(prev).add(id);
+        writeDismissed(userId, next);
+        return next;
+      });
+    },
+    [userId],
+  );
 
   const notifications = useMemo<Notification[]>(() => {
     const out: Notification[] = [];
@@ -95,7 +157,9 @@ export function NotificationPanel() {
       }
     }
 
-    if (ipStatus.data?.event === 'CHANGED' && ipStatus.data.recordedAt) {
+    // IP change is admin-only — guard here too in case the query fires before
+    // isAdmin hydrates from the store.
+    if (isAdmin && ipStatus.data?.event === 'CHANGED' && ipStatus.data.recordedAt) {
       out.push({
         id: `ip-${ipStatus.data.recordedAt}`,
         kind: 'ipChange',
@@ -104,28 +168,27 @@ export function NotificationPanel() {
         body: `Now ${ipStatus.data.currentIp ?? 'unknown'} (was ${ipStatus.data.previousIp ?? '—'}). Update your Binance whitelist.`,
         href: '/settings',
         severity: 'warning',
+        dismissible: true,
       });
     }
 
-    const runs = recentBacktests.data?.content ?? [];
-    for (const r of runs.slice(0, 3)) {
+    for (const r of recentBacktests.data?.content ?? []) {
       if (!r.completedAt) continue;
       out.push({
         id: `bt-${r.id}`,
         kind: 'backtestDone',
         ts: r.completedAt,
-        title: `Backtest finished — ${r.strategyCode || r.strategyName}`,
+        title: `Backtest finished — ${r.strategyCode || r.strategyName || 'Backtest'}`,
         body:
           r.metrics?.totalReturnPct != null
-            ? `${r.symbol} ${r.interval} · ${r.metrics.totalReturnPct.toFixed(2)}% return`
-            : `${r.symbol} ${r.interval}`,
+            ? `${r.symbol ?? '—'} ${r.interval ?? '—'} · ${r.metrics.totalReturnPct.toFixed(2)}% return`
+            : `${r.symbol ?? '—'} ${r.interval ?? '—'}`,
         href: `/backtest/${r.id}`,
         severity: 'success',
       });
     }
 
-    const alerts = recentAlerts.data?.content ?? [];
-    for (const a of alerts.slice(0, 5)) {
+    for (const a of recentAlerts.data?.content ?? []) {
       if (!a.createdAt) continue;
       out.push({
         id: `alert-${a.alertEventId}`,
@@ -139,44 +202,58 @@ export function NotificationPanel() {
     }
 
     out.sort((a, b) => new Date(b.ts).getTime() - new Date(a.ts).getTime());
-    return out;
-  }, [strategies, ipStatus.data, recentBacktests.data, recentAlerts.data]);
 
-  // Start at 0; load the persisted value once we know which user is logged in.
-  // Re-runs if the user changes (e.g. shared browser, different account).
+    // Remove items the user has already dismissed.
+    return out.filter((n) => !dismissedIds.has(n.id));
+  }, [strategies, ipStatus.data, recentBacktests.data, recentAlerts.data, dismissedIds, isAdmin]);
+
+  // Load per-user last-seen timestamp. Re-runs on user switch.
   const [lastSeenTs, setLastSeenTs] = useState<number>(0);
   useEffect(() => {
     if (userId) setLastSeenTs(readLastSeenTs(userId));
   }, [userId]);
 
-  const newestTs = notifications[0]?.ts ?? null;
-  const unreadCount = useMemo(() => {
-    if (!newestTs) return 0;
-    return notifications.filter((n) => new Date(n.ts).getTime() > lastSeenTs).length;
-  }, [notifications, newestTs, lastSeenTs]);
+  const unreadCount = useMemo(
+    () => notifications.filter((n) => new Date(n.ts).getTime() > lastSeenTs).length,
+    [notifications, lastSeenTs],
+  );
 
   const [open, setOpen] = useState(false);
 
-  useEffect(() => {
-    if (open && newestTs && userId) {
-      const ms = new Date(newestTs).getTime();
-      setLastSeenTs(ms);
-      writeLastSeenTs(userId, ms);
-    }
-  }, [open, newestTs, userId]);
+  // Mark as read on CLOSE, not open — ensures the badge only clears after the
+  // user has had the chance to scroll through the list. Also stamps whatever
+  // is newest at the moment of closing, so a notification that arrived while
+  // the panel was open is captured correctly rather than being auto-read on
+  // the next render (the old open-time effect bug).
+  const handleOpenChange = useCallback(
+    (next: boolean) => {
+      setOpen(next);
+      if (!next && userId) {
+        const newestTs = notifications[0]?.ts;
+        if (newestTs) {
+          const ms = new Date(newestTs).getTime();
+          if (Number.isFinite(ms)) {
+            setLastSeenTs(ms);
+            writeLastSeenTs(userId, ms);
+          }
+        }
+      }
+    },
+    [notifications, userId],
+  );
+
+  // True while the first-load fetches are still in flight — prevents the
+  // "Nothing to flag" empty state from flashing before data arrives.
+  const isLoading = recentBacktests.isLoading || (isAdmin && recentAlerts.isLoading);
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open} onOpenChange={handleOpenChange}>
       <PopoverTrigger asChild>
         <button
           type="button"
           className="mm-pill"
           style={{ padding: '9px 14px', fontSize: 13, position: 'relative' }}
-          aria-label={
-            unreadCount > 0
-              ? `Alerts — ${unreadCount} unread`
-              : 'Alerts'
-          }
+          aria-label={unreadCount > 0 ? `Alerts — ${unreadCount} unread` : 'Alerts'}
         >
           <Bell size={14} strokeWidth={1.7} />
           <span>Alerts</span>
@@ -216,11 +293,20 @@ export function NotificationPanel() {
         <header className="flex items-center justify-between border-b border-bd-subtle px-4 py-3">
           <h3 className="font-display text-sm font-semibold text-text-primary">Alerts</h3>
           <span className="font-mono text-[10px] uppercase tracking-widest text-text-muted">
-            {notifications.length === 0 ? 'all clear' : `${notifications.length} item${notifications.length === 1 ? '' : 's'}`}
+            {isLoading
+              ? 'loading…'
+              : notifications.length === 0
+                ? 'all clear'
+                : `${notifications.length} item${notifications.length === 1 ? '' : 's'}`}
           </span>
         </header>
 
-        {notifications.length === 0 ? (
+        {isLoading ? (
+          <div className="flex items-center justify-center gap-2 px-4 py-8 text-text-muted">
+            <Loader2 size={16} className="animate-spin" />
+            <span className="text-[12px]">Loading alerts…</span>
+          </div>
+        ) : notifications.length === 0 ? (
           <div className="flex flex-col items-center gap-2 px-4 py-8 text-center">
             <CheckCircle2 size={20} strokeWidth={1.5} className="text-text-muted" />
             <p className="text-[12px] text-text-secondary">Nothing to flag.</p>
@@ -231,7 +317,12 @@ export function NotificationPanel() {
         ) : (
           <ul className="max-h-[360px] divide-y divide-bd-subtle overflow-y-auto">
             {notifications.map((n) => (
-              <NotificationRow key={n.id} n={n} onClose={() => setOpen(false)} />
+              <NotificationRow
+                key={n.id}
+                n={n}
+                onClose={() => handleOpenChange(false)}
+                onDismiss={n.dismissible ? () => dismiss(n.id) : undefined}
+              />
             ))}
           </ul>
         )}
@@ -240,7 +331,17 @@ export function NotificationPanel() {
   );
 }
 
-function NotificationRow({ n, onClose }: { n: Notification; onClose: () => void }) {
+// ── Row ───────────────────────────────────────────────────────────────────────
+
+function NotificationRow({
+  n,
+  onClose,
+  onDismiss,
+}: {
+  n: Notification;
+  onClose: () => void;
+  onDismiss?: () => void;
+}) {
   const Icon = iconFor(n);
   const colour = colourFor(n.severity);
 
@@ -260,6 +361,21 @@ function NotificationRow({ n, onClose }: { n: Notification; onClose: () => void 
           {formatDate(new Date(n.ts).getTime())}
         </p>
       </div>
+      {onDismiss && (
+        <button
+          type="button"
+          aria-label="Dismiss notification"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            onDismiss();
+          }}
+          className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded opacity-40 transition-opacity hover:opacity-100"
+          style={{ color: 'var(--text-muted)' }}
+        >
+          <X size={12} />
+        </button>
+      )}
     </div>
   );
 
@@ -274,6 +390,8 @@ function NotificationRow({ n, onClose }: { n: Notification; onClose: () => void 
   }
   return <li>{body}</li>;
 }
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
 
 function iconFor(n: Notification): React.ElementType {
   switch (n.kind) {
@@ -290,8 +408,24 @@ function iconFor(n: Notification): React.ElementType {
   }
 }
 
+// Maps backend kind strings to human-readable labels.
+// Falls back to title-casing the raw string so unknown future kinds are legible.
+const ALERT_KIND_LABEL: Record<string, string> = {
+  kill_switch_tripped: 'Kill-switch tripped',
+  ingest_stall: 'Ingest stalled',
+  ml_signal_stale: 'ML signal stale',
+  ml_signal_missing: 'ML signal missing',
+  ip_changed: 'Server IP changed',
+  backtest_failed: 'Backtest failed',
+  strategy_error: 'Strategy error',
+  db_connection_lost: 'Database connection lost',
+  ws_disconnect: 'WebSocket disconnected',
+};
+
 function alertTitle(a: AlertEvent): string {
-  return `${a.severity} — ${a.kind}`;
+  const label = ALERT_KIND_LABEL[a.kind];
+  if (label) return label;
+  return a.kind.replace(/_/g, ' ').replace(/^\w/, (c) => c.toUpperCase());
 }
 
 function alertSeverity(a: AlertEvent): Notification['severity'] {
