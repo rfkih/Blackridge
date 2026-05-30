@@ -103,7 +103,7 @@ const FAQ: { q: string; a: string }[] = [
   },
   {
     q: 'What exchanges do you support?',
-    a: 'Binance Futures, Binance Spot, OKX, Bybit, and Coinbase Prime. Each connection uses a read-and-trade API key with withdrawals disabled.',
+    a: 'Binance Futures, Binance Spot, OKX, Bybit, Coinbase Prime, and Kraken. Each connection uses a read-and-trade API key with withdrawals disabled.',
   },
   {
     q: 'Is my data encrypted?',

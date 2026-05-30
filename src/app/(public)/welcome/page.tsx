@@ -49,7 +49,7 @@ export default function WelcomePage() {
               style={{ background: 'var(--brand-50)', color: 'var(--brand-700)' }}
             >
               <span className="br-live-dot" />
-              1,400+ traders running live
+              Live since Feb 2024
             </span>
             <h1
               className="font-display font-extrabold"
@@ -90,9 +90,9 @@ export default function WelcomePage() {
               className="mt-11 flex gap-9 pt-7"
               style={{ borderTop: '1px solid var(--border-subtle)' }}
             >
-              <HeroStat value="$48M+" label="Notional traded / mo" />
-              <HeroStat value="7" label="Live strategies" />
+              <HeroStat value="7" label="Strategies available" />
               <HeroStat value="42ms" label="Median order latency" />
+              <HeroStat value="5-gate" label="Validation process" />
             </div>
           </div>
 
@@ -137,8 +137,8 @@ export default function WelcomePage() {
             />
             <Feature
               icon={<Bot />}
-              title="7 production strategies"
-              body="LSR, VCB, VBO, TPSE and more — battle-tested on live capital. Fork them, tune them, run yours alongside."
+              title="Strategy library"
+              body="LSR, VCB, TPSE and more — each validated through a 5-gate research process before deployment. Fork them, tune them, run yours alongside."
             />
             <Feature
               icon={<LineChart />}
@@ -170,7 +170,7 @@ export default function WelcomePage() {
           <SectionHead
             eyebrow="Strategy library"
             title="Start with a strategy. Not a blinking cursor."
-            sub="Each strategy ships with documented logic, tunable parameters, and three years of out-of-sample results. Enable the ones you trust."
+            sub="Each strategy ships with documented logic, tunable parameters, and up to two years of out-of-sample results. Enable the ones you trust."
           />
           <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
             {STRATEGY_HIGHLIGHTS.map((s, i) => (
@@ -207,7 +207,7 @@ export default function WelcomePage() {
             ))}
           </div>
           <div className="mt-8 text-center">
-            <Link href="/onboarding" className="br-btn br-btn-secondary br-btn-lg">
+            <Link href="/strategies-overview" className="br-btn br-btn-secondary br-btn-lg">
               Browse all 7 strategies <ArrowRight size={14} />
             </Link>
           </div>
@@ -254,7 +254,7 @@ export default function WelcomePage() {
               style={{ borderTop: '1px solid rgba(255,255,255,0.12)' }}
             >
               <TrustStat value="0" label="Funds custodied" />
-              <TrustStat value="99.97%" label="Order success rate" />
+              <TrustStat value="< 60 s" label="Reconcile time" />
               <TrustStat value="SOC 2" label="Type II in progress" />
               <TrustStat value="24/7" label="Engineer on-call" />
             </div>
@@ -423,7 +423,7 @@ function CardStack() {
               BTC/USDT · LONG
             </div>
             <div className="text-[11px]" style={{ color: 'var(--text-muted)' }}>
-              LSR-V2 · 5× lev
+              LSR-V2 · illustrative
             </div>
           </div>
           <span className="br-chip br-chip-profit ml-auto">

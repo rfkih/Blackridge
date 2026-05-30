@@ -83,14 +83,14 @@ const STRATEGIES: PublicStrategy[] = [
   {
     code: 'TSMOM',
     name: 'Time-Series Momentum',
-    tagline: 'Cross-asset momentum with monthly rebalance.',
+    tagline: 'Cross-asset momentum with monthly rebalance. (Benchmarking — not recommended for live capital.)',
     category: 'Momentum',
     pnl30d: -0.31,
     sharpe: 0.42,
     drawdown: -3.8,
     winRate: 55.5,
     trades30d: 18,
-    tags: ['Spot', 'D'],
+    tags: ['Spot', 'D', 'Benchmark'],
     sparkSeed: 26,
   },
   {
@@ -152,7 +152,7 @@ export default function StrategiesOverviewPage() {
               margin: '0 auto 28px',
             }}
           >
-            Seven strategies, each documented end-to-end with three years of out-of-sample
+            Seven strategies, each documented end-to-end with up to two years of out-of-sample
             results. Enable the ones you trust — fork them, retune them, run yours alongside.
           </p>
 

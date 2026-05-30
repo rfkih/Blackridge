@@ -191,24 +191,20 @@ function Hero() {
       <div className="qp-wrap qp-hero-grid">
         <div className="qp-hero-copy">
           <div className="qp-hero-eyebrow">
-            <span>Singapore</span>
-            <span className="dot" />
-            <span>MAS&nbsp;CMS-LR-202407</span>
-            <span className="dot" />
             <span>Est. 2024</span>
           </div>
           <h1>A small, focused quantitative manager for digital&nbsp;asset&nbsp;markets.</h1>
           <p className="lede">
-            Blackridge runs a bounded library of systematic strategies on regulated venues, on
-            behalf of accredited and institutional investors. We hold no client capital. New
-            mandates are accepted twice a quarter.
+            Blackridge runs a bounded library of systematic strategies on regulated venues. We hold
+            no client capital — your funds stay on your exchange, accessible only through scoped API
+            keys. Accounts are open now.
           </p>
           <div className="qp-hero-cta">
             <Link href="/onboarding" className="qp-btn-primary lg">
-              Request a meeting
+              Open account
             </Link>
-            <Link href="/docs" className="qp-btn-textlink">
-              Download Q1 2026 letter (PDF) &nbsp;↓
+            <Link href="/strategies-overview" className="qp-btn-textlink">
+              Browse strategies &nbsp;→
             </Link>
           </div>
         </div>
@@ -348,7 +344,7 @@ function Venues() {
           <span>Kraken</span>
           <span>Deribit</span>
         </div>
-        <div className="qp-venues-aux">Audited by BDO&nbsp;Singapore</div>
+        <div className="qp-venues-aux">Working toward independent audit</div>
       </div>
     </section>
   );
@@ -430,8 +426,8 @@ function Discipline() {
             <h2>Discipline, in three movements.</h2>
           </div>
           <p className="qp-section-lede">
-            We are not building a platform for retail traders. We are running a small desk for a
-            small number of allocators, with the operational habits of one.
+            We are not a product for everyone. We are a platform for traders who want systematic
+            discipline applied to every decision — research, construction, and execution.
           </p>
         </header>
 
@@ -569,8 +565,8 @@ function StrategySpot() {
 
         <div className="qp-strat-foot">
           <span>
-            Live programmes only. The four additional strategies and three decommissioned ones are
-            documented in the methodology pack.
+            Three highlighted strategies. All seven in the library and those retired during research
+            are documented in the methodology pack.
           </span>
           <Link href="/docs">Methodology pack (PDF) &nbsp;↓</Link>
         </div>
@@ -645,38 +641,24 @@ function Contact() {
       <div className="qp-wrap qp-contact-grid">
         <div className="qp-contact-copy">
           <div className="qp-section-eye">Speak with the desk</div>
-          <h2>For accredited and institutional investors only.</h2>
+          <h2>Get in touch.</h2>
           <p>
-            We accept new mandates twice a quarter. A member of the desk will respond within two
-            business days with the methodology pack and the documents required for onboarding.
+            A member of the desk will respond within two business days. Happy to walk through
+            strategy selection, risk settings, onboarding, or anything else.
           </p>
           <div className="qp-contact-meta">
             <div>
               <span>Desk</span>
               <strong>desk@blackridge.capital</strong>
             </div>
-            <div>
-              <span>Address</span>
-              <strong>
-                68&nbsp;Telok&nbsp;Ayer&nbsp;Street&nbsp;#04-01
-                <br />
-                Singapore&nbsp;048471
-              </strong>
-            </div>
-            <div>
-              <span>Regulator</span>
-              <strong>MAS · CMS-LR-202407</strong>
-            </div>
           </div>
         </div>
         <div className="qp-contact-action">
           <Link href="/onboarding" className="qp-btn-primary lg">
-            Request a meeting
+            Open account
           </Link>
           <span className="qp-contact-note">
-            Submission constitutes neither a subscription nor an offer. Blackridge will respond only
-            after reviewing eligibility under the Securities and Futures Act (Singapore) or
-            equivalent in the investor’s jurisdiction.
+            No credit card required. Paper trade free for 14 days before connecting a real exchange.
           </span>
         </div>
       </div>

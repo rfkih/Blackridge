@@ -57,7 +57,7 @@ const PRINCIPLES = [
 ];
 
 const COMPLIANCE = [
-  { label: 'SOC 2 Type II', status: 'In progress', detail: 'Audit window opens Q1 2026.' },
+  { label: 'SOC 2 Type II', status: 'In progress', detail: 'Audit window open; target completion H2 2026.' },
   { label: 'GDPR', status: 'Compliant', detail: 'EU residents can export + delete in-app.' },
   { label: 'KYC / AML', status: 'Coming H2 2026', detail: 'Required before USD-denominated billing.' },
   { label: 'ISO 27001', status: 'Planned 2027', detail: 'Roadmapped after SOC 2 Type II.' },
@@ -135,7 +135,7 @@ export default function SecurityPage() {
             <div className="br-trust-band" style={{ padding: 32 }}>
               <div className="grid grid-cols-2 gap-x-6 gap-y-5">
                 <TrustStat value="0" label="Funds custodied" />
-                <TrustStat value="99.97%" label="Order success rate" />
+                <TrustStat value="< 60 s" label="Reconcile time" />
                 <TrustStat value="SOC 2" label="Type II in progress" />
                 <TrustStat value="24/7" label="Engineer on-call" />
               </div>
