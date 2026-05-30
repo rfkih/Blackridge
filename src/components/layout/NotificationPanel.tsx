@@ -18,6 +18,7 @@ import { formatDate } from '@/lib/formatters';
 import { useIsAdmin } from '@/hooks/useIsAdmin';
 import { listAlerts, type AlertEvent } from '@/lib/api/alerts';
 import { getServerIpStatus } from '@/lib/api/server';
+import { useAuthStore } from '@/store/authStore';
 
 type NotificationKind = 'killSwitch' | 'ipChange' | 'backtestDone' | 'systemAlert';
 
@@ -33,27 +34,30 @@ interface Notification {
   severity: 'critical' | 'warning' | 'info' | 'success';
 }
 
-const READ_FLAG_KEY = 'blackheart:notifications:lastSeenTs';
+// Key is scoped to the user ID so two users sharing a browser don't
+// bleed "already read" state into each other's notification panels.
+const readFlagKey = (userId: string) => `blackheart:notifications:lastSeenTs:${userId}`;
 
-function readLastSeenTs(): number {
+function readLastSeenTs(userId: string): number {
   if (typeof window === 'undefined') return 0;
   try {
-    const v = window.localStorage.getItem(READ_FLAG_KEY);
+    const v = window.localStorage.getItem(readFlagKey(userId));
     return v ? Number(v) : 0;
   } catch {
     return 0;
   }
 }
 
-function writeLastSeenTs(ts: number) {
+function writeLastSeenTs(userId: string, ts: number) {
   if (typeof window === 'undefined') return;
   try {
-    window.localStorage.setItem(READ_FLAG_KEY, String(ts));
+    window.localStorage.setItem(readFlagKey(userId), String(ts));
   } catch {
   }
 }
 
 export function NotificationPanel() {
+  const userId = useAuthStore((s) => s.user?.id ?? '');
   const { data: strategies = [] } = useStrategies();
   const ipStatus = useQuery({
     queryKey: ['server', 'ip-status'],
@@ -138,7 +142,13 @@ export function NotificationPanel() {
     return out;
   }, [strategies, ipStatus.data, recentBacktests.data, recentAlerts.data]);
 
-  const [lastSeenTs, setLastSeenTs] = useState<number>(() => readLastSeenTs());
+  // Start at 0; load the persisted value once we know which user is logged in.
+  // Re-runs if the user changes (e.g. shared browser, different account).
+  const [lastSeenTs, setLastSeenTs] = useState<number>(0);
+  useEffect(() => {
+    if (userId) setLastSeenTs(readLastSeenTs(userId));
+  }, [userId]);
+
   const newestTs = notifications[0]?.ts ?? null;
   const unreadCount = useMemo(() => {
     if (!newestTs) return 0;
@@ -148,12 +158,12 @@ export function NotificationPanel() {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    if (open && newestTs) {
+    if (open && newestTs && userId) {
       const ms = new Date(newestTs).getTime();
       setLastSeenTs(ms);
-      writeLastSeenTs(ms);
+      writeLastSeenTs(userId, ms);
     }
-  }, [open, newestTs]);
+  }, [open, newestTs, userId]);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
