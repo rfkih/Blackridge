@@ -195,9 +195,12 @@ jobs:
       - name: Pull + recreate frontend container
         # `compose pull` is idempotent. `compose up -d frontend` recreates only
         # the frontend container (postgres/redis/trading/etc keep running).
+        # Explicit -f avoids "no configuration file provided" when the working
+        # directory changes or SSH doesn't inherit the expected CWD.
         run: |
           ssh -i ~/.ssh/id_ed25519 "${SSH_USER}@${SSH_HOST}" \
-            "cd /home/starsky/blackheart && docker compose pull frontend && docker compose up -d frontend"
+            "docker compose -f /home/starsky/blackheart/docker-compose.yml pull frontend && \
+             docker compose -f /home/starsky/blackheart/docker-compose.yml up -d frontend"
 
       - name: Frontend healthcheck (with rollback on failure)
         # 12 attempts × 10s = 120s. Next.js cold-boot is ~5–8s; 120s absorbs
@@ -216,7 +219,7 @@ jobs:
             echo "::error::Frontend healthcheck failed. Rolling back to ${PREV_TAG}."
             if [ "${PREV_TAG}" != "NONE" ]; then
               ssh -i ~/.ssh/id_ed25519 "${SSH_USER}@${SSH_HOST}" \
-                "set -e && grep -v '^FRONTEND_TAG=' /home/starsky/blackheart/.env > /tmp/.env.rollback && echo 'FRONTEND_TAG=${PREV_TAG}' >> /tmp/.env.rollback && mv /tmp/.env.rollback /home/starsky/blackheart/.env && cd /home/starsky/blackheart && docker compose up -d frontend"
+                "set -e && grep -v '^FRONTEND_TAG=' /home/starsky/blackheart/.env > /tmp/.env.rollback && echo 'FRONTEND_TAG=${PREV_TAG}' >> /tmp/.env.rollback && mv /tmp/.env.rollback /home/starsky/blackheart/.env && docker compose -f /home/starsky/blackheart/docker-compose.yml up -d frontend"
             fi
             exit 1
           fi
