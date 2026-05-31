@@ -1,7 +1,7 @@
 import { apiClient } from './client';
 import { toNum, toNumOrNull } from './coerce';
 import { mapAccountStrategy } from './strategies';
-import type { DeployStrategyPayload, LeaderboardEntry, LeaderboardPage } from '@/types/leaderboard';
+import type { DeployStrategyPayload, LeaderboardEntry } from '@/types/leaderboard';
 import type { AccountStrategy } from '@/types/strategy';
 import type { BackendAccountStrategy } from '@/types/api';
 
@@ -41,13 +41,6 @@ interface BackendLeaderboardEntry {
   bestParams: Record<string, unknown> | null;
 }
 
-/** Wire shape of the leaderboard page wrapper. */
-interface BackendLeaderboardPage {
-  entries: BackendLeaderboardEntry[];
-  approvedCount: number | null;
-  revokedCount: number | null;
-}
-
 function mapEntry(e: BackendLeaderboardEntry): LeaderboardEntry {
   return {
     rank: e.rank,
@@ -75,18 +68,18 @@ function mapEntry(e: BackendLeaderboardEntry): LeaderboardEntry {
 }
 
 /**
- * Ranked leaderboard page. When `accountId` is supplied the server annotates each
- * entry with correlation-to-book (informational; it never changes the rank).
+ * Ranked top-strategies list. When `accountId` is supplied the server annotates each
+ * entry with correlation-to-book (informational; it never changes the rank). Returns a
+ * bare array — the survivorship denominator is deferred until the FE deploy is wired.
  */
-export async function getTopStrategies(limit = 10, accountId?: string): Promise<LeaderboardPage> {
-  const { data } = await apiClient.get<BackendLeaderboardPage>(`${BASE}/top-strategies`, {
+export async function getTopStrategies(
+  limit = 10,
+  accountId?: string,
+): Promise<LeaderboardEntry[]> {
+  const { data } = await apiClient.get<BackendLeaderboardEntry[]>(`${BASE}/top-strategies`, {
     params: accountId ? { limit, accountId } : { limit },
   });
-  return {
-    entries: (data.entries ?? []).map(mapEntry),
-    approvedCount: data.approvedCount ?? 0,
-    revokedCount: data.revokedCount ?? 0,
-  };
+  return data.map(mapEntry);
 }
 
 /**

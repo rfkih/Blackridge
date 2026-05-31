@@ -21,11 +21,12 @@ const LIMIT_OPTIONS = [5, 10, 25] as const;
 export default function LeaderboardPage() {
   const [limit, setLimit] = useState<number>(10);
   const { accounts, scopedAccountId } = useActiveAccount();
-  const { data, isLoading, isError, refetch } = useTopStrategies(
-    limit,
-    scopedAccountId ?? undefined,
-  );
-  const entries = data?.entries ?? [];
+  const {
+    data: entries = [],
+    isLoading,
+    isError,
+    refetch,
+  } = useTopStrategies(limit, scopedAccountId ?? undefined);
   const deployMutation = useDeployStrategy();
   const [deployTarget, setDeployTarget] = useState<LeaderboardEntry | null>(null);
 
@@ -61,8 +62,6 @@ export default function LeaderboardPage() {
 
       <TopStrategiesSection
         entries={entries}
-        approvedCount={data?.approvedCount}
-        revokedCount={data?.revokedCount}
         isLoading={isLoading}
         isError={isError}
         onRetry={refetch}

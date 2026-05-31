@@ -49,15 +49,6 @@ export interface LeaderboardEntry {
   bestParams: Record<string, unknown>;
 }
 
-/** Full leaderboard page: ranked entries + the survivorship denominator. */
-export interface LeaderboardPage {
-  entries: LeaderboardEntry[];
-  /** Active (non-revoked) approvals — the eligible population. */
-  approvedCount: number;
-  /** Revoked approvals — the part of the denominator the board doesn't show. */
-  revokedCount: number;
-}
-
 /** Request body for POST /api/v1/leaderboard/deploy. Interval, direction, and
  *  params are server-derived from the approval's evidence backtest — only the
  *  target account + sizing are supplied by the client. */

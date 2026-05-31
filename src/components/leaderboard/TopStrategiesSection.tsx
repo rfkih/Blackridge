@@ -11,10 +11,6 @@ import type { LeaderboardEntry } from '@/types/leaderboard';
 
 interface TopStrategiesSectionProps {
   entries: LeaderboardEntry[];
-  /** Active approvals (survivorship denominator). */
-  approvedCount?: number;
-  /** Revoked approvals (the part the board doesn't show). */
-  revokedCount?: number;
   isLoading: boolean;
   isError: boolean;
   onRetry: () => void;
@@ -57,8 +53,6 @@ function fmtParamValue(v: unknown): string {
 
 export function TopStrategiesSection({
   entries,
-  approvedCount,
-  revokedCount,
   isLoading,
   isError,
   onRetry,
@@ -104,16 +98,12 @@ export function TopStrategiesSection({
   }
 
   const asOf = fmtAsOf(entries[0]?.computedAt ?? null);
-  const denominator =
-    approvedCount != null
-      ? `top ${entries.length} of ${approvedCount} approved${revokedCount ? ` · ${revokedCount} revoked` : ''}`
-      : null;
 
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between px-1">
         <span className="font-mono text-[10px] uppercase tracking-[0.1em] text-[var(--text-muted)]">
-          Ranked by Conviction{denominator ? ` · ${denominator}` : ''}
+          Ranked by Conviction
         </span>
         {asOf && (
           <span
