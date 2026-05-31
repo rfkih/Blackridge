@@ -1,7 +1,8 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { deployStrategy, getTopStrategies } from '@/lib/api/leaderboard';
+import { deployStrategy, fetchBacktestLeaderboard, getTopStrategies } from '@/lib/api/leaderboard';
+import { listPapers } from '@/lib/api/researchPapers';
 import { QUERY_STALE_TIMES } from '@/lib/constants';
 import { useWsStore } from '@/store/wsStore';
 import type { DeployStrategyPayload } from '@/types/leaderboard';
@@ -52,5 +53,30 @@ export function useDeployStrategy() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['strategies'] });
     },
+  });
+}
+
+/**
+ * Best-backtest-run-per-cell candidate list for the Backtest tab. Keyed by
+ * `limit`. Same staleTime as the ranked board — both read backtest evidence.
+ */
+export function useBacktestLeaderboard(limit = 20) {
+  return useQuery({
+    queryKey: ['leaderboard', 'backtest', limit] as const,
+    queryFn: () => fetchBacktestLeaderboard(limit),
+    staleTime: QUERY_STALE_TIMES.strategyParams,
+  });
+}
+
+/**
+ * Research-papers candidate list for the Papers tab. Reuses the orchestrator
+ * papers list endpoint; returns the raw `PaperPage` (the component reads
+ * `.items`). Sorted server-side by most-recent by default.
+ */
+export function usePapersLeaderboard(limit = 25) {
+  return useQuery({
+    queryKey: ['leaderboard', 'papers', limit] as const,
+    queryFn: () => listPapers({ limit }),
+    staleTime: QUERY_STALE_TIMES.strategyParams,
   });
 }

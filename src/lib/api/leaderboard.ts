@@ -1,7 +1,8 @@
-import { apiClient } from './client';
+import { apiClient, researchClient } from './client';
 import { toNum, toNumOrNull } from './coerce';
 import { mapAccountStrategy } from './strategies';
 import type { DeployStrategyPayload, LeaderboardEntry } from '@/types/leaderboard';
+import type { BacktestLeaderboardEntry } from '@/types/leaderboardBacktest';
 import type { AccountStrategy } from '@/types/strategy';
 import type { BackendAccountStrategy } from '@/types/api';
 
@@ -92,4 +93,64 @@ export async function getTopStrategies(
 export async function deployStrategy(payload: DeployStrategyPayload): Promise<AccountStrategy> {
   const { data } = await apiClient.post<BackendAccountStrategy>(`${BASE}/deploy`, payload);
   return mapAccountStrategy(data);
+}
+
+/** Wire row for the backtest-candidate leaderboard. Same number-or-string
+ *  BigDecimal coercion contract as {@link BackendLeaderboardEntry}. */
+interface BackendBacktestLeaderboardEntry {
+  rank: number;
+  symbol: string;
+  strategyCode: string;
+  intervalName: string | null;
+  backtestRunId: string;
+  cagrPct: number | string | null;
+  maxDrawdownPct: number | string | null;
+  psr: number | string | null;
+  deflatedSharpe: number | string | null;
+  dsrNTrials: number | string | null;
+  profitFactor: number | string | null;
+  sortino: number | string | null;
+  trades: number | null;
+  winRate: number | string | null;
+  dataStart: string | null;
+  dataEnd: string | null;
+  spanDays: number | string | null;
+  walkForwardVerdict: string | null;
+  bestParams: Record<string, unknown> | null;
+}
+
+function mapBacktestEntry(e: BackendBacktestLeaderboardEntry): BacktestLeaderboardEntry {
+  return {
+    rank: e.rank,
+    symbol: e.symbol,
+    strategyCode: e.strategyCode,
+    interval: e.intervalName ?? '',
+    backtestRunId: e.backtestRunId,
+    cagrPct: toNumOrNull(e.cagrPct),
+    maxDrawdownPct: toNumOrNull(e.maxDrawdownPct),
+    psr: toNumOrNull(e.psr),
+    deflatedSharpe: toNumOrNull(e.deflatedSharpe),
+    dsrNTrials: toNumOrNull(e.dsrNTrials),
+    profitFactor: toNumOrNull(e.profitFactor),
+    sortino: toNumOrNull(e.sortino),
+    trades: toNum(e.trades),
+    winRate: toNumOrNull(e.winRate),
+    dataStart: e.dataStart,
+    dataEnd: e.dataEnd,
+    spanDays: toNum(e.spanDays),
+    walkForwardVerdict: e.walkForwardVerdict,
+    bestParams: e.bestParams ?? {},
+  };
+}
+
+/**
+ * Best backtest run per (symbol, strategy, interval) cell. Explore-only
+ * candidates — these have NOT cleared the V102 approval gate, so the UI offers
+ * "Request approval" (not "Deploy"). Same `.data` envelope as `/top-strategies`.
+ */
+export async function fetchBacktestLeaderboard(limit = 20): Promise<BacktestLeaderboardEntry[]> {
+  const { data } = await researchClient.get<BackendBacktestLeaderboardEntry[]>(`${BASE}/backtest`, {
+    params: { limit },
+  });
+  return data.map(mapBacktestEntry);
 }
