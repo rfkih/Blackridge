@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { formatDistanceToNow } from 'date-fns';
 import { ChevronDown, Rocket, Trophy } from 'lucide-react';
 import { StrategyBadge } from '@/components/trading/StrategyBadge';
 import { EmptyState } from '@/components/shared/EmptyState';
@@ -10,6 +11,10 @@ import type { LeaderboardEntry } from '@/types/leaderboard';
 
 interface TopStrategiesSectionProps {
   entries: LeaderboardEntry[];
+  /** Active approvals (survivorship denominator). */
+  approvedCount?: number;
+  /** Revoked approvals (the part the board doesn't show). */
+  revokedCount?: number;
   isLoading: boolean;
   isError: boolean;
   onRetry: () => void;
@@ -19,10 +24,23 @@ interface TopStrategiesSectionProps {
 }
 
 const VERDICT_ROBUST = 'ROBUST';
+/** forecast_reconciliation verdicts that warrant a drift badge (OK / INSUFFICIENT / NO_FORECAST don't). */
+const DRIFT_ALERTING = new Set(['WARN', 'CRITICAL']);
 
 function fmtPct(v: number | null, digits = 1): string {
   if (v == null) return '—';
   return `${v.toFixed(digits)}%`;
+}
+
+function fmtAsOf(iso: string | null): string | null {
+  if (!iso) return null;
+  // The server emits a zoneless LocalDateTime on the UTC clock. Without a zone,
+  // `new Date(iso)` parses as client-local — skewing "ago" by the client's offset.
+  // Pin it to UTC by appending 'Z' when no offset/zone is present.
+  const hasZone = /[zZ]|[+-]\d{2}:?\d{2}$/.test(iso);
+  const d = new Date(hasZone ? iso : `${iso}Z`);
+  if (Number.isNaN(d.getTime())) return null;
+  return `${formatDistanceToNow(d)} ago`;
 }
 
 function fmtNum(v: number | null, digits = 2): string {
@@ -39,6 +57,8 @@ function fmtParamValue(v: unknown): string {
 
 export function TopStrategiesSection({
   entries,
+  approvedCount,
+  revokedCount,
   isLoading,
   isError,
   onRetry,
@@ -83,8 +103,27 @@ export function TopStrategiesSection({
     );
   }
 
+  const asOf = fmtAsOf(entries[0]?.computedAt ?? null);
+  const denominator =
+    approvedCount != null
+      ? `top ${entries.length} of ${approvedCount} approved${revokedCount ? ` · ${revokedCount} revoked` : ''}`
+      : null;
+
   return (
     <div className="space-y-3">
+      <div className="flex items-center justify-between px-1">
+        <span className="font-mono text-[10px] uppercase tracking-[0.1em] text-[var(--text-muted)]">
+          Ranked by Conviction{denominator ? ` · ${denominator}` : ''}
+        </span>
+        {asOf && (
+          <span
+            className="font-mono text-[10px] text-[var(--text-muted)]"
+            title="When the leaderboard snapshot was last recomputed (server clock)"
+          >
+            as of {asOf}
+          </span>
+        )}
+      </div>
       {entries.map((entry) => (
         <LeaderboardRow
           key={`${entry.symbol}::${entry.strategyCode}::${entry.interval}`}
@@ -109,6 +148,15 @@ function LeaderboardRow({
   const [paramsOpen, setParamsOpen] = useState(false);
   const isRobust = entry.walkForwardVerdict === VERDICT_ROBUST;
   const paramEntries = Object.entries(entry.bestParams);
+  const hasDrift = entry.driftStatus != null && DRIFT_ALERTING.has(entry.driftStatus);
+  const hasCapacity = entry.capacityTier != null && entry.capacityTier !== 'UNKNOWN';
+  const capacityColor =
+    entry.capacityTier === 'REJECT'
+      ? 'var(--color-loss)'
+      : entry.capacityTier === 'CONCERN'
+        ? 'var(--text-secondary)'
+        : 'var(--color-profit)';
+  const isLive = (entry.nLive ?? 0) > 0;
 
   return (
     <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-4 shadow-panel transition-colors hover:border-[var(--border-default)]">
@@ -134,6 +182,23 @@ function LeaderboardRow({
             <span className="rounded bg-[var(--bg-elevated)] px-1.5 py-0.5 font-mono text-[11px] text-[var(--text-muted)]">
               {entry.interval}
             </span>
+            {isLive ? (
+              <span
+                className="rounded-full px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-[0.1em]"
+                style={{ color: 'var(--color-profit)', backgroundColor: 'rgba(22,179,100,0.12)' }}
+                title={`Production — real-capital live (${entry.nLive} closed trades pooled)`}
+              >
+                live
+              </span>
+            ) : (
+              <span
+                className="rounded-full px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-[0.1em] text-[var(--text-muted)]"
+                style={{ backgroundColor: 'var(--bg-elevated)' }}
+                title="Research graduate — no real-capital deployment yet"
+              >
+                research
+              </span>
+            )}
             <span
               className="rounded-full px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-[0.1em]"
               style={{
@@ -144,12 +209,42 @@ function LeaderboardRow({
             >
               {entry.walkForwardVerdict ?? 'NO WALK-FWD'}
             </span>
+            {hasDrift && (
+              <span
+                className="rounded-full px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-[0.1em]"
+                style={{ color: 'var(--color-loss)', backgroundColor: 'rgba(229,72,77,0.12)' }}
+                title="Live performance is drifting from the walk-forward forecast (advisory — not yet in the Conviction score)"
+              >
+                drift: {entry.driftStatus?.replace(/_/g, ' ')}
+              </span>
+            )}
+            {hasCapacity && (
+              <span
+                className="rounded-full px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-[0.1em]"
+                style={{ color: capacityColor, backgroundColor: 'var(--bg-elevated)' }}
+                title="Capacity-judge verdict — how much edge survives to deployable capital (advisory — not yet in the Conviction score)"
+              >
+                cap: {entry.capacityTier}
+              </span>
+            )}
+            {entry.nearSubstitute && (
+              <span
+                className="rounded-full px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-[0.1em]"
+                style={{ color: 'var(--color-loss)', backgroundColor: 'rgba(229,72,77,0.12)' }}
+                title={`Near-substitute — highly correlated with a strategy you already run${
+                  entry.corrToBook != null ? ` (r=${entry.corrToBook.toFixed(2)})` : ''
+                }`}
+              >
+                ≈ in book
+              </span>
+            )}
           </div>
 
-          <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 sm:grid-cols-5">
+          <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 sm:grid-cols-6">
+            <Metric label="DSR" value={fmtNum(entry.deflatedSharpe, 3)} tone="profit" />
             <Metric label="CAGR" value={fmtPct(entry.cagrPct)} tone="profit" />
             <Metric label="Max DD" value={fmtPct(entry.maxDrawdownPct)} tone="loss" />
-            <Metric label="PSR" value={fmtNum(entry.psr, 3)} />
+            <Metric label="Calmar" value={fmtNum(entry.calmar)} />
             <Metric label="Profit factor" value={fmtNum(entry.profitFactor)} />
             <Metric label="Trades" value={String(entry.trades)} />
           </div>
@@ -158,11 +253,14 @@ function LeaderboardRow({
         {/* Score + deploy */}
         <div className="flex shrink-0 flex-col items-end gap-2">
           <div className="text-right">
-            <div className="font-mono text-[10px] uppercase tracking-[0.1em] text-[var(--text-muted)]">
-              Score
+            <div
+              className="font-mono text-[10px] uppercase tracking-[0.1em] text-[var(--text-muted)]"
+              title="Conviction = EdgeLB × Robustness × Live × Capacity, in [0,1]. Deflated, OOS-anchored."
+            >
+              Conviction
             </div>
             <div className="font-mono text-xl font-bold tabular-nums text-[var(--text-primary)]">
-              {entry.score.toFixed(1)}
+              {entry.score.toFixed(2)}
             </div>
           </div>
           <button
