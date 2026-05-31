@@ -2482,8 +2482,18 @@ function RecentIterationsPanel() {
             const statTone = r.statistical_verdict
               ? (STAT_VERDICT_TONE[r.statistical_verdict] ?? 'muted')
               : 'muted';
-            const pf = (r.metrics_snapshot as { profit_factor?: number } | null)?.profit_factor;
-            const trades = (r.metrics_snapshot as { trade_count?: number } | null)?.trade_count;
+            type IterMetrics = {
+              profit_factor?: number;
+              trade_count?: number;
+              annualized_geometric_return_pct_at_alloc_90?: number;
+              capital_utilization_pct?: number;
+              deployed_days?: number;
+            };
+            const m = r.metrics_snapshot as IterMetrics | null;
+            const pf = m?.profit_factor;
+            const trades = m?.trade_count;
+            const annGeom = m?.annualized_geometric_return_pct_at_alloc_90 ?? null;
+            const utilPct = m?.capital_utilization_pct ?? null;
             return (
               <li
                 key={r.iteration_id}
@@ -2503,6 +2513,18 @@ function RecentIterationsPanel() {
                   <span className="font-mono text-text-muted">
                     PF {fmtNum(pf ?? null)} · n={trades ?? '—'}
                   </span>
+                  {annGeom != null && (
+                    <span
+                      className="font-mono"
+                      style={{ color: annGeom >= 10 ? 'var(--color-profit)' : annGeom >= 0 ? 'var(--text-secondary)' : 'var(--color-loss)' }}
+                      title={utilPct != null ? `Deployed ${utilPct.toFixed(1)}% of window` : undefined}
+                    >
+                      {annGeom >= 0 ? '+' : ''}{annGeom.toFixed(1)}%/yr
+                      {utilPct != null && (
+                        <span className="text-text-muted"> @{utilPct.toFixed(0)}%</span>
+                      )}
+                    </span>
+                  )}
                 </div>
                 {r.hypothesis_predicted && (
                   <div className="mt-1 truncate font-mono text-[10px] text-text-muted">
