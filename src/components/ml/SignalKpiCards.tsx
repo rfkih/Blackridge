@@ -13,6 +13,20 @@ function fmtRelative(ts: string | null): string {
     return '—';
   }
 }
+
+function fmtBarTime(ts: string | null): string {
+  if (!ts) return '';
+  try {
+    const d = new Date(ts);
+    const hh = d.getUTCHours().toString().padStart(2, '0');
+    const mm = d.getUTCMinutes().toString().padStart(2, '0');
+    const mo = (d.getUTCMonth() + 1).toString().padStart(2, '0');
+    const dd = d.getUTCDate().toString().padStart(2, '0');
+    return `${d.getUTCFullYear()}-${mo}-${dd} ${hh}:${mm} UTC`;
+  } catch {
+    return '';
+  }
+}
 function fmtRatio(v: number | null): string {
   if (v === null) return '—';
   return `${Math.round(v * 100)}%`;
@@ -46,10 +60,15 @@ export function SignalKpiCards({ status, health }: { status: SignalStatus; healt
         {health.healthReason && <p className="mt-2 text-xs text-zinc-500">{health.healthReason}</p>}
       </Card>
 
-      <Card label="Last fire">
+      <Card label="Last written">
         <p className="text-lg font-medium tabular-nums text-zinc-100">
-          {fmtRelative(health.lastFireTs)}
+          {fmtRelative(health.lastProducedAt)}
         </p>
+        {health.lastFireTs && (
+          <p className="mt-1 text-xs text-zinc-500">
+            candle: {fmtBarTime(health.lastFireTs)}
+          </p>
+        )}
         {health.expectedFireSeconds && (
           <p className="mt-1 text-xs text-zinc-500">
             Expected every {Math.round(health.expectedFireSeconds / 60)}m

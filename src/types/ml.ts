@@ -40,7 +40,8 @@ export interface MlMonitorRow {
   walkforwardAuc: number | null;
   coverage7dRatio: number | null;
   fires24h: number;
-  lastFireTs: string | null;
+  lastFireTs: string | null;        // bar (open-label) timestamp — how recent the signal's market data is
+  lastProducedAt: string | null;    // wall-clock write time — pipeline liveness ("last written")
 }
 
 export interface MlMonitorResponse {
@@ -73,7 +74,8 @@ export interface SignalListResponse {
 export interface SignalHealth {
   health: HealthVerdict;
   healthReason: string | null;
-  lastFireTs: string | null;
+  lastFireTs: string | null;        // bar open timestamp (candle time)
+  lastProducedAt: string | null;    // wall-clock time inference wrote the signal
   lastFireAgeSeconds: number | null;
   expectedFireSeconds: number | null;
   coverage7dRatio: number | null;

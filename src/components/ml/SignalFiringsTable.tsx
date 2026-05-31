@@ -86,7 +86,8 @@ export function SignalFiringsTable({ signalId }: { signalId: string }) {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Timestamp</TableHead>
+                <TableHead>Candle (bar open)</TableHead>
+                <TableHead>Written</TableHead>
                 <TableHead>Symbol</TableHead>
                 <TableHead className="text-right">Value</TableHead>
                 <TableHead className="text-right">Confidence</TableHead>
@@ -98,6 +99,9 @@ export function SignalFiringsTable({ signalId }: { signalId: string }) {
                 <TableRow key={`${f.ts}-${f.symbol}`} className="hover:bg-zinc-900/40">
                   <TableCell className="font-mono text-xs tabular-nums text-zinc-300">
                     {fmtTs(f.ts)}
+                  </TableCell>
+                  <TableCell className="font-mono text-xs tabular-nums text-zinc-400">
+                    {fmtTs(f.producedAt)}
                   </TableCell>
                   <TableCell className="font-mono text-xs text-zinc-300">{f.symbol}</TableCell>
                   <TableCell className="text-right font-mono tabular-nums text-zinc-100">
