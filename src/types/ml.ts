@@ -85,10 +85,43 @@ export interface SignalHealth {
   walkforwardAuc: number | null;
 }
 
+export interface WalkForwardSummary {
+  nFolds: number;
+  primaryMetric: string;
+  primaryMean: number;
+  primaryMedian: number;
+  primaryStd: number;
+}
+
+export interface ModelInfo {
+  algorithm: string;
+  objective: string;
+  predicts: string;
+  labelFeature: string;
+  trainStart: string | null;
+  trainEnd: string | null;
+  nTrainRows: number | null;
+  nValRows: number | null;
+  trainedAt: string | null;
+  features: string[];
+  featureImportance: Record<string, number>;
+  auc: number | null;
+  accuracy: number | null;
+  logLoss: number | null;
+  adversarialAuc: number | null;
+  walkForward: WalkForwardSummary | null;
+  gauntletVerdict: string | null;
+  gauntletGates: string[];
+  leakageVerdict: string | null;
+  leakageMaxPearson: number | null;
+  hyperparams: Record<string, unknown>;
+}
+
 export interface SignalDetail extends SignalRow {
   description: string | null;
   updatedAt: string;
   health: SignalHealth;
+  model: ModelInfo | null;
 }
 
 export interface FiringRow {
