@@ -15,10 +15,11 @@ import {
   ShieldAlert,
   ShieldCheck,
   Sparkles,
+  Wand2,
   X,
   XCircle,
 } from 'lucide-react';
-import { format, formatDistanceToNowStrict, parseISO, subDays, subYears } from 'date-fns';
+import { format, formatDistanceToNowStrict, subDays, subYears } from 'date-fns';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -84,6 +85,85 @@ function defaultDateRange(): { from: string; to: string } {
 
 function toIsoSeconds(v: string): string {
   return v.length === 16 ? `${v}:00` : v;
+}
+
+/** Current local time as a backend LocalDateTime ISO string (no trailing Z). */
+function nowLocalIso(): string {
+  return new Date().toISOString().slice(0, 19);
+}
+
+/** Bar duration in milliseconds for the intervals we support, or null if unknown. */
+function intervalToMs(interval: string): number | null {
+  const map: Record<string, number> = {
+    '1m': 60_000,
+    '5m': 5 * 60_000,
+    '15m': 15 * 60_000,
+    '1h': 60 * 60_000,
+    '4h': 4 * 60 * 60_000,
+    '1d': 24 * 60 * 60_000,
+  };
+  return map[interval] ?? null;
+}
+
+/**
+ * Builds the set of COVERAGE_REPAIR range jobs needed to fill every gap for a
+ * coverage row, plus a tail job when the latest bar is stale (older than ~one
+ * interval before now). Returns an empty list when nothing needs filling.
+ *
+ * The backend's range repair brute-fetches the whole [from,to] span from
+ * Binance, so we submit one job per gap rather than a single full-span job —
+ * that avoids re-pulling years of already-present candles. The only exception
+ * is when the gap list hits the backend's 100-gap cap: then we can't trust the
+ * list to be complete, so we fall back to a single full-span range job.
+ */
+function buildFillGapsJobs(
+  symbol: string,
+  interval: string,
+  coverage: CoverageReport,
+): SubmitJobRequest[] {
+  const md = coverage.marketData;
+  if (!md.earliest) return [];
+
+  const now = nowLocalIso();
+  const GAP_CAP = 100;
+
+  // Gap list is capped — assume it may be truncated and repair the full span.
+  if (md.gaps.length >= GAP_CAP) {
+    return [
+      {
+        jobType: 'COVERAGE_REPAIR',
+        symbol,
+        interval,
+        params: { mode: 'range', from: md.earliest, to: now },
+      },
+    ];
+  }
+
+  const jobs: SubmitJobRequest[] = md.gaps.map((g) => ({
+    jobType: 'COVERAGE_REPAIR',
+    symbol,
+    interval,
+    params: { mode: 'range', from: g.from, to: g.to },
+  }));
+
+  // Stale-tail job: fill from the last present bar up to now when the tail is
+  // older than ~one interval (i.e. the symbol isn't live-streaming fresh bars).
+  const barMs = intervalToMs(interval);
+  if (md.latest) {
+    const latestMs = new Date(`${md.latest}Z`).getTime();
+    const nowMs = Date.now();
+    const staleThreshold = barMs ?? 60 * 60_000;
+    if (Number.isFinite(latestMs) && nowMs - latestMs > staleThreshold) {
+      jobs.push({
+        jobType: 'COVERAGE_REPAIR',
+        symbol,
+        interval,
+        params: { mode: 'range', from: md.latest, to: now },
+      });
+    }
+  }
+
+  return jobs;
 }
 
 export default function AdminHistoricalPage() {
@@ -327,6 +407,45 @@ function HistoricalIntegrityConsole() {
     }
   };
 
+  const handleFillGaps = async () => {
+    if (!coverage.data) return;
+    const md = coverage.data.marketData;
+    if (!md.earliest) return;
+
+    const jobs = buildFillGapsJobs(symbol, interval, coverage.data);
+    if (jobs.length === 0) {
+      toast.success({
+        title: 'Coverage already complete',
+        description: `${symbol} · ${interval} — no gaps and the tail is fresh.`,
+      });
+      return;
+    }
+
+    const settled = await Promise.all(
+      jobs.map(async (req) => {
+        try {
+          const job = await submit.mutateAsync(req);
+          return { ok: true as const, jobId: job.jobId };
+        } catch (err) {
+          toast.error({
+            title: `Failed to submit gap fill for ${symbol} · ${interval}`,
+            description: normalizeError(err),
+          });
+          return { ok: false as const };
+        }
+      }),
+    );
+    const submittedIds: string[] = settled.flatMap((r) => (r.ok ? [r.jobId] : []));
+
+    if (submittedIds.length > 0) {
+      setActiveJobIds((prev) => [...prev, ...submittedIds]);
+      toast.success({
+        title: `Filling gaps for ${symbol} · ${interval}`,
+        description: `Submitted ${submittedIds.length} backfill job(s). Watch progress below.`,
+      });
+    }
+  };
+
   const handleInspect = () => {
     if (rangeError) return;
     setInspected(true);
@@ -372,7 +491,9 @@ function HistoricalIntegrityConsole() {
         isFetching={coverage.isFetching}
       />
 
-      {inspected && <CoverageCard query={coverage} />}
+      {inspected && (
+        <CoverageCard query={coverage} onFillGaps={handleFillGaps} isFilling={submit.isPending} />
+      )}
 
       {inspected && coverage.data && (
         <RepairActionsCard
@@ -557,9 +678,11 @@ function ScopeCard(props: ScopeCardProps) {
 
 interface CoverageCardProps {
   query: ReturnType<typeof useCoverageReport>;
+  onFillGaps: () => void;
+  isFilling: boolean;
 }
 
-function CoverageCard({ query }: CoverageCardProps) {
+function CoverageCard({ query, onFillGaps, isFilling }: CoverageCardProps) {
   if (query.isLoading) {
     return (
       <section className="rounded-xl border border-bd-subtle bg-bg-surface p-4">
@@ -581,6 +704,7 @@ function CoverageCard({ query }: CoverageCardProps) {
   if (!query.data) return null;
 
   const r = query.data;
+  const hasData = r.marketData.earliest != null;
   return (
     <section className="overflow-hidden rounded-xl border border-bd-subtle bg-bg-surface">
       <header className="flex items-center justify-between border-b border-bd-subtle px-4 py-3">
@@ -602,16 +726,36 @@ function CoverageCard({ query }: CoverageCardProps) {
             </p>
           </div>
         </div>
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={() => query.refetch()}
-          disabled={query.isFetching}
-          className="gap-1.5"
-        >
-          {query.isFetching ? <Loader2 size={12} className="animate-spin" /> : <Search size={12} />}
-          Re-inspect
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            size="sm"
+            onClick={onFillGaps}
+            disabled={!hasData || isFilling || query.isFetching}
+            className="gap-1.5"
+            title={
+              hasData
+                ? 'Backfills every missing candle from the first bar to now (idempotent).'
+                : 'No market_data for this pair yet — use "Add candle range" first.'
+            }
+          >
+            {isFilling ? <Loader2 size={12} className="animate-spin" /> : <Wand2 size={12} />}
+            Fill gaps
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => query.refetch()}
+            disabled={query.isFetching}
+            className="gap-1.5"
+          >
+            {query.isFetching ? (
+              <Loader2 size={12} className="animate-spin" />
+            ) : (
+              <Search size={12} />
+            )}
+            Re-inspect
+          </Button>
+        </div>
       </header>
 
       <div className="grid gap-4 p-4 lg:grid-cols-2">
