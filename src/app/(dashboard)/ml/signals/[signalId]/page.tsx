@@ -6,6 +6,7 @@ import { ArrowLeft } from 'lucide-react';
 import { useSignal } from '@/lib/api/ml';
 import { Skeleton } from '@/components/ui/skeleton';
 import { SignalKpiCards } from '@/components/ml/SignalKpiCards';
+import { SignalStalenessWarning } from '@/components/ml/SignalStalenessWarning';
 import { SignalTimelineChart } from '@/components/ml/SignalTimelineChart';
 import { SignalFiringsTable } from '@/components/ml/SignalFiringsTable';
 import { SignalStatusPill } from '@/components/ml/SignalStatusPill';
@@ -67,6 +68,7 @@ export default function SignalDetailPage() {
         )}
       </header>
 
+      <SignalStalenessWarning health={data.health} />
       <SignalKpiCards status={data.status} health={data.health} />
 
       <SignalTimelineChart signalId={data.signalId} />

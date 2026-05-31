@@ -78,6 +78,7 @@ export interface SignalHealth {
   lastProducedAt: string | null;    // wall-clock time inference wrote the signal
   lastFireAgeSeconds: number | null;
   expectedFireSeconds: number | null;
+  featureAgeHours: number | null;   // how old the latest feature_values row is
   coverage7dRatio: number | null;
   fires24h: number;
   fires7d: number;
