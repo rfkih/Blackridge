@@ -1,7 +1,7 @@
 import { apiClient } from './client';
 import { toNum, toNumOrNull } from './coerce';
 import { mapAccountStrategy } from './strategies';
-import type { DeployStrategyPayload, LeaderboardEntry } from '@/types/leaderboard';
+import type { DeployStrategyPayload, LeaderboardEntry, LeaderboardPage } from '@/types/leaderboard';
 import type { AccountStrategy } from '@/types/strategy';
 import type { BackendAccountStrategy } from '@/types/api';
 
@@ -25,11 +25,27 @@ interface BackendLeaderboardEntry {
   cagrPct: number | string | null;
   maxDrawdownPct: number | string | null;
   psr: number | string | null;
+  deflatedSharpe: number | string | null;
   profitFactor: number | string | null;
+  sortino: number | string | null;
+  calmar: number | string | null;
   trades: number | null;
+  nLive: number | null;
   walkForwardVerdict: string | null;
+  driftStatus: string | null;
+  capacityTier: string | null;
   score: number | string | null;
+  computedAt: string | null;
+  corrToBook: number | string | null;
+  nearSubstitute: boolean | null;
   bestParams: Record<string, unknown> | null;
+}
+
+/** Wire shape of the leaderboard page wrapper. */
+interface BackendLeaderboardPage {
+  entries: BackendLeaderboardEntry[];
+  approvedCount: number | null;
+  revokedCount: number | null;
 }
 
 function mapEntry(e: BackendLeaderboardEntry): LeaderboardEntry {
@@ -41,19 +57,36 @@ function mapEntry(e: BackendLeaderboardEntry): LeaderboardEntry {
     cagrPct: toNum(e.cagrPct),
     maxDrawdownPct: toNumOrNull(e.maxDrawdownPct),
     psr: toNumOrNull(e.psr),
+    deflatedSharpe: toNumOrNull(e.deflatedSharpe),
     profitFactor: toNumOrNull(e.profitFactor),
+    sortino: toNumOrNull(e.sortino),
+    calmar: toNumOrNull(e.calmar),
     trades: e.trades ?? 0,
+    nLive: e.nLive ?? null,
     walkForwardVerdict: e.walkForwardVerdict,
+    driftStatus: e.driftStatus,
+    capacityTier: e.capacityTier,
     score: toNum(e.score),
+    computedAt: e.computedAt,
+    corrToBook: toNumOrNull(e.corrToBook),
+    nearSubstitute: e.nearSubstitute ?? false,
     bestParams: e.bestParams ?? {},
   };
 }
 
-export async function getTopStrategies(limit = 10): Promise<LeaderboardEntry[]> {
-  const { data } = await apiClient.get<BackendLeaderboardEntry[]>(`${BASE}/top-strategies`, {
-    params: { limit },
+/**
+ * Ranked leaderboard page. When `accountId` is supplied the server annotates each
+ * entry with correlation-to-book (informational; it never changes the rank).
+ */
+export async function getTopStrategies(limit = 10, accountId?: string): Promise<LeaderboardPage> {
+  const { data } = await apiClient.get<BackendLeaderboardPage>(`${BASE}/top-strategies`, {
+    params: accountId ? { limit, accountId } : { limit },
   });
-  return data.map(mapEntry);
+  return {
+    entries: (data.entries ?? []).map(mapEntry),
+    approvedCount: data.approvedCount ?? 0,
+    revokedCount: data.revokedCount ?? 0,
+  };
 }
 
 /**
