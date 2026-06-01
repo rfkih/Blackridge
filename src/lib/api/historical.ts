@@ -40,6 +40,17 @@ export interface CoverageSanity {
   duplicateStartTime: number;
 }
 
+export interface MicrostructureCoverage {
+  /** feature_name → row count in feature_values for (symbol, interval, [from,to]). */
+  ofiRowsByFeature: Record<string, number>;
+  /** Total rows in orderbook_snapshots for (symbol, interval, [from,to]). */
+  obSnapshotsActual: number;
+  /** Number of bar-level gaps in orderbook_snapshots (bars missing between two existing rows). */
+  obSnapshotsGapCount: number;
+  obSnapshotsEarliest: string | null;
+  obSnapshotsLatest: string | null;
+}
+
 export interface CoverageReport {
   symbol: string;
   interval: string;
@@ -51,6 +62,7 @@ export interface CoverageReport {
   /** Map of column_name → null_row_count. Only non-zero columns are included. */
   nullColumns: Record<string, number>;
   sanity: CoverageSanity;
+  microstructure: MicrostructureCoverage;
 }
 
 export async function getCoverageReport(
@@ -84,7 +96,8 @@ export type JobType =
   | 'COVERAGE_REPAIR'
   | 'PATCH_NULL_COLUMN'
   | 'RECOMPUTE_RANGE'
-  | 'BACKFILL_FUNDING_HISTORY';
+  | 'BACKFILL_FUNDING_HISTORY'
+  | 'BACKFILL_OFI_FEATURES';
 
 export type JobStatus = 'PENDING' | 'RUNNING' | 'SUCCESS' | 'FAILED' | 'CANCELLED';
 

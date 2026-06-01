@@ -10,6 +10,7 @@ import {
   Clock,
   Database,
   History,
+  Info,
   Loader2,
   Search,
   ShieldAlert,
@@ -61,7 +62,13 @@ import {
 } from '@/lib/api/historical';
 import { SUPPORTED_SYMBOLS, DEFAULT_SYMBOL } from '@/lib/symbols';
 
-type ActionKey = 'warmup' | 'rangeFill' | 'recompute' | 'fundingHistory' | `patch:${string}`;
+type ActionKey =
+  | 'warmup'
+  | 'rangeFill'
+  | 'recompute'
+  | 'fundingHistory'
+  | 'backfillOfi'
+  | `patch:${string}`;
 
 interface SelectableAction {
   key: ActionKey;
@@ -286,6 +293,29 @@ function HistoricalIntegrityConsole() {
     });
 
     {
+      // Only flag missing OFI rows when market_data actually has candles —
+      // zero OFI on an empty range is expected, not a backfill gap.
+      const hasCandles = report.marketData.actual > 0;
+      const ofiMissing =
+        hasCandles &&
+        !!report.microstructure &&
+        Object.values(report.microstructure.ofiRowsByFeature).some((v) => v === 0);
+      const reason = useFullRange
+        ? 'Disable "Use full available range" and pick from/to to enable.'
+        : !hasCandles
+          ? 'No market_data candles in range — run COVERAGE_REPAIR first.'
+          : undefined;
+      actions.push({
+        key: 'backfillOfi',
+        label: `Backfill OFI features in range${ofiMissing ? ' (missing rows detected)' : ''}`,
+        description:
+          'Recompute ofi_ratio, ofi_zscore_24h, ofi_momentum_8h, cvd_proxy_zscore_24h from market_data and upsert into feature_values.',
+        disabled: !!reason,
+        disabledReason: reason,
+      });
+    }
+
+    {
       const conflict = fsConflictReason('recompute');
       const reason =
         conflict ??
@@ -363,6 +393,14 @@ function HistoricalIntegrityConsole() {
         jobType: 'BACKFILL_FUNDING_HISTORY',
         symbol,
         params: {},
+      });
+    }
+    if (selected.has('backfillOfi') && fromIso && toIso) {
+      jobs.push({
+        jobType: 'BACKFILL_OFI_FEATURES',
+        symbol,
+        interval,
+        params: { from: fromIso, to: toIso },
       });
     }
     selected.forEach((k) => {
@@ -763,6 +801,7 @@ function CoverageCard({ query, onFillGaps, isFilling }: CoverageCardProps) {
         <CoverageBlockFeatureStore report={r} />
         <CoverageBlockNullColumns report={r} />
         <CoverageBlockSanity report={r} />
+        {r.microstructure && <CoverageBlockMicrostructure report={r} />}
       </div>
     </section>
   );
@@ -897,6 +936,88 @@ function CoverageBlockSanity({ report }: { report: CoverageReport }) {
           <CheckCircle2 size={11} /> Clean.
         </p>
       )}
+    </div>
+  );
+}
+
+function CoverageBlockMicrostructure({ report }: { report: CoverageReport }) {
+  const ms = report.microstructure;
+  // Drive OFI rows from the backend's returned keyset — never a hardcoded
+  // frontend list that can fall out of sync with OFI_FEATURE_NAMES in Java.
+  const ofiEntries = Object.entries(ms.ofiRowsByFeature);
+  // Only flag missing rows when there are actual candles; zero OFI on an
+  // empty range is expected, not a data gap.
+  const anyOfiMissing =
+    report.marketData.actual > 0 && ofiEntries.some(([, v]) => v === 0);
+
+  return (
+    <div className="rounded-md border border-bd-subtle p-3 lg:col-span-2">
+      <h3 className="mb-3 font-display text-[12px] font-semibold text-text-primary">
+        Market microstructure
+      </h3>
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        {/* OFI features (feature_values) */}
+        <div>
+          <p className="mb-2 text-[11px] font-medium text-text-secondary">
+            OFI features — feature_values
+          </p>
+          <dl className="space-y-1.5 text-[12px]">
+            {ofiEntries.map(([name, count]) => (
+              <Row
+                key={name}
+                label={name}
+                value={count.toLocaleString()}
+                tone={count === 0 && report.marketData.actual > 0 ? 'warn' : count > 0 ? 'ok' : undefined}
+                mono
+              />
+            ))}
+          </dl>
+          {anyOfiMissing ? (
+            <p className="mt-2 inline-flex items-center gap-1.5 text-[11px] text-[var(--color-warning)]">
+              <AlertTriangle size={11} /> One or more OFI features have no rows in this range. Use
+              &ldquo;Backfill OFI features&rdquo; to fill.
+            </p>
+          ) : (
+            <p className="mt-2 inline-flex items-center gap-1.5 text-[11px] text-[var(--color-profit)]">
+              <CheckCircle2 size={11} /> All OFI features populated.
+            </p>
+          )}
+        </div>
+
+        {/* Order book snapshots */}
+        <div>
+          <p className="mb-2 text-[11px] font-medium text-text-secondary">
+            Order book snapshots — orderbook_snapshots
+          </p>
+          <dl className="space-y-1.5 text-[12px]">
+            <Row
+              label="Rows"
+              value={ms.obSnapshotsActual.toLocaleString()}
+              tone={ms.obSnapshotsActual === 0 ? 'warn' : 'ok'}
+            />
+            <Row
+              label="Gaps"
+              value={`${ms.obSnapshotsGapCount}`}
+              tone={ms.obSnapshotsGapCount > 0 ? 'warn' : 'ok'}
+            />
+            <Row
+              label="Earliest"
+              value={ms.obSnapshotsEarliest?.replace('T', ' ').slice(0, 19) ?? '—'}
+              mono
+            />
+            <Row
+              label="Latest"
+              value={ms.obSnapshotsLatest?.replace('T', ' ').slice(0, 19) ?? '—'}
+              mono
+            />
+          </dl>
+          <p className="mt-2 inline-flex items-center gap-1.5 text-[11px] text-text-muted">
+            <Info size={11} /> OB snapshots are live-only — Binance does not provide historical
+            L2 data. Gaps can only be closed by live streaming.
+          </p>
+        </div>
+      </div>
     </div>
   );
 }
