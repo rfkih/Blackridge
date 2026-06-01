@@ -20,6 +20,7 @@ import {
   type ApprovalTarget,
 } from '@/components/leaderboard/RequestApprovalDialog';
 import { getPaper } from '@/lib/api/researchPapers';
+import { toNumOrNull } from '@/lib/api/coerce';
 import { normalizeError } from '@/lib/api/client';
 import { toast } from '@/hooks/useToast';
 import type { BestIteration, PaperRow } from '@/types/papers';
@@ -47,14 +48,20 @@ export function paperCodeFromId(paperId: string): string | null {
   return code && /^[A-Za-z0-9_]+$/.test(code) ? code.toUpperCase() : null;
 }
 
-function fmtPct(v: number | null, digits = 1): string {
-  if (v == null) return '—';
-  return `${v.toFixed(digits)}%`;
+// PaperRow metric fields are TYPED number|null but arrive as strings off the
+// orchestrator (Postgres NUMERIC → JSON string), so coerce before toFixed —
+// otherwise "12.34".toFixed crashes the render (the working PaperCard does the
+// same Number() coercion). Accept number|string|null and run through toNumOrNull.
+function fmtPct(v: number | string | null | undefined, digits = 1): string {
+  const n = toNumOrNull(v);
+  if (n == null) return '—';
+  return `${n.toFixed(digits)}%`;
 }
 
-function fmtNum(v: number | null, digits = 2): string {
-  if (v == null) return '—';
-  return v.toFixed(digits);
+function fmtNum(v: number | string | null | undefined, digits = 2): string {
+  const n = toNumOrNull(v);
+  if (n == null) return '—';
+  return n.toFixed(digits);
 }
 
 function isBestIteration(v: BestIteration | Record<string, never>): v is BestIteration {
