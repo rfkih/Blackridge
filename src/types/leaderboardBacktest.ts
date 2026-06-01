@@ -33,3 +33,16 @@ export interface BacktestLeaderboardEntry {
   /** Winning parameter map for this run. Display only (no deploy on this tab). */
   bestParams: Record<string, unknown>;
 }
+
+/**
+ * Backtest leaderboard page — ranked rows plus the survivorship denominator.
+ * `qualifyingCells` is the total number of (symbol × interval × strategy) cells
+ * that pass the floors (≥100 trades, ≥2y data window, non-null DSR); `shown` is
+ * how many are in `entries`. The UI surfaces "top {shown} of {qualifyingCells}"
+ * so a rank-1 row can't pose as best-of-everything when it's best-of-two.
+ */
+export interface BacktestLeaderboardPage {
+  entries: BacktestLeaderboardEntry[];
+  qualifyingCells: number;
+  shown: number;
+}

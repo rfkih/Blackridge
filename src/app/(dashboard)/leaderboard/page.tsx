@@ -99,7 +99,9 @@ export default function LeaderboardPage() {
 
         <TabsContent value="backtest" className="mt-4">
           <BacktestLeaderboardSection
-            entries={backtest.data ?? []}
+            entries={backtest.data?.entries ?? []}
+            qualifyingCells={backtest.data?.qualifyingCells ?? 0}
+            shown={backtest.data?.shown ?? 0}
             isLoading={backtest.isLoading}
             isError={backtest.isError}
             onRetry={backtest.refetch}

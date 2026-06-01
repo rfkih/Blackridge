@@ -2,7 +2,10 @@ import { apiClient, researchClient } from './client';
 import { toNum, toNumOrNull } from './coerce';
 import { mapAccountStrategy } from './strategies';
 import type { DeployStrategyPayload, LeaderboardEntry } from '@/types/leaderboard';
-import type { BacktestLeaderboardEntry } from '@/types/leaderboardBacktest';
+import type {
+  BacktestLeaderboardEntry,
+  BacktestLeaderboardPage,
+} from '@/types/leaderboardBacktest';
 import type { AccountStrategy } from '@/types/strategy';
 import type { BackendAccountStrategy } from '@/types/api';
 
@@ -143,14 +146,29 @@ function mapBacktestEntry(e: BackendBacktestLeaderboardEntry): BacktestLeaderboa
   };
 }
 
+/** Wire page for the Backtest tab — rows plus the survivorship denominator. */
+interface BackendBacktestPage {
+  entries: BackendBacktestLeaderboardEntry[] | null;
+  qualifyingCells: number | null;
+  shown: number | null;
+}
+
 /**
- * Best backtest run per (symbol, strategy, interval) cell. Explore-only
- * candidates — these have NOT cleared the V102 approval gate, so the UI offers
- * "Request approval" (not "Deploy"). Same `.data` envelope as `/top-strategies`.
+ * Recency-selected best run per (symbol, strategy, interval) cell, ordered for
+ * display by deflated Sharpe (≥100 trades, ≥2y data window, non-null DSR).
+ * Explore-only candidates — NOT V102-approved, so the UI offers "Request
+ * approval" (not "Deploy"). Returns the rows plus the qualifying-cell count so
+ * the UI can show the survivorship denominator. Same `.data` envelope unwrap as
+ * `/top-strategies`.
  */
-export async function fetchBacktestLeaderboard(limit = 20): Promise<BacktestLeaderboardEntry[]> {
-  const { data } = await researchClient.get<BackendBacktestLeaderboardEntry[]>(`${BASE}/backtest`, {
+export async function fetchBacktestLeaderboard(limit = 20): Promise<BacktestLeaderboardPage> {
+  const { data } = await researchClient.get<BackendBacktestPage>(`${BASE}/backtest`, {
     params: { limit },
   });
-  return data.map(mapBacktestEntry);
+  const entries = (data.entries ?? []).map(mapBacktestEntry);
+  return {
+    entries,
+    qualifyingCells: data.qualifyingCells ?? entries.length,
+    shown: data.shown ?? entries.length,
+  };
 }
