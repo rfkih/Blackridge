@@ -162,6 +162,14 @@ function BacktestRow({
               {entry.interval || '—'}
             </span>
             <VerdictBadge verdict={entry.walkForwardVerdict} />
+            {entry.runCreatedAt && (
+              <span
+                className="font-mono text-[10px] text-[var(--text-muted)]"
+                title="When this run was created. It's the most-recent run in its cell with a scored DSR — a newer unscored run may exist."
+              >
+                run {entry.runCreatedAt.replace('T', ' ').slice(0, 16)}
+              </span>
+            )}
           </div>
 
           <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 sm:grid-cols-4 lg:grid-cols-8">

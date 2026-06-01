@@ -29,6 +29,9 @@ export interface BacktestLeaderboardEntry {
   dataEnd: string | null;
   /** Calendar span of the backtest window, in days. */
   spanDays: number;
+  /** When this representative run was created (ISO, server clock); the most-recent
+   *  non-null-DSR run in its cell. Lets the UI show "as of" + flag stale rows. */
+  runCreatedAt: string | null;
   walkForwardVerdict: string | null;
   /** Winning parameter map for this run. Display only (no deploy on this tab). */
   bestParams: Record<string, unknown>;

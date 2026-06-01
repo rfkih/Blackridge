@@ -118,6 +118,7 @@ interface BackendBacktestLeaderboardEntry {
   dataStart: string | null;
   dataEnd: string | null;
   spanDays: number | string | null;
+  runCreatedAt: string | null;
   walkForwardVerdict: string | null;
   bestParams: Record<string, unknown> | null;
 }
@@ -141,6 +142,7 @@ function mapBacktestEntry(e: BackendBacktestLeaderboardEntry): BacktestLeaderboa
     dataStart: e.dataStart,
     dataEnd: e.dataEnd,
     spanDays: toNum(e.spanDays),
+    runCreatedAt: e.runCreatedAt,
     walkForwardVerdict: e.walkForwardVerdict,
     bestParams: e.bestParams ?? {},
   };
