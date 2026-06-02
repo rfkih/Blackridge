@@ -6,6 +6,7 @@ import { BookOpen, ChevronRight, Loader2 } from 'lucide-react';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { PaperCard } from '@/components/research/papers/PaperCard';
 import { listPapers, type PaperSortBy } from '@/lib/api/researchPapers';
+import { useIsAdmin } from '@/hooks/useIsAdmin';
 import { Skeleton } from '@/components/ui/skeleton';
 import { SUPPORTED_SYMBOLS } from '@/lib/symbols';
 import type { PaperPage, PaperStatus } from '@/types/papers';
@@ -22,6 +23,10 @@ const SORT_OPTIONS: SortOption[] = [
 ];
 
 export default function ResearchPapersPage() {
+  // Regular users only ever see FINALIZED ("completed") papers — the orchestrator
+  // forces that server-side regardless of this filter. In-progress (WORKING_PAPER)
+  // drafts are admin-only, so the status filter is shown to admins only.
+  const isAdmin = useIsAdmin();
   const [statusFilter, setStatusFilter] = useState<PaperStatus | ''>('');
   const [strategyCode, setStrategyCode] = useState('');
   const [debouncedStrategyCode, setDebouncedStrategyCode] = useState('');
@@ -98,15 +103,17 @@ export default function ResearchPapersPage() {
 
         <div className="h-4 w-px bg-bd-subtle" />
 
-        <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value as PaperStatus | '')}
-          className="rounded-sm border border-bd-subtle bg-bg-base px-2.5 py-1.5 font-mono text-[11px] text-text-primary focus:border-[var(--accent-primary)] focus:outline-none"
-        >
-          <option value="">All statuses</option>
-          <option value="WORKING_PAPER">Working paper</option>
-          <option value="FINALIZED">Finalized</option>
-        </select>
+        {isAdmin && (
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value as PaperStatus | '')}
+            className="rounded-sm border border-bd-subtle bg-bg-base px-2.5 py-1.5 font-mono text-[11px] text-text-primary focus:border-[var(--accent-primary)] focus:outline-none"
+          >
+            <option value="">All statuses</option>
+            <option value="WORKING_PAPER">Working paper</option>
+            <option value="FINALIZED">Finalized</option>
+          </select>
+        )}
 
         <input
           type="text"
