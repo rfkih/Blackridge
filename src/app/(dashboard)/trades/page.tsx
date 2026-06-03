@@ -23,7 +23,8 @@ import { PnlCell } from '@/components/shared/PnlCell';
 import { StrategyBadge } from '@/components/trading/StrategyBadge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { DatePicker } from '@/components/ui/date-picker';
-import { useTradesList } from '@/hooks/useTrades';
+import { useTradesList, useTradeStats } from '@/hooks/useTrades';
+import type { TradesPageFilters } from '@/lib/api/trades';
 import { useStrategies } from '@/hooks/useStrategies';
 import { useActiveAccount } from '@/hooks/useAccounts';
 import { usePositionStore } from '@/store/positionStore';
@@ -129,6 +130,20 @@ function TradesPageContent() {
     page: filters.page,
     size: filters.size,
   });
+
+  // Hero-strip stats are scoped to the same filters as the list (minus
+  // pagination) and aggregated server-side over every matching trade.
+  const statsFilters = useMemo<Omit<TradesPageFilters, 'page' | 'size'>>(
+    () => ({
+      status: filters.status,
+      strategyCode: filters.strategyCode || undefined,
+      symbol: filters.symbol || undefined,
+      from: filters.from,
+      to: filters.to,
+      accountId: scopedAccountId,
+    }),
+    [filters.status, filters.strategyCode, filters.symbol, filters.from, filters.to, scopedAccountId],
+  );
 
   const openSlice = useMemo(
     () => (tradesQuery.data?.content ?? []).filter((t) => t.status === 'OPEN'),
@@ -334,7 +349,7 @@ function TradesPageContent() {
       </section>
 
       {}
-      <JournalStatsStrip trades={tradesQuery.data?.content ?? []} />
+      <JournalStatsStrip statsFilters={statsFilters} pageTrades={tradesQuery.data?.content ?? []} />
 
       {}
       <section className="mm-card" style={{ padding: '12px 16px' }}>
@@ -652,11 +667,30 @@ function computeJournalStats(trades: Trades[]): JournalStats {
   };
 }
 
-function JournalStatsStrip({ trades }: { trades: Trades[] }) {
-  const stats = useMemo(() => computeJournalStats(trades), [trades]);
+function JournalStatsStrip({
+  statsFilters,
+  pageTrades,
+}: {
+  statsFilters: Omit<TradesPageFilters, 'page' | 'size'>;
+  pageTrades: Trades[];
+}) {
+  const statsQuery = useTradeStats(statsFilters);
   const formatCurrency = useCurrencyFormatter();
-  const cumFmt = formatCurrency(stats.cumulativePnl, { withSign: true });
-  const cumUp = stats.cumulativePnl >= 0;
+
+  // Headline figures are authoritative server-side totals over the FULL
+  // filtered set (all pages). The sparkline is a lightweight visual sketch of
+  // the currently-loaded page only — it needs per-trade ordering we don't
+  // round-trip, and it is decorative, not an authoritative number.
+  const data = statsQuery.data;
+  const cumulativePnl = data?.cumulativePnl ?? 0;
+  const winRate = data?.winRate ?? null;
+  const profitFactor = data?.profitFactor ?? null;
+  const avgWin = data?.avgWin ?? null;
+  const avgLoss = data?.avgLoss ?? null;
+  const cumSeries = useMemo(() => computeJournalStats(pageTrades).cumSeries, [pageTrades]);
+
+  const cumFmt = formatCurrency(cumulativePnl, { withSign: true });
+  const cumUp = cumulativePnl >= 0;
 
   return (
     <section className="grid gap-3.5" style={{ gridTemplateColumns: '1.6fr 1fr 1fr 1fr 1fr' }}>
@@ -677,7 +711,7 @@ function JournalStatsStrip({ trades }: { trades: Trades[] }) {
         </div>
         <div style={{ marginTop: 8 }}>
           <StatsSparkline
-            values={stats.cumSeries}
+            values={cumSeries}
             color={cumUp ? 'var(--mm-up)' : 'var(--mm-dn)'}
           />
         </div>
@@ -685,21 +719,21 @@ function JournalStatsStrip({ trades }: { trades: Trades[] }) {
 
       <StatCard
         label="WIN RATE"
-        value={stats.winRate != null ? `${(stats.winRate * 100).toFixed(1)}%` : '—'}
+        value={winRate != null ? `${(winRate * 100).toFixed(1)}%` : '—'}
       />
       <StatCard
         label="PROFIT FACTOR"
-        value={stats.profitFactor != null ? stats.profitFactor.toFixed(2) : '—'}
+        value={profitFactor != null ? profitFactor.toFixed(2) : '—'}
         color="var(--brand-500)"
       />
       <StatCard
         label="AVG WINNER"
-        value={stats.avgWin != null ? formatCurrency(stats.avgWin, { withSign: true }) : '—'}
+        value={avgWin != null ? formatCurrency(avgWin, { withSign: true }) : '—'}
         color="var(--mm-up)"
       />
       <StatCard
         label="AVG LOSER"
-        value={stats.avgLoss != null ? formatCurrency(stats.avgLoss, { withSign: true }) : '—'}
+        value={avgLoss != null ? formatCurrency(avgLoss, { withSign: true }) : '—'}
         color="var(--mm-dn)"
       />
     </section>
