@@ -113,11 +113,11 @@ export function usePnlSummary(period: 'today' | 'week' | 'month' = 'today') {
   });
 }
 
-export function useDailyPnl(from: string, to: string, strategyCode?: string) {
+export function useDailyPnl(from: string, to: string, strategyCode?: string, symbol?: string) {
   const enabled = Boolean(from) && Boolean(to);
   return useQuery({
-    queryKey: ['pnl', 'daily', from, to, strategyCode ?? null],
-    queryFn: () => getDailyPnl(from, to, strategyCode),
+    queryKey: ['pnl', 'daily', from, to, strategyCode ?? null, symbol ?? null],
+    queryFn: () => getDailyPnl(from, to, strategyCode, symbol),
     enabled,
     staleTime: QUERY_STALE_TIMES.pnlSummary,
   });

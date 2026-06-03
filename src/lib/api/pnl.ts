@@ -61,9 +61,11 @@ export async function getDailyPnl(
   from: string,
   to: string,
   strategyCode?: string,
+  symbol?: string,
 ): Promise<DailyPnl[]> {
   const params: Record<string, string | number | boolean> = { from, to };
   addOptionalParam(params, 'strategyCode', strategyCode);
+  addOptionalParam(params, 'symbol', symbol);
   const { data } = await apiClient.get<BackendDailyPnl[]>('/api/v1/pnl/daily', { params });
   return (data ?? [])
     .map((d) => ({

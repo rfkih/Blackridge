@@ -87,13 +87,17 @@ function PnlPageContent() {
     [router, searchParams],
   );
 
-  const dailyQ = useDailyPnl(filters.from, filters.to, filters.strategyCode || undefined);
+  const dailyQ = useDailyPnl(
+    filters.from,
+    filters.to,
+    filters.strategyCode || undefined,
+    filters.symbol || undefined,
+  );
   const byStratQ = usePnlByStrategy(filters.from, filters.to);
 
-  const dailySeries = useMemo(
-    () => filterBySymbol(dailyQ.data, filters.symbol),
-    [dailyQ.data, filters.symbol],
-  );
+  // Symbol scoping is applied server-side by /api/v1/pnl/daily (the symbol
+  // query param above) — never re-filter the daily aggregate client-side.
+  const dailySeries = useMemo(() => dailyQ.data ?? [], [dailyQ.data]);
 
   const stats = useMemo(() => computeStats(dailySeries), [dailySeries]);
 
@@ -486,13 +490,6 @@ function StrategyTable({ rows }: { rows: StrategyPnl[] }) {
       </table>
     </div>
   );
-}
-
-function filterBySymbol(data: DailyPnl[] | undefined, symbol: string): DailyPnl[] {
-  if (!data) return [];
-  if (!symbol) return data;
-
-  return data;
 }
 
 function ChartError({ onRetry }: { onRetry: () => void }) {
