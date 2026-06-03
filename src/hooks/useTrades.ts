@@ -8,6 +8,7 @@ import {
   getTradeAttribution,
   getTradeById,
   getTradesPage,
+  getTradeStats,
   type TradesPageFilters,
 } from '@/lib/api/trades';
 import { getDailyPnl, getPnlByStrategy, getPnlSummary } from '@/lib/api/pnl';
@@ -60,6 +61,30 @@ export function useTradesList(filters: TradesPageFilters) {
     queryFn: () => getTradesPage(filters),
     staleTime: QUERY_STALE_TIMES.closedTrades,
 
+    placeholderData: (prev) => prev,
+  });
+}
+
+/**
+ * Aggregate journal stats over the FULL filtered trade set (all pages),
+ * computed server-side. Scoped to the same filters as the list minus
+ * pagination, so the hero strip shows authoritative totals — never per-page
+ * client math.
+ */
+export function useTradeStats(filters: Omit<TradesPageFilters, 'page' | 'size'>) {
+  return useQuery({
+    queryKey: [
+      'trades',
+      'stats',
+      filters.status ?? 'ALL',
+      filters.strategyCode ?? null,
+      filters.symbol ?? null,
+      filters.from ?? null,
+      filters.to ?? null,
+      filters.accountId ?? null,
+    ],
+    queryFn: () => getTradeStats(filters),
+    staleTime: QUERY_STALE_TIMES.closedTrades,
     placeholderData: (prev) => prev,
   });
 }

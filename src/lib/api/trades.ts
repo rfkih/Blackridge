@@ -181,6 +181,35 @@ export interface TradesPage {
 }
 
 /**
+ * Server-side aggregate journal stats over the FULL filtered trade set (all
+ * pages, closed trades only) — authoritative totals for the hero strip. The
+ * previous per-page client-side computation showed wrong dollar figures.
+ * `winRate` is a fraction in [0,1]; profitFactor/avgWin/avgLoss are null when
+ * undefined.
+ */
+export interface TradeStats {
+  cumulativePnl: number;
+  winRate: number | null;
+  profitFactor: number | null;
+  avgWin: number | null;
+  avgLoss: number | null;
+  tradeCount: number;
+  winCount: number;
+  lossCount: number;
+}
+
+interface BackendTradeStats {
+  cumulativePnl?: number | string | null;
+  winRate?: number | string | null;
+  profitFactor?: number | string | null;
+  avgWin?: number | string | null;
+  avgLoss?: number | string | null;
+  tradeCount?: number | null;
+  winCount?: number | null;
+  lossCount?: number | null;
+}
+
+/**
  * Paginated trades list. Mirrors `GET /api/v1/trades?status=&strategyCode=&
  * symbol=&from=&to=&page=&size=`. The backend may emit either a bare array or
  * the Spring Page envelope depending on filter shape — extractList handles
@@ -217,6 +246,35 @@ export async function getTradesPage(filters: TradesPageFilters = {}): Promise<Tr
     page: data.page ?? filters.page ?? 0,
     size: data.size ?? filters.size ?? content.length,
     total: data.total ?? content.length,
+  };
+}
+
+/**
+ * Aggregate journal stats over the full filtered set. Mirrors
+ * `GET /api/v1/trades/stats` with the same filter params as the list (minus
+ * pagination), so the hero strip reflects the user's filters and all pages.
+ */
+export async function getTradeStats(
+  filters: Omit<TradesPageFilters, 'page' | 'size'> = {},
+): Promise<TradeStats> {
+  const params: Record<string, string | number | boolean> = {};
+  if (filters.status && filters.status !== 'ALL') params.status = filters.status;
+  addOptionalParam(params, 'strategyCode', filters.strategyCode);
+  addOptionalParam(params, 'symbol', filters.symbol?.toUpperCase());
+  addOptionalParam(params, 'from', filters.from);
+  addOptionalParam(params, 'to', filters.to);
+  addOptionalParam(params, 'accountId', filters.accountId);
+
+  const { data } = await apiClient.get<BackendTradeStats>('/api/v1/trades/stats', { params });
+  return {
+    cumulativePnl: toNum(data?.cumulativePnl),
+    winRate: toNumOrNull(data?.winRate),
+    profitFactor: toNumOrNull(data?.profitFactor),
+    avgWin: toNumOrNull(data?.avgWin),
+    avgLoss: toNumOrNull(data?.avgLoss),
+    tradeCount: data?.tradeCount ?? 0,
+    winCount: data?.winCount ?? 0,
+    lossCount: data?.lossCount ?? 0,
   };
 }
 
