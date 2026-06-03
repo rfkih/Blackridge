@@ -169,6 +169,7 @@ export interface TradesPageFilters {
   from?: string;
   to?: string;
   accountId?: string;
+  accountStrategyId?: string;
   page?: number;
   size?: number;
 }
@@ -224,6 +225,7 @@ export async function getTradesPage(filters: TradesPageFilters = {}): Promise<Tr
   addOptionalParam(params, 'from', filters.from);
   addOptionalParam(params, 'to', filters.to);
   addOptionalParam(params, 'accountId', filters.accountId);
+  addOptionalParam(params, 'accountStrategyId', filters.accountStrategyId);
   if (filters.page != null) params.page = filters.page;
   if (filters.size != null) params.size = filters.size;
 
@@ -264,6 +266,7 @@ export async function getTradeStats(
   addOptionalParam(params, 'from', filters.from);
   addOptionalParam(params, 'to', filters.to);
   addOptionalParam(params, 'accountId', filters.accountId);
+  addOptionalParam(params, 'accountStrategyId', filters.accountStrategyId);
 
   const { data } = await apiClient.get<BackendTradeStats>('/api/v1/trades/stats', { params });
   return {
