@@ -10,14 +10,19 @@ export function formatPrice(n: number | null | undefined, decimals = 2): string 
 
 export function formatPnl(n: number | null | undefined): string {
   if (n == null || !Number.isFinite(n)) return '—';
-  const sign = n >= 0 ? '+' : '';
-  return `${sign}${formatPrice(n, 2)} USDT`;
+  // Round to display precision BEFORE deriving the sign so the sign and the
+  // shown magnitude agree: a sub-cent negative renders "+0.00" not "-0.00", and
+  // -0 renders "+0.00" not "+-0.00" (`|| 0` collapses -0 to 0).
+  const rounded = Number(n.toFixed(2)) || 0;
+  const sign = rounded >= 0 ? '+' : '-';
+  return `${sign}${formatPrice(Math.abs(rounded), 2)} USDT`;
 }
 
 export function formatPercent(n: number | null | undefined): string {
   if (n == null || !Number.isFinite(n)) return '—';
-  const sign = n >= 0 ? '+' : '';
-  return `${sign}${n.toFixed(2)}%`;
+  const rounded = Number(n.toFixed(2)) || 0;
+  const sign = rounded >= 0 ? '+' : '-';
+  return `${sign}${Math.abs(rounded).toFixed(2)}%`;
 }
 
 /** Parse an ISO 8601 string as UTC. asyncpg serialises TIMESTAMP (no-tz)
