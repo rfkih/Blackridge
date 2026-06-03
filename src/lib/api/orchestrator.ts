@@ -56,16 +56,16 @@ export async function searchIterations(params?: {
 }
 
 /**
- * Walk-forward candidates: queue rows parked at PARKED with a
- * SIGNIFICANT_EDGE final verdict. The orchestrator doesn't expose a combined
- * filter, so we fetch PARKED and post-filter client-side. Volume is small
- * (one row per parked sweep awaiting validation).
+ * Walk-forward candidates: queue rows parked at PARKED with a SIGNIFICANT_EDGE
+ * final verdict. Both filters are applied server-side (the orchestrator /queue
+ * endpoint now takes `final_verdict`), so a truncated page can no longer drop
+ * qualifying candidates the way a client-side post-filter did.
  */
 export async function listWalkForwardCandidates(limit = 25): Promise<QueueRow[]> {
   const { data } = await apiClient.get<QueuePage>(`${BASE}/queue`, {
-    params: { status: 'PARKED', limit },
+    params: { status: 'PARKED', final_verdict: 'SIGNIFICANT_EDGE', limit },
   });
-  return data.items.filter((r) => r.final_verdict === 'SIGNIFICANT_EDGE');
+  return data.items;
 }
 
 export async function listQueue(params?: {
