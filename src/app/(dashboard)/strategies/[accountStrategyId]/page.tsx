@@ -44,7 +44,7 @@ import {
   useVcbParams,
 } from '@/hooks/useStrategies';
 import { useAccountStrategyPromote } from '@/hooks/useStrategyPromotion';
-import { useTradesList } from '@/hooks/useTrades';
+import { useTradesList, useTradeStats } from '@/hooks/useTrades';
 import { toast } from '@/hooks/useToast';
 import { normalizeError } from '@/lib/api/client';
 import {
@@ -1127,23 +1127,29 @@ function MetaStat({ label, value }: { label: string; value: React.ReactNode }) {
 const LIVE_TAB_TRADE_WINDOW = 200;
 
 function LiveTab({ strategy }: { strategy: AccountStrategy }) {
+  // Open positions + recent closes are a live snapshot, scoped to this
+  // account_strategy server-side. Open trades for a single strategy are
+  // bounded, so this page is complete for the open/recent views.
   const { data, isLoading, isError } = useTradesList({
     accountId: strategy.accountId,
-    strategyCode: strategy.strategyCode,
-    symbol: strategy.symbol,
+    accountStrategyId: strategy.id,
     size: LIVE_TAB_TRADE_WINDOW,
   });
 
-  const trades: Trades[] = (data?.content ?? []).filter((t) => t.accountStrategyId === strategy.id);
+  // Realized P&L + win rate are authoritative server-side aggregates over ALL
+  // of this strategy's closed trades — not a client-truncated page window.
+  const statsQuery = useTradeStats({
+    accountId: strategy.accountId,
+    accountStrategyId: strategy.id,
+  });
+
+  const trades: Trades[] = data?.content ?? [];
   const open = trades.filter((t) => t.status === 'OPEN' || t.status === 'PARTIALLY_CLOSED');
   const closed = trades.filter((t) => t.status === 'CLOSED');
-  const realized = closed.reduce((sum, t) => sum + (t.realizedPnl ?? 0), 0);
   const unrealized = open.reduce((sum, t) => sum + (t.unrealizedPnl ?? 0), 0);
-  const winners = closed.filter((t) => (t.realizedPnl ?? 0) > 0).length;
-  const winRate = closed.length === 0 ? null : winners / closed.length;
+  const realized = statsQuery.data?.cumulativePnl ?? 0;
+  const winRate = statsQuery.data?.winRate ?? null;
   const lastClosed = closed[0];
-
-  const truncated = (data?.content?.length ?? 0) >= LIVE_TAB_TRADE_WINDOW;
 
   return (
     <div className="grid gap-4 md:grid-cols-2">
@@ -1160,12 +1166,12 @@ function LiveTab({ strategy }: { strategy: AccountStrategy }) {
           tone={unrealized >= 0 ? 'profit' : 'loss'}
         />
         <StatCard
-          label={truncated ? `Realized · last ${LIVE_TAB_TRADE_WINDOW}` : 'Realized'}
+          label="Realized"
           value={formatPnl(realized)}
           tone={realized >= 0 ? 'profit' : 'loss'}
         />
         <StatCard
-          label={truncated ? `Win rate · last ${LIVE_TAB_TRADE_WINDOW}` : 'Win rate'}
+          label="Win rate"
           value={winRate === null ? '—' : `${(winRate * 100).toFixed(0)}%`}
           tone="neutral"
         />
