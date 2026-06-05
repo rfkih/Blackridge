@@ -26,6 +26,7 @@ import { useUpdateMyProfile } from '@/hooks/useProfile';
 import { useTheme } from '@/components/theme/ThemeProvider';
 import { usePalette, PALETTE_META, type Palette } from '@/components/theme/PaletteProvider';
 import { RotateCredentialsDialog } from '@/components/account/RotateCredentialsDialog';
+import { AccountTypeBadge } from '@/components/account/AccountTypeBadge';
 import { ServerIpCard } from '@/components/account/ServerIpCard';
 import { normalizeError } from '@/lib/api/client';
 import { toast } from '@/hooks/useToast';
@@ -1085,6 +1086,91 @@ function RiskGuardrailsSection() {
 }
 
 function RiskPolicyCard({ account }: { account: AccountSummary }) {
+  // HEDGING accounts are spot-allocation books — the trading concurrency caps
+  // and vol-targeting controls below are meaningless for them. There is no
+  // account-level hedging risk field in the API today (hedging risk —
+  // target allocation, rebalance deadband, cash yield — lives in each hedging
+  // strategy's per-strategy param overrides), so we render an honest pointer
+  // instead of inventing a fake control. TRADING renders exactly as before.
+  if (account.accountType === 'HEDGING') {
+    return <HedgingRiskCard account={account} />;
+  }
+  return <TradingRiskPolicyCard account={account} />;
+}
+
+function HedgingRiskCard({ account }: { account: AccountSummary }) {
+  return (
+    <div
+      style={{
+        padding: '14px 16px',
+        borderRadius: 10,
+        border: '1px solid var(--mm-hair, var(--border-subtle))',
+        background: 'var(--mm-surface-2, var(--bg-elevated))',
+      }}
+    >
+      <div
+        style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}
+      >
+        <div>
+          <div className="font-mono" style={{ fontSize: 13, color: 'var(--text-primary)' }}>
+            {account.label}
+          </div>
+          <div
+            className="font-mono"
+            style={{
+              fontSize: 10,
+              color: 'var(--text-muted)',
+              textTransform: 'uppercase',
+              letterSpacing: '0.16em',
+            }}
+          >
+            {account.exchange}
+          </div>
+        </div>
+        <AccountTypeBadge type="HEDGING" />
+      </div>
+
+      <p
+        data-testid="hedging-risk-note"
+        style={{ marginTop: 12, fontSize: 12, lineHeight: 1.55, color: 'var(--mm-ink-2, var(--text-secondary))' }}
+      >
+        Hedging risk — target allocation, rebalance deadband, and cash yield — is configured{' '}
+        <strong style={{ color: 'var(--text-primary)' }}>per-strategy</strong> on each hedging
+        strategy&rsquo;s params, not at the account level. Open the{' '}
+        <Link href="/strategies" style={{ color: 'var(--brand-600, var(--accent-primary))', textDecoration: 'underline' }}>
+          strategies page
+        </Link>{' '}
+        and edit a bound hedging strategy to adjust its allocation band and rebalance guard.
+      </p>
+
+      <div
+        style={{
+          marginTop: 12,
+          padding: '10px 12px',
+          borderRadius: 8,
+          border: '1px dashed var(--mm-hair-2, var(--border-default))',
+          fontSize: 11,
+          color: 'var(--text-muted)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 8,
+        }}
+      >
+        <span
+          className="font-mono"
+          style={{ fontSize: 9, letterSpacing: '0.16em', textTransform: 'uppercase' }}
+        >
+          Coming soon
+        </span>
+        <span>
+          Account-level hedging guardrails (book-wide max drawdown breaker) are not yet available.
+        </span>
+      </div>
+    </div>
+  );
+}
+
+function TradingRiskPolicyCard({ account }: { account: AccountSummary }) {
   const mut = useUpdateAccountRiskConfig();
   const [longCap, setLongCap] = useState(String(account.maxConcurrentLongs));
   const [shortCap, setShortCap] = useState(String(account.maxConcurrentShorts));
