@@ -10,6 +10,7 @@ import { usePnlSummary } from '@/hooks/useTrades';
 import { useActiveAccount } from '@/hooks/useAccounts';
 import { useCurrencyFormatter } from '@/hooks/useCurrency';
 import { useIsAdmin } from '@/hooks/useIsAdmin';
+import { useAccountView } from '@/lib/accountType/registry';
 import type { PortfolioAsset } from '@/types/portfolio';
 
 interface EnrichedAsset extends PortfolioAsset {
@@ -23,6 +24,8 @@ export default function PortfolioPage() {
   const { accounts } = useActiveAccount();
   const formatCurrency = useCurrencyFormatter();
   const isAdmin = useIsAdmin();
+  const accountView = useAccountView();
+  const isHedgingAccount = accountView.label === 'Hedging';
 
   const totalUsdt = data?.totalUsdt ?? 0;
   const availableUsdt = data?.availableUsdt ?? 0;
@@ -44,21 +47,38 @@ export default function PortfolioPage() {
   const unrealizedOpen = pnlToday?.unrealizedPnl ?? 0;
 
   const allocation = useMemo(() => {
-    const stableTickers = new Set(['USDT', 'USDC', 'BUSD', 'DAI', 'TUSD', 'USDP']);
+    const stableTickers = new Set(['USDT', 'USDC', 'BUSD', 'DAI', 'TUSD', 'USDP', 'FDUSD']);
+    const lockedCash = Math.max(0, lockedUsdt);
+    const total = Math.max(1, totalUsdt);
+
+    if (isHedgingAccount) {
+      // For a 2-asset BTC/USDT spot tilt: BTC vs Cash (USDT/stables) — no
+      // "Crypto/Stable" framing since only two sleeves matter here.
+      let btcValue = 0;
+      let cashValue = 0;
+      for (const a of rows) {
+        if (stableTickers.has(a.asset.toUpperCase())) cashValue += a.usdtValue;
+        else btcValue += a.usdtValue;
+      }
+      cashValue += lockedCash;
+      return [
+        { label: 'BTC', pct: (btcValue / total) * 100, color: '#F7931A' },
+        { label: 'Cash (USDT)', pct: (cashValue / total) * 100, color: 'var(--mm-ink-0)' },
+      ].filter((s) => s.pct > 0);
+    }
+
     let stableValue = 0;
     let cryptoValue = 0;
     for (const a of rows) {
       if (stableTickers.has(a.asset)) stableValue += a.usdtValue;
       else cryptoValue += a.usdtValue;
     }
-    const lockedCash = Math.max(0, lockedUsdt);
-    const total = Math.max(1, cryptoValue + stableValue + lockedCash);
     return [
       { label: 'Crypto', pct: (cryptoValue / total) * 100, color: 'var(--brand-500)' },
       { label: 'Stable', pct: (stableValue / total) * 100, color: 'var(--mm-ink-0)' },
       { label: 'Locked', pct: (lockedCash / total) * 100, color: 'var(--mm-ink-3)' },
     ].filter((s) => s.pct > 0);
-  }, [rows, lockedUsdt]);
+  }, [rows, lockedUsdt, totalUsdt, isHedgingAccount]);
 
   if (isError) {
     return (
@@ -175,10 +195,17 @@ export default function PortfolioPage() {
       </section>
 
       {}
-      <section className="grid gap-5" style={{ gridTemplateColumns: 'repeat(3, minmax(0, 1fr))' }}>
-        <AllocationCard slices={allocation} isLoading={isLoading} />
-        <RiskCard totalUsdt={totalUsdt} rows={rows} lockedUsdt={lockedUsdt} />
-        <PerformanceCard />
+      <section
+        className="grid gap-5"
+        style={{
+          gridTemplateColumns: isHedgingAccount
+            ? 'repeat(2, minmax(0, 1fr))'
+            : 'repeat(3, minmax(0, 1fr))',
+        }}
+      >
+        <AllocationCard slices={allocation} isLoading={isLoading} isHedging={isHedgingAccount} />
+        <RiskCard totalUsdt={totalUsdt} rows={rows} lockedUsdt={lockedUsdt} isHedging={isHedgingAccount} />
+        {!isHedgingAccount && <PerformanceCard />}
       </section>
 
       {isAdmin && <PortfolioRebalanceSection />}
@@ -358,12 +385,20 @@ interface Slice {
   color: string;
 }
 
-function AllocationCard({ slices, isLoading }: { slices: Slice[]; isLoading: boolean }) {
+function AllocationCard({
+  slices,
+  isLoading,
+  isHedging = false,
+}: {
+  slices: Slice[];
+  isLoading: boolean;
+  isHedging?: boolean;
+}) {
   return (
     <div className="mm-card" style={{ padding: '24px 26px' }}>
-      <div className="mm-kicker">ALLOCATION</div>
+      <div className="mm-kicker">{isHedging ? 'TILT ALLOCATION' : 'ALLOCATION'}</div>
       <h2 className="font-display" style={{ fontSize: 22, marginTop: 6, letterSpacing: '-0.02em' }}>
-        Mix by sleeve
+        {isHedging ? 'BTC vs Cash' : 'Mix by sleeve'}
       </h2>
       {isLoading ? (
         <Skeleton className="mt-[18px] h-[108px] w-full" />
@@ -407,11 +442,14 @@ function RiskCard({
   totalUsdt,
   rows,
   lockedUsdt,
+  isHedging = false,
 }: {
   totalUsdt: number;
   rows: EnrichedAsset[];
   lockedUsdt: number;
+  isHedging?: boolean;
 }) {
+  const stableTickers = new Set(['USDT', 'USDC', 'BUSD', 'DAI', 'TUSD', 'USDP', 'FDUSD']);
   const topPosition = rows[0];
   const concentrationPct = topPosition && totalUsdt > 0 ? topPosition.portfolioPct : 0;
   const lockedPct = totalUsdt > 0 ? (lockedUsdt / totalUsdt) * 100 : 0;
@@ -426,27 +464,59 @@ function RiskCard({
         )
       : 0;
 
+  // For a HEDGING account, compute BTC-specific stats: BTC weight and cash
+  // (USDT/stables) weight are the two meaningful exposure numbers.
+  const btcRow = isHedging ? rows.find((r) => r.asset.toUpperCase() === 'BTC') : null;
+  const btcPct = btcRow && totalUsdt > 0 ? btcRow.portfolioPct : 0;
+  const cashOnlyPct =
+    isHedging && totalUsdt > 0
+      ? rows
+          .filter((r) => stableTickers.has(r.asset.toUpperCase()))
+          .reduce((acc, r) => acc + r.portfolioPct, 0)
+      : 0;
+
   const items: Array<{ label: string; value: string; bar: number; tone: 'warn' | 'mint' | null }> =
-    [
-      {
-        label: 'Largest position',
-        value: topPosition ? `${topPosition.asset} · ${concentrationPct.toFixed(1)}%` : '—',
-        bar: Math.min(100, concentrationPct),
-        tone: concentrationPct >= 60 ? 'warn' : null,
-      },
-      {
-        label: 'Cash buffer',
-        value: `${cashPct.toFixed(1)}%`,
-        bar: Math.min(100, cashPct),
-        tone: 'mint',
-      },
-      {
-        label: 'Locked',
-        value: `${lockedPct.toFixed(1)}%`,
-        bar: Math.min(100, lockedPct),
-        tone: null,
-      },
-    ];
+    isHedging
+      ? [
+          {
+            label: 'BTC weight',
+            value: `${btcPct.toFixed(1)}%`,
+            bar: Math.min(100, btcPct),
+            tone: null,
+          },
+          {
+            label: 'Cash (USDT) weight',
+            value: `${cashOnlyPct.toFixed(1)}%`,
+            bar: Math.min(100, cashOnlyPct),
+            tone: 'mint',
+          },
+          {
+            label: 'Locked',
+            value: `${lockedPct.toFixed(1)}%`,
+            bar: Math.min(100, lockedPct),
+            tone: null,
+          },
+        ]
+      : [
+          {
+            label: 'Largest position',
+            value: topPosition ? `${topPosition.asset} · ${concentrationPct.toFixed(1)}%` : '—',
+            bar: Math.min(100, concentrationPct),
+            tone: concentrationPct >= 60 ? 'warn' : null,
+          },
+          {
+            label: 'Cash buffer',
+            value: `${cashPct.toFixed(1)}%`,
+            bar: Math.min(100, cashPct),
+            tone: 'mint',
+          },
+          {
+            label: 'Locked',
+            value: `${lockedPct.toFixed(1)}%`,
+            bar: Math.min(100, lockedPct),
+            tone: null,
+          },
+        ];
 
   return (
     <div className="mm-card" style={{ padding: '24px 26px' }}>

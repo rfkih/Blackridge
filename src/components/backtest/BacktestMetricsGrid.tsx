@@ -2,11 +2,20 @@
 
 import { StatCard } from '@/components/shared/StatCard';
 import { useCurrencyFormatter } from '@/hooks/useCurrency';
+import { isHedging } from '@/lib/strategyKind';
 import type { BacktestMetrics } from '@/types/backtest';
 
 interface BacktestMetricsGridProps {
   metrics: BacktestMetrics | null;
   isLoading?: boolean;
+  /** Strategy kind from the run object. When "HEDGING", trading-only metrics
+   *  are hidden and allocation/drawdown framing is shown instead. */
+  strategyKind?: string | null;
+  /** Final ending equity from the run (USDT). Used in hedging view to show
+   *  the terminal portfolio value alongside return and drawdown. */
+  endingBalance?: number;
+  /** Initial capital for the run. Used in hedging view for context. */
+  initialCapital?: number;
 }
 
 function formatNum(n: number | null | undefined, digits = 2): string {
@@ -177,12 +186,113 @@ const HELP = {
   ),
 };
 
-export function BacktestMetricsGrid({ metrics, isLoading }: BacktestMetricsGridProps) {
+export function BacktestMetricsGrid({
+  metrics,
+  isLoading,
+  strategyKind,
+  endingBalance,
+  initialCapital,
+}: BacktestMetricsGridProps) {
   const m = metrics;
   const formatCurrency = useCurrencyFormatter();
+  const hedging = isHedging(strategyKind);
+
   const totalReturnColor = m == null ? 'neutral' : m.totalReturn >= 0 ? 'profit' : 'loss';
   const totalReturnPctPrefix = m && m.totalReturnPct >= 0 ? '+' : '';
 
+  // Calmar ratio: annualised return / |maxDrawdown|.
+  // For backtest purposes we use totalReturnPct / |maxDrawdownPct| as a
+  // return-per-drawdown ratio (not annualised, since the run window varies).
+  // Shown only on hedging runs where it is the primary quality metric.
+  const calmar =
+    m?.maxDrawdownPct != null && m.maxDrawdownPct !== 0 && m?.totalReturnPct != null
+      ? m.totalReturnPct / Math.abs(m.maxDrawdownPct)
+      : null;
+
+  // ---- HEDGING metrics set -----------------------------------------------
+  if (hedging) {
+    const calmarColor =
+      calmar == null ? 'neutral' : calmar >= 2 ? 'profit' : calmar >= 1 ? 'neutral' : 'loss';
+
+    // "Final portfolio" stat: show endingBalance if available.
+    const hasEnding = endingBalance != null && endingBalance > 0;
+    const endingColor = (() => {
+      if (!hasEnding || initialCapital == null || initialCapital === 0) return 'neutral';
+      return endingBalance! >= initialCapital ? 'profit' : 'loss';
+    })();
+
+    return (
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+        <StatCard
+          label="Total Return"
+          isLoading={isLoading}
+          value={m ? `${totalReturnPctPrefix}${formatNum(m.totalReturnPct)}%` : '—'}
+          valueColor={totalReturnColor}
+          sub={m ? formatCurrency(m.totalReturn, { withSign: true }) : undefined}
+          subColor={totalReturnColor === 'neutral' ? 'neutral' : totalReturnColor}
+          help={HELP.totalReturn}
+        />
+        <StatCard
+          label="Max Drawdown"
+          isLoading={isLoading}
+          value={m ? `−${formatNum(m.maxDrawdownPct)}%` : '—'}
+          valueColor={m?.maxDrawdownPct ? 'loss' : 'neutral'}
+          sub={
+            m && m.maxDrawdown != null
+              ? formatCurrency(-Math.abs(m.maxDrawdown), { withSign: true })
+              : undefined
+          }
+          subColor="loss"
+          help={HELP.maxDrawdown}
+        />
+        <StatCard
+          label="Return / Drawdown"
+          isLoading={isLoading}
+          value={calmar != null ? formatNum(calmar) : '—'}
+          valueColor={calmarColor}
+          sub="Calmar — return ÷ |max DD|"
+          help={
+            <>
+              <p>
+                <span className="font-mono">Total Return % ÷ |Max Drawdown %|</span>. Measures how
+                much return was generated per unit of pain. A Calmar above 1 means the run returned
+                more than it drew down; above 2 is excellent for an allocation strategy.
+              </p>
+              <p className="mt-1.5 text-text-muted">
+                For HEDGING runs this is the primary quality signal — it rewards strategies that
+                participate in BTC upside while meaningfully cutting the drawdown vs buy-hold.
+              </p>
+            </>
+          }
+        />
+        <StatCard
+          label="Final Portfolio"
+          isLoading={isLoading}
+          value={hasEnding ? formatCurrency(endingBalance!) : '—'}
+          valueColor={endingColor}
+          sub={
+            hasEnding && initialCapital != null && initialCapital > 0
+              ? `started ${formatCurrency(initialCapital)}`
+              : undefined
+          }
+          help={
+            <>
+              <p>
+                Ending USDT-equivalent portfolio value. For a HEDGING strategy this is the combined
+                mark-to-market of the BTC + cash position at the close of the last bar.
+              </p>
+              <p className="mt-1.5 text-text-muted">
+                The internal BTC/cash split at end-of-run is visible on the equity curve allocation
+                overlay below.
+              </p>
+            </>
+          }
+        />
+      </div>
+    );
+  }
+
+  // ---- TRADING metrics set (unchanged) ------------------------------------
   const avgWin = m?.avgWinUsdt ?? null;
   const avgLossAbs = m?.avgLossUsdt == null ? null : Math.abs(m.avgLossUsdt);
   const rrrInfinite =

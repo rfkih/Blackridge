@@ -51,6 +51,7 @@ import { normalizeError } from '@/lib/api/client';
 import { toast } from '@/hooks/useToast';
 import { cn } from '@/lib/utils';
 import { INTERVALS } from '@/lib/constants';
+import { isHedging } from '@/lib/strategyKind';
 import type { AccountStrategy } from '@/types/strategy';
 import type { AccountSummary } from '@/types/account';
 
@@ -286,15 +287,34 @@ function StrategyCard({
           style={{ borderColor: 'var(--mm-hair-2)' }}
         >
           <SizingStat strategy={strategy} />
-          <div>
-            <div className="font-mono text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--text-muted)]">
-              Side
+          {isHedging(strategy.strategyKind) ? (
+            <div>
+              <div className="font-mono text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--text-muted)]">
+                Kind
+              </div>
+              <div className="mt-1">
+                <span
+                  className="inline-flex items-center rounded px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-wider"
+                  style={{
+                    backgroundColor: 'rgba(247,147,26,0.12)',
+                    color: '#F7931A',
+                  }}
+                >
+                  Tilt
+                </span>
+              </div>
             </div>
-            <div className="mt-1 flex items-center gap-1">
-              <DirectionPill direction="long" enabled={strategy.allowLong} />
-              <DirectionPill direction="short" enabled={strategy.allowShort} />
+          ) : (
+            <div>
+              <div className="font-mono text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--text-muted)]">
+                Side
+              </div>
+              <div className="mt-1 flex items-center gap-1">
+                <DirectionPill direction="long" enabled={strategy.allowLong} />
+                <DirectionPill direction="short" enabled={strategy.allowShort} />
+              </div>
             </div>
-          </div>
+          )}
         </div>
 
         {}

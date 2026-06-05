@@ -11,6 +11,7 @@ import {
   type OutcomeTone,
   type TradeOutcome,
 } from '@/lib/backtest/buildTradeMarkers';
+import { isHedging } from '@/lib/strategyKind';
 import type { BacktestTrade } from '@/types/backtest';
 import type { PositionExitReason, PositionType } from '@/types/trading';
 
@@ -22,6 +23,10 @@ interface BacktestTradeTableProps {
   scrollTrigger?: number;
   /** Emit filtered trades so the chart can mirror the same set of markers. */
   onFilteredTradesChange?: (filtered: BacktestTrade[]) => void;
+  /** Strategy kind from the run object. When "HEDGING", SL / TP / R-multiple
+   *  columns are hidden and the "Side" column is re-labelled as "Switch" to
+   *  frame trades as BTC↔cash allocation switches. */
+  strategyKind?: string | null;
 }
 
 /**
@@ -49,7 +54,8 @@ type SortKey =
 
 type SortDir = 'asc' | 'desc';
 
-const COLUMNS: Array<{ key: SortKey | 'legs'; label: string; sortable: boolean }> = [
+/** Full trading column set. */
+const TRADING_COLUMNS: Array<{ key: SortKey | 'legs'; label: string; sortable: boolean }> = [
   { key: 'index', label: '#', sortable: true },
   { key: 'strategy', label: 'Strategy', sortable: true },
   { key: 'interval', label: 'TF', sortable: true },
@@ -65,6 +71,25 @@ const COLUMNS: Array<{ key: SortKey | 'legs'; label: string; sortable: boolean }
   { key: 'outcome', label: 'Outcome', sortable: true },
   { key: 'pnl', label: 'P&L', sortable: true },
   { key: 'r', label: 'R', sortable: true },
+  { key: 'duration', label: 'Duration', sortable: true },
+];
+
+/**
+ * Hedging column set: SL / TP1 / TP2 / Legs / R are hidden because hedging
+ * strategies do not use stop-loss, take-profit, or R-multiples. "Side" is
+ * re-labelled "Switch" to frame each row as a BTC↔cash allocation change.
+ */
+const HEDGING_COLUMNS: Array<{ key: SortKey | 'legs'; label: string; sortable: boolean }> = [
+  { key: 'index', label: '#', sortable: true },
+  { key: 'strategy', label: 'Strategy', sortable: true },
+  { key: 'interval', label: 'TF', sortable: true },
+  { key: 'direction', label: 'Switch', sortable: true },
+  { key: 'entryTime', label: 'Entry Time', sortable: true },
+  { key: 'entryPrice', label: 'Entry', sortable: true },
+  { key: 'exitTime', label: 'Exit Time', sortable: true },
+  { key: 'exitPrice', label: 'Exit', sortable: true },
+  { key: 'outcome', label: 'Outcome', sortable: true },
+  { key: 'pnl', label: 'P&L', sortable: true },
   { key: 'duration', label: 'Duration', sortable: true },
 ];
 
@@ -92,8 +117,12 @@ const SORT_EXTRACTORS: Record<SortKey, (t: BacktestTrade) => number | string | n
   duration: (t) => (t.exitTime != null ? t.exitTime - t.entryTime : null),
 };
 
-const GRID_TEMPLATE =
+const TRADING_GRID_TEMPLATE =
   '40px 92px 56px 60px 150px 84px 150px 84px 80px 80px 80px 110px 92px 100px 64px 100px';
+/** Narrower template matching HEDGING_COLUMNS (no SL/TP/Legs/R). */
+const HEDGING_GRID_TEMPLATE =
+  '40px 92px 56px 72px 150px 84px 150px 84px 92px 100px 100px';
+
 const ROW_HEIGHT = 36;
 const VIEWPORT_MAX_HEIGHT = 480;
 
@@ -155,7 +184,11 @@ export function BacktestTradeTable({
   onTradeSelect,
   scrollTrigger,
   onFilteredTradesChange,
+  strategyKind,
 }: BacktestTradeTableProps) {
+  const hedging = isHedging(strategyKind);
+  const COLUMNS = hedging ? HEDGING_COLUMNS : TRADING_COLUMNS;
+  const GRID_TEMPLATE = hedging ? HEDGING_GRID_TEMPLATE : TRADING_GRID_TEMPLATE;
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const [sortKey, setSortKey] = useState<SortKey>('index');
@@ -290,7 +323,7 @@ export function BacktestTradeTable({
     >
       {}
       <div className="overflow-x-auto">
-        <div style={{ minWidth: 1348 }}>
+        <div style={{ minWidth: hedging ? 900 : 1348 }}>
           <div
             role="row"
             className="border-b border-bd-subtle bg-bg-surface"
@@ -347,6 +380,8 @@ export function BacktestTradeTable({
                     isSelected={isSelected}
                     top={vi.start}
                     onClick={() => handleRowClick(trade.id)}
+                    gridTemplate={GRID_TEMPLATE}
+                    hedging={hedging}
                   />
                 );
               })}
@@ -597,9 +632,12 @@ interface VirtualRowProps {
   isSelected: boolean;
   top: number;
   onClick: () => void;
+  gridTemplate: string;
+  /** When true, SL / TP / R-multiple / Legs cells are omitted. */
+  hedging: boolean;
 }
 
-function VirtualRow({ trade, index, isSelected, top, onClick }: VirtualRowProps) {
+function VirtualRow({ trade, index, isSelected, top, onClick, gridTemplate, hedging }: VirtualRowProps) {
   const duration = trade.exitTime != null ? trade.exitTime - trade.entryTime : null;
   const pnlUp = trade.realizedPnl >= 0;
   const isLong = trade.direction === 'LONG';
@@ -630,7 +668,7 @@ function VirtualRow({ trade, index, isSelected, top, onClick }: VirtualRowProps)
         height: ROW_HEIGHT,
         transform: `translateY(${top}px)`,
         display: 'grid',
-        gridTemplateColumns: GRID_TEMPLATE,
+        gridTemplateColumns: gridTemplate,
         alignItems: 'center',
       }}
     >
@@ -667,12 +705,14 @@ function VirtualRow({ trade, index, isSelected, top, onClick }: VirtualRowProps)
         {trade.exitTime != null ? formatDate(trade.exitTime) : '—'}
       </Cell>
       <Cell>{formatPrice(trade.exitPrice)}</Cell>
-      <Cell muted>{formatPrice(trade.stopLossPrice)}</Cell>
-      <Cell muted>{formatPrice(trade.tp1Price)}</Cell>
-      <Cell muted>{formatPrice(trade.tp2Price)}</Cell>
-      <Cell>
-        <LegDots hits={hits} />
-      </Cell>
+      {!hedging && <Cell muted>{formatPrice(trade.stopLossPrice)}</Cell>}
+      {!hedging && <Cell muted>{formatPrice(trade.tp1Price)}</Cell>}
+      {!hedging && <Cell muted>{formatPrice(trade.tp2Price)}</Cell>}
+      {!hedging && (
+        <Cell>
+          <LegDots hits={hits} />
+        </Cell>
+      )}
       <Cell>
         <OutcomePill outcome={outcome} />
       </Cell>
@@ -685,14 +725,16 @@ function VirtualRow({ trade, index, isSelected, top, onClick }: VirtualRowProps)
           {formatPrice(trade.realizedPnl)}
         </span>
       </Cell>
-      <Cell>
-        <span
-          className="num text-[11px]"
-          style={{ color: trade.rMultiple >= 0 ? 'var(--color-profit)' : 'var(--color-loss)' }}
-        >
-          {formatRMultiple(trade.rMultiple)}
-        </span>
-      </Cell>
+      {!hedging && (
+        <Cell>
+          <span
+            className="num text-[11px]"
+            style={{ color: trade.rMultiple >= 0 ? 'var(--color-profit)' : 'var(--color-loss)' }}
+          >
+            {formatRMultiple(trade.rMultiple)}
+          </span>
+        </Cell>
+      )}
       <Cell muted size="sm">
         {duration != null ? formatDuration(duration) : '—'}
       </Cell>

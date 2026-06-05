@@ -24,6 +24,8 @@ import { FundingRatePanel } from '@/components/backtest/FundingRatePanel';
 import { AnalysisCard } from '@/components/research/AnalysisCard';
 import { ErrorBoundary } from '@/components/shared/ErrorBoundary';
 import { BacktestActivateStrategyDialog } from '@/components/backtest/BacktestActivateStrategyDialog';
+import { isHedging } from '@/lib/strategyKind';
+import { buyHoldSeries, compareToBuyHold, maxDrawdownPct, totalReturnPct } from '@/lib/buyHold';
 import {
   useBacktestCandles,
   useBacktestEquityPoints,
@@ -38,6 +40,7 @@ import type { BacktestEquityPoint, BacktestRun, BacktestTrade } from '@/types/ba
 import type { AccountStrategy } from '@/types/strategy';
 import { BacktestProgressBar } from '@/components/backtest/BacktestProgressBar';
 import type { CandleData } from '@/types/market';
+import { DrawdownVsBuyHoldPanel } from '@/components/hedging/DrawdownVsBuyHoldPanel';
 
 const EMPTY_TRADES: BacktestTrade[] = [];
 const EMPTY_CANDLES: CandleData[] = [];
@@ -83,6 +86,65 @@ export default function BacktestResultPage({ params }: { params: { id: string } 
     const boundIds = new Set(Object.values(runQ.data.strategyAccountStrategyIds ?? {}));
     return strategies.filter((s) => boundIds.has(s.id) && s.status === 'LIVE');
   }, [runQ.data, strategies]);
+
+  /**
+   * Derived data for the hedging DrawdownVsBuyHoldPanel. Computed only when
+   * both equity points and candles are available; otherwise the panel renders
+   * its own honest empty state. Logic mirrors what BacktestEquityPanel does
+   * internally for its buy-hold overlay.
+   */
+  const hedgingDrawdownData = useMemo(() => {
+    const equity = equityQ.data;
+    const candles = candlesQ.data;
+    const capital = runQ.data?.initialCapital;
+    if (!equity?.length || !candles?.length || !capital) return null;
+
+    // Align buy-hold series to equity timestamps (same logic as BacktestEquityPanel).
+    const bh = buyHoldSeries(
+      candles.map((c) => ({ ts: c.time * 1_000, close: c.close })),
+      capital,
+    );
+    if (!bh.length) return null;
+
+    // Map equity drawdown series.
+    const strategySeries = equity.map((p) => ({ time: p.ts, drawdownPct: p.drawdownPct }));
+
+    // Compute buy-hold drawdown by stepping through equity timestamps.
+    let bhIdx = 0;
+    const buyHoldAligned: Array<{ ts: number; equity: number }> = [];
+    for (const p of equity) {
+      while (bhIdx + 1 < bh.length && bh[bhIdx + 1].ts <= p.ts) bhIdx++;
+      buyHoldAligned.push({ ts: p.ts, equity: bh[bhIdx].value });
+    }
+
+    // Compute running peak-to-trough drawdown for the buy-hold series.
+    let peak = buyHoldAligned[0]?.equity ?? 0;
+    const buyHoldSeries2 = buyHoldAligned.map((p) => {
+      if (p.equity > peak) peak = p.equity;
+      const dd = peak > 0 ? (p.equity / peak - 1) * 100 : 0;
+      return { time: p.ts, drawdownPct: dd };
+    });
+
+    // Compute verdict for the panel caption.
+    const strategyEndEquity = equity[equity.length - 1]?.equity ?? capital;
+    const strategyReturnPctVal = totalReturnPct(capital, strategyEndEquity);
+    const strategyMaxDdPctVal =
+      equity.reduce((acc, p) => (p.drawdownPct < acc ? p.drawdownPct : acc), 0);
+
+    const bhFirst = buyHoldAligned[0]?.equity ?? capital;
+    const bhLast = buyHoldAligned[buyHoldAligned.length - 1]?.equity ?? capital;
+    const bhReturnPctVal = totalReturnPct(bhFirst, bhLast);
+    const bhMaxDdPctVal = maxDrawdownPct(buyHoldAligned.map((p) => ({ value: p.equity })));
+
+    const verdict = compareToBuyHold(
+      strategyReturnPctVal,
+      strategyMaxDdPctVal,
+      bhReturnPctVal,
+      bhMaxDdPctVal,
+    );
+
+    return { strategySeries, buyHoldSeries: buyHoldSeries2, verdict };
+  }, [equityQ.data, candlesQ.data, runQ.data?.initialCapital]);
 
   const handleChartSelect = useCallback((tradeId: string | null) => {
     setSelectedTradeId(tradeId);
@@ -199,9 +261,15 @@ export default function BacktestResultPage({ params }: { params: { id: string } 
 
       {runQ.data && <RunConfigPanel run={runQ.data} />}
 
-      <BacktestMetricsGrid metrics={runQ.data?.metrics ?? null} isLoading={runQ.isLoading} />
+      <BacktestMetricsGrid
+        metrics={runQ.data?.metrics ?? null}
+        isLoading={runQ.isLoading}
+        strategyKind={runQ.data?.strategyKind}
+        endingBalance={runQ.data?.endingBalance}
+        initialCapital={runQ.data?.initialCapital}
+      />
 
-      {runQ.data && (
+      {runQ.data && !isHedging(runQ.data.strategyKind) && (
         <ErrorBoundary label="Funding rate">
           <FundingRatePanel
             symbol={runQ.data.symbol}
@@ -228,6 +296,16 @@ export default function BacktestResultPage({ params }: { params: { id: string } 
         />
       </ErrorBoundary>
 
+      {isHedging(runQ.data?.strategyKind) && (
+        <ErrorBoundary label="Drawdown vs buy-hold">
+          <DrawdownVsBuyHoldPanel
+            strategySeries={hedgingDrawdownData?.strategySeries ?? null}
+            buyHoldSeries={hedgingDrawdownData?.buyHoldSeries ?? null}
+            verdict={hedgingDrawdownData?.verdict ?? null}
+          />
+        </ErrorBoundary>
+      )}
+
       <ErrorBoundary label="Monthly returns">
         <BacktestMonthlyReturns
           points={equityQ.data ?? EMPTY_EQUITY}
@@ -238,7 +316,7 @@ export default function BacktestResultPage({ params }: { params: { id: string } 
       <section className="overflow-hidden rounded-xl border border-bd-subtle bg-bg-surface shadow-panel">
         <div className="flex items-center justify-between border-b border-bd-subtle px-4 py-3">
           <h3 className="font-display text-[13px] font-semibold text-text-primary">
-            Trade Execution
+            {isHedging(runQ.data?.strategyKind) ? 'Allocation Switches' : 'Trade Execution'}
           </h3>
           {selectedTradeId && (
             <button
@@ -296,6 +374,7 @@ export default function BacktestResultPage({ params }: { params: { id: string } 
               onTradeSelect={handleTableSelect}
               scrollTrigger={tableScrollTrigger}
               onFilteredTradesChange={setFilteredTrades}
+              strategyKind={runQ.data?.strategyKind}
             />
           </ErrorBoundary>
         )}

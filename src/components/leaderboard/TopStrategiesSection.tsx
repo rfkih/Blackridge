@@ -6,7 +6,9 @@ import { ChevronDown, Rocket, Trophy } from 'lucide-react';
 import { StrategyBadge } from '@/components/trading/StrategyBadge';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { Skeleton } from '@/components/ui/skeleton';
+import { KindBadge } from '@/components/leaderboard/KindBadge';
 import { cn } from '@/lib/utils';
+import { isHedging } from '@/lib/strategyKind';
 import type { LeaderboardEntry } from '@/types/leaderboard';
 
 interface TopStrategiesSectionProps {
@@ -147,6 +149,7 @@ function LeaderboardRow({
         ? 'var(--text-secondary)'
         : 'var(--color-profit)';
   const isLive = (entry.nLive ?? 0) > 0;
+  const hedging = isHedging(entry.strategyKind);
 
   return (
     <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-4 shadow-panel transition-colors hover:border-[var(--border-default)]">
@@ -228,16 +231,32 @@ function LeaderboardRow({
                 ≈ in book
               </span>
             )}
+            <KindBadge strategyKind={entry.strategyKind} />
           </div>
 
-          <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 sm:grid-cols-6">
-            <Metric label="DSR" value={fmtNum(entry.deflatedSharpe, 3)} tone="profit" />
-            <Metric label="CAGR" value={fmtPct(entry.cagrPct)} tone="profit" />
-            <Metric label="Max DD" value={fmtPct(entry.maxDrawdownPct)} tone="loss" />
-            <Metric label="Calmar" value={fmtNum(entry.calmar)} />
-            <Metric label="Profit factor" value={fmtNum(entry.profitFactor)} />
-            <Metric label="Trades" value={String(entry.trades)} />
-          </div>
+          {hedging ? (
+            /* Hedging view: Return + Max DD + Calmar are the meaningful yardsticks.
+               DSR / Profit-factor / trade-count are not applicable to allocation tilts. */
+            <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 sm:grid-cols-4">
+              <Metric label="Ann. Return" value={fmtPct(entry.cagrPct)} tone="profit" />
+              <Metric label="Max DD" value={fmtPct(entry.maxDrawdownPct)} tone="loss" />
+              <Metric
+                label="Calmar"
+                value={fmtNum(entry.calmar)}
+                title="Return ÷ Max Drawdown — the primary ranking metric for hedging strategies"
+              />
+              <Metric label="Trades" value={String(entry.trades)} title="Rebalance events" />
+            </div>
+          ) : (
+            <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 sm:grid-cols-6">
+              <Metric label="DSR" value={fmtNum(entry.deflatedSharpe, 3)} tone="profit" />
+              <Metric label="CAGR" value={fmtPct(entry.cagrPct)} tone="profit" />
+              <Metric label="Max DD" value={fmtPct(entry.maxDrawdownPct)} tone="loss" />
+              <Metric label="Calmar" value={fmtNum(entry.calmar)} />
+              <Metric label="Profit factor" value={fmtNum(entry.profitFactor)} />
+              <Metric label="Trades" value={String(entry.trades)} />
+            </div>
+          )}
         </div>
 
         {/* Score + deploy */}
@@ -305,10 +324,12 @@ function Metric({
   label,
   value,
   tone,
+  title,
 }: {
   label: string;
   value: string;
   tone?: 'profit' | 'loss';
+  title?: string;
 }) {
   const color =
     tone === 'profit'
@@ -317,7 +338,7 @@ function Metric({
         ? 'var(--color-loss)'
         : 'var(--text-primary)';
   return (
-    <div>
+    <div title={title}>
       <div className="font-mono text-[10px] uppercase tracking-[0.08em] text-[var(--text-muted)]">
         {label}
       </div>

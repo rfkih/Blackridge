@@ -23,6 +23,8 @@ import { getPaper } from '@/lib/api/researchPapers';
 import { toNumOrNull } from '@/lib/api/coerce';
 import { normalizeError } from '@/lib/api/client';
 import { toast } from '@/hooks/useToast';
+import { isHedging } from '@/lib/strategyKind';
+import { KindBadge } from '@/components/leaderboard/KindBadge';
 import type { BestIteration, PaperRow } from '@/types/papers';
 
 interface PaperLeaderboardSectionProps {
@@ -171,10 +173,31 @@ export function PaperLeaderboardSection({
               <TableHead className="text-[var(--text-muted)]">Symbol</TableHead>
               <TableHead className="text-[var(--text-muted)]">Interval</TableHead>
               <TableHead className="text-right text-[var(--text-muted)]">Ann.Return</TableHead>
-              <TableHead className="text-right text-[var(--text-muted)]">PF</TableHead>
-              <TableHead className="text-right text-[var(--text-muted)]">Sharpe</TableHead>
-              <TableHead className="text-right text-[var(--text-muted)]">Trades</TableHead>
               <TableHead className="text-right text-[var(--text-muted)]">Max DD</TableHead>
+              <TableHead
+                className="text-right text-[var(--text-muted)]"
+                title="Return ÷ Max Drawdown — primary ranking metric for hedging strategies"
+              >
+                Calmar
+              </TableHead>
+              <TableHead
+                className="text-right text-[var(--text-muted)]"
+                title="Profit factor — trading strategies only; not applicable to hedging"
+              >
+                PF
+              </TableHead>
+              <TableHead
+                className="text-right text-[var(--text-muted)]"
+                title="Sharpe ratio — trading strategies only; not applicable to hedging"
+              >
+                Sharpe
+              </TableHead>
+              <TableHead
+                className="text-right text-[var(--text-muted)]"
+                title="Number of trades; for hedging strategies this counts rebalance events"
+              >
+                Trades
+              </TableHead>
               <TableHead className="text-[var(--text-muted)]">Status</TableHead>
               <TableHead className="text-right text-[var(--text-muted)]">Actions</TableHead>
             </TableRow>
@@ -183,6 +206,14 @@ export function PaperLeaderboardSection({
             {papers.map((paper, idx) => {
               const code = paper.strategy_code || paperCodeFromId(paper.paper_id);
               const resolving = resolvingId === paper.paper_id;
+              const hedging = isHedging(paper.strategy_kind);
+              // Calmar = annualized_return_pct / |max_drawdown_pct|
+              const calmarN = toNumOrNull(paper.annualized_return_pct);
+              const ddN = toNumOrNull(paper.max_drawdown_pct);
+              const calmarStr =
+                calmarN != null && ddN != null && ddN !== 0
+                  ? fmtNum(calmarN / Math.abs(ddN))
+                  : '—';
               return (
                 <TableRow
                   key={paper.paper_id}
@@ -205,6 +236,7 @@ export function PaperLeaderboardSection({
                           {paper.paper_id}
                         </div>
                       </div>
+                      <KindBadge strategyKind={paper.strategy_kind} />
                     </div>
                   </TableCell>
                   <TableCell className="font-mono tabular-nums text-[var(--text-primary)]">
@@ -216,17 +248,43 @@ export function PaperLeaderboardSection({
                   <TableCell className="text-right font-mono tabular-nums text-[var(--color-profit)]">
                     {fmtPct(paper.annualized_return_pct)}
                   </TableCell>
-                  <TableCell className="text-right font-mono tabular-nums text-[var(--text-primary)]">
-                    {fmtNum(paper.profit_factor)}
-                  </TableCell>
-                  <TableCell className="text-right font-mono tabular-nums text-[var(--text-primary)]">
-                    {fmtNum(paper.sharpe_ratio)}
-                  </TableCell>
-                  <TableCell className="text-right font-mono tabular-nums text-[var(--text-primary)]">
-                    {paper.n_trades ?? '—'}
-                  </TableCell>
                   <TableCell className="text-right font-mono tabular-nums text-[var(--color-loss)]">
                     {fmtPct(paper.max_drawdown_pct)}
+                  </TableCell>
+                  <TableCell
+                    className="text-right font-mono tabular-nums"
+                    style={{ color: hedging ? 'var(--text-primary)' : 'var(--text-muted)' }}
+                    title={
+                      hedging
+                        ? 'Calmar — primary ranking metric for hedging strategies'
+                        : 'Calmar — shown for reference; trading rows ranked by DSR'
+                    }
+                  >
+                    {calmarStr}
+                  </TableCell>
+                  <TableCell
+                    className="text-right font-mono tabular-nums"
+                    style={{ color: hedging ? 'var(--text-muted)' : 'var(--text-primary)' }}
+                    title={
+                      hedging ? 'Profit factor — not applicable to hedging strategies' : undefined
+                    }
+                  >
+                    {hedging ? <span className="opacity-40">{fmtNum(paper.profit_factor)}</span> : fmtNum(paper.profit_factor)}
+                  </TableCell>
+                  <TableCell
+                    className="text-right font-mono tabular-nums"
+                    style={{ color: hedging ? 'var(--text-muted)' : 'var(--text-primary)' }}
+                    title={
+                      hedging ? 'Sharpe ratio — not applicable to hedging strategies' : undefined
+                    }
+                  >
+                    {hedging ? <span className="opacity-40">{fmtNum(paper.sharpe_ratio)}</span> : fmtNum(paper.sharpe_ratio)}
+                  </TableCell>
+                  <TableCell
+                    className="text-right font-mono tabular-nums text-[var(--text-primary)]"
+                    title={hedging ? 'Rebalance events (allocation tilts have very few trades)' : undefined}
+                  >
+                    {paper.n_trades ?? '—'}
                   </TableCell>
                   <TableCell>
                     <Badge variant="outline" className="border-[var(--border-default)] text-[10px]">

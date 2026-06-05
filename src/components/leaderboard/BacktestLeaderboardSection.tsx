@@ -11,6 +11,8 @@ import {
   type ApprovalTarget,
 } from '@/components/leaderboard/RequestApprovalDialog';
 import { VerdictBadge } from '@/components/leaderboard/VerdictBadge';
+import { KindBadge } from '@/components/leaderboard/KindBadge';
+import { isHedging } from '@/lib/strategyKind';
 import type { BacktestLeaderboardEntry } from '@/types/leaderboardBacktest';
 
 interface BacktestLeaderboardSectionProps {
@@ -94,12 +96,14 @@ export function BacktestLeaderboardSection({
           Showing top {shown} of {qualifyingCells} qualifying cells · candidates (not deployable)
         </p>
         <p className="mt-1 text-[11px] text-[var(--text-muted)]">
-          One most-recent run per (symbol × interval × strategy) · ≥100 trades · ≥2y data window ·
-          ordered by deflated Sharpe.
+          One most-recent run per (symbol × interval × strategy) · ≥100 trades (trading) · ≥2y data
+          window · trading rows ordered by deflated Sharpe; hedging rows ordered by Calmar
+          (return ÷ max drawdown).
         </p>
         <p className="mt-0.5 text-[10px] text-[var(--text-muted)]">
           Deflated Sharpe for older runs may understate trial multiplicity until the analyzer
-          backfill runs.
+          backfill runs. Hedging strategies are exempt from the trade-count floor and ranked by
+          return-per-drawdown (Calmar) — DSR / PF do not apply.
         </p>
       </div>
 
@@ -137,6 +141,8 @@ function BacktestRow({
   entry: BacktestLeaderboardEntry;
   onRequestApproval: () => void;
 }) {
+  const hedging = isHedging(entry.strategyKind);
+
   return (
     <div className="rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-4 shadow-panel transition-colors hover:border-[var(--border-default)]">
       <div className="flex flex-wrap items-start gap-4">
@@ -162,6 +168,7 @@ function BacktestRow({
               {entry.interval || '—'}
             </span>
             <VerdictBadge verdict={entry.walkForwardVerdict} />
+            <KindBadge strategyKind={entry.strategyKind} />
             {entry.runCreatedAt && (
               <span
                 className="font-mono text-[10px] text-[var(--text-muted)]"
@@ -172,28 +179,55 @@ function BacktestRow({
             )}
           </div>
 
-          <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 sm:grid-cols-4 lg:grid-cols-8">
-            <Metric label="CAGR" value={fmtPct(entry.cagrPct)} tone="profit" />
-            <Metric label="DSR" value={fmtNum(entry.deflatedSharpe, 3)} />
-            <Metric label="PSR" value={fmtNum(entry.psr, 3)} />
-            <Metric label="PF" value={fmtNum(entry.profitFactor)} />
-            <Metric label="Trades" value={String(entry.trades)} />
-            <Metric
-              label="Span"
-              value={fmtSpan(entry.spanDays)}
-              title={
-                entry.dataStart && entry.dataEnd
-                  ? `${entry.dataStart} → ${entry.dataEnd}`
-                  : 'Backtest window length'
-              }
-            />
-            <Metric
-              label="Trials"
-              value={entry.dsrNTrials != null ? String(entry.dsrNTrials) : '—'}
-              title="best of N sweep trials"
-            />
-            <Metric label="Max DD" value={fmtPct(entry.maxDrawdownPct)} tone="loss" />
-          </div>
+          {hedging ? (
+            /* Hedging: surface Return + Max DD + Calmar. DSR/PF/trades are not
+               applicable to allocation tilts — rank is by Calmar. */
+            <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 sm:grid-cols-4">
+              <Metric label="Ann. Return" value={fmtPct(entry.cagrPct)} tone="profit" />
+              <Metric label="Max DD" value={fmtPct(entry.maxDrawdownPct)} tone="loss" />
+              <Metric
+                label="Calmar"
+                value={
+                  entry.cagrPct != null && entry.maxDrawdownPct != null && entry.maxDrawdownPct !== 0
+                    ? fmtNum(entry.cagrPct / Math.abs(entry.maxDrawdownPct))
+                    : '—'
+                }
+                title="Return ÷ |Max Drawdown| — primary ranking metric for hedging strategies"
+              />
+              <Metric
+                label="Span"
+                value={fmtSpan(entry.spanDays)}
+                title={
+                  entry.dataStart && entry.dataEnd
+                    ? `${entry.dataStart} → ${entry.dataEnd}`
+                    : 'Backtest window length'
+                }
+              />
+            </div>
+          ) : (
+            <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 sm:grid-cols-4 lg:grid-cols-8">
+              <Metric label="CAGR" value={fmtPct(entry.cagrPct)} tone="profit" />
+              <Metric label="DSR" value={fmtNum(entry.deflatedSharpe, 3)} />
+              <Metric label="PSR" value={fmtNum(entry.psr, 3)} />
+              <Metric label="PF" value={fmtNum(entry.profitFactor)} />
+              <Metric label="Trades" value={String(entry.trades)} />
+              <Metric
+                label="Span"
+                value={fmtSpan(entry.spanDays)}
+                title={
+                  entry.dataStart && entry.dataEnd
+                    ? `${entry.dataStart} → ${entry.dataEnd}`
+                    : 'Backtest window length'
+                }
+              />
+              <Metric
+                label="Trials"
+                value={entry.dsrNTrials != null ? String(entry.dsrNTrials) : '—'}
+                title="best of N sweep trials"
+              />
+              <Metric label="Max DD" value={fmtPct(entry.maxDrawdownPct)} tone="loss" />
+            </div>
+          )}
         </div>
 
         {/* Request approval */}

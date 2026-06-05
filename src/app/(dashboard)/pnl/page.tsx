@@ -22,6 +22,13 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { DatePicker } from '@/components/ui/date-picker';
 import { useDailyPnl, usePnlByStrategy } from '@/hooks/useTrades';
 import { useStrategies } from '@/hooks/useStrategies';
+import { useAccountView } from '@/lib/accountType/registry';
+import { useActiveAccount } from '@/hooks/useAccounts';
+import { useEquityCurve } from '@/hooks/useEquityCurve';
+import { useBtcBuyHold } from '@/hooks/useBtcBuyHold';
+import { AllocationStatCards } from '@/components/hedging/AllocationStatCards';
+import { AllocationPanel } from '@/components/hedging/AllocationPanel';
+import { DrawdownVsBuyHoldPanel } from '@/components/hedging/DrawdownVsBuyHoldPanel';
 import { cn } from '@/lib/utils';
 import type { DailyPnl, StrategyPnl } from '@/types/pnl';
 
@@ -67,9 +74,96 @@ export default function PnlPage() {
   );
 }
 
+function HedgingPnlContent() {
+  const { scopedAccountId } = useActiveAccount();
+  const { points, period, setPeriod, stats: equityStats, isLoading } = useEquityCurve();
+  const { strategyDrawdown, buyHoldDrawdown, verdict } = useBtcBuyHold(points, period);
+
+  const accountId = scopedAccountId;
+
+  return (
+    <div className="space-y-6">
+      <PageHeader
+        eyebrow="Allocation Performance"
+        title="Performance"
+        description="BTC/cash allocation vs buy-hold — drawdown, equity trajectory, rebalance framing."
+      />
+
+      {/* Period selector */}
+      <div className="flex items-center gap-2 rounded-xl border border-bd-subtle bg-bg-surface px-4 py-3">
+        <span className="label-caps">Window</span>
+        {(['7D', '30D', '90D', 'ALL'] as const).map((p) => (
+          <button
+            key={p}
+            type="button"
+            onClick={() => setPeriod(p)}
+            className={cn(
+              'rounded-sm px-2.5 py-1 font-mono text-[11px] transition-colors',
+              period === p
+                ? 'bg-bg-elevated text-text-primary'
+                : 'text-text-muted hover:text-text-primary',
+            )}
+          >
+            {p}
+          </button>
+        ))}
+      </div>
+
+      {isLoading ? (
+        <Skeleton className="h-[120px] w-full" />
+      ) : (
+        <AllocationStatCards accountId={accountId} />
+      )}
+
+      <AllocationPanel accountId={accountId} />
+
+      <DrawdownVsBuyHoldPanel
+        strategySeries={strategyDrawdown}
+        buyHoldSeries={buyHoldDrawdown}
+        verdict={verdict}
+      />
+
+      {equityStats && (
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
+          <StatCard
+            label="Equity Return"
+            value={`${equityStats.changePct >= 0 ? '+' : ''}${equityStats.changePct.toFixed(2)}%`}
+            valueColor={equityStats.changePct >= 0 ? 'profit' : 'loss'}
+            sub="vs strategy start"
+            icon={TrendingUp}
+            isLoading={isLoading}
+          />
+          <StatCard
+            label="Max Drawdown"
+            value={equityStats.maxDrawdown != null ? `${equityStats.maxDrawdown.toFixed(2)}%` : '—'}
+            valueColor="loss"
+            sub="peak-to-trough"
+            icon={TrendingDown}
+            isLoading={isLoading}
+          />
+          <StatCard
+            label="Calmar"
+            value={
+              equityStats.maxDrawdown && equityStats.maxDrawdown < 0
+                ? (equityStats.changePct / Math.abs(equityStats.maxDrawdown)).toFixed(2)
+                : '—'
+            }
+            sub="return / max drawdown"
+            icon={BarChart3}
+            isLoading={isLoading}
+          />
+        </div>
+      )}
+    </div>
+  );
+}
+
 function PnlPageContent() {
+  const accountView = useAccountView();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const isHedgingView = accountView.label === 'Hedging';
+
   const filters = useMemo(
     () => readFilters(new URLSearchParams(searchParams.toString())),
     [searchParams],
@@ -87,6 +181,10 @@ function PnlPageContent() {
     [router, searchParams],
   );
 
+  // All hooks called unconditionally — branching happens in render only.
+  // For HEDGING views the data these return is not rendered, so queries
+  // either stay disabled (useDailyPnl guards on non-empty from/to) or
+  // load without consequence (usePnlByStrategy).
   const dailyQ = useDailyPnl(
     filters.from,
     filters.to,
@@ -100,6 +198,11 @@ function PnlPageContent() {
   const dailySeries = useMemo(() => dailyQ.data ?? [], [dailyQ.data]);
 
   const stats = useMemo(() => computeStats(dailySeries), [dailySeries]);
+
+  // For HEDGING accounts, show allocation-performance framing instead.
+  if (isHedgingView) {
+    return <HedgingPnlContent />;
+  }
 
   return (
     <div className="space-y-6">

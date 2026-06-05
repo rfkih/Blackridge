@@ -53,6 +53,7 @@ import { useAccounts } from '@/hooks/useAccounts';
 import { useBacktestParamStore } from '@/store/backtestParamStore';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { isHedging } from '@/lib/strategyKind';
 import type { AccountStrategy } from '@/types/strategy';
 import type { Trades } from '@/types/trading';
 
@@ -208,15 +209,15 @@ function StrategyDetail({ strategy }: { strategy: AccountStrategy }) {
         </div>
       </header>
 
-      <RiskGuardPanel strategy={strategy} />
+      {!isHedging(strategy.strategyKind) && <RiskGuardPanel strategy={strategy} />}
 
       <RiskGatesPanel strategy={strategy} />
 
-      <ExecutionStylePanel strategy={strategy} />
+      {!isHedging(strategy.strategyKind) && <ExecutionStylePanel strategy={strategy} />}
 
-      <DirectionPanel strategy={strategy} />
+      {!isHedging(strategy.strategyKind) && <DirectionPanel strategy={strategy} />}
 
-      <KellySizingPanel strategy={strategy} />
+      {!isHedging(strategy.strategyKind) && <KellySizingPanel strategy={strategy} />}
 
       <PositionSizingPanel strategy={strategy} />
 
