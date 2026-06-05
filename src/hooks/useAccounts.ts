@@ -9,6 +9,8 @@ import {
   rotateAccountCredentials,
   updateAccount,
   updateAccountRiskConfig,
+  previewAccountTypeSwitch,
+  switchAccountType,
   type CreateAccountPayload,
   type RiskConfigPayload,
   type RotateAccountCredentialsPayload,
@@ -203,6 +205,37 @@ export function useDeleteAccount() {
       if (selection === accountId) {
         setSelection('all');
       }
+    },
+  });
+}
+
+/**
+ * Dry-run preview of an account-type switch. Enabled only when a target type is
+ * supplied (i.e. the dialog is open) — drives the warning before the user commits.
+ */
+export function useAccountTypeSwitchPreview(accountId: string | null, target: AccountType | null) {
+  return useQuery({
+    queryKey: ['account-type-switch-preview', accountId, target],
+    queryFn: () => previewAccountTypeSwitch(accountId as string, target as AccountType),
+    enabled: Boolean(accountId) && Boolean(target),
+    staleTime: 0,
+  });
+}
+
+/**
+ * Apply an account-type switch. On success refreshes accounts (type badge),
+ * strategies (enabled/disabled state), and trades (closed positions).
+ */
+export function useSwitchAccountType() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ accountId, target }: { accountId: string; target: AccountType }) =>
+      switchAccountType(accountId, target),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['accounts'] });
+      queryClient.invalidateQueries({ queryKey: ['strategies'] });
+      queryClient.invalidateQueries({ queryKey: ['account-strategies'] });
+      queryClient.invalidateQueries({ queryKey: ['trades'] });
     },
   });
 }

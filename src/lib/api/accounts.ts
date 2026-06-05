@@ -140,3 +140,60 @@ export async function updateAccount(
 export async function deleteAccount(accountId: string): Promise<void> {
   await apiClient.delete(`/api/v1/accounts/${accountId}`);
 }
+
+// ---- Account-type switch (TRADING <-> HEDGING) ----
+
+export interface SwitchStrategyImpact {
+  accountStrategyId: string;
+  strategyCode: string;
+  presetName: string;
+  simulated: boolean;
+}
+
+export interface SwitchOpenTradeImpact {
+  tradeId: string;
+  accountStrategyId: string;
+  asset: string;
+  side: string;
+}
+
+export interface AccountTypeSwitchPreview {
+  currentType: AccountType;
+  targetType: AccountType;
+  alreadyTargetType: boolean;
+  strategiesToDisable: SwitchStrategyImpact[];
+  strategiesToRestore: SwitchStrategyImpact[];
+  openTradesToClose: SwitchOpenTradeImpact[];
+  hasLivePositions: boolean;
+}
+
+export interface AccountTypeSwitchResult {
+  accountType: AccountType;
+  strategiesDisabled: number;
+  tradesClosed: number;
+  strategiesRestored: number;
+}
+
+/** Dry-run: what a switch to `target` would do (drives the warning dialog). No mutation. */
+export async function previewAccountTypeSwitch(
+  accountId: string,
+  target: AccountType,
+): Promise<AccountTypeSwitchPreview> {
+  const { data } = await apiClient.get<AccountTypeSwitchPreview>(
+    `/api/v1/accounts/${accountId}/account-type/preview`,
+    { params: { target } },
+  );
+  return data;
+}
+
+/** Apply the switch: closes incompatible positions, disables/restores strategies, flips the type. */
+export async function switchAccountType(
+  accountId: string,
+  accountType: AccountType,
+): Promise<AccountTypeSwitchResult> {
+  const { data } = await apiClient.patch<AccountTypeSwitchResult>(
+    `/api/v1/accounts/${accountId}/account-type`,
+    { accountType },
+  );
+  return data;
+}

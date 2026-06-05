@@ -26,7 +26,7 @@ import { useUpdateMyProfile } from '@/hooks/useProfile';
 import { useTheme } from '@/components/theme/ThemeProvider';
 import { usePalette, PALETTE_META, type Palette } from '@/components/theme/PaletteProvider';
 import { RotateCredentialsDialog } from '@/components/account/RotateCredentialsDialog';
-import { AccountTypeBadge } from '@/components/account/AccountTypeBadge';
+import { AccountTypeControl } from '@/components/account/AccountTypeControl';
 import { ServerIpCard } from '@/components/account/ServerIpCard';
 import { normalizeError } from '@/lib/api/client';
 import { toast } from '@/hooks/useToast';
@@ -1127,7 +1127,7 @@ function HedgingRiskCard({ account }: { account: AccountSummary }) {
             {account.exchange}
           </div>
         </div>
-        <AccountTypeBadge type="HEDGING" />
+        <AccountTypeControl account={account} />
       </div>
 
       <p
@@ -1220,6 +1220,9 @@ function TradingRiskPolicyCard({ account }: { account: AccountSummary }) {
             }}
           >
             {account.exchange}
+          </div>
+          <div style={{ marginTop: 8 }}>
+            <AccountTypeControl account={account} />
           </div>
         </div>
         <button

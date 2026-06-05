@@ -10,6 +10,10 @@ vi.mock('@/hooks/useAccounts', () => ({
   useAccounts: () => useAccounts(),
   useActiveAccount: () => useActiveAccount(),
   useUpdateAccountRiskConfig: () => ({ mutateAsync: updateRiskMutate, isPending: false }),
+  // The account cards now embed AccountTypeControl → SwitchAccountTypeDialog,
+  // which reads these (dialog starts closed, so the preview stays disabled).
+  useAccountTypeSwitchPreview: () => ({ data: undefined, isLoading: false, isError: false }),
+  useSwitchAccountType: () => ({ mutate: vi.fn(), isPending: false }),
 }));
 
 // --- toast no-op ---
