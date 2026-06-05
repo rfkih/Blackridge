@@ -15,16 +15,14 @@ interface RebalanceHistoryProps {
   accountId: string | undefined;
 }
 
-function weightChange(from: number | null, to: number | null): string {
-  if (from == null || to == null) return '—';
-  return `${from.toFixed(0)}% → ${to.toFixed(0)}%`;
-}
-
 /**
  * Rebalance log for a HEDGING account: the close-and-reopen events from
- * `useRebalances` rendered as `time · from→to weight · reason · realized Δ`.
- * The from→to weight is not exposed per-event by the backend yet, so it
- * renders as "—" rather than a fabricated percentage.
+ * `useRebalances` rendered as `time · reason · realized Δ`.
+ *
+ * The per-event from→to BTC weight is not derivable from the available fields
+ * (it would need the account equity snapshot at each rebalance, which the app
+ * does not expose), so that column is dropped rather than rendered as a
+ * permanent "—".
  */
 export function RebalanceHistory({ accountId }: RebalanceHistoryProps) {
   const { data: events } = useRebalances(accountId);
@@ -61,7 +59,6 @@ export function RebalanceHistory({ accountId }: RebalanceHistoryProps) {
           <TableHeader>
             <TableRow>
               <TableHead>Time</TableHead>
-              <TableHead>Weight</TableHead>
               <TableHead>Reason</TableHead>
               <TableHead className="text-right">Realized Δ</TableHead>
             </TableRow>
@@ -71,9 +68,6 @@ export function RebalanceHistory({ accountId }: RebalanceHistoryProps) {
               <TableRow key={ev.id}>
                 <TableCell className="font-mono text-[12px] text-[var(--text-muted)]">
                   {formatDate(ev.time)}
-                </TableCell>
-                <TableCell className="font-mono tabular-nums">
-                  {weightChange(ev.fromWeightPct, ev.toWeightPct)}
                 </TableCell>
                 <TableCell className="capitalize">{ev.reason}</TableCell>
                 <TableCell

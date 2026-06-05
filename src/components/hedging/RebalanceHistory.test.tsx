@@ -41,11 +41,17 @@ describe('RebalanceHistory', () => {
     expect(screen.getByText(/-88\.00 USDT/)).toBeInTheDocument();
   });
 
-  it('renders a dash for the from/to weight when not exposed by the backend', () => {
+  it('does not render an always-empty from/to weight column', () => {
     useRebalances.mockReturnValue({ data: [EVENTS[0]], isLoading: false, isError: false });
     render(<RebalanceHistory accountId="a1" />);
-    // from→to weight is null on every event today — render "—", never a fake %
-    expect(screen.getAllByText('—').length).toBeGreaterThan(0);
+    // the weight is null on every event today, so the column is dropped entirely
+    // rather than rendered as a permanent "—"
+    expect(screen.queryByRole('columnheader', { name: /weight/i })).not.toBeInTheDocument();
+    expect(screen.queryByText('—')).not.toBeInTheDocument();
+    // the informative columns remain
+    expect(screen.getByRole('columnheader', { name: /time/i })).toBeInTheDocument();
+    expect(screen.getByRole('columnheader', { name: /reason/i })).toBeInTheDocument();
+    expect(screen.getByRole('columnheader', { name: /realized/i })).toBeInTheDocument();
   });
 
   it('renders the empty state when there are no rebalances', () => {
