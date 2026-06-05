@@ -4,7 +4,11 @@ import { useEffect, useMemo, useState } from 'react';
 import { Save, Loader2, Sliders } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useCreateStrategyParam, useStrategyParamPresets } from '@/hooks/useStrategyParams';
+import {
+  useCreateStrategyParam,
+  useStrategyParamPresets,
+  useUpdateStrategyParam,
+} from '@/hooks/useStrategyParams';
 import { toast } from '@/hooks/useToast';
 import { normalizeError } from '@/lib/api/client';
 import type { AccountStrategy } from '@/types/strategy';
@@ -60,6 +64,7 @@ export function HedgingParamForm({ strategy, definition }: HedgingParamFormProps
 
   const { data: presets, isLoading, isError } = useStrategyParamPresets(strategy.id);
   const createParam = useCreateStrategyParam(strategy.id);
+  const updateParam = useUpdateStrategyParam(strategy.id);
 
   const active = useMemo(() => presets?.find((p) => p.active), [presets]);
 
@@ -93,12 +98,19 @@ export function HedgingParamForm({ strategy, definition }: HedgingParamFormProps
     const overrides: Record<string, number> = {};
     for (const key of keys) overrides[key] = values[key];
     try {
-      await createParam.mutateAsync({
-        accountStrategyId: strategy.id,
-        name: active?.name ?? 'Hedging params',
-        overrides,
-        activate: true,
-      });
+      if (active) {
+        // Update the active preset in place — avoids minting (and orphaning) a
+        // fresh deactivated preset on every save.
+        await updateParam.mutateAsync({ paramId: active.paramId, overrides });
+      } else {
+        // First preset for this binding: create it active.
+        await createParam.mutateAsync({
+          accountStrategyId: strategy.id,
+          name: 'Hedging params',
+          overrides,
+          activate: true,
+        });
+      }
       toast.success({
         title: 'Hedging parameters saved',
         description: `${keys.length} param${keys.length === 1 ? '' : 's'} applied.`,
@@ -179,8 +191,12 @@ export function HedgingParamForm({ strategy, definition }: HedgingParamFormProps
       </div>
 
       <div className="flex items-center justify-end gap-3 border-t border-[var(--border-subtle)] pt-3">
-        <Button onClick={onSave} disabled={createParam.isPending} className="gap-2">
-          {createParam.isPending ? (
+        <Button
+          onClick={onSave}
+          disabled={createParam.isPending || updateParam.isPending}
+          className="gap-2"
+        >
+          {createParam.isPending || updateParam.isPending ? (
             <Loader2 size={14} className="animate-spin" />
           ) : (
             <Save size={14} />

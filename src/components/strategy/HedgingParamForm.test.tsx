@@ -10,13 +10,19 @@ import { HedgingParamForm } from './HedgingParamForm';
 // --- mock the strategy-params hooks ---
 const useStrategyParamPresets = vi.fn();
 const createMutateAsync = vi.fn();
+const updateMutateAsync = vi.fn();
 const useCreateStrategyParam = vi.fn((_id?: string) => ({
   mutateAsync: createMutateAsync,
+  isPending: false,
+}));
+const useUpdateStrategyParam = vi.fn((_id?: string) => ({
+  mutateAsync: updateMutateAsync,
   isPending: false,
 }));
 vi.mock('@/hooks/useStrategyParams', () => ({
   useStrategyParamPresets: (id: string) => useStrategyParamPresets(id),
   useCreateStrategyParam: (id: string) => useCreateStrategyParam(id),
+  useUpdateStrategyParam: (id: string) => useUpdateStrategyParam(id),
 }));
 
 // --- mock toast ---
@@ -96,7 +102,10 @@ describe('HedgingParamForm', () => {
     useStrategyParamPresets.mockReset();
     createMutateAsync.mockReset();
     createMutateAsync.mockResolvedValue(mkPreset({}));
+    updateMutateAsync.mockReset();
+    updateMutateAsync.mockResolvedValue(mkPreset({}));
     useCreateStrategyParam.mockClear();
+    useUpdateStrategyParam.mockClear();
     toastSuccess.mockReset();
     toastError.mockReset();
   });
@@ -130,9 +139,9 @@ describe('HedgingParamForm', () => {
     expect((screen.getByLabelText('Deadband') as HTMLInputElement).value).toBe('0.1');
   });
 
-  it('saves the merged overrides via the strategy-params mutation', async () => {
+  it('with an active preset, Save UPDATES it in place (no new preset created)', async () => {
     useStrategyParamPresets.mockReturnValue({
-      data: [mkPreset({ active: true, overrides: { erThreshold: 0.35 } })],
+      data: [mkPreset({ paramId: 'active-1', active: true, overrides: { erThreshold: 0.35 } })],
       isLoading: false,
       isError: false,
     });
@@ -142,12 +151,35 @@ describe('HedgingParamForm', () => {
     fireEvent.change(deadband, { target: { value: '0.25' } });
     fireEvent.click(screen.getByRole('button', { name: /save/i }));
 
+    await waitFor(() => expect(updateMutateAsync).toHaveBeenCalledTimes(1));
+    // No unbounded preset growth — create must NOT be called when one is active.
+    expect(createMutateAsync).not.toHaveBeenCalled();
+    const req = updateMutateAsync.mock.calls[0][0];
+    expect(req.paramId).toBe('active-1');
+    expect(req.overrides).toEqual({
+      erThreshold: 0.35,
+      deadband: 0.25,
+      maxWeight: 1,
+      priceBand: 0.03,
+    });
+    await waitFor(() => expect(toastSuccess).toHaveBeenCalled());
+  });
+
+  it('with NO preset, Save CREATES the first active preset', async () => {
+    useStrategyParamPresets.mockReturnValue({ data: [], isLoading: false, isError: false });
+    renderForm();
+
+    const deadband = (await screen.findByLabelText('Deadband')) as HTMLInputElement;
+    fireEvent.change(deadband, { target: { value: '0.25' } });
+    fireEvent.click(screen.getByRole('button', { name: /save/i }));
+
     await waitFor(() => expect(createMutateAsync).toHaveBeenCalledTimes(1));
+    expect(updateMutateAsync).not.toHaveBeenCalled();
     const req = createMutateAsync.mock.calls[0][0];
     expect(req.accountStrategyId).toBe('as-1');
     expect(req.activate).toBe(true);
     expect(req.overrides).toEqual({
-      erThreshold: 0.35,
+      erThreshold: 0.2,
       deadband: 0.25,
       maxWeight: 1,
       priceBand: 0.03,

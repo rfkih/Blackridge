@@ -7,9 +7,10 @@ import {
   deactivateStrategyParam,
   deleteStrategyParam,
   listStrategyParams,
+  updateStrategyParam,
 } from '@/lib/api/strategy-params';
 import { QUERY_STALE_TIMES } from '@/lib/constants';
-import type { StrategyParamCreateRequest } from '@/types/strategy';
+import type { StrategyParamCreateRequest, StrategyParamUpdateRequest } from '@/types/strategy';
 
 const presetsKey = (accountStrategyId: string | undefined) =>
   ['strategy-params', accountStrategyId ?? null] as const;
@@ -49,6 +50,21 @@ export function useCreateStrategyParam(accountStrategyId: string | undefined) {
   const invalidate = useInvalidatePresets(accountStrategyId);
   return useMutation({
     mutationFn: (request: StrategyParamCreateRequest) => createStrategyParam(request),
+    onSuccess: invalidate,
+  });
+}
+
+/**
+ * Updates an existing preset in place (override map + optional name) via
+ * `PATCH /api/v1/strategy-params/{paramId}`. Used to edit the active preset
+ * without minting a new row every save (no unbounded preset growth). Shares the
+ * same cache invalidation as create — both reshape the active preset contents.
+ */
+export function useUpdateStrategyParam(accountStrategyId: string | undefined) {
+  const invalidate = useInvalidatePresets(accountStrategyId);
+  return useMutation({
+    mutationFn: ({ paramId, ...request }: StrategyParamUpdateRequest & { paramId: string }) =>
+      updateStrategyParam(paramId, request),
     onSuccess: invalidate,
   });
 }

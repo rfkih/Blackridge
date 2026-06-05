@@ -298,3 +298,13 @@ export interface StrategyParamCreateRequest {
    *  library" button. Omit elsewhere. */
   sourceBacktestRunId?: string;
 }
+
+/**
+ * In-place update of an existing preset's override map (and optionally its
+ * name) via `PATCH /api/v1/strategy-params/{paramId}`. Used to edit the active
+ * preset without minting a new row each save — avoids unbounded preset growth.
+ */
+export interface StrategyParamUpdateRequest {
+  overrides: Record<string, unknown>;
+  name?: string;
+}

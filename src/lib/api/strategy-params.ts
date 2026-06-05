@@ -1,5 +1,9 @@
 import { apiClient } from './client';
-import type { StrategyParamCreateRequest, StrategyParamPreset } from '@/types/strategy';
+import type {
+  StrategyParamCreateRequest,
+  StrategyParamPreset,
+  StrategyParamUpdateRequest,
+} from '@/types/strategy';
 
 /**
  * Saved-preset CRUD against `/api/v1/strategy-params` (V29+ unified table).
@@ -24,6 +28,14 @@ export async function createStrategyParam(
   request: StrategyParamCreateRequest,
 ): Promise<StrategyParamPreset> {
   const { data } = await apiClient.post<StrategyParamPreset>(BASE, request);
+  return data;
+}
+
+export async function updateStrategyParam(
+  paramId: string,
+  request: StrategyParamUpdateRequest,
+): Promise<StrategyParamPreset> {
+  const { data } = await apiClient.patch<StrategyParamPreset>(`${BASE}/${paramId}`, request);
   return data;
 }
 
