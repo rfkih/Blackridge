@@ -29,7 +29,9 @@ import {
 import { normalizeError } from '@/lib/api/client';
 import { useCreateStrategy } from '@/hooks/useStrategies';
 import { useStrategyDefinitions } from '@/hooks/useStrategyDefinitions';
+import { useCompatibleStrategies } from '@/hooks/useCompatibleStrategies';
 import { useSymbolApprovals } from '@/hooks/useSymbolApprovals';
+import { useActiveAccount } from '@/hooks/useAccounts';
 import { useIsAdmin } from '@/hooks/useIsAdmin';
 import { toast } from '@/hooks/useToast';
 import type { AccountSummary } from '@/types/account';
@@ -91,8 +93,19 @@ export function NewStrategyDialog({
   const createMutation = useCreateStrategy();
   const { data: strategyDefinitions = [], isLoading: isDefinitionsLoading } =
     useStrategyDefinitions();
+  // Kind-filtered catalogue for the active account (HEDGING accounts only ever
+  // see hedging strategies; the backend enforces the same at bind time).
+  const { data: compatibleDefinitions } = useCompatibleStrategies();
   const { data: approvals = [], isLoading: isApprovalsLoading } = useSymbolApprovals();
+  const { activeAccount } = useActiveAccount();
   const isAdmin = useIsAdmin();
+
+  /** A HEDGING account binds spot allocation strategies (BTC/USDT). These are
+   *  not symbol-approval-gated — the approval table only covers directional
+   *  TRADING strategies — so the picker is sourced from the kind-filtered
+   *  catalogue and the per-symbol gate is skipped entirely. TRADING accounts
+   *  keep the existing approval-gated behaviour untouched. */
+  const isHedging = activeAccount?.accountType === 'HEDGING';
 
   useEffect(() => {
     if (open) {
@@ -108,10 +121,10 @@ export function NewStrategyDialog({
    *  fresh strategy should never be created against them. */
   const activeDefinitions = useMemo(
     () =>
-      strategyDefinitions
+      (isHedging ? (compatibleDefinitions ?? []) : strategyDefinitions)
         .filter((d) => d.status === 'ACTIVE')
         .sort((a, b) => a.strategyCode.localeCompare(b.strategyCode)),
-    [strategyDefinitions],
+    [isHedging, compatibleDefinitions, strategyDefinitions],
   );
 
   /**
@@ -122,10 +135,17 @@ export function NewStrategyDialog({
    * When the operator switches symbol mid-flow, the strategy field
    * auto-clears if it falls out of the allowlist.
    */
-  const symbolHasStrategies = hasSupportedStrategies(form.symbol, approvals);
+  // HEDGING bypasses the per-symbol approval gate (spot BTC/USDT strategies are
+  // not in the approval table); TRADING keeps the existing gate verbatim.
+  const symbolHasStrategies = isHedging || hasSupportedStrategies(form.symbol, approvals);
   const validDefinitions = useMemo(
-    () => activeDefinitions.filter((d) => isStrategySupportedForSymbol(d.strategyCode, form.symbol, approvals)),
-    [activeDefinitions, form.symbol, approvals],
+    () =>
+      isHedging
+        ? activeDefinitions
+        : activeDefinitions.filter((d) =>
+            isStrategySupportedForSymbol(d.strategyCode, form.symbol, approvals),
+          ),
+    [isHedging, activeDefinitions, form.symbol, approvals],
   );
 
   useEffect(() => {
@@ -154,7 +174,7 @@ export function NewStrategyDialog({
     Boolean(form.accountId) &&
     Boolean(form.strategyCode) &&
     form.symbol.trim().length >= 3 &&
-    isStrategySupportedForSymbol(form.strategyCode, form.symbol, approvals) &&
+    (isHedging || isStrategySupportedForSymbol(form.strategyCode, form.symbol, approvals)) &&
     Boolean(form.intervalName) &&
     Number(form.maxOpenPositions) >= 1 &&
     Number(form.capitalAllocationPct) > 0 &&
@@ -343,8 +363,8 @@ export function NewStrategyDialog({
               </p>
             ) : validDefinitions.length === 0 ? (
               <p className="text-[10px] text-[var(--color-warning)]">
-                None of the active strategies are validated for {form.symbol}. Validate one via /research
-                first, or pick a different symbol.
+                None of the active strategies are validated for {form.symbol}. Validate one via
+                /research first, or pick a different symbol.
               </p>
             ) : null}
           </div>

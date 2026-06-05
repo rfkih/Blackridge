@@ -27,21 +27,16 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { StrategyBadge } from '@/components/trading/StrategyBadge';
 import { StrategyStatusBadge } from '@/components/strategy/StrategyStatusBadge';
-import { LsrParamsForm } from '@/components/strategy/LsrParamsForm';
-import { VcbParamsForm } from '@/components/strategy/VcbParamsForm';
 import { CrossWindowPanel } from '@/components/strategy/CrossWindowPanel';
 import { PaperTradePanel } from '@/components/strategy/PaperTradePanel';
 import { StrategyParamPresetPanel } from '@/components/strategy/StrategyParamPresetPanel';
+import { ParametersTab } from './ParametersTab';
 import {
   useAccountStrategy,
   useActivateStrategy,
   useKellyStatus,
-  useLsrDefaults,
-  useLsrParams,
   useRearmKillSwitch,
   useUpdateStrategy,
-  useVcbDefaults,
-  useVcbParams,
 } from '@/hooks/useStrategies';
 import { useAccountStrategyPromote } from '@/hooks/useStrategyPromotion';
 import { useTradesList, useTradeStats } from '@/hooks/useTrades';
@@ -63,12 +58,6 @@ import type { Trades } from '@/types/trading';
 
 interface PageProps {
   params: { accountStrategyId: string };
-}
-
-const VCB_CODES = new Set(['VCB']);
-
-function isVcbStrategy(code: string): boolean {
-  return VCB_CODES.has(code);
 }
 
 function formatAllocStr(pct: number): string {
@@ -621,9 +610,7 @@ function ExecutionStylePanel({ strategy }: { strategy: AccountStrategy }) {
         )}
       </div>
       <span className="font-mono text-[10px] text-text-muted">
-        ·{' '}
-        {EXECUTION_STYLES.find((o) => o.value === current)?.description ??
-          'Single MARKET fill.'}{' '}
+        · {EXECUTION_STYLES.find((o) => o.value === current)?.description ?? 'Single MARKET fill.'}{' '}
         Backend refuses a style change while open trades exist.
       </span>
     </div>
@@ -1382,83 +1369,6 @@ function OverviewTab({ strategy }: { strategy: AccountStrategy }) {
           ))}
         </tbody>
       </table>
-    </div>
-  );
-}
-
-function ParametersTab({ strategy }: { strategy: AccountStrategy }) {
-  const isVcb = isVcbStrategy(strategy.strategyCode);
-  return isVcb ? (
-    <VcbParametersEditor strategyId={strategy.id} strategyCode={strategy.strategyCode} />
-  ) : (
-    <LsrParametersEditor strategy={strategy} />
-  );
-}
-
-function LsrParametersEditor({ strategy }: { strategy: AccountStrategy }) {
-  const { data: defaults, isLoading: loadingDefaults, isError: defaultsError } = useLsrDefaults();
-  const { data: current, isLoading: loadingParams } = useLsrParams(strategy.id);
-
-  if (defaultsError) {
-    return (
-      <div className="rounded-md border border-[var(--border-default)] bg-[var(--bg-surface)] p-4 text-sm text-[var(--color-loss)]">
-        Could not load LSR parameter defaults.
-      </div>
-    );
-  }
-  if (loadingDefaults || !defaults || loadingParams) {
-    return <ParametersSkeleton />;
-  }
-
-  return (
-    <LsrParamsForm
-      mode="live"
-      accountStrategyId={strategy.id}
-      strategyCode={strategy.strategyCode}
-      initialValues={current ?? {}}
-      defaultValues={defaults}
-    />
-  );
-}
-
-function VcbParametersEditor({
-  strategyId,
-  strategyCode,
-}: {
-  strategyId: string;
-  strategyCode: string;
-}) {
-  const { data: defaults, isLoading: loadingDefaults, isError: defaultsError } = useVcbDefaults();
-  const { data: current, isLoading: loadingParams } = useVcbParams(strategyId);
-
-  if (defaultsError) {
-    return (
-      <div className="rounded-md border border-[var(--border-default)] bg-[var(--bg-surface)] p-4 text-sm text-[var(--color-loss)]">
-        Could not load VCB parameter defaults.
-      </div>
-    );
-  }
-  if (loadingDefaults || !defaults || loadingParams) {
-    return <ParametersSkeleton />;
-  }
-
-  return (
-    <VcbParamsForm
-      mode="live"
-      accountStrategyId={strategyId}
-      strategyCode={strategyCode}
-      initialValues={current ?? {}}
-      defaultValues={defaults}
-    />
-  );
-}
-
-function ParametersSkeleton() {
-  return (
-    <div className="space-y-3">
-      {Array.from({ length: 4 }).map((_, i) => (
-        <Skeleton key={i} className="h-16 w-full" />
-      ))}
     </div>
   );
 }
