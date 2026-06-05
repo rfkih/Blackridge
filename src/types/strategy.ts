@@ -1,4 +1,5 @@
 import type { Interval, StrategyCode } from '@/lib/constants';
+import type { AccountType } from './accountType';
 import type { ISO8601, UUID } from './api';
 
 /**
@@ -18,6 +19,15 @@ export interface AccountStrategy {
   id: UUID;
   accountId: UUID;
   strategyCode: StrategyCode | string;
+  /** Strategy taxonomy (V153). TRADING (directional) or HEDGING (allocation).
+   *  Must match the owning account's `accountType` at bind time (backend
+   *  enforces). Distinct field from the account's accountType; legacy rows
+   *  default to TRADING. */
+  strategyKind: AccountType;
+  /** Archetype slug from the strategy definition (e.g. `ensemble_trend`,
+   *  `dynamic_tilt`). Selects the per-archetype param form schema. Legacy
+   *  rows default to `LEGACY_JAVA`. */
+  archetype: string;
   /** User-facing preset label. Several presets can share the same (strategy, symbol, interval);
    *  only one can be LIVE at a time. */
   presetName: string;

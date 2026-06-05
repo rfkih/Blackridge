@@ -3,7 +3,11 @@ import { toNum } from './coerce';
 import { extractList } from './pageUtils';
 import { addOptionalParam } from './queryParams';
 import type { AccountStrategy, AccountStrategyStatus, KellyStatus } from '@/types/strategy';
+import { DEFAULT_ACCOUNT_TYPE, isAccountType } from '@/types/accountType';
 import type { BackendAccountStrategy, PageResponse } from '@/types/api';
+
+/** Archetype slug for pre-V153 rows with no definition archetype. */
+const LEGACY_ARCHETYPE = 'LEGACY_JAVA';
 
 /**
  * V66 — derive the user-facing status from the two execution flags so the
@@ -30,6 +34,8 @@ export function mapAccountStrategy(s: BackendAccountStrategy): AccountStrategy {
     id: (s.id ?? s.accountStrategyId) as string,
     accountId: s.accountId,
     strategyCode: s.strategyCode,
+    strategyKind: isAccountType(s.strategyKind) ? s.strategyKind : DEFAULT_ACCOUNT_TYPE,
+    archetype: (s.archetype ?? '').trim() || LEGACY_ARCHETYPE,
     presetName: (s.presetName ?? '').trim() || 'Default',
     symbol: s.symbol,
     interval: (s.interval ?? s.intervalName ?? '') as string,

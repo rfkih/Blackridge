@@ -98,6 +98,12 @@ export interface BackendAccountStrategy {
   accountId: UUID;
   strategyDefinitionId?: UUID | null;
   strategyCode: string;
+  /** Strategy taxonomy (V153). TRADING | HEDGING. Absent on legacy rows →
+   *  mapped to TRADING. Distinct from the account's accountType. */
+  strategyKind?: string | null;
+  /** Archetype slug from the strategy definition (e.g. `ensemble_trend`,
+   *  `dynamic_tilt`). Absent on legacy rows → mapped to `LEGACY_JAVA`. */
+  archetype?: string | null;
   /** User-facing preset label. Multiple presets can share the same strategy/symbol/interval;
    *  only one is `enabled` at a time. */
   presetName?: string | null;
