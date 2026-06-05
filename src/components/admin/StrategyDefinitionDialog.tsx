@@ -21,6 +21,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { FieldRow } from '@/components/shared/FieldRow';
+import { AccountTypeSelector } from '@/components/account/AccountTypeSelector';
 import {
   useCreateStrategyDefinition,
   useUpdateStrategyDefinition,
@@ -28,6 +29,8 @@ import {
 import { normalizeError } from '@/lib/api/client';
 import { toast } from '@/hooks/useToast';
 import { cn } from '@/lib/utils';
+import { DEFAULT_ACCOUNT_TYPE } from '@/types/accountType';
+import type { AccountType } from '@/types/accountType';
 import type { StrategyDefinition } from '@/types/strategyDefinition';
 
 interface StrategyDefinitionDialogProps {
@@ -44,6 +47,7 @@ interface FormState {
   strategyCode: string;
   strategyName: string;
   strategyType: string;
+  strategyKind: AccountType;
   description: string;
   status: string;
   simulated: boolean;
@@ -53,6 +57,7 @@ const EMPTY_STATE: FormState = {
   strategyCode: '',
   strategyName: '',
   strategyType: 'TREND',
+  strategyKind: DEFAULT_ACCOUNT_TYPE,
   description: '',
   status: 'ACTIVE',
   simulated: true,
@@ -94,6 +99,7 @@ export function StrategyDefinitionDialog({
         strategyCode: existing.strategyCode,
         strategyName: existing.strategyName,
         strategyType: existing.strategyType || 'TREND',
+        strategyKind: existing.strategyKind ?? DEFAULT_ACCOUNT_TYPE,
         description: existing.description ?? '',
         status: existing.status,
         simulated: existing.simulated,
@@ -103,6 +109,7 @@ export function StrategyDefinitionDialog({
         strategyCode: '',
         strategyName: replicateFrom.strategyName,
         strategyType: replicateFrom.strategyType || 'TREND',
+        strategyKind: replicateFrom.strategyKind ?? DEFAULT_ACCOUNT_TYPE,
         description: replicateFrom.description ?? '',
         status: 'ACTIVE',
         simulated: replicateFrom.simulated,
@@ -139,6 +146,7 @@ export function StrategyDefinitionDialog({
           payload: {
             strategyName: form.strategyName.trim(),
             strategyType: form.strategyType.trim(),
+            strategyKind: form.strategyKind,
             description: form.description.trim() || undefined,
             status: form.status as never,
           },
@@ -162,6 +170,7 @@ export function StrategyDefinitionDialog({
         strategyCode: form.strategyCode.trim(),
         strategyName: form.strategyName.trim(),
         strategyType: form.strategyType.trim(),
+        strategyKind: form.strategyKind,
         description: form.description.trim() || undefined,
         status: form.status as never,
         simulated: form.simulated,
@@ -272,6 +281,17 @@ export function StrategyDefinitionDialog({
                 ))}
               </SelectContent>
             </Select>
+          </FieldRow>
+
+          <FieldRow
+            label="Kind"
+            hint="TRADING (directional positions) or HEDGING (spot allocation). Determines which account types can bind this strategy."
+            className="col-span-2"
+          >
+            <AccountTypeSelector
+              value={form.strategyKind}
+              onChange={(v) => setField('strategyKind', v)}
+            />
           </FieldRow>
 
           <FieldRow

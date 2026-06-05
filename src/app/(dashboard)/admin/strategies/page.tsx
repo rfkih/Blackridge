@@ -18,6 +18,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { Button } from '@/components/ui/button';
 import { StrategyDefinitionDialog } from '@/components/admin/StrategyDefinitionDialog';
+import { AccountTypeBadge } from '@/components/account/AccountTypeBadge';
 import { SymbolApprovalsSection } from '@/components/admin/symbol-approval/SymbolApprovalsSection';
 import { PendingApprovalsSection } from '@/components/admin/pending-approval/PendingApprovalsSection';
 import { PortfolioRebalanceSection } from '@/components/admin/portfolio-rebalance/PortfolioRebalanceSection';
@@ -228,7 +229,7 @@ function StrategyTable({
         <table className="w-full">
           <thead>
             <tr className="border-b border-bd-subtle">
-              {['Code', 'Name', 'Type', 'Status', 'Updated', ''].map((col) => (
+              {['Code', 'Name', 'Type', 'Kind', 'Status', 'Updated', ''].map((col) => (
                 <th
                   key={col || 'actions'}
                   className="label-caps whitespace-nowrap px-4 py-2.5 text-left"
@@ -256,6 +257,9 @@ function StrategyTable({
                   <span className="rounded-sm bg-bg-base px-1.5 py-0.5 font-mono text-[10px] text-text-secondary">
                     {row.strategyType}
                   </span>
+                </td>
+                <td className="whitespace-nowrap px-4 py-3">
+                  <AccountTypeBadge type={row.strategyKind} />
                 </td>
                 <td className="whitespace-nowrap px-4 py-3">
                   <StatusBadge status={row.status} />

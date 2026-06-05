@@ -37,6 +37,9 @@ export interface CreateStrategyDefinitionPayload {
   strategyCode: string;
   strategyName: string;
   strategyType: string;
+  /** Taxonomy (V153). TRADING (directional) or HEDGING (allocation). The
+   *  backend defaults a missing field to TRADING; the UI always sends it. */
+  strategyKind?: AccountType;
   description?: string;
   status?: StrategyDefinitionStatus;
   enabled?: boolean;
@@ -46,6 +49,8 @@ export interface CreateStrategyDefinitionPayload {
 export interface UpdateStrategyDefinitionPayload {
   strategyName?: string;
   strategyType?: string;
+  /** Taxonomy (V153) — see {@link CreateStrategyDefinitionPayload.strategyKind}. */
+  strategyKind?: AccountType;
   description?: string;
   status?: StrategyDefinitionStatus;
   enabled?: boolean;
