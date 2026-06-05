@@ -7,7 +7,9 @@ interface AllocationPanelProps {
 }
 
 const BTC_COLOR = '#F7931A';
-const CASH_COLOR = 'var(--mm-surface-3)';
+// Canonical neutral track from the global (`br-card`) token set — matches the
+// trading panels rather than the `--mm-*` namespace used by the stat cards.
+const CASH_COLOR = 'var(--bg-hover)';
 
 /**
  * A band gauge for a HEDGING account: the current BTC weight vs cash weight as

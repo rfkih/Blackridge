@@ -11,8 +11,12 @@ import {
   YAxis,
 } from 'recharts';
 import { formatDate } from '@/lib/formatters';
-import type { ChartTooltipItem } from '@/lib/charts/rechartsTheme';
+import { AXIS_TICK, CHART_COLORS, type ChartTooltipItem } from '@/lib/charts/rechartsTheme';
 import { PanelEmptyState, PanelShell } from './PanelShell';
+
+/** BTC brand accent — the one deliberate non-token color, shared with
+ *  `AllocationPanel`'s BTC bar so the hedging surface reads as "BTC". */
+const BTC_ACCENT = '#F7931A';
 
 /** One point on the BTC-stack scoreboard: `USDeq / (price/price₀)` expressed
  *  as a multiple of the buy-hold BTC stack (1.00 = matched buy-hold). */
@@ -93,8 +97,8 @@ export function BtcStackPanel({ series }: BtcStackPanelProps) {
         <ComposedChart data={data} margin={{ top: 8, right: 12, left: 0, bottom: 0 }}>
           <defs>
             <linearGradient id="hedge-stack-grad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#F7931A" stopOpacity={0.3} />
-              <stop offset="95%" stopColor="#F7931A" stopOpacity={0.02} />
+              <stop offset="5%" stopColor={BTC_ACCENT} stopOpacity={0.3} />
+              <stop offset="95%" stopColor={BTC_ACCENT} stopOpacity={0.02} />
             </linearGradient>
           </defs>
           <XAxis
@@ -105,7 +109,7 @@ export function BtcStackPanel({ series }: BtcStackPanelProps) {
               const d = new Date(v);
               return `${d.getMonth() + 1}/${d.getDate()}`;
             }}
-            tick={{ fill: '#4A5160', fontSize: 10, fontFamily: 'JetBrains Mono, monospace' }}
+            tick={AXIS_TICK}
             axisLine={false}
             tickLine={false}
             interval="preserveStartEnd"
@@ -113,17 +117,17 @@ export function BtcStackPanel({ series }: BtcStackPanelProps) {
           />
           <YAxis
             tickFormatter={(v: number) => `${v.toFixed(2)}×`}
-            tick={{ fill: '#4A5160', fontSize: 10, fontFamily: 'JetBrains Mono, monospace' }}
+            tick={AXIS_TICK}
             axisLine={false}
             tickLine={false}
             width={48}
           />
           <Tooltip content={<StackTooltip />} />
-          <ReferenceLine y={1} stroke="#2A2F3A" strokeDasharray="3 3" />
+          <ReferenceLine y={1} stroke={CHART_COLORS.axis} strokeDasharray="3 3" />
           <Area
             type="monotone"
             dataKey="stackMultiple"
-            stroke="#F7931A"
+            stroke={BTC_ACCENT}
             strokeWidth={1.5}
             fill="url(#hedge-stack-grad)"
             dot={false}

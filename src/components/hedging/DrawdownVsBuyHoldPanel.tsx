@@ -3,7 +3,7 @@
 import { useMemo } from 'react';
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { formatDate } from '@/lib/formatters';
-import type { ChartTooltipItem } from '@/lib/charts/rechartsTheme';
+import { AXIS_TICK, CHART_COLORS, type ChartTooltipItem } from '@/lib/charts/rechartsTheme';
 import type { BuyHoldComparison } from '@/lib/buyHold';
 import { PanelEmptyState, PanelShell } from './PanelShell';
 
@@ -118,7 +118,7 @@ export function DrawdownVsBuyHoldPanel({
               const d = new Date(v);
               return `${d.getMonth() + 1}/${d.getDate()}`;
             }}
-            tick={{ fill: '#4A5160', fontSize: 10, fontFamily: 'JetBrains Mono, monospace' }}
+            tick={AXIS_TICK}
             axisLine={false}
             tickLine={false}
             interval="preserveStartEnd"
@@ -127,7 +127,7 @@ export function DrawdownVsBuyHoldPanel({
           <YAxis
             domain={['dataMin', 0]}
             tickFormatter={(v: number) => `${v.toFixed(0)}%`}
-            tick={{ fill: '#4A5160', fontSize: 10, fontFamily: 'JetBrains Mono, monospace' }}
+            tick={AXIS_TICK}
             axisLine={false}
             tickLine={false}
             width={40}
@@ -136,9 +136,9 @@ export function DrawdownVsBuyHoldPanel({
           <Area
             type="monotone"
             dataKey="bh"
-            stroke="#FF4D6A"
+            stroke={CHART_COLORS.loss}
             strokeWidth={1.25}
-            fill="#FF4D6A"
+            fill={CHART_COLORS.loss}
             fillOpacity={0.12}
             dot={false}
             connectNulls
@@ -147,9 +147,9 @@ export function DrawdownVsBuyHoldPanel({
           <Area
             type="monotone"
             dataKey="strat"
-            stroke="#00C896"
+            stroke={CHART_COLORS.profit}
             strokeWidth={1.5}
-            fill="#00C896"
+            fill={CHART_COLORS.profit}
             fillOpacity={0.14}
             dot={false}
             connectNulls
