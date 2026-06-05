@@ -232,10 +232,9 @@ export function useSwitchAccountType() {
     mutationFn: ({ accountId, target }: { accountId: string; target: AccountType }) =>
       switchAccountType(accountId, target),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['accounts'] });
-      queryClient.invalidateQueries({ queryKey: ['strategies'] });
-      queryClient.invalidateQueries({ queryKey: ['account-strategies'] });
-      queryClient.invalidateQueries({ queryKey: ['trades'] });
+      queryClient.invalidateQueries({ queryKey: ['accounts'] }); // type badge + view registry
+      queryClient.invalidateQueries({ queryKey: ['strategies'] }); // enabled/disabled state
+      queryClient.invalidateQueries({ queryKey: ['trades'] }); // closed positions
     },
   });
 }

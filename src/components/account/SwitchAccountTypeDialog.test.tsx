@@ -54,11 +54,33 @@ describe('SwitchAccountTypeDialog', () => {
     expect(screen.getByText(/will be re-enabled/i)).toBeInTheDocument();
   });
 
-  it('fires the switch mutation with the opposite type on confirm', () => {
+  it('gates the confirm behind a live-close acknowledgement', () => {
     render(<SwitchAccountTypeDialog account={ACCOUNT} open onOpenChange={() => {}} />);
+    const confirm = screen.getByRole('button', { name: /Switch to HEDGING/i });
+    expect(confirm).toBeDisabled();
+    // clicking while gated does nothing
+    fireEvent.click(confirm);
+    expect(mutate).not.toHaveBeenCalled();
+  });
+
+  it('fires the switch mutation once the live-close box is checked', () => {
+    render(<SwitchAccountTypeDialog account={ACCOUNT} open onOpenChange={() => {}} />);
+    fireEvent.click(screen.getByRole('checkbox'));
     fireEvent.click(screen.getByRole('button', { name: /Switch to HEDGING/i }));
     expect(mutate).toHaveBeenCalledTimes(1);
     expect(mutate.mock.calls[0][0]).toEqual({ accountId: 'acc-1', target: 'HEDGING' });
+  });
+
+  it('does not require an ack when there are no live closes', () => {
+    useAccountTypeSwitchPreview.mockReturnValue({
+      data: { ...PREVIEW, openTradesToClose: [], hasLivePositions: false },
+      isLoading: false,
+      isError: false,
+    });
+    render(<SwitchAccountTypeDialog account={ACCOUNT} open onOpenChange={() => {}} />);
+    expect(screen.queryByRole('checkbox')).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: /Switch to HEDGING/i }));
+    expect(mutate).toHaveBeenCalledTimes(1);
   });
 
   it('shows the no-op message when nothing is affected', () => {

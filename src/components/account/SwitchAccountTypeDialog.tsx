@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { AlertTriangle, ArrowRight, Loader2, PowerOff, RotateCcw } from 'lucide-react';
 import {
   Dialog,
@@ -34,6 +35,12 @@ export function SwitchAccountTypeDialog({ account, open, onOpenChange }: SwitchA
   );
   const switchMutation = useSwitchAccountType();
 
+  // Real-money safety gate: closing live positions requires an explicit ack.
+  const [ackLiveClose, setAckLiveClose] = useState(false);
+  useEffect(() => {
+    if (!open) setAckLiveClose(false);
+  }, [open]);
+
   function handleConfirm() {
     if (!account || !target) return;
     switchMutation.mutate(
@@ -58,6 +65,7 @@ export function SwitchAccountTypeDialog({ account, open, onOpenChange }: SwitchA
   const disables = preview?.strategiesToDisable ?? [];
   const closes = preview?.openTradesToClose ?? [];
   const restores = preview?.strategiesToRestore ?? [];
+  const needsAck = closes.length > 0 && Boolean(preview?.hasLivePositions);
   const nothingAffected =
     !isLoading && !isError && disables.length === 0 && closes.length === 0 && restores.length === 0;
 
@@ -114,6 +122,17 @@ export function SwitchAccountTypeDialog({ account, open, onOpenChange }: SwitchA
                   </li>
                 ))}
               </ul>
+              {needsAck && (
+                <label className="mt-2 flex items-center gap-2 text-xs text-[#fca5a5]">
+                  <input
+                    type="checkbox"
+                    checked={ackLiveClose}
+                    onChange={(e) => setAckLiveClose(e.target.checked)}
+                    className="h-3.5 w-3.5 accent-[#ef4444]"
+                  />
+                  I understand this closes real positions at market.
+                </label>
+              )}
             </div>
           )}
 
@@ -156,6 +175,12 @@ export function SwitchAccountTypeDialog({ account, open, onOpenChange }: SwitchA
               No strategies or open positions are affected — only the account type changes.
             </p>
           )}
+
+          {!isLoading && !isError && (disables.length > 0 || closes.length > 0 || restores.length > 0) && (
+            <p className="text-[11px] text-[var(--text-muted)]">
+              Reflects the current state — the exact actions are recalculated when you confirm.
+            </p>
+          )}
         </div>
 
         <DialogFooter>
@@ -169,7 +194,7 @@ export function SwitchAccountTypeDialog({ account, open, onOpenChange }: SwitchA
           <Button
             variant={closes.length > 0 ? 'destructive' : 'default'}
             onClick={handleConfirm}
-            disabled={isLoading || isError || switchMutation.isPending}
+            disabled={isLoading || isError || switchMutation.isPending || (needsAck && !ackLiveClose)}
           >
             {switchMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Switch to {target}
