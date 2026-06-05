@@ -25,6 +25,7 @@ import { OnboardingPanel } from '@/components/dashboard/OnboardingPanel';
 import { EmailVerificationBanner } from '@/components/dashboard/EmailVerificationBanner';
 import { KillSwitchBanner } from '@/components/dashboard/KillSwitchBanner';
 import { MlHealthStrip } from '@/components/ml/MlHealthStrip';
+import { HedgingDashboard } from '@/components/hedging/HedgingDashboard';
 import type { LivePosition } from '@/types/trading';
 import type { EquityPoint } from '@/types/market';
 
@@ -61,6 +62,14 @@ export default function DashboardPage() {
   const bestOpen = pickBestOpen(openTrades);
   const winRate = pnlSummary?.winRate ?? 0;
   const scopeLabel = isAll ? 'All accounts' : (activeAccount?.label ?? '');
+
+  // Account-type branch: a single HEDGING account active renders the hedging
+  // widget set. TRADING and the "All" aggregate keep today's layout unchanged
+  // (per-type sectioning of the All view is a later phase). All hooks above run
+  // unconditionally, so this guarded early return is Rules-of-Hooks-safe.
+  if (!isAll && activeAccount?.accountType === 'HEDGING' && scopedAccountId) {
+    return <HedgingDashboard accountId={scopedAccountId} />;
+  }
 
   return (
     <div className="br flex flex-col gap-4">
