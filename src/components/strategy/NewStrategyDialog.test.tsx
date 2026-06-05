@@ -150,4 +150,62 @@ describe('NewStrategyDialog — kind-filtered picker', () => {
     // the approval warning copy is NOT shown for hedging
     expect(screen.queryByText(/No strategies are validated/i)).not.toBeInTheDocument();
   });
+
+  // --- isHedging must track the SELECTED account in the dropdown, not the
+  //     globally-active account context (the dialog can bind to any account). ---
+
+  it('active=TRADING but selected dropdown account is HEDGING → hedging picker, no approval gate', () => {
+    // Active context is a TRADING account…
+    setActive('TRADING');
+    useStrategyDefinitions.mockReturnValue({ data: ALL_DEFS, isLoading: false });
+    useCompatibleStrategies.mockReturnValue({
+      data: HEDGING_DEFS,
+      isLoading: false,
+      isError: false,
+    });
+    useSymbolApprovals.mockReturnValue({ data: APPROVALS, isLoading: false });
+
+    // …but the dialog defaults to (and the dropdown selects) the HEDGING account.
+    render(
+      React.createElement(NewStrategyDialog, {
+        open: true,
+        onOpenChange: () => {},
+        accounts: [mkAccount('trade-acct', 'TRADING'), mkAccount('hedge-acct', 'HEDGING')],
+        defaultAccountId: 'hedge-acct',
+      }),
+    );
+
+    // The picker follows the SELECTED hedging account → hedging strategy listed.
+    expect(screen.getByText('ENSEMBLE_TREND')).toBeInTheDocument();
+    expect(screen.queryByText('LSR')).not.toBeInTheDocument();
+    // …and the symbol-approval warning is skipped (hedging path).
+    expect(screen.queryByText(/No strategies are validated/i)).not.toBeInTheDocument();
+  });
+
+  it('active=HEDGING but selected dropdown account is TRADING → trading picker + approval gate', () => {
+    // Active context is a HEDGING account…
+    setActive('HEDGING');
+    useStrategyDefinitions.mockReturnValue({ data: ALL_DEFS, isLoading: false });
+    useCompatibleStrategies.mockReturnValue({
+      data: HEDGING_DEFS,
+      isLoading: false,
+      isError: false,
+    });
+    useSymbolApprovals.mockReturnValue({ data: APPROVALS, isLoading: false });
+
+    // …but the dialog defaults to (and the dropdown selects) the TRADING account.
+    render(
+      React.createElement(NewStrategyDialog, {
+        open: true,
+        onOpenChange: () => {},
+        accounts: [mkAccount('hedge-acct', 'HEDGING'), mkAccount('trade-acct', 'TRADING')],
+        defaultAccountId: 'trade-acct',
+      }),
+    );
+
+    // The picker follows the SELECTED trading account → approval-gated trading codes.
+    expect(screen.getByText('LSR')).toBeInTheDocument();
+    expect(screen.getByText('VBO')).toBeInTheDocument();
+    expect(screen.queryByText('ENSEMBLE_TREND')).not.toBeInTheDocument();
+  });
 });

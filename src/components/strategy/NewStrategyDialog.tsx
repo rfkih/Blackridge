@@ -31,7 +31,6 @@ import { useCreateStrategy } from '@/hooks/useStrategies';
 import { useStrategyDefinitions } from '@/hooks/useStrategyDefinitions';
 import { useCompatibleStrategies } from '@/hooks/useCompatibleStrategies';
 import { useSymbolApprovals } from '@/hooks/useSymbolApprovals';
-import { useActiveAccount } from '@/hooks/useAccounts';
 import { useIsAdmin } from '@/hooks/useIsAdmin';
 import { toast } from '@/hooks/useToast';
 import type { AccountSummary } from '@/types/account';
@@ -97,15 +96,23 @@ export function NewStrategyDialog({
   // see hedging strategies; the backend enforces the same at bind time).
   const { data: compatibleDefinitions } = useCompatibleStrategies();
   const { data: approvals = [], isLoading: isApprovalsLoading } = useSymbolApprovals();
-  const { activeAccount } = useActiveAccount();
   const isAdmin = useIsAdmin();
 
   /** A HEDGING account binds spot allocation strategies (BTC/USDT). These are
    *  not symbol-approval-gated — the approval table only covers directional
    *  TRADING strategies — so the picker is sourced from the kind-filtered
    *  catalogue and the per-symbol gate is skipped entirely. TRADING accounts
-   *  keep the existing approval-gated behaviour untouched. */
-  const isHedging = activeAccount?.accountType === 'HEDGING';
+   *  keep the existing approval-gated behaviour untouched.
+   *
+   *  This tracks the SELECTED account in the dialog's own dropdown — NOT the
+   *  globally-active account context. The dialog can bind a strategy to any
+   *  account the operator picks, so the hedging/trading split must follow
+   *  `form.accountId`; reading the active account would mis-gate a hedging bind
+   *  whenever the hedging account is not the active one (and vice-versa). */
+  const isHedging = useMemo(
+    () => accounts.find((a) => a.id === form.accountId)?.accountType === 'HEDGING',
+    [accounts, form.accountId],
+  );
 
   useEffect(() => {
     if (open) {
