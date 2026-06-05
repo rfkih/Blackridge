@@ -687,15 +687,27 @@ function VirtualRow({ trade, index, isSelected, top, onClick, gridTemplate, hedg
       </Cell>
       <Cell muted>{trade.interval ?? '—'}</Cell>
       <Cell>
-        <span
-          className="rounded-sm px-1.5 py-0.5 font-mono text-[10px] font-semibold tracking-wider"
-          style={{
-            background: isLong ? 'var(--tint-profit)' : 'var(--tint-loss)',
-            color: isLong ? 'var(--color-profit)' : 'var(--color-loss)',
-          }}
-        >
-          {trade.direction}
-        </span>
+        {hedging ? (
+          // A hedging tilt is long/flat: each row is a BTC-holding episode that
+          // exits to cash. Frame the "Switch" as the allocation held, not LONG/SHORT.
+          <span
+            className="rounded-sm px-1.5 py-0.5 font-mono text-[10px] font-semibold tracking-wider"
+            style={{ background: 'var(--tint-btc)', color: 'var(--color-btc)' }}
+            title="Allocated to BTC for this period, then switched back to cash on exit"
+          >
+            {isLong ? '→ BTC' : '→ Cash'}
+          </span>
+        ) : (
+          <span
+            className="rounded-sm px-1.5 py-0.5 font-mono text-[10px] font-semibold tracking-wider"
+            style={{
+              background: isLong ? 'var(--tint-profit)' : 'var(--tint-loss)',
+              color: isLong ? 'var(--color-profit)' : 'var(--color-loss)',
+            }}
+          >
+            {trade.direction}
+          </span>
+        )}
       </Cell>
       <Cell secondary size="sm">
         {formatDate(trade.entryTime)}

@@ -111,6 +111,12 @@
   --color-info: #3b82f6;
   --color-neutral: #8c95a2;
 
+  /* Hedging identity — Bitcoin orange. A HEDGING strategy is a spot BTC/USDT
+     allocation tilt, so it shares BTC's hue everywhere (kind badge, tilt pill,
+     allocation donut). One colour for the concept, not two. */
+  --color-btc: #f7931a;
+  --tint-btc: rgba(247, 147, 26, 0.12);
+
   /* Soft tints for backgrounds (cell flash, pill bg) */
   --tint-profit: rgba(22, 179, 100, 0.16);
   --tint-loss: rgba(229, 72, 77, 0.14);

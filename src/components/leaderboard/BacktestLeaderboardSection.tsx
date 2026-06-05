@@ -21,6 +21,10 @@ interface BacktestLeaderboardSectionProps {
   qualifyingCells: number;
   /** Rows actually shown (= entries.length, passed through from the page payload). */
   shown: number;
+  /** HEDGING candidates — a SEPARATE Calmar-ranked list (own denominator). */
+  hedgingEntries?: BacktestLeaderboardEntry[];
+  hedgingQualifyingCells?: number;
+  hedgingShown?: number;
   isLoading: boolean;
   isError: boolean;
   onRetry: () => void;
@@ -45,11 +49,22 @@ export function BacktestLeaderboardSection({
   entries,
   qualifyingCells,
   shown,
+  hedgingEntries = [],
+  hedgingQualifyingCells = 0,
+  hedgingShown = 0,
   isLoading,
   isError,
   onRetry,
 }: BacktestLeaderboardSectionProps) {
   const [target, setTarget] = useState<ApprovalTarget | null>(null);
+  const makeApprovalTarget = (entry: BacktestLeaderboardEntry) => () =>
+    setTarget({
+      symbol: entry.symbol,
+      strategyCode: entry.strategyCode,
+      interval: entry.interval,
+      backtestRunId: entry.backtestRunId,
+      params: entry.bestParams,
+    });
 
   if (isError) {
     return (
@@ -79,7 +94,7 @@ export function BacktestLeaderboardSection({
     );
   }
 
-  if (entries.length === 0) {
+  if (entries.length === 0 && hedgingEntries.length === 0) {
     return (
       <EmptyState
         icon={Trophy}
@@ -91,37 +106,54 @@ export function BacktestLeaderboardSection({
 
   return (
     <div className="space-y-3">
-      <div className="px-1">
-        <p className="font-mono text-[10px] uppercase tracking-[0.1em] text-[var(--text-muted)]">
-          Showing top {shown} of {qualifyingCells} qualifying cells · candidates (not deployable)
-        </p>
-        <p className="mt-1 text-[11px] text-[var(--text-muted)]">
-          One most-recent run per (symbol × interval × strategy) · ≥100 trades (trading) · ≥2y data
-          window · trading rows ordered by deflated Sharpe; hedging rows ordered by Calmar
-          (return ÷ max drawdown).
-        </p>
-        <p className="mt-0.5 text-[10px] text-[var(--text-muted)]">
-          Deflated Sharpe for older runs may understate trial multiplicity until the analyzer
-          backfill runs. Hedging strategies are exempt from the trade-count floor and ranked by
-          return-per-drawdown (Calmar) — DSR / PF do not apply.
-        </p>
-      </div>
+      {entries.length > 0 && (
+        <>
+          <div className="px-1">
+            <p className="font-mono text-[10px] uppercase tracking-[0.1em] text-[var(--text-muted)]">
+              Showing top {shown} of {qualifyingCells} qualifying cells · candidates (not deployable)
+            </p>
+            <p className="mt-1 text-[11px] text-[var(--text-muted)]">
+              One most-recent run per (symbol × interval × strategy) · ≥100 trades · ≥2y data window ·
+              ordered by deflated Sharpe.
+            </p>
+            <p className="mt-0.5 text-[10px] text-[var(--text-muted)]">
+              Deflated Sharpe for older runs may understate trial multiplicity until the analyzer
+              backfill runs.
+            </p>
+          </div>
 
-      {entries.map((entry) => (
-        <BacktestRow
-          key={`${entry.symbol}::${entry.strategyCode}::${entry.interval}::${entry.backtestRunId}`}
-          entry={entry}
-          onRequestApproval={() =>
-            setTarget({
-              symbol: entry.symbol,
-              strategyCode: entry.strategyCode,
-              interval: entry.interval,
-              backtestRunId: entry.backtestRunId,
-              params: entry.bestParams,
-            })
-          }
-        />
-      ))}
+          {entries.map((entry) => (
+            <BacktestRow
+              key={`${entry.symbol}::${entry.strategyCode}::${entry.interval}::${entry.backtestRunId}`}
+              entry={entry}
+              onRequestApproval={makeApprovalTarget(entry)}
+            />
+          ))}
+        </>
+      )}
+
+      {hedgingEntries.length > 0 && (
+        <div className="space-y-3 pt-2">
+          <div className="px-1">
+            <p className="font-mono text-[10px] uppercase tracking-[0.1em] text-[var(--color-btc)]">
+              Hedging candidates · top {hedgingShown} of {hedgingQualifyingCells} cells
+            </p>
+            <p className="mt-1 text-[11px] text-[var(--text-muted)]">
+              Allocation tilts, ranked by Calmar (return ÷ |max drawdown|). Exempt from the
+              trade-count floor — low turnover is the mechanism, so DSR / PF / trade-count do not
+              apply. Listed separately because Calmar and deflated Sharpe are not comparable.
+            </p>
+          </div>
+
+          {hedgingEntries.map((entry) => (
+            <BacktestRow
+              key={`${entry.symbol}::${entry.strategyCode}::${entry.interval}::${entry.backtestRunId}`}
+              entry={entry}
+              onRequestApproval={makeApprovalTarget(entry)}
+            />
+          ))}
+        </div>
+      )}
 
       <RequestApprovalDialog
         open={target != null}

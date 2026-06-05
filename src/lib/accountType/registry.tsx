@@ -18,6 +18,9 @@ import { DEFAULT_ACCOUNT_TYPE, type AccountType } from '@/types/accountType';
  * later phases fill in.
  */
 export interface AccountTypeView {
+  /** Stable machine key for the type. Branch on THIS, never on {@link #label}
+   *  (the label is human copy and may change). */
+  type: AccountType;
   /** Human label for the type — "Trading" / "Hedging". */
   label: string;
   /** Lucide icon representing the type (badge / switcher / headers). */
@@ -38,6 +41,7 @@ export interface AccountTypeView {
 
 export const ACCOUNT_TYPE_VIEW: Record<AccountType, AccountTypeView> = {
   TRADING: {
+    type: 'TRADING',
     label: 'Trading',
     icon: TrendingUp,
     terminology: { position: 'Position', event: 'Trade', size: 'Trade size' },
@@ -50,6 +54,7 @@ export const ACCOUNT_TYPE_VIEW: Record<AccountType, AccountTypeView> = {
     settingsSections: [],
   },
   HEDGING: {
+    type: 'HEDGING',
     label: 'Hedging',
     icon: Scale,
     terminology: { position: 'Allocation', event: 'Rebalance', size: 'Target weight' },

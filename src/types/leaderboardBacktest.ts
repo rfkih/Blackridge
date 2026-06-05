@@ -50,4 +50,10 @@ export interface BacktestLeaderboardPage {
   entries: BacktestLeaderboardEntry[];
   qualifyingCells: number;
   shown: number;
+  /** HEDGING candidates — a SEPARATE Calmar-ranked list, exempt from the
+   *  trade-count floor. Kept apart from `entries` so the two incomparable
+   *  yardsticks (deflated Sharpe vs Calmar) are never interleaved. */
+  hedgingEntries: BacktestLeaderboardEntry[];
+  hedgingQualifyingCells: number;
+  hedgingShown: number;
 }

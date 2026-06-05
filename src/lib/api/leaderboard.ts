@@ -157,6 +157,9 @@ interface BackendBacktestPage {
   entries: BackendBacktestLeaderboardEntry[] | null;
   qualifyingCells: number | null;
   shown: number | null;
+  hedgingEntries: BackendBacktestLeaderboardEntry[] | null;
+  hedgingQualifyingCells: number | null;
+  hedgingShown: number | null;
 }
 
 /**
@@ -172,9 +175,13 @@ export async function fetchBacktestLeaderboard(limit = 20): Promise<BacktestLead
     params: { limit },
   });
   const entries = (data.entries ?? []).map(mapBacktestEntry);
+  const hedgingEntries = (data.hedgingEntries ?? []).map(mapBacktestEntry);
   return {
     entries,
     qualifyingCells: data.qualifyingCells ?? entries.length,
     shown: data.shown ?? entries.length,
+    hedgingEntries,
+    hedgingQualifyingCells: data.hedgingQualifyingCells ?? hedgingEntries.length,
+    hedgingShown: data.hedgingShown ?? hedgingEntries.length,
   };
 }

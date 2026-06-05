@@ -162,7 +162,7 @@ function PnlPageContent() {
   const accountView = useAccountView();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const isHedgingView = accountView.label === 'Hedging';
+  const isHedgingView = accountView.type === 'HEDGING';
 
   const filters = useMemo(
     () => readFilters(new URLSearchParams(searchParams.toString())),

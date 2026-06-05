@@ -296,8 +296,8 @@ function StrategyCard({
                 <span
                   className="inline-flex items-center rounded px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-wider"
                   style={{
-                    backgroundColor: 'rgba(247,147,26,0.12)',
-                    color: '#F7931A',
+                    backgroundColor: 'var(--tint-btc)',
+                    color: 'var(--color-btc)',
                   }}
                 >
                   Tilt

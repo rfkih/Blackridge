@@ -101,6 +101,13 @@ export function TopStrategiesSection({
 
   const asOf = fmtAsOf(entries[0]?.computedAt ?? null);
 
+  // Display-grouping only — every returned row is still rendered, and within-group
+  // order is the backend's order. Trading rows are ranked by Conviction; hedging
+  // tilts are ranked by Calmar (return ÷ drawdown). The two metrics are not
+  // comparable, so they get separate sections rather than one interleaved column.
+  const tradingEntries = entries.filter((e) => !isHedging(e.strategyKind));
+  const hedgingEntries = entries.filter((e) => isHedging(e.strategyKind));
+
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between px-1">
@@ -116,7 +123,7 @@ export function TopStrategiesSection({
           </span>
         )}
       </div>
-      {entries.map((entry) => (
+      {tradingEntries.map((entry) => (
         <LeaderboardRow
           key={`${entry.symbol}::${entry.strategyCode}::${entry.interval}`}
           entry={entry}
@@ -124,6 +131,28 @@ export function TopStrategiesSection({
           deployDisabled={deployDisabled}
         />
       ))}
+
+      {hedgingEntries.length > 0 && (
+        <>
+          <div className="px-1 pt-2">
+            <span className="font-mono text-[10px] uppercase tracking-[0.1em] text-[var(--color-btc)]">
+              Hedging · ranked by Calmar
+            </span>
+            <p className="mt-1 text-[11px] text-[var(--text-muted)]">
+              Allocation tilts judged on return ÷ drawdown, not Conviction — shown separately so the
+              two yardsticks aren&apos;t compared against each other.
+            </p>
+          </div>
+          {hedgingEntries.map((entry) => (
+            <LeaderboardRow
+              key={`${entry.symbol}::${entry.strategyCode}::${entry.interval}`}
+              entry={entry}
+              onDeploy={onDeploy}
+              deployDisabled={deployDisabled}
+            />
+          ))}
+        </>
+      )}
     </div>
   );
 }

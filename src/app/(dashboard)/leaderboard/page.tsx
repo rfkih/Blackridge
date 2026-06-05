@@ -102,6 +102,9 @@ export default function LeaderboardPage() {
             entries={backtest.data?.entries ?? []}
             qualifyingCells={backtest.data?.qualifyingCells ?? 0}
             shown={backtest.data?.shown ?? 0}
+            hedgingEntries={backtest.data?.hedgingEntries ?? []}
+            hedgingQualifyingCells={backtest.data?.hedgingQualifyingCells ?? 0}
+            hedgingShown={backtest.data?.hedgingShown ?? 0}
             isLoading={backtest.isLoading}
             isError={backtest.isError}
             onRetry={backtest.refetch}

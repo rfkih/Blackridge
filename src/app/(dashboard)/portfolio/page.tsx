@@ -13,6 +13,10 @@ import { useIsAdmin } from '@/hooks/useIsAdmin';
 import { useAccountView } from '@/lib/accountType/registry';
 import type { PortfolioAsset } from '@/types/portfolio';
 
+/** Stablecoin tickers treated as "cash" for allocation framing. Single source
+ *  so the allocation donut and the RiskCard never drift apart. */
+const STABLE_TICKERS = new Set(['USDT', 'USDC', 'BUSD', 'DAI', 'TUSD', 'USDP', 'FDUSD']);
+
 interface EnrichedAsset extends PortfolioAsset {
   total: number;
   portfolioPct: number;
@@ -25,7 +29,7 @@ export default function PortfolioPage() {
   const formatCurrency = useCurrencyFormatter();
   const isAdmin = useIsAdmin();
   const accountView = useAccountView();
-  const isHedgingAccount = accountView.label === 'Hedging';
+  const isHedgingAccount = accountView.type === 'HEDGING';
 
   const totalUsdt = data?.totalUsdt ?? 0;
   const availableUsdt = data?.availableUsdt ?? 0;
@@ -47,32 +51,35 @@ export default function PortfolioPage() {
   const unrealizedOpen = pnlToday?.unrealizedPnl ?? 0;
 
   const allocation = useMemo(() => {
-    const stableTickers = new Set(['USDT', 'USDC', 'BUSD', 'DAI', 'TUSD', 'USDP', 'FDUSD']);
     const lockedCash = Math.max(0, lockedUsdt);
-    const total = Math.max(1, totalUsdt);
 
     if (isHedgingAccount) {
       // For a 2-asset BTC/USDT spot tilt: BTC vs Cash (USDT/stables) — no
       // "Crypto/Stable" framing since only two sleeves matter here.
+      const hedgeTotal = Math.max(1, totalUsdt);
       let btcValue = 0;
       let cashValue = 0;
       for (const a of rows) {
-        if (stableTickers.has(a.asset.toUpperCase())) cashValue += a.usdtValue;
+        if (STABLE_TICKERS.has(a.asset.toUpperCase())) cashValue += a.usdtValue;
         else btcValue += a.usdtValue;
       }
       cashValue += lockedCash;
       return [
-        { label: 'BTC', pct: (btcValue / total) * 100, color: '#F7931A' },
-        { label: 'Cash (USDT)', pct: (cashValue / total) * 100, color: 'var(--mm-ink-0)' },
+        { label: 'BTC', pct: (btcValue / hedgeTotal) * 100, color: 'var(--color-btc)' },
+        { label: 'Cash (USDT)', pct: (cashValue / hedgeTotal) * 100, color: 'var(--mm-ink-0)' },
       ].filter((s) => s.pct > 0);
     }
 
     let stableValue = 0;
     let cryptoValue = 0;
     for (const a of rows) {
-      if (stableTickers.has(a.asset)) stableValue += a.usdtValue;
+      if (STABLE_TICKERS.has(a.asset)) stableValue += a.usdtValue;
       else cryptoValue += a.usdtValue;
     }
+    // Denominator stays the component sum (crypto + stable + locked) — the
+    // original trading behaviour, NOT totalUsdt — so trading percentages are
+    // byte-for-byte unchanged.
+    const total = Math.max(1, cryptoValue + stableValue + lockedCash);
     return [
       { label: 'Crypto', pct: (cryptoValue / total) * 100, color: 'var(--brand-500)' },
       { label: 'Stable', pct: (stableValue / total) * 100, color: 'var(--mm-ink-0)' },
@@ -449,7 +456,6 @@ function RiskCard({
   lockedUsdt: number;
   isHedging?: boolean;
 }) {
-  const stableTickers = new Set(['USDT', 'USDC', 'BUSD', 'DAI', 'TUSD', 'USDP', 'FDUSD']);
   const topPosition = rows[0];
   const concentrationPct = topPosition && totalUsdt > 0 ? topPosition.portfolioPct : 0;
   const lockedPct = totalUsdt > 0 ? (lockedUsdt / totalUsdt) * 100 : 0;
@@ -471,7 +477,7 @@ function RiskCard({
   const cashOnlyPct =
     isHedging && totalUsdt > 0
       ? rows
-          .filter((r) => stableTickers.has(r.asset.toUpperCase()))
+          .filter((r) => STABLE_TICKERS.has(r.asset.toUpperCase()))
           .reduce((acc, r) => acc + r.portfolioPct, 0)
       : 0;
 
