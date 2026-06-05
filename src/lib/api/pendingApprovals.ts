@@ -1,12 +1,66 @@
 import { apiClient } from './client';
+import { toNum, toNumOrNull } from './coerce';
 import type {
   ApproveRequest,
   DismissRequest,
+  GateCheck,
   PendingApproval,
   PendingApprovalStatus,
+  Replication,
   ReplicateRequest,
   ReplicateResponseDto,
 } from '@/types/pendingApproval';
+
+/**
+ * Jackson emits BigDecimal-origin numbers as number-OR-string, so the curator's
+ * evidence/gate-check numerics can arrive as strings. The consumers call
+ * `.toFixed()` and do numeric comparisons on them, which throws / silently
+ * mis-compares on a string. Re-coerce every numeric leaf at the boundary, like
+ * every other JVM client module does.
+ */
+function coerceGateCheck(g: GateCheck): GateCheck {
+  return {
+    threshold: toNum(g.threshold),
+    actual: toNum(g.actual),
+    passed: g.passed,
+    gap: toNum(g.gap),
+  };
+}
+
+function coerceReplication(r: Replication): Replication {
+  const m = r.metricsSummary;
+  return {
+    ...r,
+    metricsSummary: m
+      ? {
+          ag90: toNumOrNull(m.ag90) ?? undefined,
+          n_trades: toNumOrNull(m.n_trades) ?? undefined,
+          psr: toNumOrNull(m.psr) ?? undefined,
+          profit_factor: toNumOrNull(m.profit_factor) ?? undefined,
+        }
+      : null,
+  };
+}
+
+function coercePendingApproval(a: PendingApproval): PendingApproval {
+  return {
+    ...a,
+    gateCheck: {
+      cagr: coerceGateCheck(a.gateCheck.cagr),
+      capital: a.gateCheck.capital ? coerceGateCheck(a.gateCheck.capital) : undefined,
+      window: coerceGateCheck(a.gateCheck.window),
+      trades: coerceGateCheck(a.gateCheck.trades),
+    },
+    evidenceSummary: {
+      ...a.evidenceSummary,
+      ag90: toNum(a.evidenceSummary.ag90),
+      dsr: toNum(a.evidenceSummary.dsr),
+      n_trades: toNum(a.evidenceSummary.n_trades),
+      pf_lo: toNum(a.evidenceSummary.pf_lo),
+    },
+    replications: (a.replications ?? []).map(coerceReplication),
+  };
+}
 
 /**
  * Pending-approval inbox surface on the Trading JVM (V114).
@@ -37,7 +91,7 @@ export async function listPendingApprovals(
   params: ListPendingApprovalsParams = {},
 ): Promise<PendingApproval[]> {
   const { data } = await apiClient.get<PendingApproval[]>(ADMIN, { params });
-  return data;
+  return (data ?? []).map(coercePendingApproval);
 }
 
 /**

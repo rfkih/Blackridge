@@ -62,7 +62,10 @@ export function useWebSocket() {
       void queryClient.invalidateQueries({ queryKey: ['trades'] });
       void queryClient.invalidateQueries({ queryKey: ['pnl'] });
       void queryClient.invalidateQueries({ queryKey: ['portfolio'] });
-      void queryClient.invalidateQueries({ queryKey: ['account-strategies'] });
+      // Strategy queries are keyed ['strategies', userId] — the prior
+      // ['account-strategies'] matched no query, so the strategy list never
+      // reconciled after a socket reconnect.
+      void queryClient.invalidateQueries({ queryKey: ['strategies'] });
     }
     wasConnected.current = connected;
   }, [connected, queryClient]);

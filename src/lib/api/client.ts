@@ -22,7 +22,11 @@ function createApiClient(baseURL: string): AxiosInstance {
   instance.interceptors.request.use((config) => {
     const rawUrl = config.url ?? '';
     const isAbsolute = /^https?:/i.test(rawUrl);
-    if (isAbsolute && !rawUrl.startsWith(env.apiUrl)) {
+    // Origin-safety belt: only the two known JVM origins are trusted with the
+    // auth cookie. researchUrl is included so the research client keeps
+    // credentials in a split-JVM deploy (it equals apiUrl in single-JVM prod).
+    const trustedOrigins = [env.apiUrl, env.researchUrl];
+    if (isAbsolute && !trustedOrigins.some((origin) => rawUrl.startsWith(origin))) {
       config.withCredentials = false;
       if (config.headers) delete config.headers.Authorization;
     }
@@ -34,8 +38,15 @@ function createApiClient(baseURL: string): AxiosInstance {
 }
 
 export const apiClient: AxiosInstance = createApiClient(env.apiUrl);
-/** Alias for `apiClient`; API modules use this to declare research-JVM affinity. */
-export const researchClient: AxiosInstance = apiClient;
+/**
+ * Research-JVM client. Uses {@link env.researchUrl} — which falls back to
+ * apiUrl when NEXT_PUBLIC_RESEARCH_URL is unset (single-JVM prod) — so
+ * research / backtest / montecarlo / historical traffic reaches the research
+ * JVM in a split deploy instead of silently hitting the trading JVM. Reuses
+ * the apiClient instance when the two origins are identical.
+ */
+export const researchClient: AxiosInstance =
+  env.researchUrl === env.apiUrl ? apiClient : createApiClient(env.researchUrl);
 
 /**
  * One-shot boot diagnostic for the localhost↔127.0.0.1 footgun

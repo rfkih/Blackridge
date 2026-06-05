@@ -6,8 +6,9 @@ interface BackendPnlEquityPoint {
   time?: number | string | null;
   ts?: number | string | null;
   equity?: number | string | null;
+  // ``drawdown`` is a negative-or-zero PERCENT (backend percentDrop = (equity -
+  // peak)/peak * 100), NOT dollars. There is no separate drawdownPct field.
   drawdown?: number | string | null;
-  drawdownPct?: number | string | null;
 }
 
 function toMs(v: number | string | null | undefined): number | null {
@@ -31,7 +32,7 @@ export async function fetchEquityPoints(
     .map((p) => ({
       time: toMs(p.time ?? p.ts) ?? 0,
       equity: toNum(p.equity),
-      drawdown: toNum(p.drawdown ?? p.drawdownPct),
+      drawdown: toNum(p.drawdown),
     }))
     .filter((p) => p.time > 0);
 }

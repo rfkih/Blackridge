@@ -1,4 +1,5 @@
 import { apiClient } from './client';
+import { toNum, toNumOrNull } from './coerce';
 import type {
   AttachEvidenceRequest,
   CreateSymbolApprovalRequest,
@@ -8,6 +9,33 @@ import type {
   SymbolApprovalThreshold,
   UpdateApprovalThresholdRequest,
 } from '@/types/symbolApproval';
+
+/**
+ * Jackson serializes BigDecimal-origin numbers as number-OR-string, so the
+ * evidence + threshold numerics can arrive as strings. Consumers call
+ * `.toFixed()` and compare them numerically (`evidenceCagrPct < minCagrPct`),
+ * which throws / silently mis-compares on a string. Re-coerce at the boundary,
+ * matching every other JVM client module.
+ */
+function coerceSymbolApproval(a: SymbolApproval): SymbolApproval {
+  return {
+    ...a,
+    evidenceCagrPct: toNumOrNull(a.evidenceCagrPct),
+    evidenceCapitalUsd: toNumOrNull(a.evidenceCapitalUsd),
+    evidenceWindowDays: toNumOrNull(a.evidenceWindowDays),
+    evidenceTrades: toNumOrNull(a.evidenceTrades),
+  };
+}
+
+function coerceThreshold(t: SymbolApprovalThreshold): SymbolApprovalThreshold {
+  return {
+    ...t,
+    minCagrPct: toNum(t.minCagrPct),
+    minInitialCapitalUsd: toNum(t.minInitialCapitalUsd),
+    minWindowDays: toNum(t.minWindowDays),
+    minTrades: toNum(t.minTrades),
+  };
+}
 
 /**
  * Symbol-strategy approval surface on the Trading JVM (V102).
@@ -33,14 +61,14 @@ export async function listAdminApprovals(includeRevoked = false): Promise<Symbol
   const { data } = await apiClient.get<SymbolApproval[]>(ADMIN, {
     params: { includeRevoked },
   });
-  return data;
+  return (data ?? []).map(coerceSymbolApproval);
 }
 
 export async function createApproval(
   request: CreateSymbolApprovalRequest,
 ): Promise<SymbolApproval> {
   const { data } = await apiClient.post<SymbolApproval>(ADMIN, request);
-  return data;
+  return coerceSymbolApproval(data);
 }
 
 export async function attachEvidence(
@@ -51,7 +79,7 @@ export async function attachEvidence(
     `${ADMIN}/${id}/attach-evidence`,
     request,
   );
-  return data;
+  return coerceSymbolApproval(data);
 }
 
 export async function revokeApproval(
@@ -59,12 +87,12 @@ export async function revokeApproval(
   request: RevokeApprovalRequest,
 ): Promise<SymbolApproval> {
   const { data } = await apiClient.post<SymbolApproval>(`${ADMIN}/${id}/revoke`, request);
-  return data;
+  return coerceSymbolApproval(data);
 }
 
 export async function listThresholds(): Promise<SymbolApprovalThreshold[]> {
   const { data } = await apiClient.get<SymbolApprovalThreshold[]>(`${ADMIN}/thresholds`);
-  return data;
+  return (data ?? []).map(coerceThreshold);
 }
 
 export async function upsertThreshold(
@@ -75,5 +103,5 @@ export async function upsertThreshold(
     `${ADMIN}/thresholds/${encodeURIComponent(symbol)}`,
     request,
   );
-  return data;
+  return coerceThreshold(data);
 }
