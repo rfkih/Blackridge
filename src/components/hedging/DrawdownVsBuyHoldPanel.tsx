@@ -4,6 +4,7 @@ import { useMemo } from 'react';
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { formatDate } from '@/lib/formatters';
 import type { ChartTooltipItem } from '@/lib/charts/rechartsTheme';
+import type { BuyHoldComparison } from '@/lib/buyHold';
 import { PanelEmptyState, PanelShell } from './PanelShell';
 
 /** A drawdown sample — negative-or-zero percent. */
@@ -21,6 +22,11 @@ interface DrawdownVsBuyHoldPanelProps {
    * fabricating the buy-hold leg.
    */
   buyHoldSeries: DrawdownSeriesPoint[] | null;
+  /**
+   * Optional one-line "vs holding BTC" verdict (from `compareToBuyHold`). When
+   * present and the strategy cut buy-hold's drawdown, a small caption is shown.
+   */
+  verdict?: BuyHoldComparison | null;
 }
 
 interface MergedPoint {
@@ -66,6 +72,7 @@ const norm = (v: number) => (v > 0 ? -v : v);
 export function DrawdownVsBuyHoldPanel({
   strategySeries,
   buyHoldSeries,
+  verdict,
 }: DrawdownVsBuyHoldPanelProps) {
   const data = useMemo<MergedPoint[]>(() => {
     if (!strategySeries || !buyHoldSeries) return [];
@@ -150,6 +157,19 @@ export function DrawdownVsBuyHoldPanel({
           />
         </AreaChart>
       </ResponsiveContainer>
+      {verdict?.ddCutPct != null && verdict.ddCutPct > 0 && (
+        <div
+          data-testid="dd-verdict"
+          className="mt-2 text-[12px] font-medium"
+          style={{ color: 'var(--text-muted)' }}
+        >
+          Strategy cut buy-hold drawdown by{' '}
+          <span className="font-mono tabular-nums" style={{ color: 'var(--color-profit)' }}>
+            {verdict.ddCutPct.toFixed(0)}%
+          </span>
+          .
+        </div>
+      )}
     </PanelShell>
   );
 }

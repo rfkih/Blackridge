@@ -33,4 +33,26 @@ describe('DrawdownVsBuyHoldPanel', () => {
     expect(screen.getByText(/Strategy/)).toBeInTheDocument();
     expect(screen.getByText(/BTC buy-hold/)).toBeInTheDocument();
   });
+
+  it('shows the drawdown-cut verdict when the strategy beat buy-hold', () => {
+    render(
+      <DrawdownVsBuyHoldPanel
+        strategySeries={STRAT}
+        buyHoldSeries={BUYHOLD}
+        verdict={{ upsideCapturedPct: null, ddCutPct: 63 }}
+      />,
+    );
+    expect(screen.getByTestId('dd-verdict')).toHaveTextContent(/cut buy-hold drawdown by\s*63%/i);
+  });
+
+  it('omits the verdict when the strategy did not cut buy-hold drawdown', () => {
+    render(
+      <DrawdownVsBuyHoldPanel
+        strategySeries={STRAT}
+        buyHoldSeries={BUYHOLD}
+        verdict={{ upsideCapturedPct: null, ddCutPct: -10 }}
+      />,
+    );
+    expect(screen.queryByTestId('dd-verdict')).not.toBeInTheDocument();
+  });
 });
