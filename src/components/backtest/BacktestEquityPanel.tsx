@@ -4,7 +4,8 @@ import { useMemo, useState } from 'react';
 import { DrawdownChart } from '@/components/charts/DrawdownChart';
 import { EquityCurve, type EquityCompareSeries } from '@/components/charts/EquityCurve';
 import { Skeleton } from '@/components/ui/skeleton';
-import { buyHoldSeries } from '@/lib/buyHold';
+import { buyHoldSeries, maxDrawdownPct, totalReturnPct } from '@/lib/buyHold';
+import { BuyHoldVerdictStrip } from './BuyHoldVerdictStrip';
 import type { BacktestEquityPoint } from '@/types/backtest';
 import type { CandleData } from '@/types/market';
 
@@ -135,8 +136,31 @@ export function BacktestEquityPanel({
 
   const endingEquity = points.length ? points[points.length - 1].equity : initialCapital;
 
+  const strategyReturnPct =
+    initialCapital !== 0 ? (endingEquity / initialCapital - 1) * 100 : 0;
+
+  const buyHoldStats = useMemo(() => {
+    if (!hasBuyHold) return null;
+    const first = buyHoldPoints[0].equity;
+    const last = buyHoldPoints[buyHoldPoints.length - 1].equity;
+    return {
+      returnPct: totalReturnPct(first, last),
+      maxDdPct: maxDrawdownPct(buyHoldPoints.map((p) => ({ value: p.equity }))),
+    };
+  }, [hasBuyHold, buyHoldPoints]);
+
   return (
-    <div className="grid grid-cols-1 gap-4 lg:grid-cols-5">
+    <div className="space-y-4">
+      {buyHoldStats && (
+        <BuyHoldVerdictStrip
+          symbol={symbol}
+          strategyReturnPct={strategyReturnPct}
+          strategyMaxDdPct={maxDrawdown}
+          buyHoldReturnPct={buyHoldStats.returnPct}
+          buyHoldMaxDdPct={buyHoldStats.maxDdPct}
+        />
+      )}
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-5">
       <div className="lg:col-span-3">
         <PanelShell
           title="Equity Curve"
@@ -190,6 +214,7 @@ export function BacktestEquityPanel({
             <EmptyChartState label="No drawdown data" />
           )}
         </PanelShell>
+      </div>
       </div>
     </div>
   );
