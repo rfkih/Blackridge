@@ -17,6 +17,7 @@ import {
 import { QUERY_STALE_TIMES } from '@/lib/constants';
 import { useAccountStore } from '@/store/accountStore';
 import { useAuthStore } from '@/store/authStore';
+import { ACCOUNT_TYPES, type AccountType } from '@/types/accountType';
 import type { AccountSummary, ActiveAccountSelection } from '@/types/account';
 
 /** Raw accounts query. */
@@ -33,6 +34,10 @@ export function useAccounts() {
 export interface ActiveAccountContext {
   /** All accounts owned by the user. Empty array while loading. */
   accounts: AccountSummary[];
+  /** Accounts grouped by their `accountType`, for the "All" view's per-type
+   *  sections. Every {@link AccountType} key is always present (empty array
+   *  when none). */
+  accountsByType: Record<AccountType, AccountSummary[]>;
   /** The user's last-chosen selection (persisted). */
   selection: ActiveAccountSelection;
   /** The resolved active account, or `null` if the user is in "All" mode. */
@@ -79,8 +84,18 @@ export function useActiveAccount(): ActiveAccountContext {
     return accounts.find((a) => a.id === resolved) ?? null;
   }, [accounts, resolved]);
 
+  const accountsByType = useMemo(() => {
+    const groups = {} as Record<AccountType, AccountSummary[]>;
+    for (const type of ACCOUNT_TYPES) groups[type] = [];
+    for (const account of accounts) {
+      groups[account.accountType].push(account);
+    }
+    return groups;
+  }, [accounts]);
+
   return {
     accounts,
+    accountsByType,
     selection: resolved,
     activeAccount,
     isAll: resolved === 'all',
