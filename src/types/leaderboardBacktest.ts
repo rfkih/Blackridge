@@ -35,6 +35,8 @@ export interface BacktestLeaderboardEntry {
   walkForwardVerdict: string | null;
   /** Winning parameter map for this run. Display only (no deploy on this tab). */
   bestParams: Record<string, unknown>;
+  /** Strategy kind — "TRADING" (default) or "HEDGING". Null on legacy rows. */
+  strategyKind?: 'TRADING' | 'HEDGING' | string | null;
 }
 
 /**

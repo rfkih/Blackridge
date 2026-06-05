@@ -181,6 +181,7 @@ function mapBacktestRun(b: BackendBacktestRun): BacktestRun {
     strategyMlGateOverrides: coerceStrategyBoolMap(b.strategyMlGateOverrides),
     strategyMlSignalNameOverrides: coerceStrategyIntervals(b.strategyMlSignalNameOverrides),
     strategyMlShadowModeOverrides: coerceStrategyBoolMap(b.strategyMlShadowModeOverrides),
+    strategyKind: b.strategyKind ?? null,
   };
 }
 

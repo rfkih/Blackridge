@@ -95,6 +95,9 @@ export interface BackendBacktestRun {
   strategyMlGateOverrides?: Record<string, boolean> | null;
   strategyMlSignalNameOverrides?: Record<string, string> | null;
   strategyMlShadowModeOverrides?: Record<string, boolean> | null;
+  /** Strategy kind tag from the backend — "TRADING" (default) or "HEDGING".
+   *  Absent on legacy runs submitted before the field was exposed. */
+  strategyKind?: 'TRADING' | 'HEDGING' | string | null;
   metrics?: BackendBacktestRunMetrics | null;
 
   backtestRunId?: UUID | null;
@@ -263,6 +266,10 @@ export interface BacktestRun {
   strategyMlGateOverrides: Record<string, boolean> | null;
   strategyMlSignalNameOverrides: Record<string, string> | null;
   strategyMlShadowModeOverrides: Record<string, boolean> | null;
+  /** Strategy kind — "TRADING" (default) or "HEDGING" (spot allocation tilt).
+   *  Null / undefined on legacy runs pre-dating the field. Use isHedging() for
+   *  conditional rendering rather than direct equality checks. */
+  strategyKind: 'TRADING' | 'HEDGING' | string | null;
 }
 
 /**

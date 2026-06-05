@@ -27,6 +27,8 @@ export interface PaperRow {
   sharpe_ratio: number | null;
   created_time: ISO8601;
   updated_time: ISO8601;
+  /** Strategy kind — "TRADING" (default) or "HEDGING". Null on legacy papers. */
+  strategy_kind?: 'TRADING' | 'HEDGING' | string | null;
 }
 
 export interface PaperPage {

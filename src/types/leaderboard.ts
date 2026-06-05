@@ -47,6 +47,8 @@ export interface LeaderboardEntry {
   nearSubstitute: boolean;
   /** Winning parameter map the deploy button replays. May be empty. */
   bestParams: Record<string, unknown>;
+  /** Strategy kind — "TRADING" (default) or "HEDGING". Null on legacy rows. */
+  strategyKind?: 'TRADING' | 'HEDGING' | string | null;
 }
 
 /** Request body for POST /api/v1/leaderboard/deploy. Interval, direction, and
