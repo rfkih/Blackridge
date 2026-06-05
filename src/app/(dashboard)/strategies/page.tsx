@@ -17,6 +17,7 @@ import {
   TrendingUp,
   Zap,
 } from 'lucide-react';
+import { AccountTypeBadge } from '@/components/account/AccountTypeBadge';
 import { StrategyBadge } from '@/components/trading/StrategyBadge';
 import { StrategyStatusBadge } from '@/components/strategy/StrategyStatusBadge';
 import { NewStrategyDialog } from '@/components/strategy/NewStrategyDialog';
@@ -1493,6 +1494,7 @@ function AccountsAndIntervalsView({
                   <h2 className="font-mono text-sm font-semibold tracking-wide text-[var(--text-primary)]">
                     {account?.label ?? accountId.slice(0, 8)}
                   </h2>
+                  {account && <AccountTypeBadge type={account.accountType} />}
                   <span className="font-mono text-[10px] uppercase tracking-wider text-[var(--text-muted)]">
                     {account?.exchange ?? 'UNKNOWN'}
                   </span>
