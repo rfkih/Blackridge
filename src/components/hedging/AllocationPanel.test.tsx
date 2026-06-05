@@ -55,4 +55,20 @@ describe('AllocationPanel', () => {
     render(<AllocationPanel accountId="a1" />);
     expect(screen.getByText(/no active hedging/i)).toBeInTheDocument();
   });
+
+  it('shows an "Add a hedging strategy" CTA linking to strategies when empty', () => {
+    useAllocation.mockReturnValue(
+      mkAllocation({ equity: 0, btcWeightPct: 0, cashWeightPct: 0, targetWeightPct: null }),
+    );
+    render(<AllocationPanel accountId="a1" />);
+    const cta = screen.getByRole('link', { name: /add a hedging strategy/i });
+    expect(cta).toBeInTheDocument();
+    expect(cta).toHaveAttribute('href', '/strategies');
+  });
+
+  it('does not show the add-strategy CTA when the account is funded', () => {
+    useAllocation.mockReturnValue(mkAllocation());
+    render(<AllocationPanel accountId="a1" />);
+    expect(screen.queryByRole('link', { name: /add a hedging strategy/i })).not.toBeInTheDocument();
+  });
 });

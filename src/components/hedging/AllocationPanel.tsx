@@ -1,5 +1,7 @@
 'use client';
 
+import Link from 'next/link';
+import { Plus } from 'lucide-react';
 import { useAllocation } from '@/hooks/useAllocation';
 
 interface AllocationPanelProps {
@@ -53,9 +55,17 @@ export function AllocationPanel({ accountId }: AllocationPanelProps) {
             borderRadius: 16,
             color: 'var(--text-muted)',
             fontSize: 13,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: 16,
           }}
         >
-          No active hedging allocation yet.
+          <span>No active hedging allocation yet.</span>
+          <Link href="/strategies" className="br-btn br-btn-primary br-btn-sm">
+            <Plus size={14} strokeWidth={2.5} aria-hidden="true" />
+            Add a hedging strategy
+          </Link>
         </div>
       ) : (
         <>
