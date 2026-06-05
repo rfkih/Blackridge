@@ -25,6 +25,7 @@ interface BackendLeaderboardEntry {
   rank: number;
   symbol: string;
   strategyCode: string;
+  strategyKind?: 'TRADING' | 'HEDGING' | string | null;
   intervalName: string | null;
   cagrPct: number | string | null;
   maxDrawdownPct: number | string | null;
@@ -50,6 +51,7 @@ function mapEntry(e: BackendLeaderboardEntry): LeaderboardEntry {
     rank: e.rank,
     symbol: e.symbol,
     strategyCode: e.strategyCode,
+    strategyKind: e.strategyKind ?? null,
     interval: e.intervalName ?? '',
     cagrPct: toNum(e.cagrPct),
     maxDrawdownPct: toNumOrNull(e.maxDrawdownPct),
@@ -104,6 +106,7 @@ interface BackendBacktestLeaderboardEntry {
   rank: number;
   symbol: string;
   strategyCode: string;
+  strategyKind?: 'TRADING' | 'HEDGING' | string | null;
   intervalName: string | null;
   backtestRunId: string;
   cagrPct: number | string | null;
@@ -128,6 +131,7 @@ function mapBacktestEntry(e: BackendBacktestLeaderboardEntry): BacktestLeaderboa
     rank: e.rank,
     symbol: e.symbol,
     strategyCode: e.strategyCode,
+    strategyKind: e.strategyKind ?? null,
     interval: e.intervalName ?? '',
     backtestRunId: e.backtestRunId,
     cagrPct: toNumOrNull(e.cagrPct),
