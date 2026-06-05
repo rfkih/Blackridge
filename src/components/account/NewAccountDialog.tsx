@@ -23,6 +23,8 @@ import { FieldRow } from '@/components/shared/FieldRow';
 import { useCreateAccount } from '@/hooks/useAccounts';
 import { normalizeError } from '@/lib/api/client';
 import { toast } from '@/hooks/useToast';
+import { DEFAULT_ACCOUNT_TYPE, type AccountType } from '@/types/accountType';
+import { AccountTypeSelector } from './AccountTypeSelector';
 import { ServerIpCard } from './ServerIpCard';
 
 interface NewAccountDialogProps {
@@ -45,6 +47,9 @@ interface FormState {
   apiKey: string;
   apiSecret: string;
   acknowledgedSafety: boolean;
+  /** Account taxonomy (V153). Immutable post-create; defaults to TRADING so
+   *  the untouched create flow is byte-equivalent to the pre-feature behavior. */
+  accountType: AccountType;
 }
 
 const EMPTY_STATE: FormState = {
@@ -53,6 +58,7 @@ const EMPTY_STATE: FormState = {
   apiKey: '',
   apiSecret: '',
   acknowledgedSafety: false,
+  accountType: DEFAULT_ACCOUNT_TYPE,
 };
 
 const USERNAME_PATTERN = /^[A-Za-z0-9 _-]+$/;
@@ -96,6 +102,7 @@ export function NewAccountDialog({ open, onOpenChange }: NewAccountDialogProps) 
         apiKey: form.apiKey.trim(),
         apiSecret: form.apiSecret.trim(),
         acknowledgedSafety: true,
+        accountType: form.accountType,
       },
       {
         onSuccess: (account) => {
@@ -183,6 +190,18 @@ export function NewAccountDialog({ open, onOpenChange }: NewAccountDialogProps) 
                 ))}
               </SelectContent>
             </Select>
+          </FieldRow>
+
+          {}
+          <FieldRow label="Account type" className="col-span-2">
+            <AccountTypeSelector
+              value={form.accountType}
+              onChange={(v) => setField('accountType', v)}
+              disabled={mutation.isPending}
+            />
+            <p className="text-[11px] text-text-muted">
+              Account type is permanent — it can&apos;t be changed later.
+            </p>
           </FieldRow>
 
           {}

@@ -14,6 +14,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useActiveAccount } from '@/hooks/useAccounts';
 import { useStrategies } from '@/hooks/useStrategies';
 import { NewAccountDialog } from '@/components/account/NewAccountDialog';
+import { AccountTypeBadge } from '@/components/account/AccountTypeBadge';
 import { cn } from '@/lib/utils';
 import type { AccountSummary } from '@/types/account';
 
@@ -104,6 +105,9 @@ export function AccountSwitcher() {
                 </span>
               )}
             </span>
+            {!isAll && activeAccount && (
+              <AccountTypeBadge type={activeAccount.accountType} className="shrink-0" />
+            )}
             <ChevronDown size={12} strokeWidth={1.75} className="shrink-0 opacity-60" />
           </button>
         </DropdownMenuTrigger>
@@ -132,6 +136,7 @@ export function AccountSwitcher() {
                 key={a.id}
                 label={a.label}
                 subtitle={a.exchange}
+                accountType={a.accountType}
                 icon={<AccountAvatar account={a} isAll={false} />}
                 active={a.active}
                 count={count}
@@ -197,6 +202,7 @@ function AccountOption({
   count,
   selected,
   active,
+  accountType,
   onSelect,
 }: {
   label: string;
@@ -205,6 +211,7 @@ function AccountOption({
   count: number;
   selected: boolean;
   active?: boolean;
+  accountType?: AccountSummary['accountType'];
   onSelect: () => void;
 }) {
   return (
@@ -219,6 +226,7 @@ function AccountOption({
       <div className="flex min-w-0 flex-1 flex-col">
         <div className="flex items-center gap-1.5">
           <span className="truncate font-medium text-text-primary">{label}</span>
+          {accountType && <AccountTypeBadge type={accountType} className="shrink-0" />}
           {active === false && (
             <span className="rounded-sm bg-tint-loss px-1 py-px font-mono text-[9px] text-loss">
               inactive
