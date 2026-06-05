@@ -85,10 +85,48 @@ describe('DashboardPage account-type branch', () => {
       scopedAccountId: undefined,
       isAll: true,
       activeAccount: null,
+      accountsByType: { TRADING: [], HEDGING: [] },
     });
 
     render(<DashboardPage />);
     expect(screen.getByText('Your positions')).toBeInTheDocument();
     expect(screen.queryByTestId('hedging-dashboard')).not.toBeInTheDocument();
+  });
+
+  it('appends a hedging-accounts section in the All view when a hedging account exists', () => {
+    useActiveAccount.mockReturnValue({
+      scopedAccountId: undefined,
+      isAll: true,
+      activeAccount: null,
+      setSelection: vi.fn(),
+      accountsByType: {
+        TRADING: [mkAccount({ id: 't1', label: 'Trade book', accountType: 'TRADING' })],
+        HEDGING: [mkAccount({ id: 'h1', label: 'Hedge book', accountType: 'HEDGING' })],
+      },
+    });
+
+    render(<DashboardPage />);
+    // existing trading aggregate still renders above
+    expect(screen.getByText('Your positions')).toBeInTheDocument();
+    // additive hedging section + its account card render below
+    expect(screen.getByTestId('all-view-hedging-section')).toBeInTheDocument();
+    expect(screen.getByText('Hedge book')).toBeInTheDocument();
+  });
+
+  it('renders no hedging section in the All view when only TRADING accounts exist', () => {
+    useActiveAccount.mockReturnValue({
+      scopedAccountId: undefined,
+      isAll: true,
+      activeAccount: null,
+      setSelection: vi.fn(),
+      accountsByType: {
+        TRADING: [mkAccount({ id: 't1', label: 'Trade book', accountType: 'TRADING' })],
+        HEDGING: [],
+      },
+    });
+
+    render(<DashboardPage />);
+    expect(screen.getByText('Your positions')).toBeInTheDocument();
+    expect(screen.queryByTestId('all-view-hedging-section')).not.toBeInTheDocument();
   });
 });

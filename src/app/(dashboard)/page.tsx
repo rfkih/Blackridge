@@ -26,11 +26,14 @@ import { EmailVerificationBanner } from '@/components/dashboard/EmailVerificatio
 import { KillSwitchBanner } from '@/components/dashboard/KillSwitchBanner';
 import { MlHealthStrip } from '@/components/ml/MlHealthStrip';
 import { HedgingDashboard } from '@/components/hedging/HedgingDashboard';
+import { AccountTypeBadge } from '@/components/account/AccountTypeBadge';
 import type { LivePosition } from '@/types/trading';
 import type { EquityPoint } from '@/types/market';
+import type { AccountSummary } from '@/types/account';
 
 export default function DashboardPage() {
-  const { scopedAccountId, isAll, activeAccount } = useActiveAccount();
+  const { scopedAccountId, isAll, activeAccount, accountsByType, setSelection } =
+    useActiveAccount();
   const { user } = useAuth();
   const { data: strategies = [] } = useStrategies();
   const { data: openTrades = [] } = useOpenTrades(scopedAccountId);
@@ -159,7 +162,97 @@ export default function DashboardPage() {
         <DailyPnlPanel weekTotal={changeToday * 7} />
         <WatchlistPanel />
       </section>
+
+      {}
+      {isAll && (accountsByType?.HEDGING.length ?? 0) > 0 && (
+        <AllViewHedgingSection
+          accounts={accountsByType.HEDGING}
+          onOpen={(id) => setSelection?.(id)}
+        />
+      )}
     </div>
+  );
+}
+
+/**
+ * Additive "All accounts" hedging block. Appended below the trading aggregate
+ * only when the user actually owns ≥1 HEDGING account, so a trading-only user
+ * sees the dashboard byte-for-byte unchanged.
+ *
+ * Each card is deliberately minimal: the live BTC/cash allocation read
+ * (`useAllocation`/`usePortfolio`) is scoped to the *active* account, not an
+ * arbitrary one, so in the "All" aggregate context there is no per-account
+ * allocation to show without fabricating it. The card therefore surfaces the
+ * account label + type and an "Open" affordance that scopes the active account
+ * to it — at which point the full HedgingDashboard (with the real allocation)
+ * renders.
+ */
+function AllViewHedgingSection({
+  accounts,
+  onOpen,
+}: {
+  accounts: AccountSummary[];
+  onOpen: (accountId: string) => void;
+}) {
+  return (
+    <section className="br flex flex-col gap-3" data-testid="all-view-hedging-section">
+      <div className="flex items-baseline justify-between gap-3">
+        <h3
+          className="font-display"
+          style={{ fontSize: 16, fontWeight: 700, margin: 0, color: 'var(--text-primary)' }}
+        >
+          Hedging accounts
+        </h3>
+        <span className="text-[12px]" style={{ color: 'var(--text-muted)' }}>
+          {accounts.length} account{accounts.length === 1 ? '' : 's'} · spot allocation
+        </span>
+      </div>
+      <div
+        className="grid gap-3"
+        style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))' }}
+      >
+        {accounts.map((acc) => (
+          <button
+            key={acc.id}
+            type="button"
+            onClick={() => onOpen(acc.id)}
+            className="br-card transition-all"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: 12,
+              padding: 18,
+              textAlign: 'left',
+              cursor: 'pointer',
+            }}
+          >
+            <div style={{ minWidth: 0 }}>
+              <div
+                className="text-[14px] font-semibold"
+                style={{
+                  color: 'var(--text-primary)',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {acc.label}
+              </div>
+              <div className="mt-1">
+                <AccountTypeBadge type={acc.accountType} />
+              </div>
+            </div>
+            <span
+              className="inline-flex items-center gap-1 text-[13px] font-semibold"
+              style={{ color: 'var(--text-secondary)' }}
+            >
+              Open <ArrowRight size={14} />
+            </span>
+          </button>
+        ))}
+      </div>
+    </section>
   );
 }
 
