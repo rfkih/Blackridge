@@ -8,7 +8,7 @@ const usePortfolio = vi.fn();
 const useStrategies = vi.fn();
 
 vi.mock('./usePortfolio', () => ({
-  usePortfolio: () => usePortfolio(),
+  usePortfolio: (accountId?: string) => usePortfolio(accountId),
 }));
 vi.mock('./useStrategies', () => ({
   useStrategies: () => useStrategies(),
@@ -162,6 +162,15 @@ describe('useAllocation', () => {
     expect(result.current.btcWeightPct).toBe(0);
     expect(result.current.cashWeightPct).toBe(0);
     expect(result.current.equity).toBe(0);
+  });
+
+  it('scopes the portfolio read to the given account (not the active scope)', () => {
+    usePortfolio.mockReturnValue({ data: mkBalance(), isLoading: false, isError: false });
+    useStrategies.mockReturnValue({ data: [mkHedgingStrategy()], isLoading: false, isError: false });
+
+    renderHook(() => useAllocation('acc-X'));
+
+    expect(usePortfolio).toHaveBeenCalledWith('acc-X');
   });
 
   it('passes through loading and error states', () => {

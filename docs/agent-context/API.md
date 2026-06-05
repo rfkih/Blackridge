@@ -58,7 +58,7 @@ Both clients share identical config + interceptors via the `createApiClient(base
 | Profile | `/api/v1/users/me` | GET | — |
 | Trades | `/api/v1/trades` `/:id` | GET | List + detail |
 | P&L | `/api/v1/pnl` | GET | — |
-| Portfolio | `/api/v1/portfolio` | GET | Balances. Optional `?accountId=` scopes to one account; omit for the "All accounts" aggregate (sum free/locked per asset, USDT recomputed once on the merged total). `usePortfolio()` reads `useActiveAccount().scopedAccountId` and forwards it. |
+| Portfolio | `/api/v1/portfolio` | GET | Balances. Optional `?accountId=` scopes to one account; omit for the "All accounts" aggregate (sum free/locked per asset, USDT recomputed once on the merged total). `usePortfolio()` reads `useActiveAccount().scopedAccountId` and forwards it; pass `usePortfolio(accountId)` to scope to a specific account regardless of the active selection (used by `useAllocation`). |
 | Strategies | `/api/v1/account-strategies` | GET | Excludes soft-deleted |
 | Strategies | `/api/v1/account-strategies/:id` | GET/DELETE | Detail / soft-delete (blocked w/ open trades) |
 | Strategies | `/api/v1/account-strategies` | POST | Create |

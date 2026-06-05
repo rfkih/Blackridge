@@ -65,7 +65,10 @@ function pickTargetBinding(
 }
 
 export function useAllocation(accountId: string | undefined): UseAllocationResult {
-  const portfolio = usePortfolio();
+  // Scope the balance read to THIS account, not the active-account context —
+  // a hedging account's allocation must reflect its own BTC/cash split even
+  // when it isn't the currently-selected account.
+  const portfolio = usePortfolio(accountId);
   const strategies = useStrategies();
 
   return useMemo(() => {
