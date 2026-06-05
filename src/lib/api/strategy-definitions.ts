@@ -4,6 +4,7 @@ import type {
   StrategyDefinition,
   UpdateStrategyDefinitionPayload,
 } from '@/types/strategyDefinition';
+import { DEFAULT_ACCOUNT_TYPE, isAccountType } from '@/types/accountType';
 import { apiClient } from './client';
 import { addOptionalParam, buildPageParams } from './queryParams';
 
@@ -12,6 +13,7 @@ interface BackendStrategyDefinition {
   strategyCode: string | null;
   strategyName: string | null;
   strategyType: string | null;
+  strategyKind: string | null;
   description: string | null;
   status: string | null;
   archetype: string | null;
@@ -29,6 +31,7 @@ function map(r: BackendStrategyDefinition): StrategyDefinition {
     strategyCode: r.strategyCode ?? '',
     strategyName: r.strategyName ?? '',
     strategyType: r.strategyType ?? '',
+    strategyKind: isAccountType(r.strategyKind) ? r.strategyKind : DEFAULT_ACCOUNT_TYPE,
     description: r.description,
     status: (r.status ?? 'ACTIVE') as StrategyDefinition['status'],
     archetype: r.archetype,

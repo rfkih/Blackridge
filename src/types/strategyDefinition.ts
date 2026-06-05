@@ -1,4 +1,5 @@
 import type { ISO8601, UUID } from './api';
+import type { AccountType } from './accountType';
 
 export type StrategyDefinitionStatus = 'ACTIVE' | 'INACTIVE' | 'DEPRECATED';
 
@@ -7,6 +8,11 @@ export interface StrategyDefinition {
   strategyCode: string;
   strategyName: string;
   strategyType: string;
+  /** Strategy taxonomy (V153). TRADING (directional) or HEDGING (allocation).
+   *  Determines which account types this definition can bind to. Legacy
+   *  (pre-V153) rows omit the field on the wire; the mapper defaults to
+   *  TRADING so existing catalogues are unchanged. */
+  strategyKind: AccountType;
   description: string | null;
   status: StrategyDefinitionStatus | string;
   /** `LEGACY_JAVA` for hand-coded strategies (LSR/VCB/VBO); archetype name
