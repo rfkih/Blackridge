@@ -223,6 +223,8 @@ export default function BacktestResultPage({ params }: { params: { id: string } 
           points={equityQ.data ?? EMPTY_EQUITY}
           initialCapital={runQ.data?.initialCapital ?? 0}
           isLoading={equityQ.isLoading}
+          candles={candlesQ.data}
+          symbol={runQ.data?.symbol}
         />
       </ErrorBoundary>
 

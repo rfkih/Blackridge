@@ -4,6 +4,7 @@ import { useMemo } from 'react';
 import {
   Area,
   ComposedChart,
+  Line,
   ReferenceLine,
   ResponsiveContainer,
   Tooltip,
@@ -19,15 +20,42 @@ export interface EquityCurvePoint {
   equity: number;
 }
 
+/**
+ * Optional second series overlaid on the equity curve as a line (e.g. a
+ * buy-and-hold benchmark). Values must already be aligned to the same `ts`
+ * axis as the strategy `points`.
+ */
+export interface EquityCompareSeries {
+  points: EquityCurvePoint[];
+  label: string;
+  color: string;
+}
+
 interface EquityCurveProps {
   points: EquityCurvePoint[];
   initialCapital?: number;
   height?: number;
+  /** Optional benchmark line (buy-and-hold). When absent, renders as before. */
+  compareSeries?: EquityCompareSeries;
 }
 
-export function EquityCurve({ points, initialCapital, height = 220 }: EquityCurveProps) {
+export function EquityCurve({
+  points,
+  initialCapital,
+  height = 220,
+  compareSeries,
+}: EquityCurveProps) {
   const capital = initialCapital ?? points[0]?.equity ?? 0;
-  const data = useMemo(() => points.map((p) => ({ ts: p.ts, equity: p.equity })), [points]);
+  const data = useMemo(() => {
+    if (!compareSeries) return points.map((p) => ({ ts: p.ts, equity: p.equity, compare: null }));
+    const byTs = new Map<number, number>();
+    for (const c of compareSeries.points) byTs.set(c.ts, c.equity);
+    return points.map((p) => ({
+      ts: p.ts,
+      equity: p.equity,
+      compare: byTs.has(p.ts) ? (byTs.get(p.ts) as number) : null,
+    }));
+  }, [points, compareSeries]);
   const formatCurrency = useCurrencyFormatter();
 
   const EquityTooltip = ({
@@ -35,7 +63,7 @@ export function EquityCurve({ points, initialCapital, height = 220 }: EquityCurv
     payload,
   }: {
     active?: boolean;
-    payload?: ChartTooltipItem<{ ts: number; equity: number }>[];
+    payload?: ChartTooltipItem<{ ts: number; equity: number; compare: number | null }>[];
   }) => {
     if (!active || !payload?.length) return null;
     const d = payload[0]?.payload;
@@ -43,6 +71,7 @@ export function EquityCurve({ points, initialCapital, height = 220 }: EquityCurv
     const change = d.equity - capital;
     const pct = capital !== 0 ? (change / capital) * 100 : 0;
     const up = change >= 0;
+    const compare = d.compare;
     return (
       <div
         className="rounded-md border border-[var(--border-default)] px-3 py-2 text-left"
@@ -58,6 +87,14 @@ export function EquityCurve({ points, initialCapital, height = 220 }: EquityCurv
         >
           {formatCurrency(change, { withSign: true })} ({pct.toFixed(2)}%)
         </p>
+        {compareSeries && compare != null && (
+          <p
+            className="mt-1 font-mono text-[11px] tabular-nums"
+            style={{ color: compareSeries.color }}
+          >
+            {compareSeries.label} {formatCurrency(compare)}
+          </p>
+        )}
       </div>
     );
   };
@@ -71,6 +108,11 @@ export function EquityCurve({ points, initialCapital, height = 220 }: EquityCurv
       const v = data[i].equity;
       if (v < lo) lo = v;
       if (v > hi) hi = v;
+      const c = data[i].compare;
+      if (c != null) {
+        if (c < lo) lo = c;
+        if (c > hi) hi = c;
+      }
     }
     const pad = (hi - lo) * 0.05 || hi * 0.01;
     return [lo - pad, hi + pad];
@@ -111,6 +153,19 @@ export function EquityCurve({ points, initialCapital, height = 220 }: EquityCurv
         />
         <Tooltip content={<EquityTooltip />} />
         <ReferenceLine y={capital} stroke="#2A2F3A" strokeDasharray="3 3" />
+        {compareSeries && (
+          <Line
+            type="monotone"
+            dataKey="compare"
+            stroke={compareSeries.color}
+            strokeWidth={1.5}
+            strokeDasharray="4 3"
+            dot={false}
+            connectNulls
+            isAnimationActive={false}
+            name={compareSeries.label}
+          />
+        )}
         <Area
           type="monotone"
           dataKey="equity"
