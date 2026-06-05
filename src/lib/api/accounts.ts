@@ -1,4 +1,5 @@
 import type { AccountSummary, BackendAccountSummary } from '@/types/account';
+import { DEFAULT_ACCOUNT_TYPE, isAccountType, type AccountType } from '@/types/accountType';
 import { apiClient } from './client';
 import { toNum } from './coerce';
 
@@ -22,6 +23,7 @@ function mapAccount(a: BackendAccountSummary): AccountSummary {
     exchange: a.exchange,
     active: isAccountActive(a.isActive),
     createdAt: a.createdTime,
+    accountType: isAccountType(a.accountType) ? a.accountType : DEFAULT_ACCOUNT_TYPE,
     maxConcurrentLongs: toNum(a.maxConcurrentLongs, 2),
     maxConcurrentShorts: toNum(a.maxConcurrentShorts, 2),
 
@@ -49,6 +51,9 @@ export interface CreateAccountPayload {
   apiKey: string;
   apiSecret: string;
   acknowledgedSafety: boolean;
+  /** Account taxonomy (V153). Omit → backend defaults to TRADING. Immutable
+   *  after create (absent from update/patch payloads). */
+  accountType?: AccountType;
 }
 
 export async function createAccount(payload: CreateAccountPayload): Promise<AccountSummary> {

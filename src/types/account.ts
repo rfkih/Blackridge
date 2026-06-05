@@ -1,4 +1,5 @@
 import type { ISO8601, UUID } from './api';
+import type { AccountType } from './accountType';
 
 /** Backend AccountSummaryResponse — Java field names. */
 export interface BackendAccountSummary {
@@ -8,6 +9,8 @@ export interface BackendAccountSummary {
   exchange: string;
   isActive: string;
   createdTime: ISO8601;
+  /** Account taxonomy (V153). Absent on legacy rows → mapped to TRADING. */
+  accountType?: string;
   /** Phase 2a — concurrency caps. */
   maxConcurrentLongs?: number | null;
   maxConcurrentShorts?: number | null;
@@ -26,6 +29,9 @@ export interface AccountSummary {
   exchange: string;
   active: boolean;
   createdAt: ISO8601;
+  /** Account taxonomy (V153). TRADING (directional positions) or HEDGING
+   *  (spot allocation/tilt). Immutable post-create; legacy rows → TRADING. */
+  accountType: AccountType;
   /** Risk-policy levers — see Phase 2a/2b. */
   maxConcurrentLongs: number;
   maxConcurrentShorts: number;
