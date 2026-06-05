@@ -27,6 +27,8 @@ import { useTradesList, useTradeStats } from '@/hooks/useTrades';
 import type { TradesPageFilters } from '@/lib/api/trades';
 import { useStrategies } from '@/hooks/useStrategies';
 import { useActiveAccount } from '@/hooks/useAccounts';
+import { useAccountView } from '@/lib/accountType/registry';
+import { RebalanceHistory } from '@/components/hedging/RebalanceHistory';
 import { usePositionStore } from '@/store/positionStore';
 import { useLivePnl, useSyncOpenPositions } from '@/hooks/useLivePnl';
 import { useCurrencyFormatter } from '@/hooks/useCurrency';
@@ -75,10 +77,48 @@ const STATUS_META: Record<StatusFilter, { label: string }> = {
 };
 
 export default function TradesPage() {
+  const { activeAccount, isAll, scopedAccountId } = useActiveAccount();
+
+  // Account-type branch: a single active HEDGING account sees the monitor as a
+  // "Rebalances" view. TRADING and the "All" aggregate keep the existing trades
+  // ledger byte-for-byte (this branch is additive — it never restructures the
+  // trading table below).
+  if (!isAll && activeAccount?.accountType === 'HEDGING') {
+    return <RebalancesMonitor accountId={scopedAccountId} />;
+  }
+
   return (
     <Suspense fallback={<Skeleton className="h-[60vh] w-full" />}>
       <TradesPageContent />
     </Suspense>
+  );
+}
+
+/**
+ * The monitor surface for a HEDGING account — the same page slot the trades
+ * ledger occupies, retitled via the account view's `monitorLabel` and backed
+ * by the account-scoped rebalance log instead of the trades table.
+ */
+function RebalancesMonitor({ accountId }: { accountId: string | undefined }) {
+  const { monitorLabel } = useAccountView();
+
+  return (
+    <div className="flex flex-col gap-5">
+      <section
+        className="mm-card"
+        style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column' }}
+      >
+        <div className="mm-kicker">REBALANCE LOG</div>
+        <h1
+          className="font-display"
+          style={{ fontSize: 30, letterSpacing: '-0.03em', lineHeight: 1, marginTop: 6 }}
+        >
+          {monitorLabel}
+        </h1>
+      </section>
+
+      <RebalanceHistory accountId={accountId} />
+    </div>
   );
 }
 
