@@ -40,6 +40,7 @@ export function useBacktestRuns(filters: BacktestListFilters = {}) {
       'backtest-runs',
       filters.status ?? null,
       filters.strategyCode ?? null,
+      filters.strategyKind ?? null,
       filters.symbol ?? null,
       filters.interval ?? null,
       filters.from ?? null,

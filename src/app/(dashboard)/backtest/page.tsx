@@ -21,6 +21,7 @@ import { PageHeader } from '@/components/shared/PageHeader';
 import { Skeleton } from '@/components/ui/skeleton';
 import { DatePicker } from '@/components/ui/date-picker';
 import { useBacktestRuns } from '@/hooks/useBacktest';
+import { useActiveAccount } from '@/hooks/useAccounts';
 import type { BacktestSortKey } from '@/lib/api/backtest';
 import type { BacktestRun, BacktestStatus } from '@/types/backtest';
 import { cn } from '@/lib/utils';
@@ -103,6 +104,9 @@ export default function BacktestListPage() {
 function BacktestListContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  // Scope the list to the active account's kind — a HEDGING account sees only
+  // hedging backtests, a TRADING account only trading ones. "All accounts" → no scope.
+  const { activeAccount } = useActiveAccount();
   const filters = useMemo(
     () => readFilters(new URLSearchParams(searchParams.toString())),
     [searchParams],
@@ -143,6 +147,7 @@ function BacktestListContent() {
   const runsQuery = useBacktestRuns({
     status: filters.status || undefined,
     triggeredBy: filters.source,
+    strategyKind: activeAccount?.accountType,
     strategyCode: filters.strategyCode || undefined,
     symbol: filters.symbol || undefined,
     interval: filters.interval || undefined,

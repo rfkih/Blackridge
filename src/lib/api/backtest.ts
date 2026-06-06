@@ -242,6 +242,9 @@ export type BacktestSortKey =
 export interface BacktestListFilters {
   status?: string;
   strategyCode?: string;
+  /** Scope to a strategy kind — 'HEDGING' or 'TRADING'. Used to show only the
+   *  active account's backtests. Omit for all. */
+  strategyKind?: string;
   symbol?: string;
   interval?: string;
   /** ISO LocalDateTime (e.g. `2026-01-01T00:00:00`) â€” matches Spring's
@@ -279,6 +282,7 @@ export async function listBacktestRuns(
   const params: Record<string, string | number | boolean> = {};
   addOptionalParam(params, 'status', filters.status);
   addOptionalParam(params, 'strategyCode', filters.strategyCode);
+  addOptionalParam(params, 'strategyKind', filters.strategyKind);
   addOptionalParam(params, 'symbol', filters.symbol?.toUpperCase());
   addOptionalParam(params, 'interval', filters.interval);
   addOptionalParam(params, 'from', filters.from);
