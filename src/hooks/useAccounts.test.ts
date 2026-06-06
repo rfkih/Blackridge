@@ -26,6 +26,7 @@ function mkAccount(p: Partial<AccountSummary> & Pick<AccountSummary, 'id'>): Acc
     maxConcurrentShorts: 2,
     maxConcurrentTrades: null,
     volTargetingEnabled: false,
+    earnEnabled: false,
     bookVolTargetPct: 15,
     ...p,
   };

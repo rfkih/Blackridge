@@ -19,6 +19,8 @@ export interface BackendAccountSummary {
   /** Phase 2b — vol targeting. */
   volTargetingEnabled?: boolean | null;
   bookVolTargetPct?: number | string | null;
+  /** V162 — per-account opt-in for idle-cash Simple Earn yield (HEDGING). */
+  earnEnabled?: boolean | null;
 }
 
 /** Frontend-normalized account summary. */
@@ -39,6 +41,8 @@ export interface AccountSummary {
   maxConcurrentTrades: number | null;
   volTargetingEnabled: boolean;
   bookVolTargetPct: number;
+  /** Whether this (hedging) account opted into idle-cash Simple Earn yield. */
+  earnEnabled: boolean;
 }
 
 /**

@@ -9,6 +9,7 @@ import {
   rotateAccountCredentials,
   updateAccount,
   updateAccountRiskConfig,
+  updateAccountEarnConfig,
   previewAccountTypeSwitch,
   switchAccountType,
   type CreateAccountPayload,
@@ -163,6 +164,19 @@ export function useUpdateAccountRiskConfig() {
       updateAccountRiskConfig(accountId, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['accounts'] });
+    },
+  });
+}
+
+/** Toggle idle-cash Simple Earn yield for a HEDGING account (per-account opt-in). */
+export function useUpdateAccountEarnConfig() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ accountId, enabled }: { accountId: string; enabled: boolean }) =>
+      updateAccountEarnConfig(accountId, enabled),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['accounts'] });
+      queryClient.invalidateQueries({ queryKey: ['earn-position'] });
     },
   });
 }

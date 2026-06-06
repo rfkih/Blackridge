@@ -30,6 +30,7 @@ function mapAccount(a: BackendAccountSummary): AccountSummary {
     maxConcurrentTrades: a.maxConcurrentTrades == null ? null : Number(a.maxConcurrentTrades),
     volTargetingEnabled: Boolean(a.volTargetingEnabled),
     bookVolTargetPct: toNum(a.bookVolTargetPct, 15),
+    earnEnabled: Boolean(a.earnEnabled),
   };
 }
 
@@ -105,6 +106,21 @@ export async function updateAccountRiskConfig(
   const { data } = await apiClient.patch<BackendAccountSummary>(
     `/api/v1/accounts/${accountId}/risk-config`,
     payload,
+  );
+  return mapAccount(data);
+}
+
+/**
+ * Toggle idle-cash Simple Earn yield for a HEDGING account (per-account opt-in).
+ * Earn still requires the deploy-level master switch to actually run.
+ */
+export async function updateAccountEarnConfig(
+  accountId: string,
+  enabled: boolean,
+): Promise<AccountSummary> {
+  const { data } = await apiClient.patch<BackendAccountSummary>(
+    `/api/v1/accounts/${accountId}/earn-config`,
+    { enabled },
   );
   return mapAccount(data);
 }

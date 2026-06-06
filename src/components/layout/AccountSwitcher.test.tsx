@@ -34,6 +34,7 @@ function mkAccount(p: Partial<AccountSummary>): AccountSummary {
     maxConcurrentShorts: 2,
     maxConcurrentTrades: null,
     volTargetingEnabled: false,
+    earnEnabled: false,
     bookVolTargetPct: 15,
     ...p,
   };

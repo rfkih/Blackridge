@@ -1,6 +1,7 @@
 'use client';
 
 import { AllocationStatCards } from './AllocationStatCards';
+import { EarnToggleCard } from './EarnToggleCard';
 import { AllocationPanel } from './AllocationPanel';
 import { BtcStackPanel } from './BtcStackPanel';
 import { DrawdownVsBuyHoldPanel } from './DrawdownVsBuyHoldPanel';
@@ -33,6 +34,8 @@ export function HedgingDashboard({ accountId }: HedgingDashboardProps) {
   return (
     <div className="br flex flex-col gap-4">
       <AllocationStatCards accountId={accountId} />
+
+      <EarnToggleCard accountId={accountId} />
 
       <AllocationPanel accountId={accountId} />
 

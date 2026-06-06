@@ -14,6 +14,8 @@ const useCurrencyFormatter = vi.fn();
 vi.mock('@/hooks/useEarnPosition', () => ({
   useEarnPosition: (...a: unknown[]) => useEarnPosition(...a),
 }));
+// Leaf card with its own account/mutation hooks — stub it in this composition test.
+vi.mock('./EarnToggleCard', () => ({ EarnToggleCard: () => null }));
 vi.mock('@/hooks/useCurrency', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@/hooks/useCurrency')>()),
   useCurrencyFormatter: () => useCurrencyFormatter(),
