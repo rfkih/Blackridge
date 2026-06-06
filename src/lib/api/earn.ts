@@ -5,6 +5,7 @@ import { toNum } from './coerce';
 interface BackendEarnPosition {
   asset: string | null;
   amountUsdt: number | string | null;
+  accruedYieldUsdt: number | string | null;
   productId: string | null;
   enabled: boolean | null;
 }
@@ -14,6 +15,9 @@ export interface EarnPosition {
   asset: string;
   /** USDT subscribed to flexible Earn right now (0 when none / earn off). */
   amountUsdt: number;
+  /** Unrealized interest accrued on the current open episode — added to the live
+   *  equity tip so equity updates continuously, not only at redeem. */
+  accruedYieldUsdt: number;
   /** Whether the earn feature is switched on server-side (app.earn.enabled). */
   enabled: boolean;
 }
@@ -30,6 +34,7 @@ export async function getEarnPosition(accountId?: string): Promise<EarnPosition>
   return {
     asset: data.asset ?? 'USDT',
     amountUsdt: toNum(data.amountUsdt),
+    accruedYieldUsdt: toNum(data.accruedYieldUsdt),
     enabled: Boolean(data.enabled),
   };
 }

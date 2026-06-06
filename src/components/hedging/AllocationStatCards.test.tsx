@@ -4,12 +4,21 @@ import type { UseAllocationResult } from '@/hooks/useAllocation';
 
 const useAllocation = vi.fn();
 const useEquityCurve = vi.fn();
+const useEarnPosition = vi.fn();
+const useCurrencyFormatter = vi.fn();
 
 vi.mock('@/hooks/useAllocation', () => ({
   useAllocation: (...a: unknown[]) => useAllocation(...a),
 }));
 vi.mock('@/hooks/useEquityCurve', () => ({
   useEquityCurve: () => useEquityCurve(),
+}));
+vi.mock('@/hooks/useEarnPosition', () => ({
+  useEarnPosition: (...a: unknown[]) => useEarnPosition(...a),
+}));
+vi.mock('@/hooks/useCurrency', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/hooks/useCurrency')>()),
+  useCurrencyFormatter: () => useCurrencyFormatter(),
 }));
 
 import { AllocationStatCards } from './AllocationStatCards';
@@ -32,6 +41,12 @@ describe('AllocationStatCards', () => {
   beforeEach(() => {
     useAllocation.mockReset();
     useEquityCurve.mockReset();
+    useEarnPosition.mockReset();
+    useCurrencyFormatter.mockReset();
+    useEarnPosition.mockReturnValue({
+      data: { asset: 'USDT', amountUsdt: 0, accruedYieldUsdt: 0, enabled: false },
+    });
+    useCurrencyFormatter.mockReturnValue((n: number) => `$${Number(n).toFixed(2)}`);
   });
 
   it('shows BTC weight and cash weight as percentages', () => {
