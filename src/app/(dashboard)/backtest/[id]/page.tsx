@@ -32,6 +32,7 @@ import {
   useBacktestProgressStream,
   useBacktestRun,
   useBacktestTrades,
+  useCancelBacktestRun,
 } from '@/hooks/useBacktest';
 import { useAccountStrategies } from '@/hooks/useStrategies';
 import { useBacktestParamStore } from '@/store/backtestParamStore';
@@ -64,6 +65,7 @@ export default function BacktestResultPage({ params }: { params: { id: string } 
   const idIsValid = typeof id === 'string' && id.length > 0 && id !== 'undefined' && id !== 'null';
 
   const runQ = useBacktestRun(idIsValid ? id : undefined);
+  const cancelM = useCancelBacktestRun(idIsValid ? id : undefined);
 
   useBacktestProgressStream(idIsValid ? id : undefined);
   const tradesQ = useBacktestTrades(idIsValid ? id : undefined);
@@ -257,7 +259,13 @@ export default function BacktestResultPage({ params }: { params: { id: string } 
           />
         )}
 
-      {runQ.data && <BacktestProgressBar run={runQ.data} />}
+      {runQ.data && (
+        <BacktestProgressBar
+          run={runQ.data}
+          onCancel={() => cancelM.mutate()}
+          canceling={cancelM.isPending}
+        />
+      )}
 
       {runQ.data && <RunConfigPanel run={runQ.data} />}
 

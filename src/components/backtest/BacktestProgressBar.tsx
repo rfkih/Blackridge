@@ -1,10 +1,13 @@
-import { Clock, Loader2 } from 'lucide-react';
+import { Clock, Loader2, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { BacktestRun } from '@/types/backtest';
 
 interface BacktestProgressBarProps {
   run: Pick<BacktestRun, 'status' | 'progressPercent' | 'errorMessage'>;
   className?: string;
+  /** When provided, a Cancel control is shown for PENDING/RUNNING runs. */
+  onCancel?: () => void;
+  canceling?: boolean;
 }
 
 /**
@@ -15,7 +18,7 @@ interface BacktestProgressBarProps {
  * For FAILED runs we surface the error message inline so users don't have
  * to dig through the JSON response to find out why it died.
  */
-export function BacktestProgressBar({ run, className }: BacktestProgressBarProps) {
+export function BacktestProgressBar({ run, className, onCancel, canceling }: BacktestProgressBarProps) {
   const status = (run.status ?? 'PENDING').toUpperCase();
   const isPending = status === 'PENDING';
   const isRunning = status === 'RUNNING';
@@ -53,19 +56,36 @@ export function BacktestProgressBar({ run, className }: BacktestProgressBarProps
                 : 'Backtest failed'}
           </span>
         </div>
-        <span
-          className="font-mono text-sm tabular-nums"
-          style={{
-            color: isFailed
-              ? 'var(--color-loss)'
-              : isPending
-                ? 'var(--color-warning)'
-                : 'var(--text-primary)',
-          }}
-        >
-          {displayPercent}
-          <span className="ml-0.5 text-[10px] text-[var(--text-muted)]">%</span>
-        </span>
+        <div className="flex items-center gap-3">
+          <span
+            className="font-mono text-sm tabular-nums"
+            style={{
+              color: isFailed
+                ? 'var(--color-loss)'
+                : isPending
+                  ? 'var(--color-warning)'
+                  : 'var(--text-primary)',
+            }}
+          >
+            {displayPercent}
+            <span className="ml-0.5 text-[10px] text-[var(--text-muted)]">%</span>
+          </span>
+          {onCancel && (isPending || isRunning) && (
+            <button
+              type="button"
+              onClick={onCancel}
+              disabled={canceling}
+              className="flex shrink-0 items-center gap-1 rounded-md border border-[var(--border-subtle)] px-2 py-1 text-[10px] uppercase tracking-[0.18em] text-[var(--text-secondary)] transition-colors hover:border-[rgba(229,72,77,0.5)] hover:text-[var(--color-loss)] disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {canceling ? (
+                <Loader2 size={11} className="animate-spin" />
+              ) : (
+                <X size={11} />
+              )}
+              {canceling ? 'Canceling' : 'Cancel'}
+            </button>
+          )}
+        </div>
       </div>
 
       <div

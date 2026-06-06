@@ -331,6 +331,13 @@ export async function createBacktestRun(payload: BacktestRunPayload): Promise<Ba
   return mapBacktestRun(data);
 }
 
+/** Cancel a PENDING/RUNNING run — marks it FAILED server-side so the detail
+ *  page stops polling instead of hanging on an interrupted worker. */
+export async function cancelBacktestRun(id: string): Promise<boolean> {
+  const { data } = await apiClient.post<{ cancelled: boolean }>(`${BASE}/${id}/cancel`, {});
+  return Boolean(data?.cancelled);
+}
+
 interface BackendBacktestTradePosition {
   id: string;
   type: string;

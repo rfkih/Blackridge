@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   activateBacktestStrategy,
+  cancelBacktestRun,
   createBacktestRun,
   getBacktestCandles,
   getBacktestEquityPoints,
@@ -115,6 +116,21 @@ export function useCreateBacktestRun() {
     mutationFn: (payload: BacktestRunPayload) => createBacktestRun(payload),
     onSuccess: (run) => {
       queryClient.setQueryData(['backtest-run', run.id], run);
+      queryClient.invalidateQueries({ queryKey: ['backtest-runs'] });
+    },
+  });
+}
+
+export function useCancelBacktestRun(id: string | undefined) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => {
+      if (!id) throw new Error('id is required');
+      return cancelBacktestRun(id);
+    },
+    onSuccess: () => {
+      // Refetch the run so the UI flips out of the PENDING/RUNNING poll loop.
+      queryClient.invalidateQueries({ queryKey: ['backtest-run', id] });
       queryClient.invalidateQueries({ queryKey: ['backtest-runs'] });
     },
   });
