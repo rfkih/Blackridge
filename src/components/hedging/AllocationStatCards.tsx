@@ -1,8 +1,10 @@
 'use client';
 
-import { Bitcoin, Wallet, TrendingDown } from 'lucide-react';
+import { Bitcoin, Wallet, TrendingDown, PiggyBank } from 'lucide-react';
 import { useAllocation } from '@/hooks/useAllocation';
 import { useEquityCurve } from '@/hooks/useEquityCurve';
+import { useEarnPosition } from '@/hooks/useEarnPosition';
+import { useCurrencyFormatter } from '@/hooks/useCurrency';
 
 interface AllocationStatCardsProps {
   accountId: string | undefined;
@@ -80,23 +82,48 @@ function Stat({ testId, label, value, tooltip, tone = 'neutral', icon }: StatPro
  * so they are intentionally omitted rather than faked.
  */
 export function AllocationStatCards({ accountId }: AllocationStatCardsProps) {
-  const { btcWeightPct, cashWeightPct } = useAllocation(accountId);
+  const { btcWeightPct, cashWeightPct, btcValue, cashValue, equity: spotEquity } =
+    useAllocation(accountId);
   const equity = useEquityCurve();
   const maxDrawdown = equity.stats?.maxDrawdown ?? null;
 
+  const earn = useEarnPosition(accountId);
+  const formatCurrency = useCurrencyFormatter();
+  const earnUsdt = earn.data?.amountUsdt ?? 0;
+  const earnEnabled = earn.data?.enabled ?? false;
+
+  // Fold USDT parked in Earn back into the cash sleeve: once funds are in Earn
+  // the spot balance drops, which would otherwise overstate BTC weight. When
+  // earnUsdt is 0 the weights are identical to the spot-only read.
+  const totalEquity = spotEquity + earnUsdt;
+  const btcW = totalEquity > 0 ? (btcValue / totalEquity) * 100 : btcWeightPct;
+  const cashW = totalEquity > 0 ? ((cashValue + earnUsdt) / totalEquity) * 100 : cashWeightPct;
+
+  const earnValue =
+    earnUsdt > 0 ? formatCurrency(earnUsdt) : earnEnabled ? formatCurrency(0) : 'Off';
+
   return (
-    <section className="grid gap-4" style={{ gridTemplateColumns: 'repeat(3, minmax(0, 1fr))' }}>
+    <section className="grid grid-cols-2 gap-4 lg:grid-cols-4">
       <Stat
         testId="btcWeight"
         label="BTC weight"
-        value={`${btcWeightPct.toFixed(2)}%`}
+        value={`${btcW.toFixed(2)}%`}
         icon={<Bitcoin size={16} strokeWidth={2} />}
       />
       <Stat
         testId="cashWeight"
         label="Cash weight"
-        value={`${cashWeightPct.toFixed(2)}%`}
+        value={`${cashW.toFixed(2)}%`}
+        tooltip={earnUsdt > 0 ? 'Includes USDT parked in Simple Earn' : undefined}
         icon={<Wallet size={16} strokeWidth={2} />}
+      />
+      <Stat
+        testId="inEarn"
+        label="In Earn (USDT)"
+        value={earnValue}
+        tooltip="Idle USDT parked in Binance Flexible Simple Earn, earning yield. Redeemed automatically before the strategy buys BTC."
+        tone={earnUsdt > 0 ? 'profit' : 'neutral'}
+        icon={<PiggyBank size={16} strokeWidth={2} />}
       />
       <Stat
         testId="maxDrawdown"

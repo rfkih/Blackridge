@@ -8,7 +8,16 @@ const useAllocation = vi.fn();
 const useEquityCurve = vi.fn();
 const useRebalances = vi.fn();
 const useBtcBuyHold = vi.fn();
+const useEarnPosition = vi.fn();
+const useCurrencyFormatter = vi.fn();
 
+vi.mock('@/hooks/useEarnPosition', () => ({
+  useEarnPosition: (...a: unknown[]) => useEarnPosition(...a),
+}));
+vi.mock('@/hooks/useCurrency', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/hooks/useCurrency')>()),
+  useCurrencyFormatter: () => useCurrencyFormatter(),
+}));
 vi.mock('@/hooks/useAllocation', () => ({
   useAllocation: (...a: unknown[]) => useAllocation(...a),
 }));
@@ -44,6 +53,10 @@ describe('HedgingDashboard', () => {
     useEquityCurve.mockReset();
     useRebalances.mockReset();
     useBtcBuyHold.mockReset();
+    useEarnPosition.mockReset();
+    useCurrencyFormatter.mockReset();
+    useEarnPosition.mockReturnValue({ data: { asset: 'USDT', amountUsdt: 0, enabled: false } });
+    useCurrencyFormatter.mockReturnValue((n: number) => `$${Number(n).toFixed(2)}`);
     useAllocation.mockReturnValue(mkAllocation());
     useEquityCurve.mockReturnValue({
       stats: { maxDrawdown: -18.4 },
@@ -84,6 +97,23 @@ describe('HedgingDashboard', () => {
     expect(screen.getByText('Drawdown vs buy-hold')).toBeInTheDocument();
     // RebalanceHistory
     expect(screen.getByText('Rebalances')).toBeInTheDocument();
+  });
+
+  it('shows USDT parked in Earn and folds it into the cash weight', () => {
+    // 1000 USDT in Earn on top of 7200 BTC / 2800 spot cash (spot equity 10000)
+    useEarnPosition.mockReturnValue({ data: { asset: 'USDT', amountUsdt: 1000, enabled: true } });
+    render(<HedgingDashboard accountId="acc-1" />);
+
+    expect(screen.getByTestId('stat-inEarn')).toHaveTextContent('$1000.00');
+    // cash = (2800 + 1000) / (10000 + 1000) = 34.55% ; btc = 7200 / 11000 = 65.45%
+    expect(screen.getByTestId('stat-cashWeight')).toHaveTextContent('34.55%');
+    expect(screen.getByTestId('stat-btcWeight')).toHaveTextContent('65.45%');
+  });
+
+  it('shows "Off" in the Earn card when the feature is disabled', () => {
+    useEarnPosition.mockReturnValue({ data: { asset: 'USDT', amountUsdt: 0, enabled: false } });
+    render(<HedgingDashboard accountId="acc-1" />);
+    expect(screen.getByTestId('stat-inEarn')).toHaveTextContent('Off');
   });
 
   it('fills the BTC-stack and drawdown panels with real series — no "coming soon" shells', () => {
