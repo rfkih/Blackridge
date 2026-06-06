@@ -155,6 +155,10 @@ export interface BacktestEquityPoint {
   equity: number;
   drawdown: number;
   drawdownPct: number;
+  /** Idle USDT cash at this point (composition: cash leg). */
+  cashBalance: number;
+  /** Marked-to-market value of held base asset, e.g. BTC (composition: asset leg). */
+  assetValue: number;
 }
 
 export interface BacktestTradePosition {

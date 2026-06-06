@@ -37,25 +37,46 @@ interface EquityCurveProps {
   height?: number;
   /** Optional benchmark line (buy-and-hold). When absent, renders as before. */
   compareSeries?: EquityCompareSeries;
+  /** Optional extra solid overlay lines aligned to the same `ts` axis — e.g. the
+   *  equity composition legs (BTC value, USDT cash). Each renders as its own line
+   *  and extends the y-domain so a leg dropping toward zero stays visible. */
+  overlaySeries?: EquityCompareSeries[];
 }
+
+type EquityRow = { ts: number; equity: number; compare: number | null } & Record<string, number | null>;
+
+const overlayKey = (i: number) => `ov${i}`;
 
 export function EquityCurve({
   points,
   initialCapital,
   height = 220,
   compareSeries,
+  overlaySeries,
 }: EquityCurveProps) {
   const capital = initialCapital ?? points[0]?.equity ?? 0;
-  const data = useMemo(() => {
-    if (!compareSeries) return points.map((p) => ({ ts: p.ts, equity: p.equity, compare: null }));
-    const byTs = new Map<number, number>();
-    for (const c of compareSeries.points) byTs.set(c.ts, c.equity);
-    return points.map((p) => ({
-      ts: p.ts,
-      equity: p.equity,
-      compare: byTs.has(p.ts) ? (byTs.get(p.ts) as number) : null,
-    }));
-  }, [points, compareSeries]);
+  const overlays = useMemo(() => overlaySeries ?? [], [overlaySeries]);
+  const data = useMemo<EquityRow[]>(() => {
+    const compareByTs = new Map<number, number>();
+    if (compareSeries) for (const c of compareSeries.points) compareByTs.set(c.ts, c.equity);
+    const overlayMaps = overlays.map((s) => {
+      const m = new Map<number, number>();
+      for (const p of s.points) m.set(p.ts, p.equity);
+      return m;
+    });
+    return points.map((p) => {
+      const row: EquityRow = {
+        ts: p.ts,
+        equity: p.equity,
+        compare: compareSeries && compareByTs.has(p.ts) ? (compareByTs.get(p.ts) as number) : null,
+      };
+      overlays.forEach((_, i) => {
+        const m = overlayMaps[i];
+        row[overlayKey(i)] = m.has(p.ts) ? (m.get(p.ts) as number) : null;
+      });
+      return row;
+    });
+  }, [points, compareSeries, overlays]);
   const formatCurrency = useCurrencyFormatter();
 
   const EquityTooltip = ({
@@ -63,7 +84,7 @@ export function EquityCurve({
     payload,
   }: {
     active?: boolean;
-    payload?: ChartTooltipItem<{ ts: number; equity: number; compare: number | null }>[];
+    payload?: ChartTooltipItem<EquityRow>[];
   }) => {
     if (!active || !payload?.length) return null;
     const d = payload[0]?.payload;
@@ -95,6 +116,19 @@ export function EquityCurve({
             {compareSeries.label} {formatCurrency(compare)}
           </p>
         )}
+        {overlays.map((s, i) => {
+          const v = d[overlayKey(i)];
+          if (v == null) return null;
+          return (
+            <p
+              key={s.label}
+              className="mt-1 font-mono text-[11px] tabular-nums"
+              style={{ color: s.color }}
+            >
+              {s.label} {formatCurrency(v)}
+            </p>
+          );
+        })}
       </div>
     );
   };
@@ -113,10 +147,17 @@ export function EquityCurve({
         if (c < lo) lo = c;
         if (c > hi) hi = c;
       }
+      for (let k = 0; k < overlays.length; k++) {
+        const ov = data[i][overlayKey(k)];
+        if (ov != null) {
+          if (ov < lo) lo = ov;
+          if (ov > hi) hi = ov;
+        }
+      }
     }
     const pad = (hi - lo) * 0.05 || hi * 0.01;
     return [lo - pad, hi + pad];
-  }, [data, capital]);
+  }, [data, capital, overlays.length]);
 
   return (
     <ResponsiveContainer width="100%" height={height}>
@@ -166,6 +207,19 @@ export function EquityCurve({
             name={compareSeries.label}
           />
         )}
+        {overlays.map((s, i) => (
+          <Line
+            key={s.label}
+            type="monotone"
+            dataKey={overlayKey(i)}
+            stroke={s.color}
+            strokeWidth={1.5}
+            dot={false}
+            connectNulls
+            isAnimationActive={false}
+            name={s.label}
+          />
+        ))}
         <Area
           type="monotone"
           dataKey="equity"

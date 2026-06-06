@@ -15,9 +15,15 @@ const SEC = 1_000;
 
 // equity ts is epoch-ms; candle time is epoch-seconds (per the candles mapper)
 const EQUITY: BacktestEquityPoint[] = [
-  { ts: 1_000 * SEC, equity: 10_000, drawdown: 0, drawdownPct: 0 },
-  { ts: 2_000 * SEC, equity: 11_000, drawdown: 0, drawdownPct: -2 },
-  { ts: 3_000 * SEC, equity: 12_500, drawdown: 0, drawdownPct: 0 },
+  { ts: 1_000 * SEC, equity: 10_000, drawdown: 0, drawdownPct: 0, assetValue: 6_000, cashBalance: 4_000 },
+  { ts: 2_000 * SEC, equity: 11_000, drawdown: 0, drawdownPct: -2, assetValue: 7_000, cashBalance: 4_000 },
+  { ts: 3_000 * SEC, equity: 12_500, drawdown: 0, drawdownPct: 0, assetValue: 8_500, cashBalance: 4_000 },
+];
+
+// composition all-zero → the panel must NOT offer the composition toggles
+const EQUITY_NO_COMPOSITION: BacktestEquityPoint[] = [
+  { ts: 1_000 * SEC, equity: 10_000, drawdown: 0, drawdownPct: 0, assetValue: 0, cashBalance: 0 },
+  { ts: 2_000 * SEC, equity: 11_000, drawdown: 0, drawdownPct: -2, assetValue: 0, cashBalance: 0 },
 ];
 
 const CANDLES: CandleData[] = [
@@ -61,5 +67,27 @@ describe('BacktestEquityPanel — buy-hold overlay', () => {
     const toggle = screen.getByRole('checkbox', { name: /show buy & hold/i });
     expect(toggle).toBeInTheDocument();
     expect(toggle).toBeChecked();
+  });
+});
+
+describe('BacktestEquityPanel — equity composition (BTC / USDT)', () => {
+  it('shows asset-holdings + USDT-cash toggles (default on) when composition data is present', () => {
+    renderWithClient(
+      <BacktestEquityPanel points={EQUITY} initialCapital={10_000} symbol="BTCUSDT" />,
+    );
+    const asset = screen.getByRole('checkbox', { name: /show btc holdings/i });
+    const cash = screen.getByRole('checkbox', { name: /show usdt cash/i });
+    expect(asset).toBeChecked();
+    expect(cash).toBeChecked();
+    expect(screen.getByText('BTC holdings')).toBeInTheDocument();
+    expect(screen.getByText('USDT cash')).toBeInTheDocument();
+  });
+
+  it('omits the composition toggles when the run carries no split (all zero)', () => {
+    renderWithClient(
+      <BacktestEquityPanel points={EQUITY_NO_COMPOSITION} initialCapital={10_000} symbol="BTCUSDT" />,
+    );
+    expect(screen.queryByText('BTC holdings')).not.toBeInTheDocument();
+    expect(screen.queryByText('USDT cash')).not.toBeInTheDocument();
   });
 });

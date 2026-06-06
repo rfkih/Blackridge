@@ -100,6 +100,9 @@ export default function PaperPage({ params }: { params: { id: string } }) {
     equity: p.value,
     drawdown: 0,
     drawdownPct: 0,
+    // research-paper curves carry no BTC/USDT split → composition stays hidden
+    cashBalance: 0,
+    assetValue: 0,
   }));
 
   const hasSlippage = Object.keys(paper.robustness.slippage_sensitivity).length > 0;

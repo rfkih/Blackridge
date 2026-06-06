@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useId, useMemo, useState } from 'react';
 import { DrawdownChart } from '@/components/charts/DrawdownChart';
 import { EquityCurve, type EquityCompareSeries } from '@/components/charts/EquityCurve';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -66,6 +66,41 @@ interface EquityCurvePointLike {
   equity: number;
 }
 
+/** Colored-dot legend entry with a show/hide checkbox. */
+function LegendToggle({
+  label,
+  color,
+  checked,
+  onChange,
+}: {
+  label: string;
+  color: string;
+  checked: boolean;
+  onChange: (next: boolean) => void;
+}) {
+  const id = useId();
+  return (
+    <span className="flex items-center gap-1">
+      <input
+        id={id}
+        type="checkbox"
+        className="h-3 w-3"
+        style={{ accentColor: color }}
+        checked={checked}
+        onChange={(e) => onChange(e.target.checked)}
+        aria-label={`Show ${label}`}
+      />
+      <label
+        htmlFor={id}
+        className="flex cursor-pointer items-center gap-1 font-mono text-[10px] font-semibold"
+        style={{ color, opacity: checked ? 1 : 0.4 }}
+      >
+        <span aria-hidden>●</span> {label}
+      </label>
+    </span>
+  );
+}
+
 function PanelShell({
   title,
   subtitle,
@@ -118,6 +153,37 @@ export function BacktestEquityPanel({
     };
   }, [hasBuyHold, showBuyHold, buyHoldPoints, symbol]);
 
+  // Equity composition legs — the held base-asset value (e.g. BTC) and the idle
+  // USDT cash that together make up total equity. Only offered when the run
+  // actually carries the split (older runs predate the backend field → all zero).
+  const hasComposition = useMemo(
+    () => points.some((p) => p.assetValue !== 0 || p.cashBalance !== 0),
+    [points],
+  );
+  const baseAssetLabel = (symbol ?? '').toUpperCase().replace(/USDT$/, '') || 'Asset';
+  const [showAsset, setShowAsset] = useState(true);
+  const [showCash, setShowCash] = useState(true);
+
+  const overlaySeries = useMemo<EquityCompareSeries[]>(() => {
+    if (!hasComposition) return [];
+    const out: EquityCompareSeries[] = [];
+    if (showAsset) {
+      out.push({
+        points: points.map((p) => ({ ts: p.ts, equity: p.assetValue })),
+        label: `${baseAssetLabel} holdings`,
+        color: buyHoldColor(symbol),
+      });
+    }
+    if (showCash) {
+      out.push({
+        points: points.map((p) => ({ ts: p.ts, equity: p.cashBalance })),
+        label: 'USDT cash',
+        color: '#26A17B',
+      });
+    }
+    return out;
+  }, [hasComposition, showAsset, showCash, points, baseAssetLabel, symbol]);
+
   const drawdownPoints = useMemo(
     () => points.map((p) => ({ ts: p.ts, drawdownPct: p.drawdownPct })),
     [points],
@@ -166,27 +232,38 @@ export function BacktestEquityPanel({
           title="Equity Curve"
           subtitle={`End: $${endingEquity.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
           headerRight={
-            hasBuyHold ? (
-              <div className="flex items-center gap-3 text-[11px] font-semibold">
-                <span className="flex items-center gap-1" style={{ color: '#00C896' }}>
+            hasBuyHold || hasComposition ? (
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                <span
+                  className="flex items-center gap-1 font-mono text-[10px] font-semibold"
+                  style={{ color: '#00C896' }}
+                >
                   <span aria-hidden>●</span> Strategy
                 </span>
-                <span
-                  className="flex items-center gap-1"
-                  style={{ color: buyHoldColor(symbol), opacity: showBuyHold ? 1 : 0.4 }}
-                >
-                  <span aria-hidden>●</span> {`Buy & Hold ${symbol ?? ''}`.trim()}
-                </span>
-                <label className="flex cursor-pointer items-center gap-1.5 font-mono text-[10px] font-normal text-text-muted">
-                  <input
-                    type="checkbox"
-                    className="h-3 w-3 accent-[#F7931A]"
+                {hasBuyHold && (
+                  <LegendToggle
+                    label={`Buy & Hold ${symbol ?? ''}`.trim()}
+                    color={buyHoldColor(symbol)}
                     checked={showBuyHold}
-                    onChange={(e) => setShowBuyHold(e.target.checked)}
-                    aria-label="Show buy & hold"
+                    onChange={setShowBuyHold}
                   />
-                  Show buy &amp; hold
-                </label>
+                )}
+                {hasComposition && (
+                  <>
+                    <LegendToggle
+                      label={`${baseAssetLabel} holdings`}
+                      color={buyHoldColor(symbol)}
+                      checked={showAsset}
+                      onChange={setShowAsset}
+                    />
+                    <LegendToggle
+                      label="USDT cash"
+                      color="#26A17B"
+                      checked={showCash}
+                      onChange={setShowCash}
+                    />
+                  </>
+                )}
               </div>
             ) : undefined
           }
@@ -198,6 +275,7 @@ export function BacktestEquityPanel({
               points={equityPoints}
               initialCapital={initialCapital}
               compareSeries={compareSeries}
+              overlaySeries={overlaySeries}
             />
           ) : (
             <EmptyChartState label="No equity points available" />

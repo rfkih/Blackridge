@@ -373,6 +373,8 @@ interface BackendBacktestEquityPoint {
   equity: number;
   drawdown: number;
   drawdownPct: number;
+  cashBalance?: number | string | null;
+  assetValue?: number | string | null;
 }
 
 interface BackendBacktestCandle {
@@ -457,6 +459,8 @@ export async function getBacktestEquityPoints(id: string): Promise<BacktestEquit
       equity: Number(p.equity),
       drawdown: Number(p.drawdown),
       drawdownPct: Number(p.drawdownPct),
+      cashBalance: toNum(p.cashBalance, 0),
+      assetValue: toNum(p.assetValue, 0),
     }))
     .filter((p) => p.ts > 0)
     .sort((a, b) => a.ts - b.ts);
