@@ -35,7 +35,7 @@ export function HedgingDashboard({ accountId }: HedgingDashboardProps) {
     <div className="br flex flex-col gap-4">
       <AllocationStatCards accountId={accountId} />
 
-      <EarnToggleCard accountId={accountId} />
+      <EarnToggleCard />
 
       <AllocationPanel accountId={accountId} />
 

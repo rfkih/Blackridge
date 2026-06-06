@@ -47,13 +47,24 @@ describe('EarnToggleCard', () => {
 
   it('renders nothing for a non-hedging account', () => {
     useActiveAccount.mockReturnValue({ activeAccount: { ...hedgingAccount(false), accountType: 'TRADING' } });
-    const { container } = render(<EarnToggleCard accountId="acc-1" />);
+    const { container } = render(<EarnToggleCard />);
     expect(container).toBeEmptyDOMElement();
+  });
+
+  it('optimistically shows the requested state while the mutation is in flight', () => {
+    useActiveAccount.mockReturnValue({ activeAccount: hedgingAccount(false) });
+    useUpdateAccountEarnConfig.mockReturnValue({
+      mutate,
+      isPending: true,
+      variables: { accountId: 'acc-1', enabled: true },
+    });
+    render(<EarnToggleCard />);
+    expect(screen.getByRole('switch')).toBeChecked();
   });
 
   it('toggling on calls the mutation with enabled=true', () => {
     useActiveAccount.mockReturnValue({ activeAccount: hedgingAccount(false) });
-    render(<EarnToggleCard accountId="acc-1" />);
+    render(<EarnToggleCard />);
     fireEvent.click(screen.getByRole('switch'));
     expect(mutate).toHaveBeenCalledWith(
       { accountId: 'acc-1', enabled: true },
@@ -64,7 +75,7 @@ describe('EarnToggleCard', () => {
   it('shows the "not yet live platform-wide" hint when opted in but master off', () => {
     useActiveAccount.mockReturnValue({ activeAccount: hedgingAccount(true) });
     useEarnPosition.mockReturnValue({ data: { enabled: false } });
-    render(<EarnToggleCard accountId="acc-1" />);
+    render(<EarnToggleCard />);
     expect(screen.getByText(/activates once the platform/i)).toBeInTheDocument();
   });
 });

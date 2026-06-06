@@ -12,15 +12,18 @@ import { normalizeError } from '@/lib/api/client';
  * feature also needs the deploy-level master switch to actually run, so when the
  * user opts in but the platform feature isn't live yet we say so.
  */
-export function EarnToggleCard({ accountId }: { accountId: string | undefined }) {
+export function EarnToggleCard() {
   const { activeAccount } = useActiveAccount();
   const mutation = useUpdateAccountEarnConfig();
-  const earn = useEarnPosition(accountId);
+  // Same account source as the toggle, so the hint and the switch never diverge.
+  const earn = useEarnPosition(activeAccount?.id);
 
   // Earn is a hedging-only feature.
   if (!activeAccount || activeAccount.accountType !== 'HEDGING') return null;
 
-  const enabled = activeAccount.earnEnabled;
+  // Optimistic display: while the toggle is in flight, show the requested value
+  // (reverts automatically to the cached value if the mutation errors).
+  const shown = mutation.isPending ? (mutation.variables?.enabled ?? activeAccount.earnEnabled) : activeAccount.earnEnabled;
   const runningPlatformWide = earn.data?.enabled ?? false;
 
   const onToggle = (next: boolean) => {
@@ -46,14 +49,14 @@ export function EarnToggleCard({ accountId }: { accountId: string | undefined })
             redeemed automatically before the strategy buys BTC. Roughly +1–2%/yr on the cash leg,
             with no added market risk.
           </p>
-          {enabled && !runningPlatformWide && (
+          {shown && !runningPlatformWide && (
             <p className="mt-2 text-[12px]" style={{ color: 'var(--mm-ink-3)' }}>
               On for this account — activates once the platform&apos;s Earn feature is enabled.
             </p>
           )}
         </div>
         <Switch
-          checked={enabled}
+          checked={shown}
           onCheckedChange={onToggle}
           disabled={mutation.isPending}
           aria-label="Toggle idle-cash Simple Earn"
