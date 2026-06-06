@@ -95,12 +95,12 @@ Leave the field blank to have no total cap — useful when you're using only the
   {
     id: 'backtest-intervals',
     category: 'Backtest engine',
-    title: 'Why are backtest intervals limited to 5m / 15m / 1h / 4h?',
-    body: `The backtest engine ticks on a 5m monitor candle. Strategy intervals finer than 5m would silently miss bar closes — the strategy bar's end-time wouldn't align with monitor ticks — and intervals coarser than 4h aren't part of the supported strategy set.
+    title: 'Which backtest intervals are supported (5m / 15m / 1h / 4h / 1d)?',
+    body: `The backtest engine ticks on a 5m monitor candle, so 5m is the floor — strategy intervals finer than 5m would silently miss bar closes because the strategy bar's end-time wouldn't align with monitor ticks. Coarser intervals are fully supported: 1d runs end-to-end on daily market data (back to 2022) and is the timeframe the spot-hedging / trend strategies trade on.
 
-Live trading isn't restricted; the live WebSocket processes whatever interval the strategy is registered on. The 5m floor is a backtest-engine invariant, not a strategy-engine one.
+One caveat for 1d: the run still ticks the 5m monitor underneath, so a multi-year 1d window iterates hundreds of thousands of monitor bars and can take a long time. Prefer a focused window, or expect a slow run.
 
-If you need a finer-resolution backtest, the right answer is to refactor the monitor candle granularity (1m would work) — the per-strategy interval routing is already in place.`,
+Live trading isn't restricted; the live WebSocket processes whatever interval the strategy is registered on. The 5m floor is a backtest-engine invariant, not a strategy-engine one. If you need a finer-resolution backtest, the right answer is to refactor the monitor candle granularity (1m would work) — the per-strategy interval routing is already in place.`,
   },
   {
     id: 'forward-projections',

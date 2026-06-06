@@ -6,16 +6,19 @@ export const INTERVALS = ['1m', '5m', '15m', '1h', '4h', '1d'] as const;
 export type Interval = (typeof INTERVALS)[number];
 
 /**
- * Intervals selectable in the BACKTEST wizard. Restricted to 5m/15m/1h/4h —
- * the engine ticks on a 5m monitor candle so anything finer would silently
- * miss bar closes, and timeframes coarser than 4h aren't part of the
- * supported strategy set. Live trading still supports 1m via WebSocket;
- * that's why the global INTERVALS list keeps the broader range.
+ * Intervals selectable in the BACKTEST wizard. The engine ticks on a 5m
+ * monitor candle, so 5m is the floor — anything finer would silently miss
+ * bar closes. Coarser intervals are fine: 1d is supported end-to-end
+ * (validator + executor handle 1440-min bars; prod has 1d market_data back
+ * to 2022) and is the timeframe the spot-hedging / trend strategies trade on.
+ * Note: a 1d run still ticks the 5m monitor, so a multi-year window is slow.
+ * Live trading additionally supports 1m via WebSocket; that's why the global
+ * INTERVALS list keeps the broader range.
  */
-export const BACKTEST_INTERVALS = ['5m', '15m', '1h', '4h'] as const;
+export const BACKTEST_INTERVALS = ['5m', '15m', '1h', '4h', '1d'] as const;
 
 /** Regex source for backtest interval Zod validation. */
-export const BACKTEST_INTERVAL_REGEX_SOURCE = '^(5m|15m|1h|4h)$';
+export const BACKTEST_INTERVAL_REGEX_SOURCE = '^(5m|15m|1h|4h|1d)$';
 
 export const STRATEGY_CODES = [
   'LSR',

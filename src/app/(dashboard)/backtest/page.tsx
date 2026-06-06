@@ -34,7 +34,7 @@ const STATUSES: Array<{ value: '' | BacktestStatus; label: string }> = [
   { value: 'FAILED', label: 'Failed' },
 ];
 
-const INTERVALS = ['', '5m', '15m', '1h', '4h'] as const;
+const INTERVALS = ['', '5m', '15m', '1h', '4h', '1d'] as const;
 const PAGE_SIZES = [20, 50, 100];
 
 type SourceFilter = 'USER' | 'RESEARCHER';
