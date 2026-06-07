@@ -22,6 +22,7 @@ import {
 } from '@/hooks/useLeaderboard';
 import { useActiveAccount } from '@/hooks/useAccounts';
 import { useLeaderboardStream } from '@/hooks/useLeaderboardStream';
+import { isHedging } from '@/lib/strategyKind';
 import type { LeaderboardEntry } from '@/types/leaderboard';
 
 const LIMIT_OPTIONS = [5, 10, 25] as const;
@@ -30,7 +31,7 @@ const PAPERS_LIMIT = 25;
 
 export default function LeaderboardPage() {
   const [limit, setLimit] = useState<number>(10);
-  const { accounts, scopedAccountId } = useActiveAccount();
+  const { accounts, scopedAccountId, activeAccount } = useActiveAccount();
   const {
     data: entries = [],
     isLoading,
@@ -45,6 +46,34 @@ export default function LeaderboardPage() {
 
   // Live-refresh the ranked list when an approval is created / revoked.
   useLeaderboardStream();
+
+  // When a single account is active, scope every tab to that account's TYPE:
+  // a HEDGING account sees only hedging strategies, a TRADING account only
+  // trading ones. In "All" mode (activeAccount == null) show everything.
+  // A strategy is "hedging" iff its kind is HEDGING; TRADING/null counts as trading.
+  const acctType = activeAccount?.accountType;
+  const matchesAcctType = (kind?: string | null): boolean =>
+    acctType === undefined
+      ? true
+      : acctType === 'HEDGING'
+        ? isHedging(kind)
+        : !isHedging(kind);
+
+  // Conviction tab — filter the ranked rows by the active account's type.
+  const convictionEntries =
+    acctType === undefined ? entries : entries.filter((e) => matchesAcctType(e.strategyKind));
+
+  // Backtest tab — the payload already splits trading vs hedging. Zero out the
+  // non-matching set (and its counts) so the shown/qualifying labels stay honest.
+  const backtestTrading = backtest.data?.entries ?? [];
+  const backtestHedging = backtest.data?.hedgingEntries ?? [];
+  const showBacktestTrading = acctType !== 'HEDGING';
+  const showBacktestHedging = acctType !== 'TRADING';
+
+  // Research papers — classify by the paper's own strategy_kind.
+  const paperItems = papers.data?.items ?? [];
+  const filteredPapers =
+    acctType === undefined ? paperItems : paperItems.filter((p) => matchesAcctType(p.strategy_kind));
 
   return (
     <div className="space-y-6">
@@ -88,7 +117,7 @@ export default function LeaderboardPage() {
 
         <TabsContent value="conviction" className="mt-4">
           <TopStrategiesSection
-            entries={entries}
+            entries={convictionEntries}
             isLoading={isLoading}
             isError={isError}
             onRetry={refetch}
@@ -99,12 +128,14 @@ export default function LeaderboardPage() {
 
         <TabsContent value="backtest" className="mt-4">
           <BacktestLeaderboardSection
-            entries={backtest.data?.entries ?? []}
-            qualifyingCells={backtest.data?.qualifyingCells ?? 0}
-            shown={backtest.data?.shown ?? 0}
-            hedgingEntries={backtest.data?.hedgingEntries ?? []}
-            hedgingQualifyingCells={backtest.data?.hedgingQualifyingCells ?? 0}
-            hedgingShown={backtest.data?.hedgingShown ?? 0}
+            entries={showBacktestTrading ? backtestTrading : []}
+            qualifyingCells={showBacktestTrading ? (backtest.data?.qualifyingCells ?? 0) : 0}
+            shown={showBacktestTrading ? (backtest.data?.shown ?? 0) : 0}
+            hedgingEntries={showBacktestHedging ? backtestHedging : []}
+            hedgingQualifyingCells={
+              showBacktestHedging ? (backtest.data?.hedgingQualifyingCells ?? 0) : 0
+            }
+            hedgingShown={showBacktestHedging ? (backtest.data?.hedgingShown ?? 0) : 0}
             isLoading={backtest.isLoading}
             isError={backtest.isError}
             onRetry={backtest.refetch}
@@ -113,7 +144,7 @@ export default function LeaderboardPage() {
 
         <TabsContent value="papers" className="mt-4">
           <PaperLeaderboardSection
-            papers={papers.data?.items ?? []}
+            papers={filteredPapers}
             isLoading={papers.isLoading}
             isError={papers.isError}
             onRetry={papers.refetch}
