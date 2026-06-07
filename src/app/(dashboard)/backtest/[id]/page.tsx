@@ -26,6 +26,7 @@ import { ErrorBoundary } from '@/components/shared/ErrorBoundary';
 import { BacktestActivateStrategyDialog } from '@/components/backtest/BacktestActivateStrategyDialog';
 import { isHedging } from '@/lib/strategyKind';
 import { buyHoldSeries, compareToBuyHold, maxDrawdownPct, totalReturnPct } from '@/lib/buyHold';
+import { btcStackSeries, type BtcStackPoint, type EquitySample } from '@/lib/hedging/btcCompare';
 import {
   useBacktestCandles,
   useBacktestEquityPoints,
@@ -42,6 +43,7 @@ import type { AccountStrategy } from '@/types/strategy';
 import { BacktestProgressBar } from '@/components/backtest/BacktestProgressBar';
 import type { CandleData } from '@/types/market';
 import { DrawdownVsBuyHoldPanel } from '@/components/hedging/DrawdownVsBuyHoldPanel';
+import { BtcStackPanel } from '@/components/hedging/BtcStackPanel';
 
 const EMPTY_TRADES: BacktestTrade[] = [];
 const EMPTY_CANDLES: CandleData[] = [];
@@ -147,6 +149,23 @@ export default function BacktestResultPage({ params }: { params: { id: string } 
 
     return { strategySeries, buyHoldSeries: buyHoldSeries2, verdict };
   }, [equityQ.data, candlesQ.data, runQ.data?.initialCapital]);
+
+  /**
+   * Absolute BTC-stack curve ("ended with N× the BTC of buy-hold"). Mirrors
+   * the exact join in `useBtcBuyHold`: equity samples ({time: ts, equity})
+   * day-aligned (`alignClosesToEquity` inside `btcStackSeries`) to ms-normalized
+   * BTC closes, so the math is identical to the live hedging dashboard. `null`
+   * until both equity + candles load; the panel renders its own empty state.
+   */
+  const btcStack = useMemo<BtcStackPoint[] | null>(() => {
+    const equity = equityQ.data;
+    const candles = candlesQ.data;
+    if (!equity?.length || !candles?.length) return null;
+    const equitySamples: EquitySample[] = equity.map((p) => ({ time: p.ts, equity: p.equity }));
+    const closes = candles.map((c) => ({ ts: c.time * 1_000, close: c.close }));
+    const series = btcStackSeries(equitySamples, closes);
+    return series.length ? series : null;
+  }, [equityQ.data, candlesQ.data]);
 
   const handleChartSelect = useCallback((tradeId: string | null) => {
     setSelectedTradeId(tradeId);
@@ -313,6 +332,10 @@ export default function BacktestResultPage({ params }: { params: { id: string } 
           />
         </ErrorBoundary>
       )}
+
+      <ErrorBoundary label="BTC stack">
+        <BtcStackPanel series={equityQ.isLoading || candlesQ.isLoading ? null : btcStack} />
+      </ErrorBoundary>
 
       <ErrorBoundary label="Monthly returns">
         <BacktestMonthlyReturns
