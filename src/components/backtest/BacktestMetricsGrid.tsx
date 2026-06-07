@@ -170,20 +170,6 @@ const HELP = {
       </p>
     </>
   ),
-  geomReturn90: (
-    <>
-      <p>
-        Compounded return assuming every trade had been sized at 90% of
-        equity. The geometric equivalent of stacking the per-trade
-        returns; order-sensitive.
-      </p>
-      <p className="mt-1.5 text-text-muted">
-        Read as &ldquo;what would this strategy have made on an aggressive
-        bankroll&rdquo;. Pair with Max Drawdown — same sizing also
-        amplifies losses. A single −100%+ step clamps this to −100% (ruin).
-      </p>
-    </>
-  ),
 };
 
 export function BacktestMetricsGrid({
@@ -424,30 +410,6 @@ export function BacktestMetricsGrid({
         }
         sub="per-trade · sizing-independent"
         help={HELP.avgTradeReturn}
-      />
-      <StatCard
-        label="Geom. Return @ 90%"
-        isLoading={isLoading}
-        value={
-          m?.geometricReturnPctAtAlloc90 != null
-            ? `${m.geometricReturnPctAtAlloc90 >= 0 ? '+' : ''}${formatNum(m.geometricReturnPctAtAlloc90, 2)}%`
-            : '—'
-        }
-        valueColor={
-          m?.geometricReturnPctAtAlloc90 == null
-            ? 'neutral'
-            : m.geometricReturnPctAtAlloc90 <= -100
-            ? 'loss'
-            : m.geometricReturnPctAtAlloc90 >= 0
-            ? 'profit'
-            : 'loss'
-        }
-        sub={
-          m?.geometricReturnPctAtAlloc90 != null && m.geometricReturnPctAtAlloc90 <= -100
-            ? 'ruin'
-            : 'compound @ 90% alloc'
-        }
-        help={HELP.geomReturn90}
       />
     </div>
   );
