@@ -1,140 +1,73 @@
 import Link from 'next/link';
+import { ArrowRight, Check, Plus } from 'lucide-react';
 import type { Metadata } from 'next';
-import { ArrowRight, Check, Minus, Plus } from 'lucide-react';
 import { MarketingShell, SectionHead, MarketingCta } from '@/components/marketing/MarketingShell';
 
 export const metadata: Metadata = {
   title: 'Pricing',
   description:
-    'Three plans for traders, prop desks, and quant teams. Paper trade free for 14 days. No funds custodied — your keys, your account.',
+    'Blackridge is in early access — free to use today. Connect your Binance account, run trading and hedging strategies, no subscription. No funds custodied.',
 };
 
-interface PlanFeature {
-  label: string;
-  starter: boolean | string;
-  pro: boolean | string;
-  desk: boolean | string;
-}
-
-const FEATURES: { group: string; items: PlanFeature[] }[] = [
-  {
-    group: 'Trading',
-    items: [
-      { label: 'Live strategies', starter: '1', pro: '4', desk: 'Unlimited' },
-      { label: 'Connected exchanges', starter: 'Paper only', pro: '2', desk: 'Unlimited' },
-      { label: 'Sub-accounts', starter: false, pro: '3', desk: 'Unlimited' },
-      { label: 'Backtests / month', starter: '50', pro: 'Unlimited', desk: 'Unlimited' },
-      { label: 'Walk-forward & Monte-Carlo', starter: false, pro: true, desk: true },
-    ],
-  },
-  {
-    group: 'Risk',
-    items: [
-      { label: 'Per-strategy drawdown cap', starter: true, pro: true, desk: true },
-      { label: 'Account-level kill switch', starter: false, pro: true, desk: true },
-      { label: 'IP allowlist', starter: false, pro: false, desk: true },
-      { label: 'Custom risk policies', starter: false, pro: false, desk: true },
-    ],
-  },
-  {
-    group: 'Support',
-    items: [
-      { label: 'Email support', starter: 'Community', pro: '24h SLA', desk: '1h SLA' },
-      { label: 'On-boarding session', starter: false, pro: '30 min', desk: '2 hr' },
-      { label: 'Dedicated Slack channel', starter: false, pro: false, desk: true },
-    ],
-  },
-];
-
-interface Plan {
-  id: 'starter' | 'pro' | 'desk';
-  name: string;
-  tagline: string;
-  price: string;
-  priceNote: string;
-  cta: string;
-  ctaHref: string;
-  highlight?: boolean;
-}
-
-const PLANS: Plan[] = [
-  {
-    id: 'starter',
-    name: 'Starter',
-    tagline: 'Test the waters with paper trading.',
-    price: 'Free',
-    priceNote: 'forever · paper only',
-    cta: 'Start paper trading',
-    ctaHref: '/onboarding',
-  },
-  {
-    id: 'pro',
-    name: 'Pro',
-    tagline: 'Run live capital across a handful of accounts.',
-    price: '$199',
-    priceNote: 'per month · billed annually',
-    cta: 'Open Pro account',
-    ctaHref: '/onboarding',
-    highlight: true,
-  },
-  {
-    id: 'desk',
-    name: 'Desk',
-    tagline: 'Team workflows + bring-your-own-risk policy.',
-    price: 'Custom',
-    priceNote: 'contact sales',
-    cta: 'Talk to sales',
-    ctaHref: '/docs',
-  },
+// What's actually available today. No invented tiers, SLAs, or seat counts.
+const INCLUDED = [
+  'Trading and hedging accounts (switch any time)',
+  'Full strategy library — trading + spot hedging',
+  'Spot BTC hedge with full-balance management',
+  'Idle-cash yield via Binance Simple Earn',
+  'Backtesting: walk-forward + Monte-Carlo, up to 9 years of history',
+  'Paper trading against live market data',
+  'Per-account risk caps + drawdown kill-switch',
+  'Connect your own Binance account (spot & USDⓈ-M futures)',
 ];
 
 const FAQ: { q: string; a: string }[] = [
   {
-    q: 'Do you take a cut of my profits?',
-    a: 'No. Blackridge is a SaaS — you pay a flat subscription. We never touch your funds and never take performance fees.',
+    q: 'What does it cost right now?',
+    a: 'Nothing. Blackridge is in early access and free to use. There is no subscription and no card on file. We will announce pricing well before we ever charge, and early users will keep a founder rate.',
   },
   {
-    q: 'Can I cancel anytime?',
-    a: 'Yes. Cancel from Settings → Billing. Your strategies keep running until the end of the current billing period; after that they’re paused, not deleted.',
+    q: 'Do you take a cut of my profits?',
+    a: 'No. We never touch your funds and have no performance fee. When paid plans arrive they will be a flat subscription for the software — never a slice of your returns.',
   },
   {
     q: 'How does paper trading work?',
-    a: 'Strategies execute against live market data with realistic slippage and fee modeling, but no real orders hit the exchange. Use it for 14 days free, or stay on the Starter plan indefinitely.',
+    a: 'Strategies execute against live market data with realistic slippage and fee modeling, but no real orders hit the exchange. Use it to get comfortable before you connect a live account.',
   },
   {
     q: 'What exchanges do you support?',
-    a: 'Binance Futures, Binance Spot, OKX, Bybit, Coinbase Prime, and Kraken. Each connection uses a read-and-trade API key with withdrawals disabled.',
+    a: 'Binance today — spot and USDⓈ-M futures. The connection uses a read-and-trade API key with withdrawals disabled. More venues are on the roadmap.',
   },
   {
-    q: 'Is my data encrypted?',
-    a: 'API keys are sealed in a KMS-backed vault before they leave your browser; only the trading workers can decrypt at order-placement time. We never have a single dollar of your capital in our possession.',
+    q: 'Is my data and are my keys safe?',
+    a: 'API keys are sealed with KMS-backed encryption before they leave your browser; only the trading workers can decrypt at order-placement time. We never hold a single dollar of your capital. See the Security page for the full model.',
   },
 ];
 
 export default function PricingPage() {
   return (
     <MarketingShell activeNav="pricing">
-      {}
+      {/* Hero */}
       <section style={{ padding: '72px 0 24px' }}>
-        <div className="mx-auto max-w-[1180px] px-5 sm:px-8 text-center">
+        <div className="mx-auto max-w-[1180px] px-5 text-center sm:px-8">
           <span
-            className="text-[12px] font-bold uppercase tracking-[0.14em]"
-            style={{ color: 'var(--brand-600)' }}
+            className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-[12px] font-semibold"
+            style={{ background: 'var(--brand-50)', color: 'var(--brand-700)' }}
           >
-            Pricing
+            <span className="br-live-dot" /> Early access
           </span>
           <h1
             className="font-display"
             style={{
-              fontSize: "clamp(36px, 6vw, 56px)",
+              fontSize: 'clamp(36px, 6vw, 56px)',
               lineHeight: 1.05,
               fontWeight: 800,
               letterSpacing: '-0.03em',
-              margin: '14px 0 16px',
+              margin: '18px 0 16px',
               color: 'var(--text-primary)',
             }}
           >
-            Pay for software, not your wins.
+            Free while we&apos;re in early access.
           </h1>
           <p
             className="mx-auto"
@@ -142,78 +75,153 @@ export default function PricingPage() {
               fontSize: 19,
               lineHeight: 1.55,
               color: 'var(--text-secondary)',
-              maxWidth: 580,
+              maxWidth: 600,
               margin: '0 auto',
             }}
           >
-            Flat subscription. Zero performance fees. Cancel any time. Paper trade free for 14 days
-            before you connect a real exchange.
+            Connect your Binance account, run trading and hedging strategies, and backtest as much
+            as you like — at no cost today. No subscription, no card, no performance fee. We&apos;ll
+            announce pricing before we ever charge.
           </p>
         </div>
       </section>
 
-      {}
+      {/* Plan cards */}
       <section style={{ padding: '32px 0 64px' }}>
-        <div className="mx-auto max-w-[1180px] px-5 sm:px-8">
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-            {PLANS.map((plan) => (
-              <PlanCard key={plan.id} plan={plan} />
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {}
-      <section style={{ padding: '64px 0', background: 'var(--bg-surface)' }}>
-        <div className="mx-auto max-w-[1180px] px-5 sm:px-8">
-          <SectionHead
-            eyebrow="Compare"
-            title="What’s in each plan"
-            sub="Everything you need to know in one table. No fine print, no asterisks."
-          />
-          <div className="br-card overflow-x-auto" style={{ padding: 0 }}>
-            <table
-              className="w-full"
-              style={{ borderCollapse: 'collapse', minWidth: 640 }}
+        <div className="mx-auto max-w-[820px] px-5 sm:px-8">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+            {/* Early access */}
+            <div
+              className="br-card flex flex-col"
+              style={{
+                padding: 32,
+                borderRadius: 28,
+                border: '1.5px solid var(--brand-500)',
+                boxShadow: '0 20px 48px var(--accent-glow)',
+                position: 'relative',
+              }}
             >
-              <thead>
-                <tr style={{ borderBottom: '1px solid var(--border-subtle)' }}>
-                  <th
-                    className="text-left text-[12px] font-semibold uppercase tracking-[0.08em]"
-                    style={{
-                      padding: '16px 20px',
-                      color: 'var(--text-muted)',
-                      background: 'var(--bg-surface)',
-                    }}
-                  >
-                    Feature
-                  </th>
-                  {PLANS.map((p) => (
-                    <th
-                      key={p.id}
-                      className="text-left text-[13px] font-semibold"
-                      style={{
-                        padding: '16px 20px',
-                        color: p.highlight ? 'var(--brand-700)' : 'var(--text-primary)',
-                        background: p.highlight ? 'var(--brand-50)' : 'var(--bg-surface)',
-                      }}
-                    >
-                      {p.name}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {FEATURES.map((g) => (
-                  <FeatureGroup key={g.group} group={g.group} items={g.items} />
-                ))}
-              </tbody>
-            </table>
+              <span
+                className="br-chip br-chip-brand absolute -top-3 left-7 text-[10px] font-bold uppercase tracking-[0.12em]"
+                style={{ padding: '4px 10px' }}
+              >
+                Available now
+              </span>
+              <div
+                className="text-[12px] font-bold uppercase tracking-[0.14em]"
+                style={{ color: 'var(--brand-600)' }}
+              >
+                Early access
+              </div>
+              <h3
+                className="font-display"
+                style={{
+                  fontSize: 22,
+                  fontWeight: 700,
+                  letterSpacing: '-0.015em',
+                  margin: '8px 0 10px',
+                  color: 'var(--text-primary)',
+                }}
+              >
+                Everything, free, today.
+              </h3>
+              <div className="mt-3 flex items-baseline gap-2">
+                <span
+                  className="font-display tabular-nums"
+                  style={{
+                    fontSize: 'clamp(36px, 6vw, 56px)',
+                    fontWeight: 800,
+                    letterSpacing: '-0.03em',
+                    color: 'var(--text-primary)',
+                  }}
+                >
+                  Free
+                </span>
+              </div>
+              <div className="mt-1 text-[13px]" style={{ color: 'var(--text-muted)' }}>
+                no card · no subscription · founder rate later
+              </div>
+              <Link
+                href="/onboarding"
+                className="br-btn br-btn-lg br-btn-block br-btn-primary mt-6"
+              >
+                Open account <ArrowRight size={14} />
+              </Link>
+            </div>
+
+            {/* Desk / teams */}
+            <div className="br-card flex flex-col" style={{ padding: 32, borderRadius: 28 }}>
+              <div
+                className="text-[12px] font-bold uppercase tracking-[0.14em]"
+                style={{ color: 'var(--text-muted)' }}
+              >
+                Desk &amp; teams
+              </div>
+              <h3
+                className="font-display"
+                style={{
+                  fontSize: 22,
+                  fontWeight: 700,
+                  letterSpacing: '-0.015em',
+                  margin: '8px 0 10px',
+                  color: 'var(--text-primary)',
+                }}
+              >
+                Running real size?
+              </h3>
+              <div className="mt-3 flex items-baseline gap-2">
+                <span
+                  className="font-display tabular-nums"
+                  style={{
+                    fontSize: 'clamp(32px, 5vw, 48px)',
+                    fontWeight: 800,
+                    letterSpacing: '-0.03em',
+                    color: 'var(--text-primary)',
+                  }}
+                >
+                  Talk to us
+                </span>
+              </div>
+              <div className="mt-1 text-[13px]" style={{ color: 'var(--text-muted)' }}>
+                multiple accounts · custom risk policies
+              </div>
+              <Link href="/product" className="br-btn br-btn-lg br-btn-block br-btn-secondary mt-6">
+                Contact the desk <ArrowRight size={14} />
+              </Link>
+            </div>
           </div>
         </div>
       </section>
 
-      {}
+      {/* What's included */}
+      <section style={{ padding: '64px 0', background: 'var(--bg-surface)' }}>
+        <div className="mx-auto max-w-[820px] px-5 sm:px-8">
+          <SectionHead
+            eyebrow="What's included"
+            title="What you get today"
+            sub="Everything below is live in the product right now — no asterisks, no upsell gates."
+          />
+          <div className="br-card" style={{ padding: 28, borderRadius: 24 }}>
+            <ul className="m-0 grid list-none grid-cols-1 gap-3 p-0 sm:grid-cols-2">
+              {INCLUDED.map((item) => (
+                <li key={item} className="flex items-start gap-2.5">
+                  <span
+                    className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full"
+                    style={{ background: 'var(--brand-50)', color: 'var(--brand-700)' }}
+                  >
+                    <Check size={12} strokeWidth={2.5} />
+                  </span>
+                  <span className="text-[14px]" style={{ color: 'var(--text-secondary)' }}>
+                    {item}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ */}
       <section style={{ padding: '80px 0' }}>
         <div className="mx-auto max-w-[820px] px-5 sm:px-8">
           <SectionHead eyebrow="Questions" title="Common questions" />
@@ -249,131 +257,10 @@ export default function PricingPage() {
         </div>
       </section>
 
-      <MarketingCta />
+      <MarketingCta
+        title="Free to start. Nothing to lose."
+        sub="Open an account, run it in paper, connect Binance when you're ready."
+      />
     </MarketingShell>
-  );
-}
-
-function PlanCard({ plan }: { plan: Plan }) {
-  const isHighlight = plan.highlight;
-  return (
-    <div
-      className="br-card flex flex-col"
-      style={{
-        padding: 32,
-        borderRadius: 28,
-        border: isHighlight ? '1.5px solid var(--brand-500)' : '1px solid var(--border-subtle)',
-        boxShadow: isHighlight ? '0 20px 48px var(--accent-glow)' : 'var(--shadow-panel)',
-        position: 'relative',
-      }}
-    >
-      {isHighlight && (
-        <span
-          className="absolute -top-3 left-7 br-chip br-chip-brand text-[10px] font-bold uppercase tracking-[0.12em]"
-          style={{ padding: '4px 10px' }}
-        >
-          Most popular
-        </span>
-      )}
-      <div>
-        <div
-          className="text-[12px] font-bold uppercase tracking-[0.14em]"
-          style={{ color: isHighlight ? 'var(--brand-600)' : 'var(--text-muted)' }}
-        >
-          {plan.name}
-        </div>
-        <h3
-          className="font-display"
-          style={{
-            fontSize: 22,
-            fontWeight: 700,
-            letterSpacing: '-0.015em',
-            margin: '8px 0 10px',
-            color: 'var(--text-primary)',
-          }}
-        >
-          {plan.tagline}
-        </h3>
-        <div className="mt-5 flex items-baseline gap-2">
-          <span
-            className="font-display tabular-nums"
-            style={{
-              fontSize: "clamp(36px, 6vw, 56px)",
-              fontWeight: 800,
-              letterSpacing: '-0.03em',
-              color: 'var(--text-primary)',
-            }}
-          >
-            {plan.price}
-          </span>
-        </div>
-        <div className="mt-1 text-[13px]" style={{ color: 'var(--text-muted)' }}>
-          {plan.priceNote}
-        </div>
-      </div>
-      <Link
-        href={plan.ctaHref}
-        className={`br-btn br-btn-lg br-btn-block mt-6 ${
-          isHighlight ? 'br-btn-primary' : 'br-btn-secondary'
-        }`}
-      >
-        {plan.cta} <ArrowRight size={14} />
-      </Link>
-    </div>
-  );
-}
-
-function FeatureGroup({ group, items }: { group: string; items: PlanFeature[] }) {
-  return (
-    <>
-      <tr>
-        <td
-          colSpan={4}
-          className="text-[11px] font-bold uppercase tracking-[0.12em]"
-          style={{
-            padding: '20px 20px 8px',
-            color: 'var(--text-muted)',
-            background: 'var(--bg-base)',
-            borderTop: '1px solid var(--border-subtle)',
-          }}
-        >
-          {group}
-        </td>
-      </tr>
-      {items.map((item) => (
-        <tr key={item.label} style={{ borderTop: '1px solid var(--border-subtle)' }}>
-          <td
-            className="text-[14px]"
-            style={{ padding: '14px 20px', color: 'var(--text-primary)' }}
-          >
-            {item.label}
-          </td>
-          <FeatureCell value={item.starter} />
-          <FeatureCell value={item.pro} highlight />
-          <FeatureCell value={item.desk} />
-        </tr>
-      ))}
-    </>
-  );
-}
-
-function FeatureCell({ value, highlight }: { value: boolean | string; highlight?: boolean }) {
-  return (
-    <td
-      className="text-[14px]"
-      style={{
-        padding: '14px 20px',
-        color: 'var(--text-secondary)',
-        background: highlight ? 'color-mix(in srgb, var(--brand-500) 4%, transparent)' : undefined,
-      }}
-    >
-      {typeof value === 'string' ? (
-        value
-      ) : value ? (
-        <Check size={16} style={{ color: 'var(--color-profit)' }} aria-label="Included" />
-      ) : (
-        <Minus size={16} style={{ color: 'var(--text-muted)' }} aria-label="Not included" />
-      )}
-    </td>
   );
 }
