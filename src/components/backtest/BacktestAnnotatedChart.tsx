@@ -21,8 +21,15 @@ import {
 import { formatDate, formatDuration, formatPnl, formatPrice, formatRMultiple } from '@/lib/formatters';
 import type { BacktestTrade } from '@/types/backtest';
 import type { PositionExitReason } from '@/types/trading';
-import type { CandleData } from '@/types/market';
+import type { CandleData, ChartIndicators, IndicatorData } from '@/types/market';
+import { DEFAULT_INDICATORS } from '@/lib/charts/indicatorConfig';
+import {
+  useChartIndicatorSeries,
+  type IndicatorSeriesState,
+} from '@/lib/charts/useChartIndicatorSeries';
 import { X } from 'lucide-react';
+
+const EMPTY_FEATURES: IndicatorData[] = [];
 
 interface BacktestAnnotatedChartProps {
   candles: CandleData[];
@@ -32,6 +39,8 @@ interface BacktestAnnotatedChartProps {
   /** Drives imperative scroll-to on selection (non-null when selection came from the table). */
   scrollTrigger?: number;
   height?: number;
+  features?: IndicatorData[];
+  showIndicators?: ChartIndicators;
 }
 
 const MARKER_HIT_RADIUS_PX = 32;
@@ -49,12 +58,20 @@ export function BacktestAnnotatedChart({
   onTradeSelect,
   scrollTrigger,
   height = 500,
+  features,
+  showIndicators,
 }: BacktestAnnotatedChartProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
   const seriesRef = useRef<ISeriesApi<'Candlestick'> | null>(null);
   const markersPluginRef = useRef<ISeriesMarkersPluginApi<Time> | null>(null);
   const priceLineRefs = useRef<IPriceLine[]>([]);
+  const tvRef = useRef<{
+    LineSeries: unknown;
+    HistogramSeries: unknown;
+    LineStyle: { Dashed: number; Solid: number };
+  } | null>(null);
+  const indicatorStateRef = useRef<IndicatorSeriesState>({});
 
   const [ready, setReady] = useState(false);
   const [hover, setHover] = useState<HoverState | null>(null);
@@ -101,6 +118,7 @@ export function BacktestAnnotatedChart({
     void (async () => {
       const tv = await import('lightweight-charts');
       if (cancelled || !containerRef.current) return;
+      tvRef.current = tv;
 
       const chart = tv.createChart(containerRef.current, {
         height,
@@ -188,9 +206,20 @@ export function BacktestAnnotatedChart({
       chartRef.current?.remove();
       chartRef.current = null;
       seriesRef.current = null;
+      tvRef.current = null;
+      indicatorStateRef.current = {};
       setReady(false);
     };
   }, [height]);
+
+  useChartIndicatorSeries(
+    chartRef,
+    tvRef,
+    indicatorStateRef,
+    ready,
+    showIndicators ?? DEFAULT_INDICATORS,
+    features ?? EMPTY_FEATURES,
+  );
 
   useEffect(() => {
     if (!ready || !candles.length || !seriesRef.current) return;
