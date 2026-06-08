@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
+import { Suspense, useCallback, useMemo } from 'react';
 import nextDynamic from 'next/dynamic';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { AlertCircle, LineChart, RefreshCw } from 'lucide-react';
@@ -14,9 +14,9 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useQuery } from '@tanstack/react-query';
 import { fetchCandles, fetchIndicators } from '@/lib/api/market';
 import { REFETCH_INTERVALS } from '@/lib/charts/chartTheme';
-import type { CandlestickChartIndicators } from '@/components/charts/CandlestickChart';
+import { useChartIndicators } from '@/hooks/useChartIndicators';
+import { IndicatorBar } from '@/components/charts/IndicatorBar';
 import type { CandleData, ChartInterval, IndicatorData } from '@/types/market';
-import { cn } from '@/lib/utils';
 import { DEFAULT_SYMBOL } from '@/lib/symbols';
 
 const CandlestickChart = nextDynamic(
@@ -24,7 +24,6 @@ const CandlestickChart = nextDynamic(
   { ssr: false, loading: () => <Skeleton className="h-[560px] w-full" /> },
 );
 
-const INDICATOR_STORAGE_KEY = 'blackheart:market-indicators';
 const CANDLE_COUNT = 500;
 
 const INTERVAL_OPTIONS: ChartInterval[] = ['5m', '15m', '1h', '4h'];
@@ -46,26 +45,6 @@ function readFilters(params: URLSearchParams): MarketFilters {
     symbol: (params.get('symbol') || DEFAULT_SYMBOL).toUpperCase(),
     interval: narrowInterval(params.get('interval')),
   };
-}
-
-const DEFAULT_INDICATORS: Required<CandlestickChartIndicators> = {
-  ema20: true,
-  ema50: true,
-  bollingerBands: false,
-  keltnerChannel: false,
-  rsi: false,
-};
-
-function loadIndicators(): Required<CandlestickChartIndicators> {
-  if (typeof window === 'undefined') return DEFAULT_INDICATORS;
-  try {
-    const raw = window.localStorage.getItem(INDICATOR_STORAGE_KEY);
-    if (!raw) return DEFAULT_INDICATORS;
-    const parsed = JSON.parse(raw) as Partial<CandlestickChartIndicators>;
-    return { ...DEFAULT_INDICATORS, ...parsed };
-  } catch {
-    return DEFAULT_INDICATORS;
-  }
 }
 
 export default function MarketPage() {
@@ -94,30 +73,7 @@ function MarketPageContent() {
     [router, searchParams],
   );
 
-  const [indicators, setIndicatorsState] =
-    useState<Required<CandlestickChartIndicators>>(DEFAULT_INDICATORS);
-
-  useEffect(() => {
-    setIndicatorsState(loadIndicators());
-  }, []);
-
-  const toggleIndicator = useCallback((key: keyof CandlestickChartIndicators) => {
-    setIndicatorsState((prev) => {
-      const next = { ...prev, [key]: !prev[key] };
-      try {
-        window.localStorage.setItem(INDICATOR_STORAGE_KEY, JSON.stringify(next));
-      } catch {
-      }
-      return next;
-    });
-  }, []);
-
-  const needsIndicators =
-    indicators.ema20 ||
-    indicators.ema50 ||
-    indicators.bollingerBands ||
-    indicators.keltnerChannel ||
-    indicators.rsi;
+  const { indicators, toggle, anyActive } = useChartIndicators('blackheart:market-indicators');
 
   const candleQuery = useQuery({
     queryKey: ['market', 'candles', filters.symbol, filters.interval],
@@ -132,7 +88,7 @@ function MarketPageContent() {
   const indicatorQuery = useQuery({
     queryKey: ['market', 'indicators', filters.symbol, filters.interval],
     queryFn: () => fetchIndicators(filters.symbol, filters.interval, CANDLE_COUNT),
-    enabled: needsIndicators,
+    enabled: anyActive,
     staleTime: 0,
     placeholderData: (prev) => prev,
     retry: false,
@@ -161,7 +117,9 @@ function MarketPageContent() {
           <LivePill active={!candleQuery.isLoading && !candleQuery.isError} />
         </div>
 
-        <IndicatorBar indicators={indicators} onToggle={toggleIndicator} />
+        <div className="border-b border-bd-subtle px-4">
+          <IndicatorBar indicators={indicators} onToggle={toggle} />
+        </div>
 
         <OhlcvHeader candles={candleQuery.data} symbol={filters.symbol} />
 
@@ -181,44 +139,6 @@ function MarketPageContent() {
           )}
         </div>
       </section>
-    </div>
-  );
-}
-
-interface IndicatorBarProps {
-  indicators: Required<CandlestickChartIndicators>;
-  onToggle: (key: keyof CandlestickChartIndicators) => void;
-}
-
-function IndicatorBar({ indicators, onToggle }: IndicatorBarProps) {
-  const toggles: Array<{ key: keyof CandlestickChartIndicators; label: string }> = [
-    { key: 'ema20', label: 'EMA 20' },
-    { key: 'ema50', label: 'EMA 50' },
-    { key: 'bollingerBands', label: 'Bollinger' },
-    { key: 'keltnerChannel', label: 'Keltner' },
-    { key: 'rsi', label: 'RSI' },
-  ];
-  return (
-    <div className="flex flex-wrap items-center gap-1.5 border-b border-bd-subtle px-4 py-2">
-      {toggles.map((t) => {
-        const active = indicators[t.key];
-        return (
-          <button
-            key={t.key}
-            type="button"
-            onClick={() => onToggle(t.key)}
-            className={cn(
-              'rounded-sm border px-2 py-1 font-mono text-[10px] uppercase tracking-wider transition-colors',
-              active
-                ? 'border-[var(--accent-primary)] bg-[var(--accent-glow)] text-[var(--accent-primary)]'
-                : 'border-bd-subtle bg-bg-base text-text-muted hover:bg-bg-hover hover:text-text-secondary',
-            )}
-            aria-pressed={active}
-          >
-            {t.label}
-          </button>
-        );
-      })}
     </div>
   );
 }
