@@ -6,7 +6,7 @@ describe('indicatorConfig', () => {
     const keys = INDICATORS.map((i) => i.key);
     expect(new Set(keys).size).toBe(keys.length);
     expect(keys.slice().sort()).toEqual(
-      ['adx', 'atr', 'bollingerBands', 'ema20', 'ema50', 'ema200', 'keltnerChannel', 'macd', 'rsi'].sort(),
+      ['adx', 'atr', 'bollingerBands', 'ema20', 'ema50', 'ema100', 'ema200', 'keltnerChannel', 'macd', 'rsi'].sort(),
     );
   });
   it('partitions into overlay and oscillator groups', () => {

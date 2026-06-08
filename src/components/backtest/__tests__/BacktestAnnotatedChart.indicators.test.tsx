@@ -65,6 +65,7 @@ describe('BacktestAnnotatedChart indicators', () => {
         time: 1,
         ema20: 1.4,
         ema50: null,
+        ema100: null,
         ema200: null,
         bbUpper: null,
         bbMiddle: null,
@@ -90,6 +91,7 @@ describe('BacktestAnnotatedChart indicators', () => {
         showIndicators={{
           ema20: true,
           ema50: false,
+          ema100: false,
           ema200: false,
           bollingerBands: false,
           keltnerChannel: false,

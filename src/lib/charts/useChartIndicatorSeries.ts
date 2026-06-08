@@ -106,6 +106,6 @@ export function useChartIndicatorSeries(
     if (!ready || !chart || !tv) return;
     reconcileIndicatorSeries(chart, tv, stateRef.current, active, features);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ready, features, active.ema20, active.ema50, active.ema200, active.bollingerBands,
+  }, [ready, features, active.ema20, active.ema50, active.ema100, active.ema200, active.bollingerBands,
       active.keltnerChannel, active.rsi, active.macd, active.atr, active.adx]);
 }

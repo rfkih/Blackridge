@@ -72,6 +72,7 @@ const EXIT_LABEL: Record<NonNullable<TradePosition['exitReason']>, string> = {
   RUNNER_CLOSE: 'Runner close',
   MANUAL_CLOSE: 'Manual',
   BACKTEST_END: 'End of run',
+  EMABAND_EXIT: 'EMA band exit',
 };
 
 interface TradePositionRowProps {

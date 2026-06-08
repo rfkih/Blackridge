@@ -16,6 +16,7 @@ export interface IndicatorData {
   time: number;
   ema20: number | null;
   ema50: number | null;
+  ema100: number | null;
   ema200: number | null;
   bbUpper: number | null;
   bbMiddle: number | null;
@@ -76,6 +77,7 @@ export type ChartInterval = '5m' | '15m' | '1h' | '4h';
 export interface ChartIndicators {
   ema20: boolean;
   ema50: boolean;
+  ema100: boolean;
   ema200: boolean;
   bollingerBands: boolean;
   keltnerChannel: boolean;

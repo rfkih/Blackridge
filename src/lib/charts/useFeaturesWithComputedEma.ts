@@ -1,0 +1,68 @@
+import { useMemo } from 'react';
+import type { CandleData, IndicatorData } from '@/types/market';
+import { computeEma } from './computeEma';
+
+/**
+ * Pure merge: returns `features` augmented with a frontend-computed `ema100`,
+ * keyed in by time. Endpoint indicators are preserved; works even when
+ * `features` is empty (e.g. only the ema100 toggle is on) by synthesizing rows
+ * from the candles. Exported so it can be unit-tested without React.
+ */
+export function mergeComputedEma(
+  candles: CandleData[],
+  features: IndicatorData[],
+): IndicatorData[] {
+  if (!candles.length) return features;
+  const ema100 = computeEma(candles, 100);
+  if (!ema100.length) return features;
+  const emaByTime = new Map(ema100.map((p) => [p.time, p.value]));
+  const featByTime = new Map(features.map((f) => [f.time, f]));
+
+  const times = new Set<number>();
+  for (const f of features) times.add(f.time);
+  for (const c of candles) times.add(c.time);
+
+  const EMPTY: Omit<IndicatorData, 'time'> = {
+    ema20: null,
+    ema50: null,
+    ema100: null,
+    ema200: null,
+    bbUpper: null,
+    bbMiddle: null,
+    bbLower: null,
+    kcUpper: null,
+    kcMiddle: null,
+    kcLower: null,
+    rsi: null,
+    macd: null,
+    macdSignal: null,
+    macdHistogram: null,
+    atr: null,
+    adx: null,
+  };
+
+  return Array.from(times)
+    .sort((a, b) => a - b)
+    .map((t) => {
+      const base = featByTime.get(t);
+      return {
+        ...EMPTY,
+        ...(base ?? {}),
+        time: t,
+        ema100: emaByTime.get(t) ?? base?.ema100 ?? null,
+      };
+    });
+}
+
+/**
+ * Returns `features` augmented with a frontend-computed `ema100` (and is the
+ * single place to add other client-computed MAs later). Endpoint indicators are
+ * preserved; ema100 is keyed in by time. Works even when `features` is empty
+ * (e.g. only the ema100 toggle is on) by synthesizing rows from the candles.
+ */
+export function useFeaturesWithComputedEma(
+  candles: CandleData[],
+  features: IndicatorData[],
+): IndicatorData[] {
+  return useMemo(() => mergeComputedEma(candles, features), [candles, features]);
+}
