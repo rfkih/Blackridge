@@ -2,7 +2,7 @@
 import { useEffect, type MutableRefObject } from 'react';
 import type { IChartApi, ISeriesApi, Time } from 'lightweight-charts';
 import type { ChartIndicators, ChartIndicatorKey, IndicatorData } from '@/types/market';
-import { INDICATORS } from './indicatorConfig';
+import { INDICATORS, type IndicatorLineSpec } from './indicatorConfig';
 
 type AnySeries = ISeriesApi<'Line'> | ISeriesApi<'Histogram'>;
 export type IndicatorSeriesState = Partial<Record<ChartIndicatorKey, AnySeries[]>>;
@@ -13,35 +13,20 @@ interface TvLike {
   LineStyle: { Dashed: number; Solid: number };
 }
 
-const FIELD_MAP: Record<ChartIndicatorKey, Array<{ field: keyof IndicatorData; color: string; dashed?: boolean; histogram?: boolean }>> = {
-  ema20: [{ field: 'ema20', color: '#3B82F6' }],
-  ema50: [{ field: 'ema50', color: '#F5A623' }],
-  ema200: [{ field: 'ema200', color: '#A855F7' }],
-  bollingerBands: [
-    { field: 'bbUpper', color: '#8892A4', dashed: true },
-    { field: 'bbMiddle', color: '#8892A4' },
-    { field: 'bbLower', color: '#8892A4', dashed: true },
-  ],
-  keltnerChannel: [
-    { field: 'kcUpper', color: '#22D3EE', dashed: true },
-    { field: 'kcLower', color: '#22D3EE', dashed: true },
-  ],
-  rsi: [{ field: 'rsi', color: '#EC4899' }],
-  macd: [
-    { field: 'macd', color: '#34D399' },
-    { field: 'macdSignal', color: '#F87171' },
-    { field: 'macdHistogram', color: '#5B6472', histogram: true },
-  ],
-  atr: [{ field: 'atr', color: '#FBBF24' }],
-  adx: [{ field: 'adx', color: '#60A5FA' }],
-};
+const GUIDE_COLOR = '#5B6472';
+const HIST_UP = '#34D399';
+const HIST_DOWN = '#F87171';
 
-const GROUP = Object.fromEntries(INDICATORS.map((i) => [i.key, i.group])) as Record<ChartIndicatorKey, 'overlay' | 'oscillator'>;
+type LinePoint = { time: Time; value: number; color?: string };
 
-function lineData(features: IndicatorData[], field: keyof IndicatorData) {
+function buildData(features: IndicatorData[], spec: IndicatorLineSpec): LinePoint[] {
   return features
-    .filter((d) => d[field] != null && Number.isFinite(d.time))
-    .map((d) => ({ time: d.time as Time, value: d[field] as number }));
+    .filter((d) => d[spec.field] != null && Number.isFinite(d.time))
+    .map((d) => {
+      const value = d[spec.field] as number;
+      if (spec.histogram) return { time: d.time as Time, value, color: value >= 0 ? HIST_UP : HIST_DOWN };
+      return { time: d.time as Time, value };
+    });
 }
 
 /** Pure reconciler — add/update/remove indicator series to match `active`. */
@@ -54,17 +39,19 @@ export function reconcileIndicatorSeries(
 ): void {
   for (const def of INDICATORS) {
     const key = def.key;
-    const on = active[key];
-    if (on) {
-      let paneIndex = 0;
-      if (GROUP[key] === 'oscillator' && !state[key]) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const pane = (chart as any).addPane?.();
-        paneIndex = pane?.paneIndex?.() ?? Math.max(1, chart.panes().length - 1);
-      }
-      const specs = FIELD_MAP[key];
+    const isOscillator = def.group === 'oscillator';
+    const datas = active[key] ? def.series.map((s) => buildData(features, s)) : [];
+    const hasData = datas.some((d) => d.length > 0);
+
+    if (active[key] && hasData) {
       if (!state[key]) {
-        state[key] = specs.map((spec) =>
+        let paneIndex = 0;
+        if (isOscillator) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const pane = (chart as any).addPane?.();
+          paneIndex = pane?.paneIndex?.() ?? chart.panes().length;
+        }
+        state[key] = def.series.map((spec) =>
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           (chart as any).addSeries(
             spec.histogram ? tv.HistogramSeries : tv.LineSeries,
@@ -72,15 +59,30 @@ export function reconcileIndicatorSeries(
               color: spec.color,
               lineWidth: 1,
               priceLineVisible: false,
-              lastValueVisible: GROUP[key] === 'oscillator',
+              lastValueVisible: isOscillator,
               ...(spec.dashed ? { lineStyle: tv.LineStyle.Dashed } : {}),
             },
-            GROUP[key] === 'oscillator' ? paneIndex : 0,
+            isOscillator ? paneIndex : 0,
           ),
         );
+        // Reference guides (e.g. RSI 70/30, ADX 25) on the first series.
+        if (isOscillator && def.guides && state[key]![0]) {
+          for (const g of def.guides) {
+            state[key]![0].createPriceLine({
+              price: g,
+              color: GUIDE_COLOR,
+              lineWidth: 1,
+              lineStyle: tv.LineStyle.Dashed as never,
+              axisLabelVisible: true,
+              title: String(g),
+            });
+          }
+        }
       }
-      state[key]!.forEach((series, i) => series.setData(lineData(features, specs[i].field) as never));
+      state[key]!.forEach((series, i) => series.setData(datas[i] as never));
     } else if (state[key]) {
+      // Toggled off, or no data available → remove the series (empty oscillator
+      // panes are auto-dropped because addPane() does not preserve empty panes).
       state[key]!.forEach((series) => {
         try { chart.removeSeries(series); } catch { /* already gone */ }
       });

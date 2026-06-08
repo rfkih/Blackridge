@@ -17,4 +17,18 @@ describe('indicatorConfig', () => {
   it('defaults every indicator to off', () => {
     expect(Object.values(DEFAULT_INDICATORS).every((v) => v === false)).toBe(true);
   });
+  it('every indicator declares at least one series with a colour', () => {
+    for (const ind of INDICATORS) {
+      expect(ind.series.length).toBeGreaterThan(0);
+      for (const s of ind.series) expect(typeof s.color).toBe('string');
+      // pill colour matches the first series colour (single source of truth)
+      expect(ind.color).toBe(ind.series[0].color);
+    }
+  });
+  it('rsi has 70/30 guides and adx has a 25 guide; overlays have none', () => {
+    const byKey = Object.fromEntries(INDICATORS.map((i) => [i.key, i]));
+    expect(byKey.rsi.guides).toEqual([70, 30]);
+    expect(byKey.adx.guides).toEqual([25]);
+    expect(byKey.ema20.guides).toBeUndefined();
+  });
 });

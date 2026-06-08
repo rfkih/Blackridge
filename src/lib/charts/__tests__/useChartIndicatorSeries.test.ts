@@ -6,19 +6,20 @@ import type { IndicatorData } from '@/types/market';
 function fakeTv() {
   const removed: string[] = [];
   const created: string[] = [];
+  const priceLines: number[] = [];
   const paneCount = { n: 1 };
   const chart = {
     addSeries: (_type: unknown, _opts: unknown, paneIndex?: number) => {
       const id = `s${created.length}@${paneIndex ?? 0}`;
       created.push(id);
-      return { setData: () => {}, _id: id } as never;
+      return { setData: () => {}, createPriceLine: (o: { price: number }) => priceLines.push(o.price), _id: id } as never;
     },
     removeSeries: (s: { _id: string }) => removed.push(s._id),
     addPane: () => ({ paneIndex: () => paneCount.n++ }),
     panes: () => Array.from({ length: paneCount.n }, (_v, i) => ({ paneIndex: () => i })),
   };
   const tv = { LineSeries: 'Line', HistogramSeries: 'Hist', LineStyle: { Dashed: 2, Solid: 0 } };
-  return { chart, tv, created, removed };
+  return { chart, tv, created, removed, priceLines };
 }
 
 const FEATURES: IndicatorData[] = [
@@ -48,5 +49,30 @@ describe('reconcileIndicatorSeries', () => {
     const state: IndicatorSeriesState = {};
     reconcileIndicatorSeries(chart as never, tv as never, state, { ...DEFAULT_INDICATORS, rsi: true }, FEATURES);
     expect(created.some((id) => !id.endsWith('@0'))).toBe(true);
+  });
+  it('does NOT create a series/pane when the indicator data is all null (empty-data guard)', () => {
+    const { chart, tv, created } = fakeTv();
+    const EMPTY: IndicatorData[] = [{ time: 1, ema20: null, ema50: null, ema200: null, bbUpper: null,
+      bbMiddle: null, bbLower: null, kcUpper: null, kcMiddle: null, kcLower: null, rsi: null, macd: null,
+      macdSignal: null, macdHistogram: null, atr: null, adx: null }];
+    const state: IndicatorSeriesState = {};
+    reconcileIndicatorSeries(chart as never, tv as never, state, { ...DEFAULT_INDICATORS, adx: true }, EMPTY);
+    expect(created.length).toBe(0);
+    expect(state.adx).toBeUndefined();
+  });
+  it('draws RSI 70/30 guide lines', () => {
+    const { chart, tv, priceLines } = fakeTv();
+    const state: IndicatorSeriesState = {};
+    reconcileIndicatorSeries(chart as never, tv as never, state, { ...DEFAULT_INDICATORS, rsi: true }, FEATURES);
+    expect(priceLines).toEqual([70, 30]);
+  });
+  it('removes a series when its data disappears on a later reconcile', () => {
+    const { chart, tv, removed } = fakeTv();
+    const state: IndicatorSeriesState = {};
+    reconcileIndicatorSeries(chart as never, tv as never, state, { ...DEFAULT_INDICATORS, rsi: true }, FEATURES);
+    const nullRsi = FEATURES.map((f) => ({ ...f, rsi: null }));
+    reconcileIndicatorSeries(chart as never, tv as never, state, { ...DEFAULT_INDICATORS, rsi: true }, nullRsi);
+    expect(removed.length).toBeGreaterThan(0);
+    expect(state.rsi).toBeUndefined();
   });
 });
