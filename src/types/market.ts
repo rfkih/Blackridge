@@ -71,3 +71,18 @@ export interface SymbolSlippageStats {
 
 /** Chart interval picker values for the market page. */
 export type ChartInterval = '5m' | '15m' | '1h' | '4h';
+
+/** Active-state flags for every supported chart indicator. */
+export interface ChartIndicators {
+  ema20: boolean;
+  ema50: boolean;
+  ema200: boolean;
+  bollingerBands: boolean;
+  keltnerChannel: boolean;
+  rsi: boolean;
+  macd: boolean;
+  atr: boolean;
+  adx: boolean;
+}
+
+export type ChartIndicatorKey = keyof ChartIndicators;
