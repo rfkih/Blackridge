@@ -129,7 +129,9 @@ export function buildTradeMarkers(trades: BacktestTrade[]): TradeMarkerSet {
  */
 function legExitPrice(trade: BacktestTrade, pos: BacktestTradePosition): number {
   if (pos.exitPrice != null && Number.isFinite(pos.exitPrice)) return pos.exitPrice;
-  if (pos.exitReason === 'SL_HIT') return trade.stopLossPrice;
+  if (pos.exitReason === 'SL_HIT' && trade.stopLossPrice != null) {
+    return trade.stopLossPrice;
+  }
   if (pos.exitReason === 'TP_HIT') {
     if (pos.type === 'TP2' && trade.tp2Price != null) return trade.tp2Price;
     if (trade.tp1Price != null) return trade.tp1Price;
