@@ -1,17 +1,48 @@
 import type { Metadata } from 'next';
 import { MarketingShell, SectionHead, MarketingCta } from '@/components/marketing/MarketingShell';
-import {
-  StrategyFilterGrid,
-  type PublicStrategy,
-} from '@/components/marketing/StrategyFilterGrid';
+import { StrategyFilterGrid, type PublicStrategy } from '@/components/marketing/StrategyFilterGrid';
 
 export const metadata: Metadata = {
   title: 'Strategies',
   description:
-    'Seven production strategies battle-tested on live capital. Long-Short Reversal, Volatility Compression, Trend Pullback, and more — fork them or run yours alongside.',
+    'A library of trading and spot-hedging strategies. Long-Short Reversal, Volatility Compression, Trend Pullback, the EMA-band BTC hedge, and more — each documented, tunable, and runnable in paper before you go live.',
 };
 
+// Hedging strategies carry a REAL backtest where one exists (EMA-band, computed on
+// BTC daily 2022–2026). Trading strategies are shown with illustrative numbers — their
+// real per-strategy stats render inside the app against your own data window.
 const STRATEGIES: PublicStrategy[] = [
+  {
+    code: 'EMA-BAND',
+    name: 'EMA-Band BTC Hedge',
+    tagline: 'Holds BTC above the daily EMA band, rotates to USDT below it.',
+    category: 'Hedging',
+    illustrative: false,
+    returnLabel: 'CAGR',
+    pnl30d: 24.5,
+    sharpe: 0.83,
+    drawdown: -30,
+    winRate: 0,
+    trades30d: 0,
+    footnote: 'Backtest 2022–26 · 22 switches',
+    tags: ['BTC', 'Spot', 'Daily', 'Full-balance'],
+    highlight: 'Robust 9-yr',
+    sparkSeed: 41,
+  },
+  {
+    code: 'TILT',
+    name: 'Dynamic BTC/USDT Tilt',
+    tagline: 'Leans the spot stack toward BTC or USDT with trend and volatility.',
+    category: 'Hedging',
+    pnl30d: 11.2,
+    sharpe: 0.71,
+    drawdown: -22,
+    winRate: 0,
+    trades30d: 0,
+    footnote: 'Spot allocation · idle USDT earns',
+    tags: ['BTC', 'Spot', 'Allocation'],
+    sparkSeed: 42,
+  },
   {
     code: 'LSR-V2',
     name: 'Long-Short Reversal v2',
@@ -23,7 +54,6 @@ const STRATEGIES: PublicStrategy[] = [
     winRate: 58.4,
     trades30d: 142,
     tags: ['BTC, ETH', 'Spot + Perp', '4h'],
-    highlight: 'Top performer',
     sparkSeed: 21,
   },
   {
@@ -37,7 +67,6 @@ const STRATEGIES: PublicStrategy[] = [
     winRate: 51.1,
     trades30d: 88,
     tags: ['Perp', '15m'],
-    highlight: 'Most popular',
     sparkSeed: 22,
   },
   {
@@ -51,8 +80,20 @@ const STRATEGIES: PublicStrategy[] = [
     winRate: 61.7,
     trades30d: 47,
     tags: ['Spot', '4h'],
-    highlight: 'Best Sharpe',
     sparkSeed: 25,
+  },
+  {
+    code: 'XS-MOM',
+    name: 'Cross-Sectional Momentum',
+    tagline: 'Ranks a universe and trades the spread, long strong / short weak.',
+    category: 'Momentum',
+    pnl30d: 5.6,
+    sharpe: 1.1,
+    drawdown: -6.2,
+    winRate: 52.0,
+    trades30d: 36,
+    tags: ['Universe', 'Long-short'],
+    sparkSeed: 28,
   },
   {
     code: 'VBO',
@@ -83,7 +124,7 @@ const STRATEGIES: PublicStrategy[] = [
   {
     code: 'TSMOM',
     name: 'Time-Series Momentum',
-    tagline: 'Cross-asset momentum with monthly rebalance. (Benchmarking — not recommended for live capital.)',
+    tagline: 'Cross-asset momentum with monthly rebalance. Kept for benchmarking.',
     category: 'Momentum',
     pnl30d: -0.31,
     sharpe: 0.42,
@@ -93,36 +134,16 @@ const STRATEGIES: PublicStrategy[] = [
     tags: ['Spot', 'D', 'Benchmark'],
     sparkSeed: 26,
   },
-  {
-    code: 'RAHT-V1',
-    name: 'Range-Asymmetric Hedge Trade',
-    tagline: 'Captures pinning effect into weekly options expiry.',
-    category: 'Volatility',
-    pnl30d: 3.45,
-    sharpe: 1.62,
-    drawdown: -1.9,
-    winRate: 64.2,
-    trades30d: 12,
-    tags: ['Perp', 'Weekly'],
-    sparkSeed: 27,
-  },
 ];
 
-const CATEGORIES = [
-  'All',
-  'Mean reversion',
-  'Breakout',
-  'Trend follow',
-  'Momentum',
-  'Volatility',
-];
+const CATEGORIES = ['All', 'Hedging', 'Mean reversion', 'Breakout', 'Trend follow', 'Momentum'];
 
 export default function StrategiesOverviewPage() {
   return (
     <MarketingShell activeNav="strategies">
       {}
       <section style={{ padding: '72px 0 32px' }}>
-        <div className="mx-auto max-w-[1180px] px-5 sm:px-8 text-center">
+        <div className="mx-auto max-w-[1180px] px-5 text-center sm:px-8">
           <span
             className="text-[12px] font-bold uppercase tracking-[0.14em]"
             style={{ color: 'var(--brand-600)' }}
@@ -152,8 +173,9 @@ export default function StrategiesOverviewPage() {
               margin: '0 auto 28px',
             }}
           >
-            Seven strategies, each documented end-to-end with up to two years of out-of-sample
-            results. Enable the ones you trust — fork them, retune them, run yours alongside.
+            Trading and spot-hedging strategies, each documented end-to-end and validated on up to
+            nine years of history. Enable the ones you trust, tune the parameters, run them in paper
+            first. The EMA-band hedge shows a real backtest; the rest are illustrative.
           </p>
 
           <StrategyFilterGrid strategies={STRATEGIES} categories={CATEGORIES} />
@@ -166,12 +188,20 @@ export default function StrategiesOverviewPage() {
           <SectionHead
             eyebrow="How we build them"
             title="From idea to live capital in five gates."
-            sub="No strategy goes live until every gate is green. Same gauntlet runs on yours when you fork."
+            sub="No strategy goes live until every gate is green. The same gauntlet runs when you tune one to your own parameters."
           />
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-5">
             {[
-              { step: '01', title: 'Hypothesis', body: 'Documented edge, regime, expected behavior.' },
-              { step: '02', title: 'Backtest', body: 'Walk-forward across price + macro + sentiment; slippage + fees in.' },
+              {
+                step: '01',
+                title: 'Hypothesis',
+                body: 'Documented edge, regime, expected behavior.',
+              },
+              {
+                step: '02',
+                title: 'Backtest',
+                body: 'Walk-forward across price + macro + sentiment; slippage + fees in.',
+              },
               { step: '03', title: 'Monte-Carlo', body: 'Stress fills, slippage, ordering.' },
               { step: '04', title: 'Paper', body: 'Live ticks, no real orders, 30 days.' },
               { step: '05', title: 'Live', body: 'Tiny size first; risk caps armed.' },
@@ -200,7 +230,7 @@ export default function StrategiesOverviewPage() {
 
       <MarketingCta
         title="Run one of these on your account."
-        sub="Free for 14 days with paper trading. Connect a real exchange whenever you’re ready."
+        sub="Start free in paper trading. Connect your Binance account whenever you’re ready."
       />
     </MarketingShell>
   );

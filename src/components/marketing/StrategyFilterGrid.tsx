@@ -18,6 +18,12 @@ export interface PublicStrategy {
   tags: string[];
   highlight?: string;
   sparkSeed: number;
+  /** When true (default), the stat numbers are illustrative, not live/backtested. */
+  illustrative?: boolean;
+  /** Override the return stat label, e.g. "CAGR" for a low-turnover hedge. */
+  returnLabel?: string;
+  /** Override the bottom line (e.g. backtest window) instead of "N trades · X% win". */
+  footnote?: string;
 }
 
 interface Props {
@@ -69,7 +75,7 @@ export function StrategyFilterGrid({ strategies, categories }: Props) {
       <section style={{ padding: '32px 0 64px' }}>
         <div className="mx-auto max-w-[1180px] px-5 sm:px-8">
           <div
-            className="text-[13px] text-center mb-5"
+            className="mb-5 text-center text-[13px]"
             style={{ color: 'var(--text-muted)' }}
             aria-live="polite"
           >
@@ -77,10 +83,7 @@ export function StrategyFilterGrid({ strategies, categories }: Props) {
             {active === 'All' ? 'strategies' : `${active.toLowerCase()} strategies`}
           </div>
           {visible.length === 0 ? (
-            <div
-              className="br-card mx-auto max-w-md text-center"
-              style={{ padding: 32 }}
-            >
+            <div className="br-card mx-auto max-w-md text-center" style={{ padding: 32 }}>
               <div
                 className="font-display"
                 style={{
@@ -110,6 +113,7 @@ export function StrategyFilterGrid({ strategies, categories }: Props) {
 
 function StrategyCard({ strategy }: { strategy: PublicStrategy }) {
   const isProfit = strategy.pnl30d >= 0;
+  const isReal = strategy.illustrative === false;
   return (
     <Link
       href="/onboarding"
@@ -145,27 +149,38 @@ function StrategyCard({ strategy }: { strategy: PublicStrategy }) {
         >
           {strategy.name}
         </h3>
-        <p
-          className="mt-1 text-[13px]"
-          style={{ color: 'var(--text-muted)', margin: '4px 0 0' }}
-        >
+        <p className="mt-1 text-[13px]" style={{ color: 'var(--text-muted)', margin: '4px 0 0' }}>
           {strategy.tagline}
         </p>
       </div>
 
       <Sparkline
         data={makeSpark(strategy.sparkSeed, 40)}
-        color={isProfit ? 'var(--brand-500)' : 'var(--color-loss)'}
+        color={isReal ? 'var(--color-profit)' : isProfit ? 'var(--brand-500)' : 'var(--color-loss)'}
         width={280}
         height={48}
       />
+
+      <div>
+        <span
+          className="br-chip text-[10px]"
+          style={{
+            padding: '2px 8px',
+            fontWeight: 600,
+            background: isReal ? 'var(--brand-50)' : undefined,
+            color: isReal ? 'var(--brand-700)' : 'var(--text-muted)',
+          }}
+        >
+          {isReal ? 'Real backtest' : 'Illustrative'}
+        </span>
+      </div>
 
       <div
         className="grid grid-cols-3 gap-3 pt-3"
         style={{ borderTop: '1px solid var(--border-subtle)' }}
       >
         <MiniStat
-          label="30d return"
+          label={strategy.returnLabel ?? '30d return'}
           value={`${isProfit ? '+' : ''}${strategy.pnl30d.toFixed(2)}%`}
           tone={isProfit ? 'profit' : 'loss'}
           icon={isProfit ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
@@ -191,7 +206,9 @@ function StrategyCard({ strategy }: { strategy: PublicStrategy }) {
         style={{ borderTop: '1px solid var(--border-subtle)', color: 'var(--text-muted)' }}
       >
         <span className="inline-flex items-center gap-1.5">
-          <BarChart3 size={12} /> {strategy.trades30d} trades · {strategy.winRate.toFixed(1)}% win
+          <BarChart3 size={12} />{' '}
+          {strategy.footnote ??
+            `${strategy.trades30d} trades · ${strategy.winRate.toFixed(1)}% win`}
         </span>
         <span
           className="inline-flex items-center gap-1 font-semibold"

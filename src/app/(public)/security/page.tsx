@@ -1,83 +1,70 @@
 import Link from 'next/link';
 import type { Metadata } from 'next';
-import {
-  ArrowRight,
-  Shield,
-  Lock,
-  KeyRound,
-  ScrollText,
-  Eye,
-  ServerCog,
-} from 'lucide-react';
+import { ArrowRight, Shield, Lock, KeyRound, ScrollText, Eye, ServerCog } from 'lucide-react';
 import { MarketingShell, SectionHead } from '@/components/marketing/MarketingShell';
 
 export const metadata: Metadata = {
   title: 'Security',
   description:
-    'How Blackridge protects your keys, your funds, and your audit trail. SOC 2 in progress, non-custodial by design, withdrawals always disabled.',
+    'How Blackridge protects your keys, your funds, and your audit trail. Non-custodial by design, withdrawals always disabled, API keys encrypted at the boundary.',
 };
 
 const PRINCIPLES = [
   {
     icon: <Shield />,
     title: 'Non-custodial by design',
-    body:
-      'Blackridge never holds a single dollar of your capital. All funds stay in your exchange account; we connect via read-and-trade API keys with withdrawals disabled.',
+    body: 'Blackridge never holds a single dollar of your capital. All funds stay in your exchange account; we connect via read-and-trade API keys with withdrawals disabled.',
   },
   {
     icon: <Lock />,
     title: 'Keys sealed at the boundary',
-    body:
-      'API keys are encrypted with a KMS-backed envelope in your browser before they hit our servers. Only the trading workers can decrypt — at order-placement time, never at rest.',
+    body: 'API keys are encrypted with a KMS-backed envelope in your browser before they hit our servers. Only the trading workers can decrypt — at order-placement time, never at rest.',
   },
   {
     icon: <KeyRound />,
     title: 'Withdrawals always disabled',
-    body:
-      'We validate the connected key’s permissions at registration. If the key has withdrawal scope, the connection is rejected with a clear remediation step.',
+    body: 'We validate the connected key’s permissions at registration. If the key has withdrawal scope, the connection is rejected with a clear remediation step.',
   },
   {
     icon: <Eye />,
     title: 'Read-only secondary keys',
-    body:
-      'For analytics and accounting integrations, you can attach a separate read-only key per exchange. The trading key never leaks into the dashboard’s viewer scope.',
+    body: 'For analytics and accounting integrations, you can attach a separate read-only key per exchange. The trading key never leaks into the dashboard’s viewer scope.',
   },
   {
     icon: <ScrollText />,
     title: 'Immutable audit trail',
-    body:
-      'Every order, fill, parameter change, and rebalance is logged with a timestamp and signed by the writer. Export to CSV in two clicks.',
+    body: 'Every order, fill, parameter change, and rebalance is logged with a timestamp and signed by the writer. Export to CSV in two clicks.',
   },
   {
     icon: <ServerCog />,
     title: 'Infrastructure hygiene',
-    body:
-      'No third-party trackers, no advertising pixels. We only collect what we need to run trading. Postgres rows are at-rest encrypted; backups are encrypted in transit.',
+    body: 'No third-party trackers, no advertising pixels. We only collect what we need to run trading. Postgres rows are at-rest encrypted; backups are encrypted in transit.',
   },
 ];
 
 const COMPLIANCE = [
-  { label: 'SOC 2 Type II', status: 'In progress', detail: 'Audit window open; target completion H2 2026.' },
-  { label: 'GDPR', status: 'Compliant', detail: 'EU residents can export + delete in-app.' },
-  { label: 'KYC / AML', status: 'Coming H2 2026', detail: 'Required before USD-denominated billing.' },
-  { label: 'ISO 27001', status: 'Planned 2027', detail: 'Roadmapped after SOC 2 Type II.' },
+  { label: 'SOC 2 Type II', status: 'Planned', detail: 'On the roadmap — not yet under audit.' },
+  {
+    label: 'GDPR data rights',
+    status: 'In progress',
+    detail: 'In-app export + delete being built out.',
+  },
+  { label: 'KYC / AML', status: 'Planned', detail: 'Required before any paid billing goes live.' },
+  { label: 'ISO 27001', status: 'Planned', detail: 'Roadmapped after SOC 2 Type II.' },
 ];
 
 const COMMITMENTS = [
   {
     title: 'Disclosure within 72 hours.',
-    body:
-      'If we discover a security incident affecting your account or data, you’ll hear from us within 72 hours of confirmation — by email and in-app.',
+    body: 'If we discover a security incident affecting your account or data, you’ll hear from us within 72 hours of confirmation — by email and in-app.',
   },
   {
     title: 'No silent permission expansion.',
-    body:
-      'If a new feature needs a permission scope we don’t already have on your API key, we ask before turning it on. No retroactive scope creep.',
+    body: 'If a new feature needs a permission scope we don’t already have on your API key, we ask before turning it on. No retroactive scope creep.',
   },
   {
     title: 'Auditable code paths.',
-    body:
-      'Order placement and risk-cap enforcement live in a versioned, signed service. Every release is hash-pinned in the audit log next to the trade it produced.',
+    body: 'Order placement and risk-cap enforcement live in a versioned, signed service. Every release is hash-pinned in the audit log next to the trade it produced.',
   },
 ];
 
@@ -98,7 +85,7 @@ export default function SecurityPage() {
               <h1
                 className="font-display"
                 style={{
-                  fontSize: "clamp(36px, 6vw, 56px)",
+                  fontSize: 'clamp(36px, 6vw, 56px)',
                   lineHeight: 1.05,
                   fontWeight: 800,
                   letterSpacing: '-0.03em',
@@ -118,8 +105,8 @@ export default function SecurityPage() {
                 }}
               >
                 Blackridge never custodies a dollar. We connect to your exchange via a
-                read-and-trade API key, refuse keys with withdrawal scope, and log every action
-                we take on your behalf.
+                read-and-trade API key, refuse keys with withdrawal scope, and log every action we
+                take on your behalf.
               </p>
               <div className="flex items-center gap-3">
                 <Link href="/onboarding" className="br-btn br-btn-primary br-btn-lg">
@@ -134,10 +121,10 @@ export default function SecurityPage() {
             {}
             <div className="br-trust-band" style={{ padding: 32 }}>
               <div className="grid grid-cols-2 gap-x-6 gap-y-5">
-                <TrustStat value="0" label="Funds custodied" />
-                <TrustStat value="< 60 s" label="Reconcile time" />
-                <TrustStat value="SOC 2" label="Type II in progress" />
-                <TrustStat value="24/7" label="Engineer on-call" />
+                <TrustStat value="0" label="Funds we custody" />
+                <TrustStat value="< 60 s" label="Balance reconcile" />
+                <TrustStat value="Off" label="Withdrawal scope" />
+                <TrustStat value="KMS" label="Key encryption" />
               </div>
             </div>
           </div>
@@ -193,9 +180,9 @@ export default function SecurityPage() {
       <section style={{ padding: '64px 0', background: 'var(--bg-surface)' }}>
         <div className="mx-auto max-w-[820px] px-5 sm:px-8">
           <SectionHead
-            eyebrow="Compliance"
-            title="Where we stand."
-            sub="A live snapshot — updated as audits progress."
+            eyebrow="Compliance roadmap"
+            title="Where we're headed."
+            sub="None of these are certified yet — this is the roadmap, stated plainly. We'd rather under-promise here than imply a badge we haven't earned."
           />
           <div className="br-card" style={{ padding: 0, overflow: 'hidden' }}>
             {COMPLIANCE.map((row, i) => (
@@ -283,7 +270,7 @@ export default function SecurityPage() {
 
       {}
       <section style={{ padding: '64px 0', background: 'var(--bg-surface)' }}>
-        <div className="mx-auto max-w-[820px] px-5 sm:px-8 text-center">
+        <div className="mx-auto max-w-[820px] px-5 text-center sm:px-8">
           <h2
             className="font-display"
             style={{
@@ -305,11 +292,11 @@ export default function SecurityPage() {
               margin: '0 auto 20px',
             }}
           >
-            We pay bug bounties for valid reports against the production stack. Email{' '}
+            We welcome responsible disclosure of vulnerabilities in the production stack. Email{' '}
             <span style={{ color: 'var(--brand-700)', fontWeight: 600 }}>
               security@blackridge.com
             </span>{' '}
-            with a reproducible PoC. We reply within one business day.
+            with a reproducible PoC and we&apos;ll get back to you.
           </p>
           <Link href="/docs" className="br-btn br-btn-secondary">
             Disclosure policy <ArrowRight size={14} />

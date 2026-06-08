@@ -1,6 +1,17 @@
 import Link from 'next/link';
 import type { Metadata } from 'next';
-import { ArrowRight, Play, Beaker, Bot, LineChart, Shield, Zap, Layers } from 'lucide-react';
+import {
+  ArrowRight,
+  Play,
+  Beaker,
+  Bot,
+  LineChart,
+  Shield,
+  Zap,
+  Layers,
+  Shuffle,
+  PiggyBank,
+} from 'lucide-react';
 import { MarketingShell } from '@/components/marketing/MarketingShell';
 import { Sparkline, makeSpark } from '@/components/marketing/Sparkline';
 
@@ -10,27 +21,39 @@ export const metadata: Metadata = {
     'Run your strategies on Binance Futures while you sleep. Backtest, deploy, monitor — from one calm dashboard built for serious traders.',
 };
 
+// First card is a REAL backtest of the EMA-band BTC hedge (BTC daily 2022–2026,
+// incl. the 2022 bear). The other two describe trading strategies qualitatively —
+// per-strategy stats render inside the app, not as marketing numbers.
 const STRATEGY_HIGHLIGHTS = [
+  {
+    code: 'EMA-BAND',
+    name: 'EMA-Band BTC Hedge',
+    tag: "Backtest '22–'26",
+    real: true,
+    s1Label: 'CAGR',
+    s1Value: '+24.5%',
+    s2Label: 'Max DD',
+    s2Value: '−30%',
+  },
   {
     code: 'LSR-V2',
     name: 'Long-Short Reversal v2',
-    tag: 'Top performer',
-    pnl: '+12.48%',
-    sharpe: '1.84',
-  },
-  {
-    code: 'VCB',
-    name: 'Volatility Compression',
-    tag: 'Most popular',
-    pnl: '+6.72%',
-    sharpe: '1.42',
+    tag: 'Mean-reversion',
+    real: false,
+    s1Label: 'Markets',
+    s1Value: 'BTC · ETH',
+    s2Label: 'Horizon',
+    s2Value: '4h',
   },
   {
     code: 'TPSE',
     name: 'Trend Pullback Single-Exit',
-    tag: 'Best Sharpe',
-    pnl: '+4.91%',
-    sharpe: '2.04',
+    tag: 'Trend',
+    real: false,
+    s1Label: 'Style',
+    s1Value: 'Pullback',
+    s2Label: 'Horizon',
+    s2Value: '4h',
   },
 ];
 
@@ -54,7 +77,7 @@ export default function WelcomePage() {
             <h1
               className="font-display font-extrabold"
               style={{
-                fontSize: "clamp(40px, 7vw, 64px)",
+                fontSize: 'clamp(40px, 7vw, 64px)',
                 lineHeight: 1.02,
                 letterSpacing: '-0.032em',
                 margin: '20px 0 22px',
@@ -90,9 +113,9 @@ export default function WelcomePage() {
               className="mt-11 flex gap-9 pt-7"
               style={{ borderTop: '1px solid var(--border-subtle)' }}
             >
-              <HeroStat value="7" label="Strategies available" />
-              <HeroStat value="42ms" label="Median order latency" />
-              <HeroStat value="5-gate" label="Validation process" />
+              <HeroStat value="Trade + hedge" label="Two account types" />
+              <HeroStat value="9 yr" label="Backtest history" />
+              <HeroStat value="0" label="Funds we custody" />
             </div>
           </div>
 
@@ -107,17 +130,17 @@ export default function WelcomePage() {
           className="mb-6 text-center text-[13px] font-semibold uppercase tracking-[0.16em]"
           style={{ color: 'var(--text-muted)' }}
         >
-          Trades on the exchanges you already use
+          Trades on your own Binance account
         </div>
         <div
           className="flex flex-wrap items-center justify-center gap-14 font-display text-[22px] font-extrabold tracking-[-0.02em]"
           style={{ opacity: 0.55, color: 'var(--text-primary)' }}
         >
-          <span>Binance</span>
-          <span>OKX</span>
-          <span>Bybit</span>
-          <span>Coinbase Prime</span>
-          <span>Kraken</span>
+          <span>Binance Spot</span>
+          <span>Binance USDⓈ-M Futures</span>
+        </div>
+        <div className="mt-4 text-center text-[12px]" style={{ color: 'var(--text-muted)' }}>
+          More venues on the roadmap
         </div>
       </section>
 
@@ -138,7 +161,17 @@ export default function WelcomePage() {
             <Feature
               icon={<Bot />}
               title="Strategy library"
-              body="LSR, VCB, TPSE and more — each validated through a 5-gate research process before deployment. Fork them, tune them, run yours alongside."
+              body="LSR, VCB, TPSE and more — each backed by a written thesis and put through walk-forward and Monte-Carlo before deployment. Tune them, run them in paper, then go live."
+            />
+            <Feature
+              icon={<Shuffle />}
+              title="Spot hedging"
+              body="Hold BTC through the bull, rotate to USDT when the daily trend breaks down. The EMA-band hedge can manage your whole BTC balance at deposit cost basis — drawdown protection without market-timing by hand."
+            />
+            <Feature
+              icon={<PiggyBank />}
+              title="Idle-cash yield"
+              body="Cash on the sidelines still earns. Idle USDT is parked in Binance Simple Earn and the realised yield folds straight into your equity curve. Per-account toggle, redeemed automatically when you need it."
             />
             <Feature
               icon={<LineChart />}
@@ -153,7 +186,7 @@ export default function WelcomePage() {
             <Feature
               icon={<Zap />}
               title="Multi-account orchestration"
-              body="Run the same strategy across sub-accounts with separate risk budgets. One dashboard, many keys."
+              body="Run trading and hedging accounts side by side, each with its own strategies and risk budget. One dashboard, switch an account's type whenever your view changes."
             />
             <Feature
               icon={<Layers />}
@@ -170,7 +203,7 @@ export default function WelcomePage() {
           <SectionHead
             eyebrow="Strategy library"
             title="Start with a strategy. Not a blinking cursor."
-            sub="Each strategy ships with documented logic, tunable parameters, and up to two years of out-of-sample results. Enable the ones you trust."
+            sub="Each strategy ships with documented logic and tunable parameters, validated on up to nine years of history. The hedge card below is a real backtest; the rest are illustrative."
           />
           <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
             {STRATEGY_HIGHLIGHTS.map((s, i) => (
@@ -200,8 +233,15 @@ export default function WelcomePage() {
                   className="mt-4 flex gap-4 pt-4"
                   style={{ borderTop: '1px solid var(--border-subtle)' }}
                 >
-                  <Stat label="30d return" value={s.pnl} valueColor="var(--color-profit)" />
-                  <Stat label="Sharpe" value={s.sharpe} />
+                  <Stat
+                    label={s.s1Label}
+                    value={s.s1Value}
+                    valueColor={s.real ? 'var(--color-profit)' : undefined}
+                  />
+                  <Stat label={s.s2Label} value={s.s2Value} />
+                </div>
+                <div className="mt-3 text-[11px]" style={{ color: 'var(--text-muted)' }}>
+                  {s.real ? 'Real backtest · not live' : 'Illustrative'}
                 </div>
               </div>
             ))}
@@ -253,10 +293,10 @@ export default function WelcomePage() {
               className="mt-10 flex gap-14 pt-8"
               style={{ borderTop: '1px solid rgba(255,255,255,0.12)' }}
             >
-              <TrustStat value="0" label="Funds custodied" />
-              <TrustStat value="< 60 s" label="Reconcile time" />
-              <TrustStat value="SOC 2" label="Type II in progress" />
-              <TrustStat value="24/7" label="Engineer on-call" />
+              <TrustStat value="0" label="Funds we custody" />
+              <TrustStat value="< 60 s" label="Balance reconcile" />
+              <TrustStat value="Off" label="Withdrawal scope" />
+              <TrustStat value="9 yr" label="Backtest history" />
             </div>
           </div>
         </div>
@@ -279,8 +319,8 @@ export default function WelcomePage() {
               margin: '16px auto 28px',
             }}
           >
-            Open an account in three minutes. Run paper trades free for the first 14 days. Connect a
-            real exchange when you&apos;re ready.
+            Open an account in minutes. Start in paper trading for free, then connect your Binance
+            account when you&apos;re ready.
           </p>
           <Link href="/onboarding" className="br-btn br-btn-primary br-btn-lg">
             Open account <ArrowRight size={16} />
@@ -290,7 +330,6 @@ export default function WelcomePage() {
           </div>
         </div>
       </section>
-
     </MarketingShell>
   );
 }
@@ -461,7 +500,7 @@ function CardStack() {
           className="text-[11px] font-semibold uppercase tracking-[0.08em]"
           style={{ color: 'var(--text-muted)' }}
         >
-          Strategy
+          Strategy · illustrative
         </div>
         <div
           className="font-display"
