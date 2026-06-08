@@ -75,7 +75,7 @@ export async function fetchCandles(
 function mapIndicator(d: BackendIndicator): IndicatorData {
   return {
     time: resolveTimeSec(d),
-    ema20: d.ema20 ?? null, ema50: d.ema50 ?? null, ema200: d.ema200 ?? null,
+    ema20: d.ema20 ?? null, ema50: d.ema50 ?? null, ema100: null, ema200: d.ema200 ?? null,
     bbUpper: d.bbUpper ?? null, bbMiddle: d.bbMiddle ?? null, bbLower: d.bbLower ?? null,
     kcUpper: d.kcUpper ?? null, kcMiddle: d.kcMiddle ?? null, kcLower: d.kcLower ?? null,
     rsi: d.rsi ?? null, macd: d.macd ?? null, macdSignal: d.macdSignal ?? null,

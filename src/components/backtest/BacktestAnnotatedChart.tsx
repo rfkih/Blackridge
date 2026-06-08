@@ -27,6 +27,7 @@ import {
   useChartIndicatorSeries,
   type IndicatorSeriesState,
 } from '@/lib/charts/useChartIndicatorSeries';
+import { useFeaturesWithComputedEma } from '@/lib/charts/useFeaturesWithComputedEma';
 import { X } from 'lucide-react';
 
 const EMPTY_FEATURES: IndicatorData[] = [];
@@ -212,13 +213,15 @@ export function BacktestAnnotatedChart({
     };
   }, [height]);
 
+  const augmentedFeatures = useFeaturesWithComputedEma(candles, features ?? EMPTY_FEATURES);
+
   useChartIndicatorSeries(
     chartRef,
     tvRef,
     indicatorStateRef,
     ready,
     showIndicators ?? DEFAULT_INDICATORS,
-    features ?? EMPTY_FEATURES,
+    augmentedFeatures,
   );
 
   useEffect(() => {

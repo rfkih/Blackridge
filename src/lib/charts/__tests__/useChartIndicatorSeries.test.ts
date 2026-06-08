@@ -23,7 +23,7 @@ function fakeTv() {
 }
 
 const FEATURES: IndicatorData[] = [
-  { time: 1, ema20: 10, ema50: 11, ema200: 12, bbUpper: 13, bbMiddle: 12, bbLower: 11,
+  { time: 1, ema20: 10, ema50: 11, ema100: 11.5, ema200: 12, bbUpper: 13, bbMiddle: 12, bbLower: 11,
     kcUpper: 14, kcMiddle: 12, kcLower: 10, rsi: 55, macd: 1, macdSignal: 0.5,
     macdHistogram: 0.5, atr: 2, adx: 25 },
 ];
@@ -52,7 +52,7 @@ describe('reconcileIndicatorSeries', () => {
   });
   it('does NOT create a series/pane when the indicator data is all null (empty-data guard)', () => {
     const { chart, tv, created } = fakeTv();
-    const EMPTY: IndicatorData[] = [{ time: 1, ema20: null, ema50: null, ema200: null, bbUpper: null,
+    const EMPTY: IndicatorData[] = [{ time: 1, ema20: null, ema50: null, ema100: null, ema200: null, bbUpper: null,
       bbMiddle: null, bbLower: null, kcUpper: null, kcMiddle: null, kcLower: null, rsi: null, macd: null,
       macdSignal: null, macdHistogram: null, atr: null, adx: null }];
     const state: IndicatorSeriesState = {};

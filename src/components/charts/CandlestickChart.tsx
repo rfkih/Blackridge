@@ -8,6 +8,7 @@ import {
   type IndicatorSeriesState,
 } from '@/lib/charts/useChartIndicatorSeries';
 import { DEFAULT_INDICATORS } from '@/lib/charts/indicatorConfig';
+import { useFeaturesWithComputedEma } from '@/lib/charts/useFeaturesWithComputedEma';
 import type { ChartIndicators, IndicatorData, CandleData } from '@/types/market';
 
 const EMPTY_FEATURES: IndicatorData[] = [];
@@ -56,13 +57,15 @@ export function CandlestickChart({
   const candlesRef = useRef(candles);
   candlesRef.current = candles;
 
+  const augmentedFeatures = useFeaturesWithComputedEma(candles, features ?? EMPTY_FEATURES);
+
   useChartIndicatorSeries(
     chartRef,
     tvRef,
     indicatorStateRef,
     ready,
     showIndicators ?? DEFAULT_INDICATORS,
-    features ?? EMPTY_FEATURES,
+    augmentedFeatures,
   );
 
   useEffect(() => {
