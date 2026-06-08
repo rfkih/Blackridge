@@ -3,6 +3,7 @@
 import { useMemo } from 'react';
 import { usePortfolio } from './usePortfolio';
 import { useStrategies } from './useStrategies';
+import { useEarnPosition } from './useEarnPosition';
 import type { AccountStrategy } from '@/types/strategy';
 import type { PortfolioBalance } from '@/types/portfolio';
 
@@ -24,10 +25,12 @@ export interface UseAllocationResult {
   targetWeightPct: number | null;
   /** USDT value of all non-cash (BTC) holdings. */
   btcValue: number;
-  /** USDT value of cash (USDT) holdings. */
+  /** USDT value of cash (USDT) holdings, including USDT parked in Simple Earn. */
   cashValue: number;
   /** Total account equity in USDT. */
   equity: number;
+  /** USDT parked in Simple Earn, folded into the cash sleeve. */
+  earnUsdt: number;
   isLoading: boolean;
   isError: boolean;
 }
@@ -70,11 +73,21 @@ export function useAllocation(accountId: string | undefined): UseAllocationResul
   // when it isn't the currently-selected account.
   const portfolio = usePortfolio(accountId);
   const strategies = useStrategies();
+  const earn = useEarnPosition(accountId);
 
   return useMemo(() => {
     const balance = portfolio.data;
-    const equity = balance?.totalUsdt ?? 0;
-    const { btcValue, cashValue } = balance ? splitBalance(balance) : { btcValue: 0, cashValue: 0 };
+    const { btcValue, cashValue: spotCash } = balance
+      ? splitBalance(balance)
+      : { btcValue: 0, cashValue: 0 };
+
+    // Fold USDT parked in Earn back into the cash sleeve: once funds move to
+    // Earn the spot balance drops, which would otherwise overstate BTC weight.
+    // Earn USDT IS cash. When earnUsdt is 0 the result equals the spot-only read.
+    const earnUsdt = earn.data?.amountUsdt ?? 0;
+    const spotEquity = balance?.totalUsdt ?? 0;
+    const equity = spotEquity + earnUsdt; // total incl. Earn
+    const cashValue = spotCash + earnUsdt;
 
     // targetWeightPct: the configured BTC target for the account. We use the
     // active hedging binding's `capitalAllocationPct` as the configured target
@@ -89,6 +102,7 @@ export function useAllocation(accountId: string | undefined): UseAllocationResul
       btcValue,
       cashValue,
       equity,
+      earnUsdt,
       isLoading: portfolio.isLoading || strategies.isLoading,
       isError: portfolio.isError || strategies.isError,
     };
@@ -100,5 +114,6 @@ export function useAllocation(accountId: string | undefined): UseAllocationResul
     strategies.data,
     strategies.isLoading,
     strategies.isError,
+    earn.data,
   ]);
 }
