@@ -71,6 +71,27 @@ export async function fetchCandles(
   );
 }
 
+/** Map a backend indicator row → IndicatorData (shared by both fetchers). */
+function mapIndicator(d: BackendIndicator): IndicatorData {
+  return {
+    time: resolveTimeSec(d),
+    ema20: d.ema20 ?? null, ema50: d.ema50 ?? null, ema200: d.ema200 ?? null,
+    bbUpper: d.bbUpper ?? null, bbMiddle: d.bbMiddle ?? null, bbLower: d.bbLower ?? null,
+    kcUpper: d.kcUpper ?? null, kcMiddle: d.kcMiddle ?? null, kcLower: d.kcLower ?? null,
+    rsi: d.rsi ?? null, macd: d.macd ?? null, macdSignal: d.macdSignal ?? null,
+    macdHistogram: d.macdHistogram ?? null, atr: d.atr ?? null, adx: d.adx ?? null,
+  };
+}
+
+export async function fetchIndicatorsRange(
+  symbol: string, interval: string, fromMs: number, toMs: number,
+): Promise<IndicatorData[]> {
+  const { data } = await apiClient.get<BackendIndicator[]>('/api/v1/market/indicators', {
+    params: { symbol, interval, from: fromMs, to: toMs },
+  });
+  return data.map(mapIndicator).filter((d) => Number.isFinite(d.time)).sort((a, b) => a.time - b.time);
+}
+
 export async function fetchIndicators(
   symbol: string,
   interval: string,
@@ -78,32 +99,7 @@ export async function fetchIndicators(
 ): Promise<IndicatorData[]> {
   const to = Date.now();
   const from = to - count * (INTERVAL_SECONDS[interval] ?? 3_600) * 1_000;
-
-  const { data } = await apiClient.get<BackendIndicator[]>('/api/v1/market/indicators', {
-    params: { symbol, interval, from, to },
-  });
-
-  return data
-    .map((d) => ({
-      time: resolveTimeSec(d),
-      ema20: d.ema20 ?? null,
-      ema50: d.ema50 ?? null,
-      ema200: d.ema200 ?? null,
-      bbUpper: d.bbUpper ?? null,
-      bbMiddle: d.bbMiddle ?? null,
-      bbLower: d.bbLower ?? null,
-      kcUpper: d.kcUpper ?? null,
-      kcMiddle: d.kcMiddle ?? null,
-      kcLower: d.kcLower ?? null,
-      rsi: d.rsi ?? null,
-      macd: d.macd ?? null,
-      macdSignal: d.macdSignal ?? null,
-      macdHistogram: d.macdHistogram ?? null,
-      atr: d.atr ?? null,
-      adx: d.adx ?? null,
-    }))
-    .filter((d) => Number.isFinite(d.time))
-    .sort((a, b) => a.time - b.time);
+  return fetchIndicatorsRange(symbol, interval, from, to);
 }
 
 interface BackendSymbolSlippageStats {
