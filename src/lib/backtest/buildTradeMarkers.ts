@@ -14,6 +14,7 @@ const LEG_MARKER_CONFIG: Record<PositionType, Partial<Record<PositionExitReason,
     RUNNER_CLOSE: { color: '#3B82F6', label: 'R' },
     MANUAL_CLOSE: { color: '#F5A623', label: 'M' },
     BACKTEST_END: { color: '#8892A4', label: 'E' },
+    EMABAND_EXIT: { color: '#FF4D6A', label: 'SELL' },
   },
   TP1: {
     TP_HIT: { color: '#00C896', label: 'T1' },
@@ -51,7 +52,15 @@ export interface MarkerMeta {
   tradeId: string;
   /** Leg price (entry, SL, TP1/TP2, runner exit) used for click disambiguation. */
   price: number;
-  kind: 'entry' | 'tp1' | 'tp2' | 'runner' | 'stop' | 'manual' | 'end';
+  kind: 'entry' | 'tp1' | 'tp2' | 'runner' | 'stop' | 'manual' | 'end' | 'exit';
+  /**
+   * Best-effort fraction (0–1) of the trade's total entry quantity that this
+   * leg represents. `1` for a full entry/exit, a fraction for partial
+   * scales-in/out, or `null` when the qty fields aren't available. Today's
+   * binary EMA_BAND legs report full size; this is forward-looking for
+   * partial-scaling strategies.
+   */
+  sizePct: number | null;
 }
 
 export interface TradeMarkerSet {
@@ -83,16 +92,22 @@ export function buildTradeMarkers(trades: BacktestTrade[]): TradeMarkerSet {
         position: isLong ? 'belowBar' : 'aboveBar',
         color: isLong ? '#00C896' : '#FF4D6A',
         shape: isLong ? 'arrowUp' : 'arrowDown',
-        text: isLong ? 'L' : 'S',
+        text: isLong ? 'BUY' : 'SELL',
         id: trade.id,
       },
-      meta: { time: entrySec, tradeId: trade.id, price: trade.entryPrice, kind: 'entry' },
+      meta: {
+        time: entrySec,
+        tradeId: trade.id,
+        price: trade.entryPrice,
+        kind: 'entry',
+        sizePct: 1,
+      },
     });
 
     for (const pos of trade.positions) {
       if (pos.exitTime == null || pos.exitReason == null) continue;
-      const cfg = LEG_MARKER_CONFIG[pos.type]?.[pos.exitReason];
-      if (!cfg) continue;
+      const cfg = LEG_MARKER_CONFIG[pos.type]?.[pos.exitReason]
+        ?? { color: '#8892A4', label: isLong ? 'SELL' : 'BUY' };
       const exitSec = Math.floor(pos.exitTime / 1000);
       const position = pos.exitReason === 'SL_HIT' ? oppositeOfEntry(isLong) : exitPosition(isLong);
       const price = legExitPrice(trade, pos);
@@ -110,6 +125,7 @@ export function buildTradeMarkers(trades: BacktestTrade[]): TradeMarkerSet {
           tradeId: trade.id,
           price,
           kind: legExitKind(pos),
+          sizePct: legSizePct(trade, pos),
         },
       });
     }
@@ -144,8 +160,31 @@ function legExitKind(pos: BacktestTradePosition): MarkerMeta['kind'] {
   if (pos.exitReason === 'RUNNER_CLOSE') return 'runner';
   if (pos.exitReason === 'MANUAL_CLOSE') return 'manual';
   if (pos.exitReason === 'BACKTEST_END') return 'end';
-  if (pos.type === 'TP2') return 'tp2';
-  return 'tp1';
+  if (pos.exitReason === 'TP_HIT') return pos.type === 'TP2' ? 'tp2' : 'tp1';
+  // EMABAND_EXIT and any future/unmapped reason fall through to a generic exit.
+  return 'exit';
+}
+
+/**
+ * Best-effort fraction (0–1) of the trade's total entry quantity that a closed
+ * leg represents — supports partial scale-out strategies. Returns `null` when
+ * the qty fields are missing or non-positive so callers never crash on
+ * incomplete data. Today's binary EMA_BAND closes the full position, so this
+ * resolves to ~1.
+ */
+function legSizePct(trade: BacktestTrade, pos: BacktestTradePosition): number | null {
+  const legQty = pos.quantity;
+  const totalQty = trade.quantity;
+  if (
+    legQty == null ||
+    totalQty == null ||
+    !Number.isFinite(legQty) ||
+    !Number.isFinite(totalQty) ||
+    totalQty <= 0
+  ) {
+    return null;
+  }
+  return legQty / totalQty;
 }
 
 /** Returns which leg types hit a given exit reason — drives the "legs hit" dots in the table. */

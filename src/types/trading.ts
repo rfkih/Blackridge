@@ -9,7 +9,8 @@ export type PositionExitReason =
   | 'SL_HIT'
   | 'RUNNER_CLOSE'
   | 'MANUAL_CLOSE'
-  | 'BACKTEST_END';
+  | 'BACKTEST_END'
+  | 'EMABAND_EXIT';
 
 export interface TradePosition {
   id: UUID;
