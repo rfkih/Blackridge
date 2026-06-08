@@ -36,18 +36,22 @@ import {
   useCancelBacktestRun,
 } from '@/hooks/useBacktest';
 import { useAccountStrategies } from '@/hooks/useStrategies';
+import { useChartIndicators } from '@/hooks/useChartIndicators';
+import { useBacktestIndicators } from '@/hooks/useBacktestIndicators';
+import { IndicatorBar } from '@/components/charts/IndicatorBar';
 import { useBacktestParamStore } from '@/store/backtestParamStore';
 import { cn } from '@/lib/utils';
 import type { BacktestEquityPoint, BacktestRun, BacktestTrade } from '@/types/backtest';
 import type { AccountStrategy } from '@/types/strategy';
 import { BacktestProgressBar } from '@/components/backtest/BacktestProgressBar';
-import type { CandleData } from '@/types/market';
+import type { CandleData, IndicatorData } from '@/types/market';
 import { DrawdownVsBuyHoldPanel } from '@/components/hedging/DrawdownVsBuyHoldPanel';
 import { BtcStackPanel } from '@/components/hedging/BtcStackPanel';
 
 const EMPTY_TRADES: BacktestTrade[] = [];
 const EMPTY_CANDLES: CandleData[] = [];
 const EMPTY_EQUITY: BacktestEquityPoint[] = [];
+const EMPTY_FEATURES: IndicatorData[] = [];
 
 const BacktestAnnotatedChart = dynamic(
   () =>
@@ -84,6 +88,22 @@ export default function BacktestResultPage({ params }: { params: { id: string } 
   const [activateDialogOpen, setActivateDialogOpen] = useState(false);
 
   const { data: strategies = [] } = useAccountStrategies();
+
+  // Chart indicators: persisted toggle state + lazy fetch of indicator series
+  // for this run's exact window. fromDate/toDate are ISO-8601 strings on the
+  // normalized run, so convert to epoch ms for the range fetch.
+  const { indicators, toggle, anyActive } = useChartIndicators(
+    'blackheart:backtest-indicators',
+  );
+  const fromMs = runQ.data?.fromDate ? new Date(runQ.data.fromDate).getTime() : undefined;
+  const toMs = runQ.data?.toDate ? new Date(runQ.data.toDate).getTime() : undefined;
+  const indicatorsQ = useBacktestIndicators(
+    runQ.data?.symbol,
+    runQ.data?.interval,
+    fromMs,
+    toMs,
+    anyActive,
+  );
 
   const liveSourceStrategies = useMemo(() => {
     if (!runQ.data || runQ.data.status !== 'COMPLETED' || !strategies.length) return [];
@@ -370,12 +390,17 @@ export default function BacktestResultPage({ params }: { params: { id: string } 
           <ChartSkeleton />
         ) : (
           <ErrorBoundary label="Annotated chart">
+            <div className="px-2 pt-1">
+              <IndicatorBar indicators={indicators} onToggle={toggle} />
+            </div>
             <BacktestAnnotatedChart
               candles={candlesQ.data ?? EMPTY_CANDLES}
               trades={filteredTrades ?? tradesQ.data ?? EMPTY_TRADES}
               selectedTradeId={selectedTradeId}
               onTradeSelect={handleChartSelect}
               scrollTrigger={chartScrollTrigger}
+              features={indicatorsQ.data ?? EMPTY_FEATURES}
+              showIndicators={indicators}
             />
           </ErrorBoundary>
         )}

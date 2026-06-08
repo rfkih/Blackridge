@@ -24,6 +24,29 @@ vi.mock('@/hooks/useStrategies', () => ({
   useAccountStrategies: () => ({ data: [] }),
 }));
 
+// Chart-indicator hooks: stubbed like the other data hooks so the page test
+// stays focused on the BTC-stack feed and doesn't need a QueryClientProvider.
+vi.mock('@/hooks/useChartIndicators', () => ({
+  useChartIndicators: () => ({
+    indicators: {
+      ema20: false,
+      ema50: false,
+      ema200: false,
+      bollingerBands: false,
+      keltnerChannel: false,
+      rsi: false,
+      macd: false,
+      atr: false,
+      adx: false,
+    },
+    toggle: vi.fn(),
+    anyActive: false,
+  }),
+}));
+vi.mock('@/hooks/useBacktestIndicators', () => ({
+  useBacktestIndicators: () => ({ data: undefined, isLoading: false, isError: false }),
+}));
+
 vi.mock('@/store/backtestParamStore', () => ({
   useBacktestParamStore: (sel: (s: { hydrateFromRun: () => void }) => unknown) =>
     sel({ hydrateFromRun: vi.fn() }),
