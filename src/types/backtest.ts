@@ -187,7 +187,7 @@ export interface BacktestTrade {
   entryPrice: number;
   exitTime: EpochMs | null;
   exitPrice: number | null;
-  stopLossPrice: number;
+  stopLossPrice: number | null;
   tp1Price: number | null;
   tp2Price: number | null;
   quantity: number;

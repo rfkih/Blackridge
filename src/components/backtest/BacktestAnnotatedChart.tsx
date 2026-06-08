@@ -277,7 +277,7 @@ export function BacktestAnnotatedChart({
         title: string,
         which: HitLine,
       ) => {
-        if (price == null || !Number.isFinite(price)) return;
+        if (price == null || !Number.isFinite(price) || price <= 0) return;
         const wasHit = which != null && hitLine === which;
 
         const line = activeSeries.createPriceLine({
@@ -629,7 +629,11 @@ function TradeDetailCard({ trade, onClose }: { trade: BacktestTrade; onClose: ()
             />
             <DetailRow
               label={isRunnerOnly ? 'Initial stop' : 'Stop loss'}
-              value={formatPrice(trade.stopLossPrice)}
+              value={
+                trade.stopLossPrice != null && trade.stopLossPrice > 0
+                  ? formatPrice(trade.stopLossPrice)
+                  : '—'
+              }
               dotColor="var(--color-loss)"
             />
             {isRunnerOnly ? (

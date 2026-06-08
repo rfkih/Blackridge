@@ -359,7 +359,7 @@ interface BackendBacktestTrade {
   entryPrice: number;
   exitTime: number | string | null;
   exitPrice: number | null;
-  stopLossPrice: number;
+  stopLossPrice: number | string | null;
   tp1Price: number | null;
   tp2Price: number | null;
   quantity: number;
@@ -396,7 +396,7 @@ function toEpochMs(value: number | string | null | undefined): number | null {
   return Number.isFinite(parsed) ? parsed : null;
 }
 
-function mapBacktestTrade(t: BackendBacktestTrade): BacktestTrade {
+export function mapBacktestTrade(t: BackendBacktestTrade): BacktestTrade {
   return {
     id: t.id,
     backtestRunId: t.backtestRunId,
@@ -408,7 +408,7 @@ function mapBacktestTrade(t: BackendBacktestTrade): BacktestTrade {
     entryPrice: Number(t.entryPrice),
     exitTime: toEpochMs(t.exitTime),
     exitPrice: t.exitPrice == null ? null : Number(t.exitPrice),
-    stopLossPrice: Number(t.stopLossPrice),
+    stopLossPrice: t.stopLossPrice == null ? null : Number(t.stopLossPrice),
     tp1Price: t.tp1Price == null ? null : Number(t.tp1Price),
     tp2Price: t.tp2Price == null ? null : Number(t.tp2Price),
     quantity: Number(t.quantity),
