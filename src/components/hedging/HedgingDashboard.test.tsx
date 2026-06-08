@@ -43,6 +43,7 @@ function mkAllocation(overrides: Partial<UseAllocationResult> = {}): UseAllocati
     btcValue: 7_200,
     cashValue: 2_800,
     equity: 10_000,
+    earnUsdt: 0,
     isLoading: false,
     isError: false,
     ...overrides,
@@ -102,12 +103,22 @@ describe('HedgingDashboard', () => {
   });
 
   it('shows USDT parked in Earn and folds it into the cash weight', () => {
-    // 1000 USDT in Earn on top of 7200 BTC / 2800 spot cash (spot equity 10000)
+    // 1000 USDT in Earn on top of 7200 BTC / 2800 spot cash (spot equity 10000).
+    // useAllocation now performs the fold itself; the dashboard renders its result.
+    // cash = (2800 + 1000) / (10000 + 1000) = 34.55% ; btc = 7200 / 11000 = 65.45%
     useEarnPosition.mockReturnValue({ data: { asset: 'USDT', amountUsdt: 1000, enabled: true } });
+    useAllocation.mockReturnValue(
+      mkAllocation({
+        btcWeightPct: 65.4545454545,
+        cashWeightPct: 34.5454545454,
+        cashValue: 3_800,
+        equity: 11_000,
+        earnUsdt: 1_000,
+      }),
+    );
     render(<HedgingDashboard accountId="acc-1" />);
 
     expect(screen.getByTestId('stat-inEarn')).toHaveTextContent('$1000.00');
-    // cash = (2800 + 1000) / (10000 + 1000) = 34.55% ; btc = 7200 / 11000 = 65.45%
     expect(screen.getByTestId('stat-cashWeight')).toHaveTextContent('34.55%');
     expect(screen.getByTestId('stat-btcWeight')).toHaveTextContent('65.45%');
   });

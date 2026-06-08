@@ -3,15 +3,19 @@ import { renderHook } from '@testing-library/react';
 import type { PortfolioBalance } from '@/types/portfolio';
 import type { AccountStrategy } from '@/types/strategy';
 
-// --- mock the two underlying reads ---
+// --- mock the underlying reads ---
 const usePortfolio = vi.fn();
 const useStrategies = vi.fn();
+const useEarnPosition = vi.fn();
 
 vi.mock('./usePortfolio', () => ({
   usePortfolio: (accountId?: string) => usePortfolio(accountId),
 }));
 vi.mock('./useStrategies', () => ({
   useStrategies: () => useStrategies(),
+}));
+vi.mock('@/hooks/useEarnPosition', () => ({
+  useEarnPosition: (...a: unknown[]) => useEarnPosition(...a),
 }));
 
 import { useAllocation } from './useAllocation';
@@ -77,6 +81,9 @@ describe('useAllocation', () => {
   beforeEach(() => {
     usePortfolio.mockReset();
     useStrategies.mockReset();
+    useEarnPosition.mockReset();
+    // Default: no Earn position → earnUsdt=0 → identical to the spot-only read.
+    useEarnPosition.mockReturnValue({ data: { amountUsdt: 0, enabled: false } });
   });
 
   it('derives btc/cash weight fractions from the balance read', () => {
@@ -94,6 +101,29 @@ describe('useAllocation', () => {
     expect(result.current.cashValue).toBe(2_500);
     expect(result.current.btcWeightPct).toBeCloseTo(75);
     expect(result.current.cashWeightPct).toBeCloseTo(25);
+  });
+
+  it('folds Earn USDT into cash + equity so weights are correct', () => {
+    // spot: $600 BTC, $0 USDT; Earn: $400 USDT
+    usePortfolio.mockReturnValue({
+      data: mkBalance({
+        totalUsdt: 600,
+        availableUsdt: 0,
+        assets: [{ asset: 'BTC', free: 0.01, locked: 0, usdtValue: 600 }],
+      }),
+      isLoading: false,
+      isError: false,
+    });
+    useStrategies.mockReturnValue({ data: [mkHedgingStrategy()], isLoading: false, isError: false });
+    useEarnPosition.mockReturnValue({ data: { amountUsdt: 400, enabled: true } });
+
+    const { result } = renderHook(() => useAllocation(ACCOUNT_ID));
+    expect(result.current.equity).toBe(1_000);
+    expect(result.current.cashValue).toBe(400);
+    expect(result.current.btcValue).toBe(600);
+    expect(result.current.btcWeightPct).toBeCloseTo(60, 5);
+    expect(result.current.cashWeightPct).toBeCloseTo(40, 5);
+    expect(result.current.earnUsdt).toBe(400);
   });
 
   it('reads targetWeightPct from the active hedging binding capitalAllocationPct', () => {

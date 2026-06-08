@@ -82,22 +82,17 @@ function Stat({ testId, label, value, tooltip, tone = 'neutral', icon }: StatPro
  * so they are intentionally omitted rather than faked.
  */
 export function AllocationStatCards({ accountId }: AllocationStatCardsProps) {
-  const { btcWeightPct, cashWeightPct, btcValue, cashValue, equity: spotEquity } =
-    useAllocation(accountId);
+  // useAllocation already folds Earn USDT into the cash sleeve + equity + weights,
+  // so consume its weights directly — no manual recompute (would double-count).
+  const { btcWeightPct, cashWeightPct, earnUsdt } = useAllocation(accountId);
   const equity = useEquityCurve();
   const maxDrawdown = equity.stats?.maxDrawdown ?? null;
 
+  // Keep useEarnPosition only for the on/off state of the In-Earn card; it
+  // dedupes with useAllocation's call (same query key).
   const earn = useEarnPosition(accountId);
   const formatCurrency = useCurrencyFormatter();
-  const earnUsdt = earn.data?.amountUsdt ?? 0;
   const earnEnabled = earn.data?.enabled ?? false;
-
-  // Fold USDT parked in Earn back into the cash sleeve: once funds are in Earn
-  // the spot balance drops, which would otherwise overstate BTC weight. When
-  // earnUsdt is 0 the weights are identical to the spot-only read.
-  const totalEquity = spotEquity + earnUsdt;
-  const btcW = totalEquity > 0 ? (btcValue / totalEquity) * 100 : btcWeightPct;
-  const cashW = totalEquity > 0 ? ((cashValue + earnUsdt) / totalEquity) * 100 : cashWeightPct;
 
   const earnValue =
     earnUsdt > 0 ? formatCurrency(earnUsdt) : earnEnabled ? formatCurrency(0) : 'Off';
@@ -107,13 +102,13 @@ export function AllocationStatCards({ accountId }: AllocationStatCardsProps) {
       <Stat
         testId="btcWeight"
         label="BTC weight"
-        value={`${btcW.toFixed(2)}%`}
+        value={`${btcWeightPct.toFixed(2)}%`}
         icon={<Bitcoin size={16} strokeWidth={2} />}
       />
       <Stat
         testId="cashWeight"
         label="Cash weight"
-        value={`${cashW.toFixed(2)}%`}
+        value={`${cashWeightPct.toFixed(2)}%`}
         tooltip={earnUsdt > 0 ? 'Includes USDT parked in Simple Earn' : undefined}
         icon={<Wallet size={16} strokeWidth={2} />}
       />

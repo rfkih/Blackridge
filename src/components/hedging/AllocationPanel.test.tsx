@@ -17,6 +17,7 @@ function mkAllocation(overrides: Partial<UseAllocationResult> = {}): UseAllocati
     btcValue: 7_200,
     cashValue: 2_800,
     equity: 10_000,
+    earnUsdt: 0,
     isLoading: false,
     isError: false,
     ...overrides,
