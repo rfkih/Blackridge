@@ -1,64 +1,52 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
-import type {
-  IChartApi,
-  ISeriesApi,
-  LineStyle,
-  LogicalRange,
-  MouseEventParams,
-  Time,
-} from 'lightweight-charts';
+import { useEffect, useRef, useState } from 'react';
+import type { IChartApi, ISeriesApi, MouseEventParams, Time } from 'lightweight-charts';
 import { TV } from '@/lib/charts/chartTheme';
-import type { IndicatorData, CandleData } from '@/types/market';
+import {
+  useChartIndicatorSeries,
+  type IndicatorSeriesState,
+} from '@/lib/charts/useChartIndicatorSeries';
+import { DEFAULT_INDICATORS } from '@/lib/charts/indicatorConfig';
+import type { ChartIndicators, IndicatorData, CandleData } from '@/types/market';
 
-export interface CandlestickChartIndicators {
-  ema20?: boolean;
-  ema50?: boolean;
-  bollingerBands?: boolean;
-  keltnerChannel?: boolean;
-  rsi?: boolean;
-}
+const EMPTY_FEATURES: IndicatorData[] = [];
 
 export interface CandlestickChartProps {
   candles: CandleData[];
   features?: IndicatorData[];
-  showIndicators?: CandlestickChartIndicators;
+  showIndicators?: ChartIndicators;
   height?: number;
-  /** RSI subchart height. Defaults to 100px; only rendered when rsi=true. */
-  rsiHeight?: number;
   onCandleClick?: (time: number) => void;
 }
 
 /**
  * Reusable TV Lightweight wrapper. Keeps the chart lifecycle (mount + resize +
  * tear-down) self-contained so the parent only has to hand over data and
- * toggle flags. Indicator overlays are rebuilt incrementally — removing a
- * toggled-off series instead of rebuilding the whole chart.
+ * toggle flags. Indicator overlays/oscillators are rendered by the shared
+ * {@link useChartIndicatorSeries} renderer (overlays on the main pane,
+ * oscillators in in-chart sub-panes via `chart.addPane()`), so this component
+ * gains every indicator the shared layer supports for free.
  */
 export function CandlestickChart({
   candles,
   features,
   showIndicators,
   height = 440,
-  rsiHeight = 100,
   onCandleClick,
 }: CandlestickChartProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const rsiContainerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
-  const rsiChartRef = useRef<IChartApi | null>(null);
   const candleSeriesRef = useRef<ISeriesApi<'Candlestick'> | null>(null);
 
-  const ema20Ref = useRef<ISeriesApi<'Line'> | null>(null);
-  const ema50Ref = useRef<ISeriesApi<'Line'> | null>(null);
-  const bbUpperRef = useRef<ISeriesApi<'Line'> | null>(null);
-  const bbMiddleRef = useRef<ISeriesApi<'Line'> | null>(null);
-  const bbLowerRef = useRef<ISeriesApi<'Line'> | null>(null);
-  const kcUpperRef = useRef<ISeriesApi<'Line'> | null>(null);
-  const kcLowerRef = useRef<ISeriesApi<'Line'> | null>(null);
-  const rsiSeriesRef = useRef<ISeriesApi<'Line'> | null>(null);
-  const rsiSyncUnsubRef = useRef<(() => void) | null>(null);
+  const tvRef = useRef<{
+    LineSeries: unknown;
+    HistogramSeries: unknown;
+    LineStyle: { Dashed: number; Solid: number };
+  } | null>(null);
+  const indicatorStateRef = useRef<IndicatorSeriesState>({});
+
+  const [ready, setReady] = useState(false);
 
   const onClickRef = useRef(onCandleClick);
   onClickRef.current = onCandleClick;
@@ -68,7 +56,14 @@ export function CandlestickChart({
   const candlesRef = useRef(candles);
   candlesRef.current = candles;
 
-  const lineStyleRef = useRef<typeof LineStyle | null>(null);
+  useChartIndicatorSeries(
+    chartRef,
+    tvRef,
+    indicatorStateRef,
+    ready,
+    showIndicators ?? DEFAULT_INDICATORS,
+    features ?? EMPTY_FEATURES,
+  );
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -78,7 +73,7 @@ export function CandlestickChart({
     void (async () => {
       const tv = await import('lightweight-charts');
       if (cancelled || !containerRef.current) return;
-      lineStyleRef.current = tv.LineStyle;
+      tvRef.current = tv;
 
       const chart = tv.createChart(containerRef.current, {
         height,
@@ -144,38 +139,31 @@ export function CandlestickChart({
         try {
           chart.unsubscribeClick(clickHandler);
         } catch {
+          /* chart already disposed */
         }
       });
 
       const ro = new ResizeObserver(() => {
         if (containerRef.current) chart.applyOptions({ width: containerRef.current.clientWidth });
-        if (rsiContainerRef.current && rsiChartRef.current) {
-          rsiChartRef.current.applyOptions({ width: rsiContainerRef.current.clientWidth });
-        }
       });
       ro.observe(containerRef.current);
       unsubs.push(() => ro.disconnect());
+
+      // Signal readiness only after the candle series exists so the shared
+      // indicator renderer never races the chart/candle init.
+      setReady(true);
     })();
 
     return () => {
       cancelled = true;
+      setReady(false);
       unsubs.forEach((fn) => fn());
 
-      rsiSyncUnsubRef.current?.();
-      rsiSyncUnsubRef.current = null;
-      rsiChartRef.current?.remove();
-      rsiChartRef.current = null;
-      rsiSeriesRef.current = null;
       chartRef.current?.remove();
       chartRef.current = null;
       candleSeriesRef.current = null;
-      ema20Ref.current = null;
-      ema50Ref.current = null;
-      bbUpperRef.current = null;
-      bbMiddleRef.current = null;
-      bbLowerRef.current = null;
-      kcUpperRef.current = null;
-      kcLowerRef.current = null;
+      tvRef.current = null;
+      indicatorStateRef.current = {};
     };
   }, [height]);
 
@@ -203,209 +191,9 @@ export function CandlestickChart({
     chartRef.current?.timeScale().fitContent();
   }, [candles]);
 
-  useEffect(() => {
-    const chart = chartRef.current;
-    const LineStyleEnum = lineStyleRef.current;
-    if (!chart || !LineStyleEnum) return;
-    void (async () => {
-      const tv = await import('lightweight-charts');
-      const data = features ?? [];
-
-      const linesToUpdate = (
-        key: keyof Pick<
-          IndicatorData,
-          'ema20' | 'ema50' | 'bbUpper' | 'bbMiddle' | 'bbLower' | 'kcUpper' | 'kcLower'
-        >,
-      ) =>
-        data
-          .filter((d) => d[key] != null)
-          .map((d) => ({ time: d.time as Time, value: d[key] as number }));
-
-      if (showIndicators?.ema20) {
-        if (!ema20Ref.current) {
-          ema20Ref.current = chart.addSeries(tv.LineSeries, {
-            color: '#3B82F6',
-            lineWidth: 1,
-            priceLineVisible: false,
-            lastValueVisible: false,
-          });
-        }
-        ema20Ref.current.setData(linesToUpdate('ema20'));
-      } else if (ema20Ref.current) {
-        chart.removeSeries(ema20Ref.current);
-        ema20Ref.current = null;
-      }
-
-      if (showIndicators?.ema50) {
-        if (!ema50Ref.current) {
-          ema50Ref.current = chart.addSeries(tv.LineSeries, {
-            color: '#F5A623',
-            lineWidth: 1,
-            priceLineVisible: false,
-            lastValueVisible: false,
-          });
-        }
-        ema50Ref.current.setData(linesToUpdate('ema50'));
-      } else if (ema50Ref.current) {
-        chart.removeSeries(ema50Ref.current);
-        ema50Ref.current = null;
-      }
-
-      if (showIndicators?.bollingerBands) {
-        const common = { color: '#8892A4', priceLineVisible: false, lastValueVisible: false };
-        if (!bbUpperRef.current) {
-          bbUpperRef.current = chart.addSeries(tv.LineSeries, {
-            ...common,
-            lineWidth: 1,
-            lineStyle: LineStyleEnum.Dashed,
-          });
-        }
-        if (!bbMiddleRef.current) {
-          bbMiddleRef.current = chart.addSeries(tv.LineSeries, { ...common, lineWidth: 1 });
-        }
-        if (!bbLowerRef.current) {
-          bbLowerRef.current = chart.addSeries(tv.LineSeries, {
-            ...common,
-            lineWidth: 1,
-            lineStyle: LineStyleEnum.Dashed,
-          });
-        }
-        bbUpperRef.current.setData(linesToUpdate('bbUpper'));
-        bbMiddleRef.current.setData(linesToUpdate('bbMiddle'));
-        bbLowerRef.current.setData(linesToUpdate('bbLower'));
-      } else {
-        for (const ref of [bbUpperRef, bbMiddleRef, bbLowerRef]) {
-          if (ref.current) {
-            chart.removeSeries(ref.current);
-            ref.current = null;
-          }
-        }
-      }
-
-      if (showIndicators?.keltnerChannel) {
-        const common = {
-          color: '#A855F7',
-          lineWidth: 1 as const,
-          lineStyle: LineStyleEnum.Dashed,
-          priceLineVisible: false,
-          lastValueVisible: false,
-        };
-        if (!kcUpperRef.current) {
-          kcUpperRef.current = chart.addSeries(tv.LineSeries, common);
-        }
-        if (!kcLowerRef.current) {
-          kcLowerRef.current = chart.addSeries(tv.LineSeries, common);
-        }
-        kcUpperRef.current.setData(linesToUpdate('kcUpper'));
-        kcLowerRef.current.setData(linesToUpdate('kcLower'));
-      } else {
-        for (const ref of [kcUpperRef, kcLowerRef]) {
-          if (ref.current) {
-            chart.removeSeries(ref.current);
-            ref.current = null;
-          }
-        }
-      }
-    })();
-  }, [
-    features,
-    showIndicators?.ema20,
-    showIndicators?.ema50,
-    showIndicators?.bollingerBands,
-    showIndicators?.keltnerChannel,
-  ]);
-
-  useEffect(() => {
-    const mainChart = chartRef.current;
-    if (!mainChart) return;
-    const shouldShow = Boolean(showIndicators?.rsi);
-    if (!shouldShow) {
-      rsiSyncUnsubRef.current?.();
-      rsiSyncUnsubRef.current = null;
-      rsiChartRef.current?.remove();
-      rsiChartRef.current = null;
-      rsiSeriesRef.current = null;
-      return;
-    }
-    if (!rsiContainerRef.current) return;
-
-    void (async () => {
-      const tv = await import('lightweight-charts');
-      if (!rsiContainerRef.current) return;
-
-      if (!rsiChartRef.current) {
-        const rsiChart = tv.createChart(rsiContainerRef.current, {
-          height: rsiHeight,
-          layout: {
-            background: { type: tv.ColorType.Solid, color: TV.BG },
-            textColor: TV.TEXT,
-            fontFamily: "'JetBrains Mono', monospace",
-            fontSize: 10,
-          },
-          grid: { vertLines: { visible: false }, horzLines: { color: TV.GRID } },
-          rightPriceScale: { borderColor: TV.BORDER, scaleMargins: { top: 0.1, bottom: 0.1 } },
-          timeScale: { visible: false },
-          crosshair: { vertLine: { labelVisible: false }, horzLine: { labelVisible: false } },
-          handleScroll: false,
-          handleScale: false,
-        });
-        rsiChartRef.current = rsiChart;
-
-        const rsiSeries = rsiChart.addSeries(tv.LineSeries, {
-          color: '#EC4899',
-          lineWidth: 1,
-          priceLineVisible: false,
-          lastValueVisible: true,
-        });
-        rsiSeriesRef.current = rsiSeries;
-
-        rsiSeries.createPriceLine({
-          price: 70,
-          color: TV.NEUTRAL,
-          lineWidth: 1,
-          lineStyle: tv.LineStyle.Dashed,
-          axisLabelVisible: false,
-          title: '',
-        });
-        rsiSeries.createPriceLine({
-          price: 30,
-          color: TV.NEUTRAL,
-          lineWidth: 1,
-          lineStyle: tv.LineStyle.Dashed,
-          axisLabelVisible: false,
-          title: '',
-        });
-
-        const syncHandler = (range: LogicalRange | null) => {
-          if (range) rsiChart.timeScale().setVisibleLogicalRange(range);
-        };
-        mainChart.timeScale().subscribeVisibleLogicalRangeChange(syncHandler);
-        rsiSyncUnsubRef.current = () => {
-          try {
-            mainChart.timeScale().unsubscribeVisibleLogicalRangeChange(syncHandler);
-          } catch {
-          }
-        };
-      }
-
-      const data = (features ?? [])
-        .filter((d) => d.rsi != null)
-        .map((d) => ({ time: d.time as Time, value: d.rsi as number }));
-      rsiSeriesRef.current?.setData(data);
-    })();
-  }, [showIndicators?.rsi, features, rsiHeight]);
-
   return (
     <div className="w-full">
       <div ref={containerRef} style={{ height }} aria-hidden="true" />
-      {showIndicators?.rsi && (
-        <div
-          ref={rsiContainerRef}
-          className="border-t border-[var(--border-subtle)]"
-          style={{ height: rsiHeight }}
-          aria-hidden="true"
-        />
-      )}
     </div>
   );
 }
