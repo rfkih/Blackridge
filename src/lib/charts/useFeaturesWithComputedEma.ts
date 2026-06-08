@@ -11,10 +11,18 @@ import { computeEma } from './computeEma';
 export function mergeComputedEma(
   candles: CandleData[],
   features: IndicatorData[],
+  warmupCandles: CandleData[] = [],
 ): IndicatorData[] {
   if (!candles.length) return features;
-  const ema100 = computeEma(candles, 100);
-  if (!ema100.length) return features;
+  // Combine warmup + display for EMA seeding; dedupe by time, ascending.
+  const byTime = new Map<number, CandleData>();
+  for (const c of warmupCandles) byTime.set(c.time, c);
+  for (const c of candles) byTime.set(c.time, c); // display wins on overlap
+  const combined = Array.from(byTime.values()).sort((a, b) => a.time - b.time);
+  const ema100 = computeEma(combined, 100);
+  // Output rows are built over union(features, DISPLAY candles) so warmup times
+  // never appear; when no EMA can be computed, emaByTime is simply empty and the
+  // synthesized rows carry ema100: null (still need rows for the short window).
   const emaByTime = new Map(ema100.map((p) => [p.time, p.value]));
   const featByTime = new Map(features.map((f) => [f.time, f]));
 
@@ -63,6 +71,10 @@ export function mergeComputedEma(
 export function useFeaturesWithComputedEma(
   candles: CandleData[],
   features: IndicatorData[],
+  warmupCandles: CandleData[] = [],
 ): IndicatorData[] {
-  return useMemo(() => mergeComputedEma(candles, features), [candles, features]);
+  return useMemo(
+    () => mergeComputedEma(candles, features, warmupCandles),
+    [candles, features, warmupCandles],
+  );
 }

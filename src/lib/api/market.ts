@@ -43,6 +43,18 @@ function resolveTimeSec(d: { time?: number; openTime?: number; timestamp?: numbe
   return raw > 32_503_680_000 ? Math.floor(raw / 1_000) : raw;
 }
 
+/** Map a backend candle row → CandleData (shared by both fetchers). */
+function mapCandle(d: BackendCandle): CandleData {
+  return {
+    time: resolveTimeSec(d),
+    open: d.open,
+    high: d.high,
+    low: d.low,
+    close: d.close,
+    volume: d.volume ?? 0,
+  };
+}
+
 export async function fetchCandles(
   symbol: string,
   interval: string,
@@ -55,20 +67,17 @@ export async function fetchCandles(
     params: { symbol, interval, from, to, limit: count },
   });
 
-  return (
-    data
-      .map((d) => ({
-        time: resolveTimeSec(d),
-        open: d.open,
-        high: d.high,
-        low: d.low,
-        close: d.close,
-        volume: d.volume ?? 0,
-      }))
+  return data.map(mapCandle).filter((c) => Number.isFinite(c.time)).sort((a, b) => a.time - b.time);
+}
 
-      .filter((c) => Number.isFinite(c.time))
-      .sort((a, b) => a.time - b.time)
-  );
+/** Candles over an explicit epoch-ms window (used to seed long EMAs with warmup bars). */
+export async function fetchCandlesRange(
+  symbol: string, interval: string, fromMs: number, toMs: number,
+): Promise<CandleData[]> {
+  const { data } = await apiClient.get<BackendCandle[]>('/api/v1/market', {
+    params: { symbol, interval, from: fromMs, to: toMs },
+  });
+  return data.map(mapCandle).filter((c) => Number.isFinite(c.time)).sort((a, b) => a.time - b.time);
 }
 
 /** Map a backend indicator row → IndicatorData (shared by both fetchers). */

@@ -38,6 +38,7 @@ import {
 import { useAccountStrategies } from '@/hooks/useStrategies';
 import { useChartIndicators } from '@/hooks/useChartIndicators';
 import { useBacktestIndicators } from '@/hooks/useBacktestIndicators';
+import { useEmaWarmupCandles } from '@/hooks/useEmaWarmupCandles';
 import { IndicatorBar } from '@/components/charts/IndicatorBar';
 import { useBacktestParamStore } from '@/store/backtestParamStore';
 import { cn } from '@/lib/utils';
@@ -103,6 +104,15 @@ export default function BacktestResultPage({ params }: { params: { id: string } 
     fromMs,
     toMs,
     anyActive,
+  );
+  // EMA-100 is computed client-side over [warmup + window]. A 100-period EMA
+  // needs 100 prior bars, so without warmup it's blank for the first ~100 of a
+  // short window. Fetch ~150 candles before the window — only when ema100 is on.
+  const warmupQ = useEmaWarmupCandles(
+    runQ.data?.symbol,
+    runQ.data?.interval,
+    fromMs,
+    indicators.ema100,
   );
 
   const liveSourceStrategies = useMemo(() => {
@@ -400,6 +410,7 @@ export default function BacktestResultPage({ params }: { params: { id: string } 
               onTradeSelect={handleChartSelect}
               scrollTrigger={chartScrollTrigger}
               features={indicatorsQ.data ?? EMPTY_FEATURES}
+              emaWarmupCandles={warmupQ.data ?? EMPTY_CANDLES}
               showIndicators={indicators}
             />
           </ErrorBoundary>

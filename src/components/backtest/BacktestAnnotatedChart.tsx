@@ -31,6 +31,7 @@ import { useFeaturesWithComputedEma } from '@/lib/charts/useFeaturesWithComputed
 import { X } from 'lucide-react';
 
 const EMPTY_FEATURES: IndicatorData[] = [];
+const EMPTY_CANDLES: CandleData[] = [];
 
 interface BacktestAnnotatedChartProps {
   candles: CandleData[];
@@ -41,6 +42,8 @@ interface BacktestAnnotatedChartProps {
   scrollTrigger?: number;
   height?: number;
   features?: IndicatorData[];
+  /** ~150 candles BEFORE the window, used only to seed the EMA-100 so it covers the whole window. */
+  emaWarmupCandles?: CandleData[];
   showIndicators?: ChartIndicators;
 }
 
@@ -60,6 +63,7 @@ export function BacktestAnnotatedChart({
   scrollTrigger,
   height = 500,
   features,
+  emaWarmupCandles,
   showIndicators,
 }: BacktestAnnotatedChartProps) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -213,7 +217,11 @@ export function BacktestAnnotatedChart({
     };
   }, [height]);
 
-  const augmentedFeatures = useFeaturesWithComputedEma(candles, features ?? EMPTY_FEATURES);
+  const augmentedFeatures = useFeaturesWithComputedEma(
+    candles,
+    features ?? EMPTY_FEATURES,
+    emaWarmupCandles ?? EMPTY_CANDLES,
+  );
 
   useChartIndicatorSeries(
     chartRef,

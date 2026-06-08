@@ -46,6 +46,9 @@ vi.mock('@/hooks/useChartIndicators', () => ({
 vi.mock('@/hooks/useBacktestIndicators', () => ({
   useBacktestIndicators: () => ({ data: undefined, isLoading: false, isError: false }),
 }));
+vi.mock('@/hooks/useEmaWarmupCandles', () => ({
+  useEmaWarmupCandles: () => ({ data: undefined, isLoading: false, isError: false }),
+}));
 
 vi.mock('@/store/backtestParamStore', () => ({
   useBacktestParamStore: (sel: (s: { hydrateFromRun: () => void }) => unknown) =>
