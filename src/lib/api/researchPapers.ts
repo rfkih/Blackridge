@@ -21,6 +21,7 @@ export type PaperSortBy =
 export async function listPapers(params?: {
   paperStatus?: PaperStatus;
   strategyCode?: string;
+  strategyKind?: 'TRADING' | 'HEDGING';
   instrument?: string;
   intervalName?: string;
   sortBy?: PaperSortBy;
@@ -32,6 +33,7 @@ export async function listPapers(params?: {
     params: {
       paper_status: params?.paperStatus || undefined,
       strategy_code: params?.strategyCode || undefined,
+      strategy_kind: params?.strategyKind || undefined,
       instrument: params?.instrument || undefined,
       interval_name: params?.intervalName || undefined,
       sort_by: params?.sortBy ?? 'created_time',

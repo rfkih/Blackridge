@@ -9,9 +9,18 @@ import { listPapers, type PaperSortBy } from '@/lib/api/researchPapers';
 import { useIsAdmin } from '@/hooks/useIsAdmin';
 import { Skeleton } from '@/components/ui/skeleton';
 import { SUPPORTED_SYMBOLS } from '@/lib/symbols';
+import { cn } from '@/lib/utils';
 import type { PaperPage, PaperStatus } from '@/types/papers';
 
 const INTERVAL_OPTIONS = ['5m', '15m', '1h', '4h'] as const;
+
+// Papers are split by strategy kind (strategy_definition.strategy_kind, V153) so
+// trading and hedging research never share a list. Trading is the default view.
+type PaperKind = 'TRADING' | 'HEDGING';
+const KIND_OPTIONS: ReadonlyArray<{ value: PaperKind; label: string }> = [
+  { value: 'TRADING', label: 'Trading' },
+  { value: 'HEDGING', label: 'Hedging' },
+];
 
 type SortOption = { label: string; sortBy: PaperSortBy; sortDir: 'asc' | 'desc' };
 const SORT_OPTIONS: SortOption[] = [
@@ -27,6 +36,7 @@ export default function ResearchPapersPage() {
   // forces that server-side regardless of this filter. In-progress (WORKING_PAPER)
   // drafts are admin-only, so the status filter is shown to admins only.
   const isAdmin = useIsAdmin();
+  const [kind, setKind] = useState<PaperKind>('TRADING');
   const [statusFilter, setStatusFilter] = useState<PaperStatus | ''>('');
   const [strategyCode, setStrategyCode] = useState('');
   const [debouncedStrategyCode, setDebouncedStrategyCode] = useState('');
@@ -42,6 +52,7 @@ export default function ResearchPapersPage() {
   const activeSort = SORT_OPTIONS[sortIndex];
   const activeFilters = {
     paperStatus: (statusFilter || undefined) as PaperStatus | undefined,
+    strategyKind: kind,
     strategyCode: debouncedStrategyCode.trim().toUpperCase() || undefined,
     instrument: instrument || undefined,
     intervalName: intervalName || undefined,
@@ -89,6 +100,33 @@ export default function ResearchPapersPage() {
           Ops <ChevronRight size={12} />
         </Link>
       </header>
+
+      <div
+        role="tablist"
+        aria-label="Paper kind"
+        className="inline-flex rounded-sm border border-bd-subtle bg-bg-base p-0.5"
+      >
+        {KIND_OPTIONS.map((opt) => {
+          const selected = kind === opt.value;
+          return (
+            <button
+              key={opt.value}
+              type="button"
+              role="tab"
+              aria-selected={selected}
+              onClick={() => setKind(opt.value)}
+              className={cn(
+                'rounded-[3px] px-4 py-1.5 text-[12px] font-semibold transition-colors focus:outline-none',
+                selected
+                  ? 'bg-[var(--accent-primary)] text-[var(--text-inverse)]'
+                  : 'text-text-secondary hover:text-text-primary',
+              )}
+            >
+              {opt.label}
+            </button>
+          );
+        })}
+      </div>
 
       <div className="flex flex-wrap items-center gap-2">
         <select
@@ -171,7 +209,7 @@ export default function ResearchPapersPage() {
           Could not load papers. The research orchestrator may be down.
         </div>
       ) : papers.length === 0 ? (
-        <EmptyState hasFilters={hasFilters} />
+        <EmptyState hasFilters={hasFilters} kindLabel={kind === 'HEDGING' ? 'hedging' : 'trading'} />
       ) : (
         <>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -199,14 +237,14 @@ export default function ResearchPapersPage() {
   );
 }
 
-function EmptyState({ hasFilters }: { hasFilters: boolean }) {
+function EmptyState({ hasFilters, kindLabel }: { hasFilters: boolean; kindLabel: string }) {
   return (
     <div className="space-y-3 rounded-xl border border-bd-subtle bg-bg-surface p-10 text-center">
       <BookOpen size={28} className="mx-auto text-text-muted" />
       <p className="text-[13px] text-text-muted">
         {hasFilters
-          ? 'No papers match these filters.'
-          : 'No research papers yet. Papers are generated automatically when a sweep reaches COMPLETED or PARKED.'}
+          ? `No ${kindLabel} papers match these filters.`
+          : `No ${kindLabel} research papers yet. Papers are generated automatically when a sweep reaches COMPLETED or PARKED.`}
       </p>
     </div>
   );
