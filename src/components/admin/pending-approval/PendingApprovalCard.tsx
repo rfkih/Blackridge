@@ -83,7 +83,7 @@ export function PendingApprovalCard({ row, onDialogOpenChange }: PendingApproval
 
   const handleReplicate = useCallback(() => {
     replicate.mutate(
-      { id: row.id, request: { actor: '' } },
+      { id: row.id, request: {} },
       {
         onSuccess: (data) => {
           toast.success({

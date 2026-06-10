@@ -131,7 +131,6 @@ export function ConfirmApproveDialog({
       await approve.mutateAsync({
         id: row.id,
         request: {
-          actor: '',
           citedBacktestRunId: effectiveCitedId || undefined,
         },
       });

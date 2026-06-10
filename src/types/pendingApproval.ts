@@ -110,9 +110,12 @@ export interface PendingApproval {
   createdBy: string | null;
 }
 
-export interface ReplicateRequest {
-  actor: string;     // overwritten server-side from JWT; pass any non-empty string
-}
+/**
+ * Actor identity comes from the JWT server-side and must NOT be in the body —
+ * the backend DTOs reject unknown fields (strict Jackson), so sending `actor`
+ * 400s. Replicate takes an empty JSON object.
+ */
+export type ReplicateRequest = Record<string, never>;
 
 export interface ReplicateResponseDto {
   backtestRunId: string;
@@ -122,11 +125,9 @@ export interface ReplicateResponseDto {
 }
 
 export interface ApproveRequest {
-  actor: string;                       // overwritten server-side from JWT
-  citedBacktestRunId?: string;         // defaults to original backtestRunId when omitted
+  citedBacktestRunId?: string; // defaults to original backtestRunId when omitted
 }
 
 export interface DismissRequest {
-  actor: string;                       // overwritten server-side from JWT
-  reason: string;                      // min length 8 (backend @Size(min=8))
+  reason: string; // min length 8 (backend @Size(min=8))
 }
