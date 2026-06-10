@@ -319,3 +319,20 @@ export function deriveTradeOutcome(positions: BacktestTradePosition[]): TradeOut
   }
   return { label: '—', description: 'Unknown outcome', tone: 'muted', hitLine: null };
 }
+
+/**
+ * Numeric priority for semantic outcome sorting — losses first, then partial
+ * outcomes, then wins. Trades with an unlisted label sort at priority 5.
+ */
+export const OUTCOME_PRIORITY: Record<string, number> = {
+  SL: 0,
+  'TP → SL': 1,
+  Manual: 2,
+  End: 3,
+  Open: 4,
+  Trail: 5,
+  TP: 6,
+  TP2: 7,
+  'TP + Trail': 8,
+  'TP1 + TP2': 9,
+};

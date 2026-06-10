@@ -47,7 +47,7 @@ interface BacktestAnnotatedChartProps {
   showIndicators?: ChartIndicators;
 }
 
-const MARKER_HIT_RADIUS_PX = 32;
+const MARKER_HIT_RADIUS_PX = 16;
 
 interface HoverState {
   tradeId: string;
@@ -77,6 +77,9 @@ export function BacktestAnnotatedChart({
     LineStyle: { Dashed: number; Solid: number };
   } | null>(null);
   const indicatorStateRef = useRef<IndicatorSeriesState>({});
+  const bandsCanvasRef = useRef<HTMLCanvasElement>(null);
+  const clusterBadgesRef = useRef<HTMLDivElement>(null);
+  const overlayCtxRef = useRef({ trades, metaByTime: new Map<number, MarkerMeta[]>() });
 
   const [ready, setReady] = useState(false);
   const [hover, setHover] = useState<HoverState | null>(null);
@@ -101,11 +104,81 @@ export function BacktestAnnotatedChart({
     return { markers: snappedMarkers, metaByTime: map };
   }, [trades, candles]);
 
+  // Keep overlay context in sync so recomputeOverlays reads fresh data without deps.
+  overlayCtxRef.current = { trades, metaByTime };
+
   const tradeById = useMemo(() => {
     const m = new Map<string, BacktestTrade>();
     for (const t of trades) m.set(t.id, t);
     return m;
   }, [trades]);
+
+  const recomputeOverlays = useCallback(() => {
+    const chart = chartRef.current;
+    const canvas = bandsCanvasRef.current;
+    const badgesEl = clusterBadgesRef.current;
+    const container = containerRef.current;
+    if (!chart || !canvas || !badgesEl || !container) return;
+
+    const { trades: currentTrades, metaByTime: currentMeta } = overlayCtxRef.current;
+    const ts = chart.timeScale();
+    const w = container.clientWidth;
+    const h = container.clientHeight;
+
+    // Duration bands — canvas is faster than DOM divs for per-frame repaint.
+    canvas.width = w;
+    canvas.height = h;
+    const ctx2d = canvas.getContext('2d');
+    if (ctx2d) {
+      for (const trade of currentTrades) {
+        const e0 = Math.floor(trade.entryTime / 1000);
+        const e1 = trade.exitTime ? Math.floor(trade.exitTime / 1000) : e0;
+        const x0 = ts.timeToCoordinate(e0 as Time);
+        const x1 = ts.timeToCoordinate(e1 as Time);
+        if (x0 == null && x1 == null) continue;
+        const left = Math.max(0, x0 ?? 0);
+        const right = Math.min(w, (x1 ?? w) + 1);
+        if (right <= left) continue;
+        ctx2d.fillStyle =
+          trade.direction === 'LONG' ? 'rgba(0,200,150,0.06)' : 'rgba(255,77,106,0.06)';
+        ctx2d.fillRect(left, 0, right - left, h);
+      }
+    }
+
+    // Cluster count badges — few DOM nodes (only at multi-trade candles).
+    badgesEl.textContent = '';
+    currentMeta.forEach((metas, time) => {
+      const uniqueIds = new Set(metas.map((m) => m.tradeId));
+      if (uniqueIds.size < 2) return;
+      const x = ts.timeToCoordinate(time as Time);
+      if (x == null || x < 0 || x > w) return;
+      const badge = document.createElement('div');
+      badge.textContent = String(uniqueIds.size);
+      badge.style.cssText = `position:absolute;top:6px;left:${Math.round(x) - 8}px;width:16px;height:16px;border-radius:50%;background:rgba(59,130,246,0.85);color:#fff;font:700 9px/16px monospace;text-align:center`;
+      badgesEl.appendChild(badge);
+    });
+  }, []);
+
+  // Re-run overlays whenever the visible time range changes (pan / zoom).
+  useEffect(() => {
+    if (!ready) return;
+    const chart = chartRef.current;
+    if (!chart) return;
+    recomputeOverlays();
+    chart.timeScale().subscribeVisibleTimeRangeChange(recomputeOverlays);
+    return () => {
+      try {
+        chart.timeScale().unsubscribeVisibleTimeRangeChange(recomputeOverlays);
+      } catch {
+      }
+    };
+  }, [ready, recomputeOverlays]);
+
+  // Re-run overlays when the trade/meta set changes (filter change, initial load).
+  useEffect(() => {
+    if (!ready) return;
+    recomputeOverlays();
+  }, [ready, trades, metaByTime, recomputeOverlays]);
 
   const clickCtxRef = useRef({ metaByTime, onTradeSelect, series: seriesRef });
   clickCtxRef.current = { metaByTime, onTradeSelect, series: seriesRef };
@@ -320,7 +393,7 @@ export function BacktestAnnotatedChart({
           (p) => p.type === 'RUNNER' && p.exitReason === 'RUNNER_CLOSE',
         );
         if (runnerLeg?.exitPrice != null && Number.isFinite(runnerLeg.exitPrice)) {
-          add(runnerLeg.exitPrice, '#3B82F6', 'TRAIL', 'RUNNER');
+          add(runnerLeg.exitPrice, '#3B82F6', 'TRAIL EXIT', 'RUNNER');
         }
       }
       add(trade.entryPrice, '#3B82F6', 'ENTRY', null);
@@ -434,11 +507,16 @@ export function BacktestAnnotatedChart({
       onKeyDown={handleKey}
       aria-label="Backtest annotated candlestick chart"
     >
+      {/* Trade duration bands rendered on a transparent canvas overlay */}
+      <canvas ref={bandsCanvasRef} className="pointer-events-none absolute left-0 top-0" aria-hidden="true" />
       {hoveredTrade && hover && <TradeMarkerTooltip trade={hoveredTrade} x={hover.x} y={hover.y} />}
       {selectedTrade && (
         <TradeDetailCard trade={selectedTrade} onClose={() => onTradeSelect(null)} />
       )}
       {!selectedTrade && trades.length > 0 && <ClickAnyMarkerHint />}
+      {/* Cluster count badges for candles with multiple overlapping markers */}
+      <div ref={clusterBadgesRef} className="pointer-events-none absolute inset-0" aria-hidden="true" />
+      {ready && <ExportChartButton chartRef={chartRef} />}
     </div>
     /* eslint-enable jsx-a11y/no-noninteractive-element-interactions, jsx-a11y/no-noninteractive-tabindex */
   );
@@ -484,6 +562,36 @@ function ClickAnyMarkerHint() {
         <X size={11} strokeWidth={2} />
       </button>
     </div>
+  );
+}
+
+function ExportChartButton({ chartRef }: { chartRef: { current: IChartApi | null } }) {
+  const handleExport = useCallback(() => {
+    const chart = chartRef.current;
+    if (!chart) return;
+    try {
+      const canvas = chart.takeScreenshot();
+      const url = canvas.toDataURL('image/png');
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'backtest-chart.png';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    } catch {
+    }
+  }, [chartRef]);
+
+  return (
+    <button
+      type="button"
+      onClick={handleExport}
+      className="absolute bottom-3 left-3 z-10 rounded-md border border-[var(--border-default)] px-2.5 py-1.5 font-mono text-[10px] uppercase tracking-wider text-[var(--text-secondary)] shadow-md transition-colors hover:text-[var(--text-primary)]"
+      style={{ background: 'var(--bg-elevated)' }}
+      aria-label="Export chart as PNG"
+    >
+      PNG
+    </button>
   );
 }
 

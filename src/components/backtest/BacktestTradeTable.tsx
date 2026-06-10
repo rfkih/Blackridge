@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils';
 import {
   deriveTradeOutcome,
   legHitMap,
+  OUTCOME_PRIORITY,
   type OutcomeTone,
   type TradeOutcome,
 } from '@/lib/backtest/buildTradeMarkers';
@@ -111,7 +112,7 @@ const SORT_EXTRACTORS: Record<SortKey, (t: BacktestTrade) => number | string | n
   sl: (t) => t.stopLossPrice,
   tp1: (t) => t.tp1Price,
   tp2: (t) => t.tp2Price,
-  outcome: (t) => deriveTradeOutcome(t.positions).label,
+  outcome: (t) => OUTCOME_PRIORITY[deriveTradeOutcome(t.positions).label] ?? 5,
   pnl: (t) => t.realizedPnl,
   r: (t) => t.rMultiple,
   duration: (t) => (t.exitTime != null ? t.exitTime - t.entryTime : null),
@@ -249,6 +250,80 @@ export function BacktestTradeTable({
     return copy;
   }, [filtered, sortKey, sortDir]);
 
+  const hasMultiStrategy = filterOptions.strategies.length > 1;
+
+  const strategyStats = useMemo(() => {
+    if (!hasMultiStrategy) return null;
+    const stats = new Map<string, { count: number; wins: number; totalPnl: number }>();
+    for (const t of ordered) {
+      const key = tradeStrategyKey(t);
+      const s = stats.get(key) ?? { count: 0, wins: 0, totalPnl: 0 };
+      s.count++;
+      if (t.realizedPnl > 0) s.wins++;
+      s.totalPnl += t.realizedPnl;
+      stats.set(key, s);
+    }
+    return Array.from(stats.entries()).map(([code, s]) => ({ code, ...s }));
+  }, [ordered, hasMultiStrategy]);
+
+  const downloadCsv = useCallback(() => {
+    const csvEscape = (v: unknown): string => {
+      const s = String(v ?? '');
+      if (s.includes(',') || s.includes('"') || s.includes('\n')) {
+        return `"${s.replace(/"/g, '""')}"`;
+      }
+      return s;
+    };
+    const header = hedging
+      ? ['#', 'Strategy', 'TF', 'Switch', 'Entry Time', 'Entry Price', 'Exit Time', 'Exit Price', 'Outcome', 'P&L', 'Duration']
+      : ['#', 'Strategy', 'TF', 'Side', 'Entry Time', 'Entry Price', 'Exit Time', 'Exit Price', 'SL', 'TP1', 'TP2', 'Outcome', 'P&L', 'R', 'Duration'];
+    const rows = ordered.map((t, i) => {
+      const duration = t.exitTime != null ? t.exitTime - t.entryTime : null;
+      const outcome = deriveTradeOutcome(t.positions).label;
+      const base = [
+        i + 1,
+        t.strategyCode ?? t.strategyName ?? '',
+        t.interval ?? '',
+      ];
+      if (hedging) {
+        return [...base,
+          t.direction === 'LONG' ? '→ BTC' : '→ Cash',
+          t.entryTime ? new Date(t.entryTime).toISOString() : '',
+          t.entryPrice,
+          t.exitTime ? new Date(t.exitTime).toISOString() : '',
+          t.exitPrice ?? '',
+          outcome,
+          t.realizedPnl.toFixed(8),
+          duration != null ? formatDuration(duration) : '',
+        ];
+      }
+      return [...base,
+        t.direction,
+        t.entryTime ? new Date(t.entryTime).toISOString() : '',
+        t.entryPrice,
+        t.exitTime ? new Date(t.exitTime).toISOString() : '',
+        t.exitPrice ?? '',
+        t.stopLossPrice ?? '',
+        t.tp1Price ?? '',
+        t.tp2Price ?? '',
+        outcome,
+        t.realizedPnl.toFixed(8),
+        t.rMultiple?.toFixed(4) ?? '',
+        duration != null ? formatDuration(duration) : '',
+      ];
+    });
+    const csv = [header, ...rows].map((row) => row.map(csvEscape).join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'backtest-trades.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }, [ordered, hedging]);
+
   const handleSort = useCallback((key: SortKey) => {
     setSortKey((prevKey) => {
       if (prevKey !== key) {
@@ -308,7 +383,9 @@ export function BacktestTradeTable({
         onChange={setFilters}
         totalCount={trades.length}
         visibleCount={ordered.length}
+        onExportCsv={downloadCsv}
       />
+      {strategyStats && <StrategyStatsStrip stats={strategyStats} />}
       {ordered.length === 0 ? (
         <div className="rounded-xl border border-bd-subtle bg-bg-surface px-6 py-12 text-center text-sm text-text-muted">
           {filtersActive
@@ -408,6 +485,7 @@ interface BacktestTradeFiltersProps {
   onChange: (next: FilterState) => void;
   totalCount: number;
   visibleCount: number;
+  onExportCsv: () => void;
 }
 
 function BacktestTradeFilters({
@@ -416,6 +494,7 @@ function BacktestTradeFilters({
   onChange,
   totalCount,
   visibleCount,
+  onExportCsv,
 }: BacktestTradeFiltersProps) {
   const toggleSet = <T extends string>(set: Set<T>, value: T): Set<T> => {
     const next = new Set(set);
@@ -531,6 +610,14 @@ function BacktestTradeFilters({
               ? `${totalCount.toLocaleString()} trades`
               : `${visibleCount.toLocaleString()} of ${totalCount.toLocaleString()}`}
           </span>
+          <button
+            type="button"
+            onClick={onExportCsv}
+            className="inline-flex items-center gap-1 rounded-sm border border-bd-subtle bg-bg-base px-2 py-1 font-mono text-[10px] uppercase tracking-wider text-text-secondary transition-colors hover:bg-bg-hover hover:text-text-primary"
+            title="Download visible trades as CSV"
+          >
+            CSV
+          </button>
           {active && (
             <button
               type="button"
@@ -862,4 +949,45 @@ function legDotColor(reason: PositionExitReason | null | undefined): string {
     default:
       return 'var(--text-muted)';
   }
+}
+
+function StrategyStatsStrip({
+  stats,
+}: {
+  stats: Array<{ code: string; count: number; wins: number; totalPnl: number }>;
+}) {
+  return (
+    <div className="rounded-xl border border-bd-subtle bg-bg-surface px-3 py-2">
+      <div className="flex flex-wrap items-center gap-2">
+        {stats.map((s) => {
+          const winRate = s.count > 0 ? (s.wins / s.count) * 100 : 0;
+          const pnlUp = s.totalPnl >= 0;
+          return (
+            <div
+              key={s.code}
+              className="flex items-center gap-2 rounded-sm border border-bd-subtle bg-bg-base px-2.5 py-1.5"
+            >
+              <span className="font-mono text-[11px] font-semibold text-text-primary">{s.code}</span>
+              <span className="text-text-muted">·</span>
+              <span className="font-mono text-[11px] tabular-nums text-text-secondary">{s.count} trades</span>
+              <span className="text-text-muted">·</span>
+              <span
+                className="font-mono text-[11px] tabular-nums"
+                style={{ color: winRate >= 50 ? 'var(--color-profit)' : 'var(--color-loss)' }}
+              >
+                {winRate.toFixed(0)}% win
+              </span>
+              <span className="text-text-muted">·</span>
+              <span
+                className="font-mono text-[11px] tabular-nums font-semibold"
+                style={{ color: pnlUp ? 'var(--color-profit)' : 'var(--color-loss)' }}
+              >
+                {pnlUp ? '+' : ''}{s.totalPnl.toFixed(2)}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
 }
