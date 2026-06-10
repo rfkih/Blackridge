@@ -63,7 +63,8 @@ export default function DashboardPage() {
   const activeBots = visibleStrategies.filter((s) => s.status === 'LIVE').length;
   const totalBots = visibleStrategies.length;
   const bestOpen = pickBestOpen(openTrades);
-  const winRate = pnlSummary?.winRate ?? 0;
+  // pnlSummary.winRate is a fraction in [0,1]; render as a percentage.
+  const winRatePct = (pnlSummary?.winRate ?? 0) * 100;
   const scopeLabel = isAll ? 'All accounts' : (activeAccount?.label ?? '');
 
   // Account-type branch: a single HEDGING account active renders the hedging
@@ -107,7 +108,7 @@ export default function DashboardPage() {
           value={String(openTrades.length)}
           sub={
             bestOpen
-              ? `${bestOpen.symbol.replace(/USDT$/, '')} +${bestOpen.pct.toFixed(2)}%`
+              ? `${bestOpen.symbol.replace(/USDT$/, '')} ${bestOpen.pct >= 0 ? '+' : ''}${bestOpen.pct.toFixed(2)}%`
               : `${profitableCount} in profit`
           }
           tone="profit"
@@ -122,7 +123,7 @@ export default function DashboardPage() {
         />
         <StatCard
           label="Win rate (30d)"
-          value={`${winRate.toFixed(1)}%`}
+          value={`${winRatePct.toFixed(1)}%`}
           sub={`${activeBots} of ${totalBots} strategies live`}
           tone="neutral"
           icon={<Zap size={16} strokeWidth={2} />}
@@ -436,14 +437,20 @@ function EquityPanel({ balance, changeToday, changePct, points, period, setPerio
           className="inline-flex gap-0.5 rounded-[10px] p-1"
           style={{ background: 'var(--bg-hover)' }}
         >
-          {(['1D', '1W', '1M', '3M', 'YTD', '1Y', 'ALL'] as const).map((p) => {
-            const mapped = mapPeriod(p);
-            const active = period === mapped;
+          {(
+            [
+              ['7D', '7D'],
+              ['30D', '30D'],
+              ['90D', '90D'],
+              ['ALL', 'All'],
+            ] as const
+          ).map(([value, label]) => {
+            const active = period === value;
             return (
               <button
-                key={p}
+                key={value}
                 type="button"
-                onClick={() => setPeriod(mapped)}
+                onClick={() => setPeriod(value)}
                 className="rounded-lg px-3 py-1.5 text-[12px] font-semibold transition-colors"
                 style={{
                   background: active ? 'var(--bg-elevated)' : 'transparent',
@@ -452,7 +459,7 @@ function EquityPanel({ balance, changeToday, changePct, points, period, setPerio
                   border: 'none',
                 }}
               >
-                {p}
+                {label}
               </button>
             );
           })}
@@ -771,20 +778,6 @@ function minMax(data: number[]): { min: number; max: number } {
     if (v > max) max = v;
   }
   return { min, max };
-}
-
-type UiPeriod = '1D' | '1W' | '1M' | '3M' | 'YTD' | '1Y' | 'ALL';
-const PERIOD_MAP: Record<UiPeriod, ReturnType<typeof useEquityCurve>['period']> = {
-  '1D': '7D',
-  '1W': '7D',
-  '1M': '30D',
-  '3M': '90D',
-  YTD: 'ALL',
-  '1Y': 'ALL',
-  ALL: 'ALL',
-};
-function mapPeriod(p: UiPeriod): ReturnType<typeof useEquityCurve>['period'] {
-  return PERIOD_MAP[p];
 }
 
 function fallbackCurve(): number[] {

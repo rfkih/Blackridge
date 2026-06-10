@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowDown, ArrowLeft, ArrowUp, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useEvaluateHoldout, useSweep } from '@/hooks/useResearch';
 import { toast } from '@/hooks/useToast';
@@ -29,6 +29,19 @@ export default function SweepDetailPage({ params }: PageProps) {
   const [roundFilter, setRoundFilter] = useState<Set<number>>(new Set());
   const [sortKey, setSortKey] = useState<keyof SweepResult>(rankMetric as keyof SweepResult);
   const [sortDir, setSortDir] = useState<SortDir>('desc');
+
+  // The sweep's configured rankMetric arrives async; the useState initializer
+  // above runs only on first mount (when `s` is still undefined → 'avgR').
+  // Sync the default sort column to the real rankMetric once the spec loads,
+  // without clobbering a manual column the user has since picked (deps only
+  // change when rankMetric itself changes — typically once, on load).
+  const userSortedRef = useRef(false);
+  const specRankMetric = s?.spec.rankMetric;
+  useEffect(() => {
+    if (specRankMetric && !userSortedRef.current) {
+      setSortKey(specRankMetric as keyof SweepResult);
+    }
+  }, [specRankMetric]);
   const [page, setPage] = useState(0);
   const PAGE_SIZE = 20;
 
@@ -95,6 +108,7 @@ export default function SweepDetailPage({ params }: PageProps) {
     setPage(0);
   };
   const onSortClick = (key: keyof SweepResult) => {
+    userSortedRef.current = true;
     if (sortKey === key) {
       setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
     } else {

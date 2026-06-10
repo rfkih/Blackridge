@@ -110,21 +110,6 @@ export default function ResearchDashboardPage() {
   const tick = useTick();
   const [enqueueOpen, setEnqueueOpen] = useState(false);
 
-  if (!isAdmin) {
-    return (
-      <div className="space-y-3 rounded-xl border border-bd-subtle bg-bg-surface p-8 text-center">
-        <ShieldCheck size={28} className="mx-auto text-text-muted" />
-        <h1 className="font-display text-[20px] font-semibold tracking-tight text-text-primary">
-          Admin only
-        </h1>
-        <p className="text-[13px] text-text-muted">
-          The research dashboard surfaces internal JVM state and promotion controls. Sign in with an
-          admin account to view it.
-        </p>
-      </div>
-    );
-  }
-
   const refreshAll = () => {
     queryClient.invalidateQueries({ queryKey: ['actuator'] });
     queryClient.invalidateQueries({ queryKey: ['strategy-promotion'] });
@@ -163,6 +148,21 @@ export default function ResearchDashboardPage() {
       },
     });
   }, [tick]);
+
+  if (!isAdmin) {
+    return (
+      <div className="space-y-3 rounded-xl border border-bd-subtle bg-bg-surface p-8 text-center">
+        <ShieldCheck size={28} className="mx-auto text-text-muted" />
+        <h1 className="font-display text-[20px] font-semibold tracking-tight text-text-primary">
+          Admin only
+        </h1>
+        <p className="text-[13px] text-text-muted">
+          The research dashboard surfaces internal JVM state and promotion controls. Sign in with an
+          admin account to view it.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-5">
@@ -2202,7 +2202,7 @@ function ResearchLogPanel() {
                     {numOrDash(r.tradeCount, 0)}
                   </Td>
                   <Td align="right" className="num">
-                    {pctOrDash(r.winRate * 100)}
+                    {pctOrDash(r.winRate != null ? r.winRate * 100 : null)}
                   </Td>
                   <Td align="right" className="num">
                     {numOrDash(r.profitFactor, 2)}

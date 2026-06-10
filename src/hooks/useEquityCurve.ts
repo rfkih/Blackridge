@@ -12,11 +12,10 @@ export type EquityPeriod = '7D' | '30D' | '90D' | 'ALL';
 
 const EMPTY_POINTS: EquityPoint[] = [];
 
-const PERIOD_DAYS: Record<EquityPeriod, number> = {
+const PERIOD_DAYS: Record<Exclude<EquityPeriod, 'ALL'>, number> = {
   '7D': 7,
   '30D': 30,
   '90D': 90,
-  ALL: 365,
 };
 
 const FALLBACK_CAPITAL = 10_000;
@@ -30,7 +29,8 @@ function periodWindow(period: EquityPeriod) {
   const now = Date.now();
   const hourMs = 60 * 60 * 1_000;
   const to = Math.floor(now / hourMs) * hourMs;
-  const from = to - PERIOD_DAYS[period] * 86_400_000;
+  // "ALL" must return the account's full history, not the last 365 days.
+  const from = period === 'ALL' ? 0 : to - PERIOD_DAYS[period] * 86_400_000;
   return { from, to };
 }
 
