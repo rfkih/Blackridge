@@ -55,7 +55,7 @@ export function DismissDialog({ row, onOpenChange }: DismissDialogProps) {
     if (!row || !isValid) return;
 
     dismiss.mutate(
-      { id: row.id, request: { actor: '', reason: reason.trim() } },
+      { id: row.id, request: { reason: reason.trim() } },
       {
         onSuccess: () => {
           toast.success({
