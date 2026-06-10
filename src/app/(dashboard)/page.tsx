@@ -159,7 +159,7 @@ export default function DashboardPage() {
         className="grid gap-4"
         style={{ gridTemplateColumns: 'minmax(0, 2fr) minmax(0, 1fr)' }}
       >
-        <DailyPnlPanel weekTotal={changeToday * 7} />
+        <DailyPnlPanel todayPnl={changeToday} />
         <WatchlistPanel />
       </section>
 
@@ -469,18 +469,8 @@ function EquityPanel({ balance, changeToday, changePct, points, period, setPerio
   );
 }
 
-function DailyPnlPanel({ weekTotal }: { weekTotal: number }) {
+function DailyPnlPanel({ todayPnl }: { todayPnl: number }) {
   const formatCurrency = useCurrencyFormatter();
-  const days = useMemo(() => {
-    const labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-    let s = 55;
-    const rand = () => {
-      s = (s * 9301 + 49297) % 233280;
-      return s / 233280;
-    };
-    return labels.map((label) => ({ label, v: (rand() - 0.42) * 1400 }));
-  }, []);
-  const max = Math.max(...days.map((d) => Math.abs(d.v))) || 1;
 
   return (
     <div className="br-card" style={{ padding: 24 }}>
@@ -488,60 +478,39 @@ function DailyPnlPanel({ weekTotal }: { weekTotal: number }) {
         <div>
           <h3
             className="font-display"
-            style={{
-              fontSize: 16,
-              fontWeight: 700,
-              margin: 0,
-              color: 'var(--text-primary)',
-            }}
+            style={{ fontSize: 16, fontWeight: 700, margin: 0, color: 'var(--text-primary)' }}
           >
-            Daily P&amp;L this week
+            Daily P&amp;L
           </h3>
           <div className="mt-1 text-[12px]" style={{ color: 'var(--text-muted)' }}>
-            Realized + unrealized, all accounts
+            Realized + unrealized · today
           </div>
         </div>
         <div
           className="num text-[14px] font-semibold"
-          style={{
-            color: weekTotal >= 0 ? 'var(--color-profit)' : 'var(--color-loss)',
-          }}
+          style={{ color: todayPnl >= 0 ? 'var(--color-profit)' : 'var(--color-loss)' }}
         >
-          {weekTotal >= 0 ? '+ ' : '− '}
-          {formatCurrency(Math.abs(weekTotal))} this week
+          {todayPnl >= 0 ? '+ ' : '− '}
+          {formatCurrency(Math.abs(todayPnl))}
         </div>
       </div>
-      <div className="flex h-[180px] items-end gap-3">
-        {days.map((d) => {
-          const heightPct = (Math.abs(d.v) / max) * 90;
-          const up = d.v >= 0;
-          return (
-            <div key={d.label} className="flex flex-1 flex-col items-center gap-1.5">
-              <div
-                className="rounded-[3px] transition-all w-full"
-                style={{
-                  height: `${heightPct}%`,
-                  background: up ? 'var(--color-profit)' : 'var(--color-loss)',
-                }}
-              />
-              <div className="text-[10px]" style={{ color: 'var(--text-muted)' }}>
-                {d.label}
-              </div>
-            </div>
-          );
-        })}
+      <div
+        className="flex h-[180px] flex-col items-center justify-center gap-2 rounded-lg"
+        style={{ background: 'var(--bg-elevated)', border: '1px dashed var(--border-subtle)' }}
+      >
+        <TrendingUp size={28} style={{ color: 'var(--text-muted)', opacity: 0.4 }} />
+        <div className="text-center">
+          <div className="text-[13px] font-medium" style={{ color: 'var(--text-secondary)' }}>
+            Per-day breakdown coming soon
+          </div>
+          <div className="mt-1 text-[11px]" style={{ color: 'var(--text-muted)' }}>
+            Daily P&L history will appear here once the endpoint is available
+          </div>
+        </div>
       </div>
     </div>
   );
 }
-
-const WATCHLIST = [
-  { sym: 'BTC', pair: 'BTC/USDT', price: 68340.2, ch: 1.81 },
-  { sym: 'ETH', pair: 'ETH/USDT', price: 3614.4, ch: 0.96 },
-  { sym: 'SOL', pair: 'SOL/USDT', price: 165.3, ch: -2.04 },
-  { sym: 'BNB', pair: 'BNB/USDT', price: 605.42, ch: -1.2 },
-  { sym: 'AVAX', pair: 'AVAX/USDT', price: 37.92, ch: 3.05 },
-] as const;
 
 function WatchlistPanel() {
   return (
@@ -549,67 +518,28 @@ function WatchlistPanel() {
       <div className="mb-3 flex items-center justify-between">
         <h3
           className="font-display"
-          style={{
-            fontSize: 16,
-            fontWeight: 700,
-            margin: 0,
-            color: 'var(--text-primary)',
-          }}
+          style={{ fontSize: 16, fontWeight: 700, margin: 0, color: 'var(--text-primary)' }}
         >
           Watchlist
         </h3>
-        <button
-          type="button"
-          className="br-btn br-btn-ghost br-btn-sm"
-          aria-label="Add to watchlist"
-        >
-          <Plus size={14} />
-        </button>
       </div>
-      <div className="flex flex-col">
-        {WATCHLIST.map((w) => {
-          const up = w.ch >= 0;
-          return (
-            <div
-              key={w.sym}
-              className="flex items-center gap-3 py-2.5"
-              style={{ borderTop: '1px solid var(--border-subtle)' }}
-            >
-              <div
-                className={`br-ticker ${w.sym.toLowerCase()}`}
-                style={{ width: 32, height: 32, fontSize: 11 }}
-              >
-                {w.sym}
-              </div>
-              <div className="flex-1 min-w-0">
-                <div
-                  className="text-[14px] font-semibold"
-                  style={{ color: 'var(--text-primary)' }}
-                >
-                  {w.sym}
-                </div>
-                <div className="text-[11px]" style={{ color: 'var(--text-muted)' }}>
-                  {w.pair}
-                </div>
-              </div>
-              <div className="text-right" style={{ minWidth: 78 }}>
-                <div
-                  className="num text-[13px] font-semibold"
-                  style={{ color: 'var(--text-primary)' }}
-                >
-                  ${w.price.toLocaleString(undefined, { maximumFractionDigits: 2 })}
-                </div>
-                <div
-                  className="num text-[11px] font-semibold"
-                  style={{ color: up ? 'var(--color-profit)' : 'var(--color-loss)' }}
-                >
-                  {up ? '+' : ''}
-                  {w.ch.toFixed(2)}%
-                </div>
-              </div>
-            </div>
-          );
-        })}
+      <div
+        className="flex flex-col items-center justify-center gap-2 rounded-lg"
+        style={{
+          minHeight: 200,
+          background: 'var(--bg-elevated)',
+          border: '1px dashed var(--border-subtle)',
+        }}
+      >
+        <Zap size={24} style={{ color: 'var(--text-muted)', opacity: 0.4 }} />
+        <div className="text-center px-4">
+          <div className="text-[13px] font-medium" style={{ color: 'var(--text-secondary)' }}>
+            Live market data coming soon
+          </div>
+          <div className="mt-1 text-[11px]" style={{ color: 'var(--text-muted)' }}>
+            Real-time prices will appear here once the market data endpoint is wired up
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -35,6 +35,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { PageHeader } from '@/components/shared/PageHeader';
 import {
@@ -986,6 +994,10 @@ export default function StrategiesPage() {
     strategy: AccountStrategy;
     fromStopped: boolean;
   } | null>(null);
+  const [intervalConfirmTarget, setIntervalConfirmTarget] = useState<{
+    strategy: AccountStrategy;
+    intervalName: string;
+  } | null>(null);
   const activateMutation = useActivateStrategy();
   const deactivateMutation = useDeactivateStrategy();
   const intervalMutation = useUpdateStrategyInterval();
@@ -1126,11 +1138,12 @@ export default function StrategiesPage() {
     });
   };
 
-  const handleIntervalChange = (strategy: AccountStrategy, intervalName: string) => {
+  const doIntervalChange = (strategy: AccountStrategy, intervalName: string) => {
     intervalMutation.mutate(
       { id: strategy.id, intervalName },
       {
         onSuccess: (s) => {
+          setIntervalConfirmTarget(null);
           toast.success({
             title: `Interval changed`,
             description: `${s.presetName} now runs on ${s.interval}.`,
@@ -1144,6 +1157,15 @@ export default function StrategiesPage() {
         },
       },
     );
+  };
+
+  const handleIntervalChange = (strategy: AccountStrategy, intervalName: string) => {
+    const isRunning = strategy.status === 'LIVE' || strategy.status === 'PAPER';
+    if (isRunning) {
+      setIntervalConfirmTarget({ strategy, intervalName });
+    } else {
+      doIntervalChange(strategy, intervalName);
+    }
   };
 
   /**
@@ -1420,6 +1442,48 @@ export default function StrategiesPage() {
         onOpenChange={(open) => { if (!open) setTopRunsTarget(null); }}
         strategy={topRunsTarget}
       />
+
+      <Dialog
+        open={intervalConfirmTarget != null}
+        onOpenChange={(open) => { if (!open) setIntervalConfirmTarget(null); }}
+      >
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Change interval?</DialogTitle>
+            <DialogDescription>
+              <strong>{intervalConfirmTarget?.strategy.presetName}</strong> is currently{' '}
+              <strong>{intervalConfirmTarget?.strategy.status}</strong>. Changing the interval from{' '}
+              <span className="font-mono">{intervalConfirmTarget?.strategy.interval}</span> to{' '}
+              <span className="font-mono">{intervalConfirmTarget?.intervalName}</span> takes effect
+              on the next bar close. Open positions continue to run at the original interval until
+              they close.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <button
+              type="button"
+              onClick={() => setIntervalConfirmTarget(null)}
+              disabled={intervalMutation.isPending}
+              className="rounded-md border border-[var(--border-default)] bg-[var(--bg-elevated)] px-3 py-1.5 text-xs text-[var(--text-primary)] transition-colors hover:bg-[var(--bg-hover)] disabled:opacity-50"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                if (intervalConfirmTarget) {
+                  doIntervalChange(intervalConfirmTarget.strategy, intervalConfirmTarget.intervalName);
+                }
+              }}
+              disabled={intervalMutation.isPending}
+              className="inline-flex items-center gap-1.5 rounded-md bg-[var(--accent-primary)] px-3 py-1.5 text-xs font-semibold text-white hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {intervalMutation.isPending && <Loader2 size={12} className="animate-spin" />}
+              {intervalMutation.isPending ? 'Changing…' : 'Change interval'}
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

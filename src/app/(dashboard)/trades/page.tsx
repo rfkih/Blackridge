@@ -39,6 +39,39 @@ import type { TradeStatus, Trades } from '@/types/trading';
 type StatusFilter = TradeStatus | 'ALL';
 const STATUSES: StatusFilter[] = ['ALL', 'OPEN', 'PARTIALLY_CLOSED', 'CLOSED'];
 
+function csvEscape(v: string | number | null | undefined): string {
+  if (v == null) return '';
+  const s = String(v);
+  if (s.includes(',') || s.includes('"') || s.includes('\n')) return `"${s.replace(/"/g, '""')}"`;
+  return s;
+}
+
+function downloadTradesCsv(trades: Trades[]) {
+  const headers = ['id', 'symbol', 'strategy', 'direction', 'status', 'entry_time', 'entry_price', 'exit_time', 'exit_price', 'quantity', 'realized_pnl', 'fee_usdt'];
+  const rows = trades.map((t) => [
+    t.id,
+    t.symbol,
+    t.strategyCode,
+    t.direction,
+    t.status,
+    t.entryTime ? new Date(t.entryTime).toISOString() : '',
+    t.entryPrice,
+    t.exitTime ? new Date(t.exitTime).toISOString() : '',
+    t.exitAvgPrice ?? '',
+    t.quantity,
+    t.realizedPnl,
+    t.feeUsdt,
+  ].map(csvEscape).join(','));
+  const csv = [headers.join(','), ...rows].join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `trades_${new Date().toISOString().slice(0, 10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 interface Filters {
   status: StatusFilter;
   strategyCode: string;
@@ -368,13 +401,18 @@ function TradesPageContent() {
             type="button"
             className="mm-btn"
             style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
+            onClick={() => downloadTradesCsv(rows)}
+            disabled={rows.length === 0}
+            title="Download current page as CSV"
           >
             <Download size={12} strokeWidth={1.75} /> CSV
           </button>
           <button
             type="button"
             className="mm-btn"
-            style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 6, opacity: 0.5, cursor: 'not-allowed' }}
+            title="FIFO tax report — coming soon"
+            disabled
           >
             <Receipt size={12} strokeWidth={1.75} /> FIFO · tax
           </button>
@@ -395,7 +433,7 @@ function TradesPageContent() {
       <section className="mm-card" style={{ padding: '12px 16px' }}>
         {}
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center' }}>
-          <div
+          <label
             style={{
               flex: '0 1 280px',
               display: 'flex',
@@ -410,8 +448,22 @@ function TradesPageContent() {
             }}
           >
             <Search size={12} strokeWidth={1.75} aria-hidden="true" />
-            <span>Search symbol, strategy, note…</span>
-          </div>
+            <input
+              type="text"
+              value={filters.symbol}
+              onChange={(e) => patchFilters({ symbol: e.target.value })}
+              placeholder="Search symbol…"
+              aria-label="Filter by symbol"
+              style={{
+                background: 'transparent',
+                border: 'none',
+                outline: 'none',
+                fontSize: 12,
+                color: 'var(--mm-ink-1)',
+                width: '100%',
+              }}
+            />
+          </label>
 
           <div style={{ display: 'flex', gap: 6 }}>
             {STATUSES.map((s) => (
