@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import {
   Activity,
   AlertTriangle,
@@ -132,18 +132,37 @@ export default function ResearchDashboardPage() {
     queryClient.invalidateQueries({ queryKey: ['strategies'] });
   };
 
-  const handleTick = () => {
+  const [tickStartedAt, setTickStartedAt] = useState<number | null>(null);
+  const [tickElapsed, setTickElapsed] = useState(0);
+
+  useEffect(() => {
+    if (!tick.isPending || tickStartedAt == null) {
+      setTickElapsed(0);
+      return;
+    }
+    const id = setInterval(() => {
+      setTickElapsed(Math.floor((Date.now() - tickStartedAt) / 1000));
+    }, 1000);
+    return () => clearInterval(id);
+  }, [tick.isPending, tickStartedAt]);
+
+  const handleTick = useCallback(() => {
+    setTickStartedAt(Date.now());
     tick.mutate(undefined, {
       onSuccess: (iter) => {
+        setTickStartedAt(null);
         toast.show({
           title: `Tick complete · ${iter.strategy_code} #${iter.iteration_number}`,
           description: `verdict=${iter.verdict ?? '—'} · stat=${iter.statistical_verdict ?? '—'}`,
           variant: iter.verdict === 'PASS' ? 'success' : 'default',
         });
       },
-      onError: (err) => toast.error({ title: 'Tick failed', description: normalizeError(err) }),
+      onError: (err) => {
+        setTickStartedAt(null);
+        toast.error({ title: 'Tick failed', description: normalizeError(err) });
+      },
     });
-  };
+  }, [tick]);
 
   return (
     <div className="space-y-5">
@@ -171,11 +190,18 @@ export default function ResearchDashboardPage() {
             onClick={handleTick}
             disabled={tick.isPending}
             className="border-bd-default bg-accent-primary/10 text-accent-primary hover:bg-accent-primary/20 inline-flex items-center gap-1.5 rounded-sm border px-3 py-2 text-[12px] font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-60"
-            title="POST /tick — runs one iteration synchronously (up to ~30 min)"
+            title="POST /tick — runs one iteration synchronously (up to ~30 min). Cannot be cancelled once started."
           >
             {tick.isPending ? <Loader2 size={12} className="animate-spin" /> : <Play size={12} />}
-            {tick.isPending ? 'Tick running…' : 'Tick now'}
+            {tick.isPending
+              ? `Tick running… ${tickElapsed > 0 ? `${tickElapsed}s` : ''}`
+              : 'Tick now'}
           </button>
+          {tick.isPending && (
+            <span className="font-mono text-[10px] text-text-muted" title="Tick runs synchronously and cannot be cancelled — wait for it to complete">
+              ⚠ up to ~30 min · no cancel
+            </span>
+          )}
           <button
             type="button"
             onClick={refreshAll}

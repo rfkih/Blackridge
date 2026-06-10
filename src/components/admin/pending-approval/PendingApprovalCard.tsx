@@ -10,6 +10,14 @@ import {
   XCircle,
   ExternalLink,
 } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { ConcernsPanel } from './ConcernsPanel';
@@ -72,6 +80,7 @@ export function PendingApprovalCard({ row, onDialogOpenChange }: PendingApproval
   const [citedBacktestRunId, setCitedBacktestRunId] = useState<string>(row.backtestRunId);
   const [approveOpen, setApproveOpen] = useState(false);
   const [dismissOpen, setDismissOpen] = useState(false);
+  const [replicateConfirmOpen, setReplicateConfirmOpen] = useState(false);
 
   // E1: Reset citedBacktestRunId when the curator upserts the row in-place
   // (PR #1 PendingApprovalService.updateInPlace) with a new backtestRunId.
@@ -86,6 +95,7 @@ export function PendingApprovalCard({ row, onDialogOpenChange }: PendingApproval
       { id: row.id, request: {} },
       {
         onSuccess: (data) => {
+          setReplicateConfirmOpen(false);
           toast.success({
             title: data.reused ? 'Replication already queued' : 'Replication queued',
             description: `Run ${data.backtestRunId.slice(0, 8)}… — results will appear below.`,
@@ -287,7 +297,7 @@ export function PendingApprovalCard({ row, onDialogOpenChange }: PendingApproval
               type="button"
               variant="outline"
               size="sm"
-              onClick={handleReplicate}
+              onClick={() => setReplicateConfirmOpen(true)}
               disabled={replicate.isPending}
               className="gap-1.5"
             >
@@ -319,6 +329,43 @@ export function PendingApprovalCard({ row, onDialogOpenChange }: PendingApproval
       />
 
       <DismissDialog row={dismissOpen ? row : null} onOpenChange={handleDismissOpenChange} />
+
+      <Dialog open={replicateConfirmOpen} onOpenChange={setReplicateConfirmOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Queue replication?</DialogTitle>
+            <DialogDescription>
+              This will kick off a fresh backtest run for{' '}
+              <span className="font-mono font-semibold">{row.strategyCode}</span> ·{' '}
+              <span className="font-mono">{row.symbol} {row.interval}</span>.
+              Results appear in the Replications panel below when complete.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <button
+              type="button"
+              onClick={() => setReplicateConfirmOpen(false)}
+              disabled={replicate.isPending}
+              className="rounded-sm border border-bd-subtle bg-bg-surface px-3 py-1.5 text-[12px] text-text-secondary hover:bg-bg-hover disabled:opacity-50"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={handleReplicate}
+              disabled={replicate.isPending}
+              className="inline-flex items-center gap-1.5 rounded-sm bg-[var(--accent-primary)] px-3 py-1.5 text-[12px] font-semibold text-white hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {replicate.isPending ? (
+                <RefreshCw className="h-3 w-3 animate-spin" />
+              ) : (
+                <RefreshCw className="h-3 w-3" />
+              )}
+              {replicate.isPending ? 'Queuing…' : 'Queue replication'}
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
