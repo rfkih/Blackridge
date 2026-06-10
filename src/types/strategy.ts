@@ -86,6 +86,10 @@ export interface AccountStrategy {
   /** Per-trade risk as a fraction of cash balance, range (0, 0.20]. Used only
    *  when `useRiskBasedSizing` is true. Default 0.05 (5%). */
   riskPct: number;
+  /** V168 — opt-in min-notional floor. When true, an entry order sized below the
+   *  exchange minimum is floored up to the minimum (if affordable) instead of
+   *  being rejected. Default false. */
+  minNotionalFloorEnabled: boolean;
   /** Tenant visibility (V54). PRIVATE = listed only to the owner.
    *  PUBLIC  = listed to every user for browse-and-clone (the research-agent
    *            account seeds its rows as PUBLIC). Backtest/edit/enable still

@@ -67,6 +67,7 @@ export function mapAccountStrategy(s: BackendAccountStrategy): AccountStrategy {
     kellyMaxFraction: toNum(s.kellyMaxFraction) || 0.25,
     useRiskBasedSizing: Boolean(s.useRiskBasedSizing),
     riskPct: toNum(s.riskPct) || 0.05,
+    minNotionalFloorEnabled: Boolean(s.minNotionalFloorEnabled),
 
     visibility: s.visibility === 'PUBLIC' ? 'PUBLIC' : 'PRIVATE',
     ownedByCurrentUser: s.ownedByCurrentUser ?? true,
@@ -107,6 +108,8 @@ export interface CreateAccountStrategyPayload {
   /** V55 — per-trade risk fraction (0, 0.20]. When omitted the backend
    *  defaults to 0.05 (5%). */
   riskPct?: number;
+  /** V168 — opt-in min-notional floor; backend defaults false. */
+  minNotionalFloorEnabled?: boolean;
 }
 
 export async function createAccountStrategy(
@@ -169,6 +172,8 @@ export interface AccountStrategyPatch {
   useRiskBasedSizing?: boolean;
   /** Per-trade risk fraction (0, 0.20]; used when useRiskBasedSizing=true. */
   riskPct?: number;
+  /** V168 — min-notional floor toggle. */
+  minNotionalFloorEnabled?: boolean;
   /** Capital allocation % (0.01–100). Direct trade size in allocation mode;
    *  notional position cap in risk-based mode. */
   capitalAllocationPct?: number;

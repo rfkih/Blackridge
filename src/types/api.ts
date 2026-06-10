@@ -147,6 +147,8 @@ export interface BackendAccountStrategy {
   useRiskBasedSizing?: boolean | null;
   /** Per-trade risk fraction (0, 0.20]; used when useRiskBasedSizing=true. */
   riskPct?: number | string | null;
+  /** V168 — opt-in min-notional floor toggle. */
+  minNotionalFloorEnabled?: boolean | null;
   /** Tenant visibility (V54). Optional for pre-V54 cached responses. */
   visibility?: 'PRIVATE' | 'PUBLIC' | null;
   /** True iff calling user owns the row's account. */

@@ -60,6 +60,9 @@ interface FormState {
   /** V55 — per-trade risk as a percentage (UI scale: 0.01..20). Sent to the
    *  backend divided by 100 so the wire value is a fraction. */
   riskPct: string;
+  /** V168 — opt-in min-notional floor. When true, a sub-minimum entry order is
+   *  floored up to the exchange minimum (if affordable) instead of skipped. */
+  minNotionalFloorEnabled: boolean;
 }
 
 function initialState(defaultAccountId?: string): FormState {
@@ -78,6 +81,7 @@ function initialState(defaultAccountId?: string): FormState {
     enabled: false,
     useRiskBasedSizing: true,
     riskPct: '5',
+    minNotionalFloorEnabled: false,
   };
 }
 
@@ -212,6 +216,8 @@ export function NewStrategyDialog({
 
         riskPct:
           riskSizingApplies && form.useRiskBasedSizing ? Number(form.riskPct) / 100 : undefined,
+
+        minNotionalFloorEnabled: form.minNotionalFloorEnabled,
       },
       {
         onSuccess: (strategy) => {
@@ -520,6 +526,22 @@ export function NewStrategyDialog({
               />
               <Label className="font-mono text-xs uppercase tracking-wider">Enable on create</Label>
             </div>
+          </div>
+
+          <div className="col-span-2 flex items-center justify-between rounded-md border border-[var(--border-subtle)] bg-[var(--bg-elevated)] px-3 py-2">
+            <div className="flex flex-col">
+              <Label className="font-mono text-xs uppercase tracking-wider">
+                Min-notional floor
+              </Label>
+              <p className="text-[10px] text-[var(--text-muted)]">
+                Sizes a sub-minimum order up to the exchange minimum (if affordable) instead of
+                skipping it.
+              </p>
+            </div>
+            <Switch
+              checked={form.minNotionalFloorEnabled}
+              onCheckedChange={(v) => setForm((s) => ({ ...s, minNotionalFloorEnabled: v }))}
+            />
           </div>
 
           {form.useRiskBasedSizing && !riskPctValid && (

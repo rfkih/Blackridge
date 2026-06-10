@@ -25,6 +25,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Switch } from '@/components/ui/switch';
 import { StrategyBadge } from '@/components/trading/StrategyBadge';
 import { StrategyStatusBadge } from '@/components/strategy/StrategyStatusBadge';
 import { CrossWindowPanel } from '@/components/strategy/CrossWindowPanel';
@@ -220,6 +221,8 @@ function StrategyDetail({ strategy }: { strategy: AccountStrategy }) {
       {!isHedging(strategy.strategyKind) && <KellySizingPanel strategy={strategy} />}
 
       <PositionSizingPanel strategy={strategy} />
+
+      <MinNotionalFloorPanel strategy={strategy} />
 
       <StrategyParamPresetPanel strategy={strategy} />
 
@@ -1010,6 +1013,62 @@ function PositionSizingPanel({ strategy }: { strategy: AccountStrategy }) {
           Short entries use allocation sizing unchanged.
         </p>
       )}
+    </div>
+  );
+}
+
+/**
+ * V168 — min-notional floor toggle. When ON, an entry order sized below the
+ * exchange minimum is floored up to the minimum (capped by affordable balance)
+ * instead of being skipped. Single shared <Switch>, PATCHed via the same
+ * useUpdateStrategy() mutation as the gate panels above. Default OFF.
+ */
+function MinNotionalFloorPanel({ strategy }: { strategy: AccountStrategy }) {
+  const updateMut = useUpdateStrategy();
+
+  const onToggle = async (next: boolean) => {
+    try {
+      await updateMut.mutateAsync({
+        id: strategy.id,
+        patch: { minNotionalFloorEnabled: next },
+      });
+      toast.success({
+        title: next ? 'Min-notional floor enabled' : 'Min-notional floor disabled',
+      });
+    } catch (err) {
+      toast.error({
+        title: 'Could not update min-notional floor',
+        description: normalizeError(err),
+      });
+    }
+  };
+
+  return (
+    <div className="flex flex-wrap items-center gap-3 rounded-lg border border-bd-subtle bg-bg-surface px-4 py-2.5">
+      <Scale size={14} className="shrink-0 text-text-muted" aria-hidden="true" />
+      <div className="flex min-w-0 flex-1 flex-col">
+        <span className="font-mono text-[10px] uppercase tracking-wider text-text-muted">
+          Min-notional floor
+        </span>
+        <span className="font-mono text-[10px] text-text-muted">
+          Sizes a sub-minimum order up to the exchange minimum (if affordable) instead of skipping
+          it.
+        </span>
+      </div>
+      <span
+        className={cn(
+          'font-mono text-[11px]',
+          strategy.minNotionalFloorEnabled ? 'text-[var(--color-profit)]' : 'text-text-muted',
+        )}
+      >
+        {strategy.minNotionalFloorEnabled ? 'enabled' : 'disabled'}
+      </span>
+      <Switch
+        checked={strategy.minNotionalFloorEnabled}
+        onCheckedChange={onToggle}
+        disabled={updateMut.isPending}
+        aria-label="Min-notional floor"
+      />
     </div>
   );
 }

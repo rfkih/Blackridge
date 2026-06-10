@@ -59,4 +59,14 @@ describe('mapAccountStrategy — strategyKind + archetype', () => {
   it('defaults an empty-string archetype to LEGACY_JAVA', () => {
     expect(mapAccountStrategy(mkBackend({ archetype: '' })).archetype).toBe('LEGACY_JAVA');
   });
+
+  it('coerces a truthy minNotionalFloorEnabled (V168) to true', () => {
+    expect(
+      mapAccountStrategy(mkBackend({ minNotionalFloorEnabled: true })).minNotionalFloorEnabled,
+    ).toBe(true);
+  });
+
+  it('defaults a missing minNotionalFloorEnabled (V168) to false', () => {
+    expect(mapAccountStrategy(mkBackend({})).minNotionalFloorEnabled).toBe(false);
+  });
 });

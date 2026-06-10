@@ -70,6 +70,7 @@ function mkHedgingStrategy(overrides: Partial<AccountStrategy> = {}): AccountStr
     kellyMaxFraction: 0.25,
     useRiskBasedSizing: false,
     riskPct: 0.05,
+    minNotionalFloorEnabled: false,
     visibility: 'PRIVATE',
     ownedByCurrentUser: true,
     ownerLabel: 'You',
