@@ -1,7 +1,7 @@
 import type { AccountSummary, BackendAccountSummary } from '@/types/account';
 import { DEFAULT_ACCOUNT_TYPE, isAccountType, type AccountType } from '@/types/accountType';
 import { apiClient } from './client';
-import { toNum } from './coerce';
+import { toNum, toNumOrNull } from './coerce';
 
 /**
  * Backend stores `accounts.is_active` as a CHAR(1) flag. In prod the column
@@ -27,7 +27,7 @@ function mapAccount(a: BackendAccountSummary): AccountSummary {
     maxConcurrentLongs: toNum(a.maxConcurrentLongs, 2),
     maxConcurrentShorts: toNum(a.maxConcurrentShorts, 2),
 
-    maxConcurrentTrades: a.maxConcurrentTrades == null ? null : Number(a.maxConcurrentTrades),
+    maxConcurrentTrades: toNumOrNull(a.maxConcurrentTrades),
     volTargetingEnabled: Boolean(a.volTargetingEnabled),
     bookVolTargetPct: toNum(a.bookVolTargetPct, 15),
     earnEnabled: Boolean(a.earnEnabled),

@@ -465,7 +465,7 @@ function RiskCard({
           0,
           100 -
             rows
-              .filter((r) => !['USDT', 'USDC', 'BUSD'].includes(r.asset))
+              .filter((r) => !isStable(r.asset))
               .reduce((acc, r) => acc + r.portfolioPct, 0),
         )
       : 0;
@@ -845,7 +845,7 @@ function Donut({ slices }: { slices: Slice[] }) {
 }
 
 function isStable(asset: string): boolean {
-  return ['USDT', 'USDC', 'BUSD', 'DAI', 'TUSD', 'USDP'].includes(asset.toUpperCase());
+  return STABLE_TICKERS.has(asset.toUpperCase());
 }
 
 function describeAsset(asset: string): string {

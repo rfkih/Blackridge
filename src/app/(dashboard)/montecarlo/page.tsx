@@ -128,6 +128,29 @@ export default function MonteCarloPage() {
     }
   };
 
+  const exportPaths = () => {
+    if (!result) return;
+    const paths = [result.bestPath, result.medianPath, result.worstPath].filter(
+      (p): p is NonNullable<typeof p> => p != null,
+    );
+    if (paths.length === 0) return;
+    const maxLen = Math.max(...paths.map((p) => p.equityCurve.length));
+    const header = ['trade_index', ...paths.map((p) => p.label.toLowerCase())].join(',');
+    const lines = [header];
+    for (let i = 0; i < maxLen; i++) {
+      const cells = [String(i), ...paths.map((p) => (p.equityCurve[i] ?? '').toString())];
+      lines.push(cells.join(','));
+    }
+    const csv = lines.join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `montecarlo_paths_${result.monteCarloRunId.slice(0, 8)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   const simsForKicker = (
     result?.numberOfSimulations ??
     (Number(form.numberOfSimulations) || 1000)
@@ -189,6 +212,8 @@ export default function MonteCarloPage() {
             type="button"
             className="mm-btn"
             disabled={!result}
+            onClick={exportPaths}
+            title="Download best / median / worst equity curves as CSV"
             style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
           >
             <Download size={12} strokeWidth={1.75} /> Export paths

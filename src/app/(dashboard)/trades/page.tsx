@@ -621,6 +621,7 @@ function TradesPageContent() {
         isLoading={tradesQuery.isLoading}
         onRowClick={(t) => router.push(`/trades/${t.id}`)}
         initialSort={[{ id: 'entryTime', desc: true }]}
+        manualSorting
         hideSearch
         emptyIcon={ListFilter}
         emptyTitle="No trades match"
