@@ -3,6 +3,29 @@ import type { EpochMs, UUID } from './api';
 
 export type TradeDirection = 'LONG' | 'SHORT';
 export type TradeStatus = 'OPEN' | 'PARTIALLY_CLOSED' | 'CLOSED';
+
+/**
+ * One row of the per-user execution feed (`GET /api/v1/trade-executions`) —
+ * a real-money execution outcome for one of the caller's accounts. Paper
+ * (DIVERTED) rows are filtered server-side. Backs the notification bell:
+ * initial entries, stop-loss / take-profit closes, and failed attempts.
+ */
+export interface TradeExecutionEvent {
+  id: UUID;
+  executionType: 'OPEN' | 'CLOSE';
+  side: TradeDirection | null;
+  status: 'SUCCESS' | 'FAILED';
+  accountId: UUID | null;
+  username: string | null;
+  asset: string | null;
+  strategyName: string | null;
+  /** Entry reason (OPEN) or exit reason (CLOSE — e.g. STOP_LOSS, TAKE_PROFIT). */
+  executionReason: string | null;
+  errorMessage: string | null;
+  tradeId: UUID | null;
+  /** ISO 8601 LocalDateTime from the backend. */
+  executedAt: string;
+}
 export type PositionType = 'SINGLE' | 'TP1' | 'TP2' | 'RUNNER';
 export type PositionExitReason =
   | 'TP_HIT'
