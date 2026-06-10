@@ -3,6 +3,7 @@
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {
   AlertTriangle,
+  ArrowRightLeft,
   Bell,
   CheckCircle2,
   Globe2,
@@ -20,9 +21,15 @@ import { useIsAdmin } from '@/hooks/useIsAdmin';
 import { listAlerts, type AlertEvent } from '@/lib/api/alerts';
 import { listBacktestRuns } from '@/lib/api/backtest';
 import { getServerIpStatus } from '@/lib/api/server';
+import { listTradeExecutions, type TradeExecutionEvent } from '@/lib/api/tradeExecutions';
 import { useAuthStore } from '@/store/authStore';
 
-type NotificationKind = 'killSwitch' | 'ipChange' | 'backtestDone' | 'systemAlert';
+type NotificationKind =
+  | 'killSwitch'
+  | 'ipChange'
+  | 'backtestDone'
+  | 'systemAlert'
+  | 'tradeExecution';
 
 interface Notification {
   id: string;
@@ -119,6 +126,19 @@ export function NotificationPanel() {
     refetchOnWindowFocus: true,
   });
 
+  // Per-user execution feed — every real trade outcome (entries, SL/TP
+  // closes, failures) for the user's own accounts. Polls so an execution
+  // that fires mid-session surfaces without a reload; available to every
+  // authenticated user, unlike the admin-only system alerts above.
+  const recentExecutions = useQuery({
+    queryKey: ['trade-executions', 'recent-popover'],
+    queryFn: () => listTradeExecutions({ size: 8 }),
+    staleTime: 2_000,
+    retry: 0,
+    refetchInterval: 30_000,
+    refetchOnWindowFocus: true,
+  });
+
   // Dismissed notification IDs — persisted per user so sticky warnings
   // (e.g. IP change) can be manually cleared after the user has acted on them.
   const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set());
@@ -201,11 +221,32 @@ export function NotificationPanel() {
       });
     }
 
+    for (const e of recentExecutions.data?.content ?? []) {
+      if (!e.executedAt) continue;
+      out.push({
+        id: `exec-${e.id}`,
+        kind: 'tradeExecution',
+        ts: e.executedAt,
+        title: executionTitle(e),
+        body: executionBody(e),
+        href: '/trades',
+        severity: e.status === 'FAILED' ? 'warning' : 'success',
+      });
+    }
+
     out.sort((a, b) => new Date(b.ts).getTime() - new Date(a.ts).getTime());
 
     // Remove items the user has already dismissed.
     return out.filter((n) => !dismissedIds.has(n.id));
-  }, [strategies, ipStatus.data, recentBacktests.data, recentAlerts.data, dismissedIds, isAdmin]);
+  }, [
+    strategies,
+    ipStatus.data,
+    recentBacktests.data,
+    recentAlerts.data,
+    recentExecutions.data,
+    dismissedIds,
+    isAdmin,
+  ]);
 
   // Load per-user last-seen timestamp. Re-runs on user switch.
   const [lastSeenTs, setLastSeenTs] = useState<number>(0);
@@ -244,7 +285,8 @@ export function NotificationPanel() {
 
   // True while the first-load fetches are still in flight — prevents the
   // "Nothing to flag" empty state from flashing before data arrives.
-  const isLoading = recentBacktests.isLoading || (isAdmin && recentAlerts.isLoading);
+  const isLoading =
+    recentBacktests.isLoading || recentExecutions.isLoading || (isAdmin && recentAlerts.isLoading);
 
   return (
     <Popover open={open} onOpenChange={handleOpenChange}>
@@ -311,7 +353,7 @@ export function NotificationPanel() {
             <CheckCircle2 size={20} strokeWidth={1.5} className="text-text-muted" />
             <p className="text-[12px] text-text-secondary">Nothing to flag.</p>
             <p className="text-[10px] text-text-muted">
-              Kill-switch trips, IP changes, and finished backtests show up here.
+              Trade executions, kill-switch trips, IP changes, and finished backtests show up here.
             </p>
           </div>
         ) : (
@@ -403,9 +445,62 @@ function iconFor(n: Notification): React.ElementType {
       return History;
     case 'systemAlert':
       return AlertTriangle;
+    case 'tradeExecution':
+      return ArrowRightLeft;
     default:
       return AlertTriangle;
   }
+}
+
+// ── Trade-execution formatting ────────────────────────────────────────────────
+
+// Maps raw exit/entry reason codes to compact human labels. Reasons that are
+// free-form strategy sentences (e.g. "DCB long: donchian breakout + …") fall
+// through and are shown as-is in the body.
+const EXECUTION_REASON_LABEL: Record<string, string> = {
+  STOP_LOSS: 'stop loss',
+  SL_HIT: 'stop loss',
+  TAKE_PROFIT: 'take profit',
+  TP_HIT: 'take profit',
+  RUNNER_CLOSE: 'runner close',
+  MANUAL_CLOSE: 'manual close',
+  SIGNAL_EXIT: 'signal exit',
+  EMABAND_EXIT: 'signal exit',
+};
+
+function reasonLabel(reason: string | null): string | null {
+  if (!reason) return null;
+  return EXECUTION_REASON_LABEL[reason.trim().toUpperCase()] ?? null;
+}
+
+// Exported for unit tests — pure formatting, no component state.
+export function executionTitle(e: TradeExecutionEvent): string {
+  const side = e.side ? ` ${e.side}` : '';
+  const asset = e.asset ?? '—';
+  if (e.status === 'FAILED') {
+    return e.executionType === 'OPEN'
+      ? `Trade entry failed —${side} ${asset}`
+      : `Trade close failed —${side} ${asset}`;
+  }
+  if (e.executionType === 'OPEN') {
+    return `Trade opened —${side} ${asset}`;
+  }
+  const label = reasonLabel(e.executionReason);
+  return label ? `Trade closed (${label}) —${side} ${asset}` : `Trade closed —${side} ${asset}`;
+}
+
+// Exported for unit tests — pure formatting, no component state.
+export function executionBody(e: TradeExecutionEvent): string {
+  const prefix = e.strategyName ? `${e.strategyName} · ` : '';
+  if (e.status === 'FAILED' && e.errorMessage) {
+    return `${prefix}${e.errorMessage}`;
+  }
+  // For successes the reason is the entry/exit rationale; mapped codes are
+  // already surfaced in the title, so only free-form reasons add information.
+  if (e.executionReason && !reasonLabel(e.executionReason)) {
+    return `${prefix}${e.executionReason}`;
+  }
+  return prefix ? prefix.slice(0, -3) : 'Execution recorded.';
 }
 
 // Maps backend kind strings to human-readable labels.
