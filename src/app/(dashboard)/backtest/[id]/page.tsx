@@ -37,6 +37,7 @@ import {
 } from '@/hooks/useBacktest';
 import { useAccountStrategies } from '@/hooks/useStrategies';
 import { useChartIndicators } from '@/hooks/useChartIndicators';
+import { DEFAULT_INDICATORS } from '@/lib/charts/indicatorConfig';
 import { useBacktestIndicators } from '@/hooks/useBacktestIndicators';
 import { useEmaWarmupCandles } from '@/hooks/useEmaWarmupCandles';
 import { IndicatorBar } from '@/components/charts/IndicatorBar';
@@ -87,6 +88,7 @@ export default function BacktestResultPage({ params }: { params: { id: string } 
   const [filteredTrades, setFilteredTrades] = useState<BacktestTrade[] | null>(null);
 
   const [activateDialogOpen, setActivateDialogOpen] = useState(false);
+  const [indicatorPanelOpen, setIndicatorPanelOpen] = useState(true);
 
   const { data: strategies = [] } = useAccountStrategies();
 
@@ -379,15 +381,24 @@ export default function BacktestResultPage({ params }: { params: { id: string } 
           <h3 className="font-display text-[13px] font-semibold text-text-primary">
             {isHedging(runQ.data?.strategyKind) ? 'Allocation Switches' : 'Trade Execution'}
           </h3>
-          {selectedTradeId && (
+          <div className="flex items-center gap-3">
             <button
               type="button"
-              onClick={() => handleTableSelect(null)}
+              onClick={() => setIndicatorPanelOpen((o) => !o)}
               className="font-mono text-[10px] uppercase tracking-wider text-text-muted hover:text-text-primary"
             >
-              Clear selection
+              {indicatorPanelOpen ? 'Hide indicators' : 'Indicators'}
             </button>
-          )}
+            {selectedTradeId && (
+              <button
+                type="button"
+                onClick={() => handleTableSelect(null)}
+                className="font-mono text-[10px] uppercase tracking-wider text-text-muted hover:text-text-primary"
+              >
+                Clear selection
+              </button>
+            )}
+          </div>
         </div>
         {candlesQ.isError ? (
           <div className="p-6">
@@ -400,9 +411,11 @@ export default function BacktestResultPage({ params }: { params: { id: string } 
           <ChartSkeleton />
         ) : (
           <ErrorBoundary label="Annotated chart">
-            <div className="px-2 pt-1">
-              <IndicatorBar indicators={indicators} onToggle={toggle} />
-            </div>
+            {indicatorPanelOpen && (
+              <div className="px-2 pt-1">
+                <IndicatorBar indicators={indicators} onToggle={toggle} />
+              </div>
+            )}
             <BacktestAnnotatedChart
               candles={candlesQ.data ?? EMPTY_CANDLES}
               trades={filteredTrades ?? tradesQ.data ?? EMPTY_TRADES}
@@ -411,7 +424,7 @@ export default function BacktestResultPage({ params }: { params: { id: string } 
               scrollTrigger={chartScrollTrigger}
               features={indicatorsQ.data ?? EMPTY_FEATURES}
               emaWarmupCandles={warmupQ.data ?? EMPTY_CANDLES}
-              showIndicators={indicators}
+              showIndicators={indicatorPanelOpen ? indicators : DEFAULT_INDICATORS}
             />
           </ErrorBoundary>
         )}
