@@ -118,7 +118,7 @@ export default function TradesPage() {
   return (
     <Suspense fallback={<Skeleton className="h-[60vh] w-full" />}>
       <Tabs defaultValue="journal" className="flex flex-col gap-4">
-        <TabsList className="bg-[var(--bg-elevated)]">
+        <TabsList className="bg-[var(--bg-elevated)] self-start">
           <TabsTrigger value="journal">{isHedging ? 'Rebalances' : 'Journal'}</TabsTrigger>
           <TabsTrigger value="executions">Execution History</TabsTrigger>
         </TabsList>
