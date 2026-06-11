@@ -33,4 +33,18 @@ describe('ExecutionDetailDrawer', () => {
     const { container } = render(<ExecutionDetailDrawer event={null} onClose={() => {}} />);
     expect(container).toBeEmptyDOMElement();
   });
+
+  it('shows a failure header title + cause badge + copy button for a failed OPEN', () => {
+    render(<ExecutionDetailDrawer event={base} onClose={() => {}} />);
+    expect(screen.getByText('Open failed')).toBeInTheDocument();
+    expect(screen.getByText(/Min-notional/)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /copy error message/i })).toBeInTheDocument();
+  });
+
+  it('closes on Escape', () => {
+    const onClose = vi.fn();
+    render(<ExecutionDetailDrawer event={base} onClose={onClose} />);
+    fireEvent.keyDown(window, { key: 'Escape' });
+    expect(onClose).toHaveBeenCalled();
+  });
 });
