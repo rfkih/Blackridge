@@ -49,7 +49,7 @@ export function FailureBreakdownPanel({ summary, isLoading, activeCategory, onSe
         <Stat label="Executions" value={String(summary.totalExecutions)} />
         <Stat label="Failed" value={String(summary.failedCount)} tone="var(--mm-dn)" />
         <Stat label="Success rate" value={`${Math.round(summary.successRatePct)}%`} tone="var(--mm-up)" />
-        <Stat label="Top cause" value={summary.topCategory ?? '—'} />
+        <Stat label="Top cause" value={summary.topCategory ? CATEGORY_LABEL[summary.topCategory] : '—'} />
       </div>
 
       <div className="mm-card" style={{ padding: 12 }}>

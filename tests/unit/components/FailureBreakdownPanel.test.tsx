@@ -16,7 +16,9 @@ describe('FailureBreakdownPanel', () => {
   it('renders summary stats and cause bars', () => {
     render(<FailureBreakdownPanel summary={summary} isLoading={false} activeCategory={null} onSelectCategory={() => {}} />);
     expect(screen.getByText('85%')).toBeInTheDocument();
-    expect(screen.getByText('Min-notional')).toBeInTheDocument();
+    // "Min-notional" appears both as the Top-cause stat and the bar label — both are intended.
+    expect(screen.getAllByText('Min-notional').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByRole('button', { name: /Min-notional/ })).toBeInTheDocument();
     expect(screen.getByText('Insufficient balance')).toBeInTheDocument();
   });
 
