@@ -62,29 +62,34 @@ export function ExecutionDetailDrawer({
   };
 
   return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 50 }}>
-      {/* scrim */}
-      <div
-        aria-hidden="true"
-        onClick={onClose}
-        className="animate-in fade-in"
-        style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.45)' }}
-      />
-
-      {/* panel */}
+    <div
+      onClick={onClose}
+      className="animate-in fade-in duration-150"
+      style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 50,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 16,
+        background: 'rgba(0,0,0,0.5)',
+      }}
+    >
+      {/* popup card */}
       <div
         role="dialog"
         aria-modal="true"
         aria-label="Execution detail"
-        className="animate-in slide-in-from-right-8 duration-200"
+        onClick={(e) => e.stopPropagation()}
+        className="animate-in fade-in zoom-in-95 duration-150"
         style={{
-          position: 'absolute',
-          top: 0,
-          right: 0,
-          bottom: 0,
-          width: 'min(440px, 94vw)',
+          width: 'min(460px, 94vw)',
+          maxHeight: '85vh',
           background: 'var(--mm-card)',
-          borderLeft: '1px solid var(--mm-hair)',
+          border: '1px solid var(--mm-hair)',
+          borderRadius: 12,
+          boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
           display: 'flex',
           flexDirection: 'column',
           overflow: 'hidden',
