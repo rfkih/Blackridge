@@ -28,6 +28,8 @@ import type { TradesPageFilters } from '@/lib/api/trades';
 import { useStrategies } from '@/hooks/useStrategies';
 import { useActiveAccount } from '@/hooks/useAccounts';
 import { useAccountView } from '@/lib/accountType/registry';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ExecutionHistoryTab } from '@/components/trades/execution/ExecutionHistoryTab';
 import { RebalanceHistory } from '@/components/hedging/RebalanceHistory';
 import { usePositionStore } from '@/store/positionStore';
 import { useLivePnl, useSyncOpenPositions } from '@/hooks/useLivePnl';
@@ -111,18 +113,24 @@ const STATUS_META: Record<StatusFilter, { label: string }> = {
 
 export default function TradesPage() {
   const { activeAccount, isAll, scopedAccountId } = useActiveAccount();
-
-  // Account-type branch: a single active HEDGING account sees the monitor as a
-  // "Rebalances" view. TRADING and the "All" aggregate keep the existing trades
-  // ledger byte-for-byte (this branch is additive — it never restructures the
-  // trading table below).
-  if (!isAll && activeAccount?.accountType === 'HEDGING') {
-    return <RebalancesMonitor accountId={scopedAccountId} />;
-  }
+  const isHedging = !isAll && activeAccount?.accountType === 'HEDGING';
 
   return (
     <Suspense fallback={<Skeleton className="h-[60vh] w-full" />}>
-      <TradesPageContent />
+      <Tabs defaultValue="journal" className="flex flex-col gap-4">
+        <TabsList className="bg-[var(--bg-elevated)]">
+          <TabsTrigger value="journal">{isHedging ? 'Rebalances' : 'Journal'}</TabsTrigger>
+          <TabsTrigger value="executions">Execution History</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="journal">
+          {isHedging ? <RebalancesMonitor accountId={scopedAccountId} /> : <TradesPageContent />}
+        </TabsContent>
+
+        <TabsContent value="executions">
+          <ExecutionHistoryTab accountId={scopedAccountId} />
+        </TabsContent>
+      </Tabs>
     </Suspense>
   );
 }
