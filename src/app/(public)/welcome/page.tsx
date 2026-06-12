@@ -1,558 +1,421 @@
 import Link from 'next/link';
 import type { Metadata } from 'next';
-import {
-  ArrowRight,
-  Play,
-  Beaker,
-  Bot,
-  LineChart,
-  Shield,
-  Zap,
-  Layers,
-  Shuffle,
-  PiggyBank,
-} from 'lucide-react';
-import { MarketingShell } from '@/components/marketing/MarketingShell';
-import { Sparkline, makeSpark } from '@/components/marketing/Sparkline';
+import { MarketingShell, SectionHead, MarketingCta } from '@/components/marketing/MarketingShell';
+import { EquityChart } from '@/components/marketing/EquityChart';
+import { HEDGE_CURVE, BUYHOLD_CURVE, HEDGE_STATS } from '@/components/marketing/hedgeBacktest';
 
 export const metadata: Metadata = {
-  title: 'Blackridge — Algorithmic crypto trading',
+  title: 'Blackridge — Systematic trading & hedging for digital assets',
   description:
-    'Run your strategies on Binance Futures while you sleep. Backtest, deploy, monitor — from one calm dashboard built for serious traders.',
+    'Research-built systematic strategies, validated with walk-forward and Monte-Carlo analysis, executed on your own exchange account. Non-custodial by design.',
 };
 
-// First card is a REAL backtest of the EMA-band BTC hedge (BTC daily 2022–2026,
-// incl. the 2022 bear). The other two describe trading strategies qualitatively —
-// per-strategy stats render inside the app, not as marketing numbers.
-const STRATEGY_HIGHLIGHTS = [
+const GATES = [
+  {
+    num: '01',
+    title: 'Hypothesis',
+    body: 'A written thesis: which inefficiency, why it persists, which regimes degrade it.',
+  },
+  {
+    num: '02',
+    title: 'Backtest',
+    body: 'Point-in-time data across price, macro, on-chain, and sentiment. Slippage, funding, and fees modelled in.',
+  },
+  {
+    num: '03',
+    title: 'Walk-forward',
+    body: 'Out-of-sample windows reserved before parameter selection. Robustness across folds, not one lucky curve.',
+  },
+  {
+    num: '04',
+    title: 'Monte-Carlo',
+    body: 'Fills, slippage, and trade ordering stressed across thousands of resampled paths to bound the estimate.',
+  },
+  {
+    num: '05',
+    title: 'Paper, then live',
+    body: 'Live ticks without real orders first. Capital follows only after the paper record agrees with the research.',
+  },
+] as const;
+
+const CAPABILITIES = [
+  {
+    n: 'I.',
+    h: 'Honest backtesting',
+    p: 'Walk-forward and Monte-Carlo validation with realistic slippage and venue fees. Out-of-sample windows are reserved before parameters are chosen, and a market-impact model degrades edge as capital scales. Strategies that fail out-of-sample are retired, not re-tuned until they pass.',
+    k: 'Backtest history available',
+    v: 'up to 9 yrs',
+  },
+  {
+    n: 'II.',
+    h: 'Trading & hedging accounts',
+    p: 'Run directional strategies from the library, or protect a spot stack: the EMA-band hedge holds BTC above the daily trend and rotates to USDT below it, managing your whole balance at deposit cost basis. Idle USDT is parked in Binance Simple Earn so sidelined cash still earns.',
+    k: 'Account types',
+    v: 'Trade · Hedge',
+  },
+  {
+    n: 'III.',
+    h: 'Risk controls that fire',
+    p: 'Per-account daily-loss caps, position-concentration limits, and a drawdown kill-switch — enforced pre-trade, with no discretionary override. Every order, fill, and parameter change lands in an append-only audit ledger, timestamped and exportable.',
+    k: 'Enforcement',
+    v: 'Pre-trade',
+  },
+] as const;
+
+const STRATEGY_INDEX = [
   {
     code: 'EMA-BAND',
     name: 'EMA-Band BTC Hedge',
-    tag: "Backtest '22–'26",
+    style: 'Hedging · spot trend',
+    venue: 'Binance Spot',
+    horizon: 'Daily',
     real: true,
-    s1Label: 'CAGR',
-    s1Value: '+24.5%',
-    s2Label: 'Max DD',
-    s2Value: '−30%',
+  },
+  {
+    code: 'TILT',
+    name: 'Dynamic BTC/USDT Tilt',
+    style: 'Hedging · allocation',
+    venue: 'Binance Spot',
+    horizon: 'Daily',
+    real: false,
   },
   {
     code: 'LSR-V2',
     name: 'Long-Short Reversal v2',
-    tag: 'Mean-reversion',
+    style: 'Mean-reversion',
+    venue: 'Spot + Perp',
+    horizon: '4h',
     real: false,
-    s1Label: 'Markets',
-    s1Value: 'BTC · ETH',
-    s2Label: 'Horizon',
-    s2Value: '4h',
+  },
+  {
+    code: 'VCB',
+    name: 'Volatility Compression Breakout',
+    style: 'Breakout',
+    venue: 'USDⓈ-M Perp',
+    horizon: '15m',
+    real: false,
   },
   {
     code: 'TPSE',
     name: 'Trend Pullback Single-Exit',
-    tag: 'Trend',
+    style: 'Trend',
+    venue: 'Binance Spot',
+    horizon: '4h',
     real: false,
-    s1Label: 'Style',
-    s1Value: 'Pullback',
-    s2Label: 'Horizon',
-    s2Value: '4h',
   },
-];
+  {
+    code: 'XS-MOM',
+    name: 'Cross-Sectional Momentum',
+    style: 'Long-short',
+    venue: 'Universe',
+    horizon: 'Daily',
+    real: false,
+  },
+] as const;
 
 export default function WelcomePage() {
   return (
     <MarketingShell>
-      {}
-      <section
-        className="relative overflow-hidden"
-        style={{ padding: '72px 0 56px', background: 'var(--bg-base)' }}
-      >
-        <div className="relative z-[1] mx-auto grid max-w-[1180px] grid-cols-1 items-center gap-12 px-5 sm:px-8 lg:grid-cols-[1.1fr_1fr] lg:gap-[60px]">
-          <div>
-            <span
-              className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-[12px] font-semibold"
-              style={{ background: 'var(--brand-50)', color: 'var(--brand-700)' }}
-            >
-              <span className="br-live-dot" />
-              Live since Feb 2024
-            </span>
-            <h1
-              className="font-display font-extrabold"
-              style={{
-                fontSize: 'clamp(40px, 7vw, 64px)',
-                lineHeight: 1.02,
-                letterSpacing: '-0.032em',
-                margin: '20px 0 22px',
-                color: 'var(--text-primary)',
-              }}
-            >
-              Algo trading,{' '}
-              <em style={{ fontStyle: 'normal', color: 'var(--brand-600)' }}>
-                without the spreadsheet.
-              </em>
-            </h1>
-            <p
-              className="m-0 mb-8"
-              style={{
-                fontSize: 19,
-                lineHeight: 1.55,
-                color: 'var(--text-secondary)',
-                maxWidth: 500,
-              }}
-            >
-              Blackridge runs your strategies on Binance Futures while you sleep. Backtest, deploy,
-              monitor — from one calm dashboard built for serious traders.
-            </p>
-            <div className="flex items-center gap-3">
-              <Link href="/onboarding" className="br-btn br-btn-primary br-btn-lg">
-                Open account <ArrowRight size={16} />
-              </Link>
-              <Link href="/" className="br-btn br-btn-secondary br-btn-lg">
-                <Play size={14} /> See the demo
-              </Link>
-            </div>
-            <div
-              className="mt-11 flex gap-9 pt-7"
-              style={{ borderTop: '1px solid var(--border-subtle)' }}
-            >
-              <HeroStat value="Trade + hedge" label="Two account types" />
-              <HeroStat value="9 yr" label="Backtest history" />
-              <HeroStat value="0" label="Funds we custody" />
-            </div>
-          </div>
-
-          {}
-          <CardStack />
-        </div>
-      </section>
-
-      {}
-      <section className="mx-auto max-w-[1180px] px-8" style={{ padding: '24px 32px 56px' }}>
-        <div
-          className="mb-6 text-center text-[13px] font-semibold uppercase tracking-[0.16em]"
-          style={{ color: 'var(--text-muted)' }}
-        >
-          Trades on your own Binance account
-        </div>
-        <div
-          className="flex flex-wrap items-center justify-center gap-14 font-display text-[22px] font-extrabold tracking-[-0.02em]"
-          style={{ opacity: 0.55, color: 'var(--text-primary)' }}
-        >
-          <span>Binance Spot</span>
-          <span>Binance USDⓈ-M Futures</span>
-        </div>
-        <div className="mt-4 text-center text-[12px]" style={{ color: 'var(--text-muted)' }}>
-          More venues on the roadmap
-        </div>
-      </section>
-
-      {}
-      <section style={{ padding: '80px 0', background: 'var(--bg-surface)' }}>
-        <div className="mx-auto max-w-[1180px] px-8">
-          <SectionHead
-            eyebrow="What you get"
-            title="A trading desk that runs itself."
-            sub="Six tools for the same job: turn an idea into a strategy, prove it on history, ship it to your live account, and watch it without watching it."
-          />
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-            <Feature
-              icon={<Beaker />}
-              title="Honest backtests"
-              body="Walk-forward, monte-carlo, slippage and fees baked in. No survivorship, no overfit warnings ignored."
-            />
-            <Feature
-              icon={<Bot />}
-              title="Strategy library"
-              body="LSR, VCB, TPSE and more — each backed by a written thesis and put through walk-forward and Monte-Carlo before deployment. Tune them, run them in paper, then go live."
-            />
-            <Feature
-              icon={<Shuffle />}
-              title="Spot hedging"
-              body="Hold BTC through the bull, rotate to USDT when the daily trend breaks down. The EMA-band hedge can manage your whole BTC balance at deposit cost basis — drawdown protection without market-timing by hand."
-            />
-            <Feature
-              icon={<PiggyBank />}
-              title="Idle-cash yield"
-              body="Cash on the sidelines still earns. Idle USDT is parked in Binance Simple Earn and the realised yield folds straight into your equity curve. Per-account toggle, redeemed automatically when you need it."
-            />
-            <Feature
-              icon={<LineChart />}
-              title="Live P&L, calm UI"
-              body="WebSocket-driven cells flash on every tick. Aggregated across accounts. Same numbers your accountant will see."
-            />
-            <Feature
-              icon={<Shield />}
-              title="Risk caps that actually fire"
-              body="Per-account daily loss limits, position concentration limits, kill-switch on drawdown. No surprises overnight."
-            />
-            <Feature
-              icon={<Zap />}
-              title="Multi-account orchestration"
-              body="Run trading and hedging accounts side by side, each with its own strategies and risk budget. One dashboard, switch an account's type whenever your view changes."
-            />
-            <Feature
-              icon={<Layers />}
-              title="Alternative data baked in"
-              body="Strategies trade on more than price. FRED macro, Binance funding & open interest, on-chain flows from CoinMetrics and DeFiLlama, and the Fear & Greed sentiment index — all point-in-time, all built in."
-            />
-          </div>
-        </div>
-      </section>
-
-      {}
-      <section style={{ padding: '80px 0' }}>
-        <div className="mx-auto max-w-[1180px] px-8">
-          <SectionHead
-            eyebrow="Strategy library"
-            title="Start with a strategy. Not a blinking cursor."
-            sub="Each strategy ships with documented logic and tunable parameters, validated on up to nine years of history. The hedge card below is a real backtest; the rest are illustrative."
-          />
-          <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
-            {STRATEGY_HIGHLIGHTS.map((s, i) => (
-              <div key={s.code} className="br-card" style={{ borderRadius: 28, padding: 28 }}>
-                <div className="mb-4 flex items-start justify-between">
-                  <div
-                    className="br-ticker"
-                    style={{ width: 44, height: 44, borderRadius: 12, fontSize: 12 }}
-                  >
-                    {s.code}
-                  </div>
-                  <span className="br-chip br-chip-brand">{s.tag}</span>
-                </div>
-                <h3
-                  className="font-display"
-                  style={{
-                    fontSize: 20,
-                    fontWeight: 700,
-                    letterSpacing: '-0.015em',
-                    margin: '0 0 16px',
-                  }}
-                >
-                  {s.name}
-                </h3>
-                <Sparkline data={makeSpark(100 + i, 30)} width={280} height={48} />
-                <div
-                  className="mt-4 flex gap-4 pt-4"
-                  style={{ borderTop: '1px solid var(--border-subtle)' }}
-                >
-                  <Stat
-                    label={s.s1Label}
-                    value={s.s1Value}
-                    valueColor={s.real ? 'var(--color-profit)' : undefined}
-                  />
-                  <Stat label={s.s2Label} value={s.s2Value} />
-                </div>
-                <div className="mt-3 text-[11px]" style={{ color: 'var(--text-muted)' }}>
-                  {s.real ? 'Real backtest · not live' : 'Illustrative'}
-                </div>
-              </div>
-            ))}
-          </div>
-          <div className="mt-8 text-center">
-            <Link href="/strategies-overview" className="br-btn br-btn-secondary br-btn-lg">
-              Browse all 7 strategies <ArrowRight size={14} />
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {}
-      <section style={{ padding: '80px 0', background: 'var(--bg-surface)' }}>
-        <div className="mx-auto max-w-[1180px] px-8">
-          <div className="br-trust-band">
-            <span
-              className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-[12px] font-semibold"
-              style={{ background: 'rgba(255,255,255,0.12)', color: '#fff' }}
-            >
-              <Shield size={14} /> Built for capital you can&apos;t lose
-            </span>
-            <h2
-              className="font-display"
-              style={{
-                color: '#fff',
-                fontSize: 40,
-                fontWeight: 800,
-                letterSpacing: '-0.025em',
-                maxWidth: 640,
-                margin: '16px 0',
-              }}
-            >
-              Your keys, your funds, your audit trail.
-            </h2>
-            <p
-              style={{
-                color: 'rgba(255,255,255,0.78)',
-                fontSize: 17,
-                maxWidth: 580,
-                margin: '0 0 28px',
-              }}
-            >
-              Blackridge never custodies a single dollar. We connect to your Binance account via
-              read-and-trade API keys with withdrawals disabled. Every order, every fill, every
-              parameter change is timestamped and exportable.
-            </p>
-            <div
-              className="mt-10 flex gap-14 pt-8"
-              style={{ borderTop: '1px solid rgba(255,255,255,0.12)' }}
-            >
-              <TrustStat value="0" label="Funds we custody" />
-              <TrustStat value="< 60 s" label="Balance reconcile" />
-              <TrustStat value="Off" label="Withdrawal scope" />
-              <TrustStat value="9 yr" label="Backtest history" />
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {}
-      <section style={{ padding: '80px 0' }}>
-        <div className="mx-auto max-w-[1180px] px-8 text-center">
-          <h2
-            className="font-display"
-            style={{ fontSize: 48, fontWeight: 800, letterSpacing: '-0.025em', margin: 0 }}
-          >
-            Ready to take your strategies live?
-          </h2>
-          <p
-            style={{
-              fontSize: 17,
-              color: 'var(--text-secondary)',
-              maxWidth: 540,
-              margin: '16px auto 28px',
-            }}
-          >
-            Open an account in minutes. Start in paper trading for free, then connect your Binance
-            account when you&apos;re ready.
-          </p>
-          <Link href="/onboarding" className="br-btn br-btn-primary br-btn-lg">
-            Open account <ArrowRight size={16} />
-          </Link>
-          <div className="mt-3.5 text-[13px]" style={{ color: 'var(--text-muted)' }}>
-            No credit card required. No funds custodied.
-          </div>
-        </div>
-      </section>
+      <Hero />
+      <Venues />
+      <Process />
+      <Capabilities />
+      <StrategyIndex />
+      <RiskBand />
+      <DeskLetter />
+      <MarketingCta />
     </MarketingShell>
   );
 }
 
-function HeroStat({ value, label }: { value: string; label: string }) {
+function Hero() {
   return (
-    <div>
-      <div
-        className="font-display tabular-nums"
-        style={{ fontSize: 28, fontWeight: 800, letterSpacing: '-0.02em' }}
-      >
-        {value}
-      </div>
-      <div
-        className="mt-1 text-[12px] font-semibold uppercase tracking-[0.08em]"
-        style={{ color: 'var(--text-muted)' }}
-      >
-        {label}
-      </div>
-    </div>
-  );
-}
-
-function SectionHead({ eyebrow, title, sub }: { eyebrow: string; title: string; sub: string }) {
-  return (
-    <div className="mb-12 text-center">
-      <span
-        className="text-[12px] font-bold uppercase tracking-[0.14em]"
-        style={{ color: 'var(--brand-600)' }}
-      >
-        {eyebrow}
-      </span>
-      <h2
-        className="font-display"
-        style={{
-          fontSize: 44,
-          fontWeight: 800,
-          letterSpacing: '-0.025em',
-          margin: '12px 0',
-          color: 'var(--text-primary)',
-        }}
-      >
-        {title}
-      </h2>
-      <p
-        className="mx-auto"
-        style={{ fontSize: 17, color: 'var(--text-secondary)', maxWidth: 620, margin: '0 auto' }}
-      >
-        {sub}
-      </p>
-    </div>
-  );
-}
-
-function Feature({ icon, title, body }: { icon: React.ReactNode; title: string; body: string }) {
-  return (
-    <div className="br-card" style={{ borderRadius: 28, padding: 28 }}>
-      <div
-        className="mb-4 grid h-11 w-11 place-items-center rounded-xl"
-        style={{ background: 'var(--brand-50)', color: 'var(--brand-700)' }}
-      >
-        {icon}
-      </div>
-      <h3
-        className="font-display"
-        style={{
-          fontSize: 20,
-          fontWeight: 700,
-          letterSpacing: '-0.015em',
-          margin: '0 0 8px',
-          color: 'var(--text-primary)',
-        }}
-      >
-        {title}
-      </h3>
-      <p style={{ fontSize: 15, lineHeight: 1.55, color: 'var(--text-secondary)', margin: 0 }}>
-        {body}
-      </p>
-    </div>
-  );
-}
-
-function Stat({ label, value, valueColor }: { label: string; value: string; valueColor?: string }) {
-  return (
-    <div>
-      <div
-        className="text-[11px] font-semibold uppercase tracking-[0.08em]"
-        style={{ color: 'var(--text-muted)' }}
-      >
-        {label}
-      </div>
-      <div
-        className="font-display tabular-nums"
-        style={{ fontSize: 18, fontWeight: 700, color: valueColor ?? 'var(--text-primary)' }}
-      >
-        {value}
-      </div>
-    </div>
-  );
-}
-
-function TrustStat({ value, label }: { value: string; label: string }) {
-  return (
-    <div>
-      <div
-        className="font-display tabular-nums"
-        style={{ fontSize: 32, fontWeight: 800, color: '#fff' }}
-      >
-        {value}
-      </div>
-      <div
-        className="mt-1 text-[12px] font-semibold uppercase tracking-[0.1em]"
-        style={{ color: 'rgba(255,255,255,0.6)' }}
-      >
-        {label}
-      </div>
-    </div>
-  );
-}
-
-function CardStack() {
-  return (
-    <div className="br-card-stack">
-      {}
-      <div className="br-float c1">
-        <div className="mb-2 flex items-center gap-2.5">
-          <div className="br-ticker btc">BTC</div>
-          <div>
-            <div className="text-[14px] font-semibold" style={{ color: 'var(--text-primary)' }}>
-              BTC/USDT · LONG
+    <section className="qp-hero">
+      <div className="qp-wrap qp-hero-grid">
+        <div>
+          <div className="qp-hero-eyebrow">
+            <span>Systematic</span>
+            <span className="dot" />
+            <span>Non-custodial</span>
+            <span className="dot" />
+            <span>Live since 2024</span>
+          </div>
+          <h1>Systematic strategies, validated before they trade.</h1>
+          <p className="lede">
+            Blackridge is a systematic trading and hedging platform for digital assets. Strategies
+            are research-built, walk-forward validated, and executed on your own exchange account —
+            your capital never leaves your custody.
+          </p>
+          <div className="qp-hero-cta">
+            <Link href="/onboarding" className="qp-btn-primary lg">
+              Open account
+            </Link>
+            <Link href="/product" className="qp-btn-textlink">
+              Read how the platform works&ensp;→
+            </Link>
+          </div>
+          <div className="qp-hero-stats">
+            <div>
+              <strong>9 yrs</strong>
+              <span>Backtest history</span>
             </div>
-            <div className="text-[11px]" style={{ color: 'var(--text-muted)' }}>
-              LSR-V2 · illustrative
+            <div>
+              <strong>7</strong>
+              <span>Point-in-time data feeds</span>
+            </div>
+            <div>
+              <strong>0</strong>
+              <span>Client funds custodied</span>
+            </div>
+            <div>
+              <strong>24/7</strong>
+              <span>Automated execution</span>
             </div>
           </div>
-          <span className="br-chip br-chip-profit ml-auto">
-            <span className="br-chip-dot" /> LIVE
+        </div>
+        <HeroFactsheet />
+      </div>
+    </section>
+  );
+}
+
+function HeroFactsheet() {
+  return (
+    <div className="qp-fact-card">
+      <div className="qp-fact-head">
+        <div>
+          <div className="qp-fact-lbl">EMA-band BTC hedge — backtest</div>
+          <div className="qp-fact-val">
+            {HEDGE_STATS.total}
+            <span className="qp-fact-suf">total</span>
+          </div>
+        </div>
+        <div className="qp-fact-meta">
+          <div>
+            <span>Window</span>
+            <strong>2022&nbsp;–&nbsp;2026</strong>
+          </div>
+          <div>
+            <span>vs buy-hold</span>
+            <strong>{HEDGE_STATS.bhTotal}</strong>
+          </div>
+        </div>
+      </div>
+      <EquityChart hedge={HEDGE_CURVE} bh={BUYHOLD_CURVE} height={180} />
+      <div className="qp-fact-grid">
+        <div>
+          <span>CAGR</span>
+          <strong>{HEDGE_STATS.cagr}</strong>
+        </div>
+        <div>
+          <span>Sharpe</span>
+          <strong>{HEDGE_STATS.sharpe}</strong>
+        </div>
+        <div>
+          <span>Max drawdown</span>
+          <strong className="dn">{HEDGE_STATS.maxDd}</strong>
+        </div>
+        <div>
+          <span>Buy-hold max DD</span>
+          <strong className="dn">{HEDGE_STATS.bhMaxDd}</strong>
+        </div>
+      </div>
+      <div className="qp-fact-foot">
+        <span>
+          Backtest on BTC daily closes, Jan 2022 – Jun 2026 (includes the 2022 bear). Costs modelled
+          at 4 bps per allocation switch. Not live results. Past performance is not indicative of
+          future results.
+        </span>
+      </div>
+    </div>
+  );
+}
+
+function Venues() {
+  return (
+    <section className="qp-venues">
+      <div className="qp-wrap qp-venues-inner">
+        <div className="qp-venues-lbl">Executes on</div>
+        <div className="qp-venues-list">
+          <span>Binance&nbsp;Spot</span>
+          <span>Binance&nbsp;USDⓈ-M&nbsp;Futures</span>
+        </div>
+        <div className="qp-venues-aux">Your own account · scoped keys · withdrawals disabled</div>
+      </div>
+    </section>
+  );
+}
+
+function Process() {
+  return (
+    <section className="qp-section">
+      <div className="qp-wrap">
+        <SectionHead
+          eyebrow="Methodology"
+          title="Five gates between an idea and your capital."
+          sub="No strategy reaches a live account until every gate is green. The same gauntlet re-runs when you tune one to your own parameters."
+        />
+        <div className="qp-gates">
+          {GATES.map((g) => (
+            <article key={g.num}>
+              <div className="num">{g.num}</div>
+              <h3>{g.title}</h3>
+              <p>{g.body}</p>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function Capabilities() {
+  return (
+    <section className="qp-section paper">
+      <div className="qp-wrap">
+        <SectionHead
+          eyebrow="The platform"
+          title="An institutional desk, run from one dashboard."
+          sub="Research, validation, execution, and risk in one system — with live P&L streamed over WebSocket and the same numbers your accountant will see."
+        />
+        <div className="qp-disc-grid">
+          {CAPABILITIES.map((it) => (
+            <article key={it.n}>
+              <div className="qp-disc-num">{it.n}</div>
+              <h3>{it.h}</h3>
+              <p>{it.p}</p>
+              <div className="qp-disc-stat">
+                <span>{it.k}</span>
+                <strong>{it.v}</strong>
+              </div>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function StrategyIndex() {
+  return (
+    <section className="qp-section">
+      <div className="qp-wrap">
+        <SectionHead
+          eyebrow="Strategy library"
+          title="The current book, in one table."
+          sub="Each strategy ships with documented logic and tunable parameters. Per-strategy statistics render inside the app against your own data window — not as marketing numbers."
+        />
+        <div className="qp-table-wrap">
+          <table className="qp-table">
+            <thead>
+              <tr>
+                <th>Code</th>
+                <th>Strategy</th>
+                <th>Style</th>
+                <th>Venue</th>
+                <th>Horizon</th>
+                <th>Evidence</th>
+              </tr>
+            </thead>
+            <tbody>
+              {STRATEGY_INDEX.map((s) => (
+                <tr key={s.code}>
+                  <td className="code">{s.code}</td>
+                  <td className="name">{s.name}</td>
+                  <td>{s.style}</td>
+                  <td className="mono">{s.venue}</td>
+                  <td className="mono">{s.horizon}</td>
+                  <td>
+                    {s.real ? (
+                      <span className="qp-status ink">Backtest ’22–’26</span>
+                    ) : (
+                      <span className="qp-status">In library</span>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <div className="qp-strat-foot">
+          <span>
+            The EMA-band figures above are a real backtest on the 2022–2026 window; other strategies
+            are documented in the library without public performance claims.
           </span>
-        </div>
-        <div className="flex items-end justify-between">
-          <div>
-            <div
-              className="text-[11px] font-semibold uppercase tracking-[0.08em]"
-              style={{ color: 'var(--text-muted)' }}
-            >
-              Unrealized P&amp;L
-            </div>
-            <div
-              className="font-display tabular-nums"
-              style={{ fontWeight: 800, fontSize: 22, marginTop: 2, color: 'var(--color-profit)' }}
-            >
-              +$512.39
-            </div>
-            <div
-              className="tabular-nums"
-              style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-profit)' }}
-            >
-              +1.81%
-            </div>
-          </div>
-          <Sparkline data={makeSpark(11, 22)} color="var(--color-profit)" width={80} height={36} />
+          <Link href="/strategies-overview">Browse the full library&ensp;→</Link>
         </div>
       </div>
-
-      {}
-      <div className="br-float c2">
-        <div
-          className="text-[11px] font-semibold uppercase tracking-[0.08em]"
-          style={{ color: 'var(--text-muted)' }}
-        >
-          Strategy · illustrative
-        </div>
-        <div
-          className="font-display"
-          style={{ fontWeight: 700, fontSize: 17, marginTop: 4, marginBottom: 10 }}
-        >
-          Long-Short Reversal v2
-        </div>
-        <div className="grid grid-cols-2 gap-3">
-          <MiniStat label="Win rate" value="58.4%" />
-          <MiniStat label="Sharpe" value="1.84" />
-          <MiniStat label="P&L (30d)" value="+$12,480" color="var(--color-profit)" />
-          <MiniStat label="Max DD" value="−4.62%" color="var(--color-loss)" />
-        </div>
-      </div>
-
-      {}
-      <div className="br-float c3" style={{ padding: '14px 16px' }}>
-        <div className="mb-2 flex items-center justify-between">
-          <div
-            className="text-[11px] font-semibold uppercase tracking-[0.08em]"
-            style={{ color: 'var(--text-muted)' }}
-          >
-            Equity · 90d
-          </div>
-          <div
-            className="tabular-nums"
-            style={{ fontWeight: 700, fontSize: 14, color: 'var(--color-profit)' }}
-          >
-            +24.5%
-          </div>
-        </div>
-        <Sparkline data={makeSpark(33, 50)} color="var(--brand-500)" width={304} height={56} />
-      </div>
-    </div>
+    </section>
   );
 }
 
-function MiniStat({ label, value, color }: { label: string; value: string; color?: string }) {
+function RiskBand() {
   return (
-    <div>
-      <div
-        className="text-[10px] uppercase tracking-[0.08em]"
-        style={{ color: 'var(--text-muted)' }}
-      >
-        {label}
+    <section className="qp-section brand">
+      <div className="qp-wrap">
+        <SectionHead
+          eyebrow="Custody & controls"
+          title="Your keys, your funds, your audit trail."
+          sub="We never custody, we never co-mingle, and we never run a proprietary book against you. The same controls an institutional desk uses, applied to your own account."
+        />
+        <div className="qp-risk-grid">
+          <article>
+            <div className="num">01 — Custody</div>
+            <h3>Capital remains with you.</h3>
+            <p>
+              Strategies trade through scoped Binance API keys with withdrawal permission explicitly
+              denied. Keys are sealed with KMS-backed encryption before they leave your browser;
+              only the trading workers can decrypt, at order-placement time.
+            </p>
+          </article>
+          <article>
+            <div className="num">02 — Limits</div>
+            <h3>Pre-trade enforcement.</h3>
+            <p>
+              Per-account daily-loss caps, per-instrument concentration limits, and a portfolio
+              drawdown kill-switch. A breach halts the strategy automatically — no discretionary
+              override.
+            </p>
+          </article>
+          <article>
+            <div className="num">03 — Audit</div>
+            <h3>Append-only ledger.</h3>
+            <p>
+              Every order, fill, cancel, and parameter change is timestamped to an append-only
+              ledger and exportable. A complete, reproducible trace for any review.
+            </p>
+          </article>
+        </div>
       </div>
-      <div
-        className="tabular-nums"
-        style={{ fontWeight: 700, fontSize: 15, color: color ?? 'var(--text-primary)' }}
-      >
-        {value}
+    </section>
+  );
+}
+
+function DeskLetter() {
+  return (
+    <section className="qp-letter-section">
+      <div className="qp-wrap qp-letter-grid">
+        <div className="qp-letter-meta">
+          <div className="qp-letter-author">
+            <div className="avatar">BR</div>
+            <div>
+              <strong>The Blackridge desk</strong>
+              <span>On publishing honest numbers</span>
+            </div>
+          </div>
+          <div className="qp-letter-date">Research note · 2026</div>
+        </div>
+        <blockquote className="qp-letter-quote">
+          <p>
+            “We publish drawdowns next to returns, label every illustrative figure as illustrative,
+            and retire strategies that fail out-of-sample. If a number on this site isn’t a real
+            backtest, it says so — and nothing here is a promise of future performance.”
+          </p>
+          <Link href="/strategies-overview" className="qp-letter-link">
+            See how strategies are validated
+          </Link>
+        </blockquote>
       </div>
-    </div>
+    </section>
   );
 }

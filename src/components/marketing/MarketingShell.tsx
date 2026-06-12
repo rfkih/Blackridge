@@ -1,7 +1,6 @@
 import Link from 'next/link';
-import { ArrowRight } from 'lucide-react';
 import type { ReactNode } from 'react';
-import { BlackridgeMark, BlackridgeWordmark } from '@/components/brand/BlackridgeMark';
+import { BlackridgeMark } from '@/components/brand/BlackridgeMark';
 
 interface MarketingShellProps {
   children: ReactNode;
@@ -9,7 +8,11 @@ interface MarketingShellProps {
   activeNav?: 'product' | 'strategies' | 'pricing' | 'security' | 'docs';
 }
 
-const NAV_LINKS: { label: string; href: string; key: NonNullable<MarketingShellProps['activeNav']> }[] = [
+const NAV_LINKS: {
+  label: string;
+  href: string;
+  key: NonNullable<MarketingShellProps['activeNav']>;
+}[] = [
   { label: 'Product', href: '/product', key: 'product' },
   { label: 'Strategies', href: '/strategies-overview', key: 'strategies' },
   { label: 'Pricing', href: '/pricing', key: 'pricing' },
@@ -18,13 +21,15 @@ const NAV_LINKS: { label: string; href: string; key: NonNullable<MarketingShellP
 ];
 
 /**
- * Shared chrome for the public marketing site — sticky nav at the top + the
- * 4-column footer at the bottom. Pages drop their own hero/sections in as
- * children. Background, type, and accent all follow the active palette.
+ * Shared chrome for the public marketing site — "Research Desk" idiom.
+ * Hairline sticky nav with mono uppercase links, dark institutional
+ * footer with a disclosures block. Pages drop their sections in as
+ * children; the `.qp-page` wrapper provides the full qp token set
+ * (paper/ink surfaces, serif display face, light + dark themes).
  */
 export function MarketingShell({ children, activeNav }: MarketingShellProps) {
   return (
-    <main className="br marketing-root" style={{ background: 'var(--bg-base)' }}>
+    <main className="br qp-page" style={{ minHeight: '100vh' }}>
       <MarketingNav activeNav={activeNav} />
       {children}
       <MarketingFooter />
@@ -34,44 +39,28 @@ export function MarketingShell({ children, activeNav }: MarketingShellProps) {
 
 function MarketingNav({ activeNav }: { activeNav?: MarketingShellProps['activeNav'] }) {
   return (
-    <header
-      className="sticky top-0 z-50 backdrop-blur"
-      style={{
-        background: 'color-mix(in srgb, var(--bg-base) 88%, transparent)',
-        borderBottom: '1px solid var(--border-subtle)',
-      }}
-    >
-      <div className="mx-auto flex h-[68px] max-w-[1180px] items-center gap-6 px-5 sm:px-8 md:gap-10">
-        <Link href="/welcome" className="inline-flex items-center gap-2.5">
-          <BlackridgeWordmark size="md" />
+    <header className="qp-nav">
+      <div className="qp-nav-inner">
+        <Link href="/welcome" className="qp-nav-brand">
+          <BlackridgeMark size={28} />
+          <span className="name">Blackridge</span>
         </Link>
-        {}
-        <nav className="hidden flex-1 gap-7 text-[14px] font-medium md:flex">
-          {NAV_LINKS.map((link) => {
-            const active = activeNav === link.key;
-            return (
-              <Link
-                key={link.key}
-                href={link.href}
-                className="cursor-pointer transition-colors"
-                style={{
-                  color: active ? 'var(--brand-700)' : 'var(--text-secondary)',
-                  fontWeight: active ? 600 : 500,
-
-                  borderBottom: active ? '2px solid var(--brand-500)' : '2px solid transparent',
-                  paddingBottom: 2,
-                }}
-              >
-                {link.label}
-              </Link>
-            );
-          })}
+        <nav className="qp-nav-links" aria-label="Main">
+          {NAV_LINKS.map((link) => (
+            <Link
+              key={link.key}
+              href={link.href}
+              className={activeNav === link.key ? 'active' : undefined}
+            >
+              {link.label}
+            </Link>
+          ))}
         </nav>
-        <div className="ml-auto flex gap-2 md:ml-0">
-          <Link href="/login" className="br-btn br-btn-ghost hidden sm:inline-flex">
-            Sign in
+        <div className="qp-nav-cta">
+          <Link href="/login" className="qp-nav-signin">
+            Client login
           </Link>
-          <Link href="/onboarding" className="br-btn br-btn-primary">
+          <Link href="/onboarding" className="qp-btn-primary">
             Open account
           </Link>
         </div>
@@ -82,65 +71,58 @@ function MarketingNav({ activeNav }: { activeNav?: MarketingShellProps['activeNa
 
 function MarketingFooter() {
   return (
-    <footer
-      className="text-[13px]"
-      style={{
-        padding: '48px 0 40px',
-        borderTop: '1px solid var(--border-subtle)',
-        color: 'var(--text-muted)',
-      }}
-    >
-      <div className="mx-auto max-w-[1180px] px-5 sm:px-8">
-        {}
-        <div className="mb-10 grid gap-8 md:grid-cols-[2fr_1fr_1fr_1fr] md:gap-10">
-          <div>
-            <div className="mb-3.5 flex items-center gap-2.5">
-              <BlackridgeMark size={28} />
-              <div
-                className="font-display text-[17px] font-extrabold"
-                style={{ letterSpacing: '-0.02em', color: 'var(--text-primary)' }}
-              >
-                Blackridge
-              </div>
+    <footer className="qp-footer">
+      <div className="qp-wrap">
+        <div className="qp-footer-grid">
+          <div className="qp-footer-brand">
+            <div className="flex items-center gap-2.5">
+              <BlackridgeMark size={28} tone="inverse" />
+              <span className="name">Blackridge</span>
             </div>
-            <p style={{ maxWidth: 280, fontSize: 13, color: 'var(--text-muted)' }}>
-              Algorithmic crypto trading for traders who would rather sleep.
+            <p>
+              Systematic trading and hedging infrastructure for digital assets. Research-built
+              strategies, executed on your own exchange account.
             </p>
           </div>
-          <div className="grid grid-cols-2 gap-8 sm:grid-cols-3 md:contents">
-            <FooterCol
-              title="Product"
-              items={[
-                { label: 'Features', href: '/product' },
-                { label: 'Strategies', href: '/strategies-overview' },
-                { label: 'Pricing', href: '/pricing' },
-                { label: 'Security', href: '/security' },
-              ]}
-            />
-            <FooterCol
-              title="Resources"
-              items={[
-                { label: 'Docs', href: '/docs' },
-                { label: 'Sign in', href: '/login' },
-                { label: 'Open account', href: '/onboarding' },
-              ]}
-            />
-            <FooterCol
-              title="Legal"
-              items={[
-                { label: 'Terms', href: '/terms' },
-                { label: 'Privacy', href: '/privacy' },
-                { label: 'Cookies', href: '/cookies' },
-              ]}
-            />
-          </div>
+          <FooterCol
+            title="Platform"
+            items={[
+              { label: 'Product', href: '/product' },
+              { label: 'Strategy library', href: '/strategies-overview' },
+              { label: 'Pricing', href: '/pricing' },
+              { label: 'Security', href: '/security' },
+            ]}
+          />
+          <FooterCol
+            title="Resources"
+            items={[
+              { label: 'Documentation', href: '/docs' },
+              { label: 'Client login', href: '/login' },
+              { label: 'Open account', href: '/onboarding' },
+            ]}
+          />
+          <FooterCol
+            title="Legal"
+            items={[
+              { label: 'Terms of service', href: '/terms' },
+              { label: 'Privacy policy', href: '/privacy' },
+              { label: 'Cookie policy', href: '/cookies' },
+            ]}
+          />
         </div>
-        <div
-          className="flex flex-col gap-2 pt-6 text-[12px] sm:flex-row sm:items-center sm:justify-between sm:text-[13px]"
-          style={{ borderTop: '1px solid var(--border-subtle)' }}
-        >
-          <span>© 2026 Blackridge Technology Pte. Ltd.</span>
-          <span>Trading involves risk. Past performance does not guarantee future results.</span>
+        <div className="qp-footer-disclosures">
+          <strong>Important disclosures.</strong> Blackridge Technology Pte. Ltd. provides software
+          for systematic execution on a client&apos;s own exchange account. Blackridge is not a
+          broker-dealer, investment adviser, or fund; it does not custody client assets, pool client
+          capital, or provide individualized investment advice. Digital-asset trading involves
+          substantial risk of loss and is not suitable for every investor. Backtested and simulated
+          performance results are hypothetical, do not reflect live trading, and are presented net
+          of modelled costs only where stated. Past performance — live, simulated, or backtested —
+          is not indicative of future results.
+        </div>
+        <div className="qp-footer-bottom">
+          <span>© 2026 Blackridge Technology Pte. Ltd. · Singapore</span>
+          <span>Non-custodial by design · Withdrawals disabled at the key level</span>
         </div>
       </div>
     </footer>
@@ -149,23 +131,12 @@ function MarketingFooter() {
 
 function FooterCol({ title, items }: { title: string; items: { label: string; href: string }[] }) {
   return (
-    <div>
-      <h5
-        className="mb-3.5 text-[13px] font-bold"
-        style={{ color: 'var(--text-primary)', margin: '0 0 14px' }}
-      >
-        {title}
-      </h5>
-      <ul className="m-0 flex list-none flex-col gap-2.5 p-0">
+    <div className="qp-footer-col">
+      <h5>{title}</h5>
+      <ul>
         {items.map((it) => (
           <li key={it.label}>
-            <Link
-              href={it.href}
-              className="cursor-pointer transition-colors hover:text-[var(--text-primary)]"
-              style={{ color: 'var(--text-muted)' }}
-            >
-              {it.label}
-            </Link>
+            <Link href={it.href}>{it.label}</Link>
           </li>
         ))}
       </ul>
@@ -173,7 +144,7 @@ function FooterCol({ title, items }: { title: string; items: { label: string; hr
   );
 }
 
-/** Shared section-head pattern used by every marketing page (eyebrow + h2 + sub). */
+/** Shared section-head pattern (eyebrow + serif h2 + lede), qp idiom. */
 export function SectionHead({
   eyebrow,
   title,
@@ -184,81 +155,33 @@ export function SectionHead({
   sub?: string;
 }) {
   return (
-    <div className="mb-12 text-center">
-      <span
-        className="text-[12px] font-bold uppercase tracking-[0.14em]"
-        style={{ color: 'var(--brand-600)' }}
-      >
-        {eyebrow}
-      </span>
-      <h2
-        className="font-display"
-        style={{
-          fontSize: 44,
-          fontWeight: 800,
-          letterSpacing: '-0.025em',
-          margin: '12px 0',
-          color: 'var(--text-primary)',
-        }}
-      >
-        {title}
-      </h2>
-      {sub && (
-        <p
-          className="mx-auto"
-          style={{
-            fontSize: 17,
-            color: 'var(--text-secondary)',
-            maxWidth: 620,
-            margin: '0 auto',
-          }}
-        >
-          {sub}
-        </p>
-      )}
-    </div>
+    <header className="qp-section-head">
+      <div>
+        <div className="qp-section-eye">{eyebrow}</div>
+        <h2>{title}</h2>
+      </div>
+      {sub && <p className="qp-section-lede">{sub}</p>}
+    </header>
   );
 }
 
 /** Shared CTA strip — same on every marketing page. */
 export function MarketingCta({
-  title = 'Ready to take your strategies live?',
-  sub = 'Open an account in three minutes. Run paper trades free for the first 14 days. Connect a real exchange when you’re ready.',
+  title = 'Run your first strategy on paper.',
+  sub = 'Open an account, validate a strategy against live market data without risking capital, and connect your exchange when the numbers convince you.',
 }: {
   title?: string;
   sub?: string;
 }) {
   return (
-    <section style={{ padding: '80px 0' }}>
-      <div className="mx-auto max-w-[1180px] px-8 text-center">
-        <h2
-          className="font-display"
-          style={{
-            fontSize: 48,
-            fontWeight: 800,
-            letterSpacing: '-0.025em',
-            margin: 0,
-            color: 'var(--text-primary)',
-          }}
-        >
-          {title}
-        </h2>
-        <p
-          style={{
-            fontSize: 17,
-            color: 'var(--text-secondary)',
-            maxWidth: 540,
-            margin: '16px auto 28px',
-          }}
-        >
-          {sub}
-        </p>
-        <Link href="/onboarding" className="br-btn br-btn-primary br-btn-lg">
-          Open account <ArrowRight size={16} />
+    <section className="qp-cta">
+      <div className="qp-wrap">
+        <h2>{title}</h2>
+        <p>{sub}</p>
+        <Link href="/onboarding" className="qp-btn-primary lg">
+          Open account
         </Link>
-        <div className="mt-3.5 text-[13px]" style={{ color: 'var(--text-muted)' }}>
-          No credit card required. No funds custodied.
-        </div>
+        <div className="note">No card · No custody · No performance fee</div>
       </div>
     </section>
   );
