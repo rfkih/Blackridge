@@ -86,7 +86,9 @@ export function ServerIpCard({ variant = 'card' }: ServerIpCardProps) {
       </div>
       <button
         type="button"
-        onClick={() => void refetch()}
+        onClick={() => {
+          void refetch();
+        }}
         disabled={isFetching}
         title="Refresh"
         className="mm-btn mm-btn-ghost"

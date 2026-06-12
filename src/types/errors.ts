@@ -1,4 +1,3 @@
-
 import type { PageEnvelope } from './api';
 
 /** Logged-error severity — distinct from {@link AlertSeverity}; finer-grained. */

@@ -1,4 +1,3 @@
-
 export const TV = {
   BG: '#0E1116',
   SURFACE: '#171B22',
@@ -45,4 +44,3 @@ export const INTERVAL_SECONDS: Record<string, number> = {
   '4h': 14_400,
   '1d': 86_400,
 };
-

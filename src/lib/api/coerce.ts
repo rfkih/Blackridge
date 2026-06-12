@@ -1,4 +1,3 @@
-
 /** Required numeric field — null/empty/NaN fall back to {@code fallback} (default 0). */
 export function toNum(v: number | string | null | undefined, fallback = 0): number {
   if (v == null) return fallback;

@@ -11,11 +11,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
-import {
-  AXIS_TICK,
-  CHART_COLORS,
-  type ChartTooltipItem,
-} from '@/lib/charts/rechartsTheme';
+import { AXIS_TICK, CHART_COLORS, type ChartTooltipItem } from '@/lib/charts/rechartsTheme';
 import type { TradePoint } from '@/types/papers';
 
 interface PaperTradeHistogramProps {
@@ -58,10 +54,12 @@ const TradeTooltip = ({
         className="font-mono text-[12px] font-semibold tabular-nums"
         style={{ color: up ? CHART_COLORS.profit : CHART_COLORS.loss }}
       >
-        {up ? '+' : ''}{d.pnl_pct.toFixed(3)}%
+        {up ? '+' : ''}
+        {d.pnl_pct.toFixed(3)}%
       </p>
       <p className="mt-0.5 font-mono text-[10px]" style={{ color: CHART_COLORS.neutral }}>
-        {fmtDate(d.entry)}{d.exit ? ` → ${fmtDate(d.exit)}` : ' → open'}
+        {fmtDate(d.entry)}
+        {d.exit ? ` → ${fmtDate(d.exit)}` : ' → open'}
       </p>
     </div>
   );
@@ -109,12 +107,7 @@ export function PaperTradeHistogram({ trades, height = 200 }: PaperTradeHistogra
       </div>
       <ResponsiveContainer width="100%" height={height}>
         <BarChart data={data} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
-          <XAxis
-            dataKey="n"
-            tick={false}
-            axisLine={false}
-            tickLine={false}
-          />
+          <XAxis dataKey="n" tick={false} axisLine={false} tickLine={false} />
           <YAxis
             tickFormatter={(v: number) => `${v > 0 ? '+' : ''}${v.toFixed(1)}%`}
             tick={{ ...AXIS_TICK, fontSize: 9 }}
@@ -122,10 +115,7 @@ export function PaperTradeHistogram({ trades, height = 200 }: PaperTradeHistogra
             tickLine={false}
             width={48}
           />
-          <Tooltip
-            cursor={{ fill: 'rgba(59,130,246,0.06)' }}
-            content={<TradeTooltip />}
-          />
+          <Tooltip cursor={{ fill: 'rgba(59,130,246,0.06)' }} content={<TradeTooltip />} />
           <ReferenceLine y={0} stroke={CHART_COLORS.neutralDim} strokeDasharray="3 3" />
           <Bar dataKey="pnl_pct" isAnimationActive={data.length < 300} maxBarSize={6}>
             {data.map((d, i) => (

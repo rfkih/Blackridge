@@ -68,7 +68,12 @@ export function StrategyParamPresetsPanel({ accountStrategyId }: Props) {
             reads the active preset; backtests can pin any preset by ID.
           </p>
         </div>
-        <Button size="sm" variant="default" className="shrink-0 whitespace-nowrap" onClick={() => setCreateOpen(true)}>
+        <Button
+          size="sm"
+          variant="default"
+          className="shrink-0 whitespace-nowrap"
+          onClick={() => setCreateOpen(true)}
+        >
           <Plus size={14} className="mr-1 shrink-0" />
           New preset
         </Button>
@@ -150,7 +155,11 @@ function PresetRow({
     }
   };
   const handleDelete = async () => {
-    if (!confirm(`Delete preset "${preset.name}"? Historical backtests can still resolve it by ID.`)) {
+    if (
+      !window.confirm(
+        `Delete preset "${preset.name}"? Historical backtests can still resolve it by ID.`,
+      )
+    ) {
       return;
     }
     try {
@@ -269,8 +278,8 @@ function CreatePresetDialog({
         <DialogHeader>
           <DialogTitle>New preset</DialogTitle>
           <DialogDescription>
-            Creates an empty preset (defaults only). Edit overrides via the existing strategy
-            params form once the preset is active.
+            Creates an empty preset (defaults only). Edit overrides via the existing strategy params
+            form once the preset is active.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-3">

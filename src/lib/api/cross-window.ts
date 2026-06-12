@@ -1,4 +1,3 @@
-
 import { apiClient } from './client';
 
 export type CrossWindowVerdict =
@@ -49,9 +48,7 @@ export interface ListCrossWindowOpts {
   limit?: number;
 }
 
-export async function listCrossWindowRuns(
-  opts: ListCrossWindowOpts,
-): Promise<CrossWindowEnvelope> {
+export async function listCrossWindowRuns(opts: ListCrossWindowOpts): Promise<CrossWindowEnvelope> {
   const { data } = await apiClient.get<CrossWindowEnvelope>('/api/v1/cross-window', {
     params: {
       strategyCode: opts.strategyCode,

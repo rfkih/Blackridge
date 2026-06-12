@@ -45,13 +45,7 @@ export function BuyHoldVerdictStrip({
   buyHoldMaxDdPct,
 }: BuyHoldVerdictStripProps) {
   const cmp = useMemo(
-    () =>
-      compareToBuyHold(
-        strategyReturnPct,
-        strategyMaxDdPct,
-        buyHoldReturnPct,
-        buyHoldMaxDdPct,
-      ),
+    () => compareToBuyHold(strategyReturnPct, strategyMaxDdPct, buyHoldReturnPct, buyHoldMaxDdPct),
     [strategyReturnPct, strategyMaxDdPct, buyHoldReturnPct, buyHoldMaxDdPct],
   );
 
@@ -68,9 +62,7 @@ export function BuyHoldVerdictStrip({
     if (buyHoldReturnPct > 0 && cmp.upsideCapturedPct != null) {
       const cap = Math.round(cmp.upsideCapturedPct);
       const head =
-        cap >= 100
-          ? `Beat buy-hold — ${cap}% of the upside`
-          : `Captured ${cap}% of the upside`;
+        cap >= 100 ? `Beat buy-hold — ${cap}% of the upside` : `Captured ${cap}% of the upside`;
       return ddPhrase ? `${head} · ${ddPhrase}.` : `${head}.`;
     }
 
@@ -88,7 +80,11 @@ export function BuyHoldVerdictStrip({
         </h4>
       </div>
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <Stat label="Strategy return" value={signedPct(strategyReturnPct)} color={returnColor(strategyReturnPct)} />
+        <Stat
+          label="Strategy return"
+          value={signedPct(strategyReturnPct)}
+          color={returnColor(strategyReturnPct)}
+        />
         <Stat
           label={`Buy & Hold${sym} return`}
           value={signedPct(buyHoldReturnPct)}

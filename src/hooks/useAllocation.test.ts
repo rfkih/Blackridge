@@ -3,6 +3,8 @@ import { renderHook } from '@testing-library/react';
 import type { PortfolioBalance } from '@/types/portfolio';
 import type { AccountStrategy } from '@/types/strategy';
 
+import { useAllocation } from './useAllocation';
+
 // --- mock the underlying reads ---
 const usePortfolio = vi.fn();
 const useStrategies = vi.fn();
@@ -17,8 +19,6 @@ vi.mock('./useStrategies', () => ({
 vi.mock('@/hooks/useEarnPosition', () => ({
   useEarnPosition: (...a: unknown[]) => useEarnPosition(...a),
 }));
-
-import { useAllocation } from './useAllocation';
 
 const ACCOUNT_ID = 'acct-1';
 
@@ -115,7 +115,11 @@ describe('useAllocation', () => {
       isLoading: false,
       isError: false,
     });
-    useStrategies.mockReturnValue({ data: [mkHedgingStrategy()], isLoading: false, isError: false });
+    useStrategies.mockReturnValue({
+      data: [mkHedgingStrategy()],
+      isLoading: false,
+      isError: false,
+    });
     useEarnPosition.mockReturnValue({ data: { amountUsdt: 400, enabled: true } });
 
     const { result } = renderHook(() => useAllocation(ACCOUNT_ID));
@@ -197,7 +201,11 @@ describe('useAllocation', () => {
 
   it('scopes the portfolio read to the given account (not the active scope)', () => {
     usePortfolio.mockReturnValue({ data: mkBalance(), isLoading: false, isError: false });
-    useStrategies.mockReturnValue({ data: [mkHedgingStrategy()], isLoading: false, isError: false });
+    useStrategies.mockReturnValue({
+      data: [mkHedgingStrategy()],
+      isLoading: false,
+      isError: false,
+    });
 
     renderHook(() => useAllocation('acc-X'));
 

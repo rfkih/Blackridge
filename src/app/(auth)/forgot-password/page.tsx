@@ -180,6 +180,7 @@ export default function ForgotPasswordPage() {
           </div>
         ) : (
           <div
+            role="presentation"
             onKeyDown={(e) => {
               if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
@@ -227,7 +228,9 @@ export default function ForgotPasswordPage() {
 
             <button
               type="button"
-              onClick={() => void submit()}
+              onClick={() => {
+                void submit();
+              }}
               disabled={isSubmitting}
               style={{
                 width: '100%',

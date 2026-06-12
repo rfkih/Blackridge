@@ -42,11 +42,7 @@ export function useMlSourceHealth() {
 
 export function useUpdateMlSchedule() {
   const qc = useQueryClient();
-  return useMutation<
-    MlIngestSchedule,
-    Error,
-    { id: number; req: UpdateMlScheduleRequest }
-  >({
+  return useMutation<MlIngestSchedule, Error, { id: number; req: UpdateMlScheduleRequest }>({
     mutationFn: ({ id, req }) => updateMlSchedule(id, req),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: [SCHEDULES_KEY] });

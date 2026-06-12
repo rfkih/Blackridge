@@ -52,10 +52,7 @@ function toMsClose(c: { time: number; close: number }): { ts: number; close: num
  * (`@/lib/hedging/btcCompare`) — no fabricated data: every output is `null`
  * until its real source has loaded.
  */
-export function useBtcBuyHold(
-  points: EquityPoint[],
-  period: EquityPeriod,
-): UseBtcBuyHoldResult {
+export function useBtcBuyHold(points: EquityPoint[], period: EquityPeriod): UseBtcBuyHoldResult {
   const hasEquity = points.length > 0;
 
   const candlesQuery = useQuery({

@@ -30,11 +30,7 @@ interface RevokeApprovalDialogProps {
   approval: SymbolApproval | null;
 }
 
-export function RevokeApprovalDialog({
-  open,
-  onOpenChange,
-  approval,
-}: RevokeApprovalDialogProps) {
+export function RevokeApprovalDialog({ open, onOpenChange, approval }: RevokeApprovalDialogProps) {
   const [reason, setReason] = useState('');
   const revoke = useRevokeSymbolApproval();
 
@@ -84,13 +80,17 @@ export function RevokeApprovalDialog({
         </DialogHeader>
 
         <div className="space-y-1">
-          <Label className="label-caps !text-[9px]">Reason</Label>
+          <Label htmlFor="revoke-reason" className="label-caps !text-[9px]">
+            Reason
+          </Label>
           <textarea
+            id="revoke-reason"
             value={reason}
             onChange={(e) => setReason(e.target.value)}
             placeholder="e.g. CAGR floor raised, this combo no longer clears"
             maxLength={500}
             rows={3}
+            // eslint-disable-next-line jsx-a11y/no-autofocus -- modal focus pattern: the reason field is the dialog's primary control
             autoFocus
             className="flex w-full rounded-md border border-bd bg-bg-base px-3 py-2 text-[12px] text-text-primary placeholder:text-text-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
           />

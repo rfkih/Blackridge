@@ -1,4 +1,3 @@
-
 export type Tone = 'profit' | 'loss' | 'warning' | 'info' | 'muted';
 
 export function toneColor(tone: Tone): string {

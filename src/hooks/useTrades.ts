@@ -61,8 +61,11 @@ export function useTradesList(filters: TradesPageFilters) {
     ],
     queryFn: () => getTradesPage(filters),
     staleTime: QUERY_STALE_TIMES.closedTrades,
-
-    placeholderData: (prev) => prev,
+    // Keep the previous page visible across page/filter flips, but NOT across
+    // account switches — the old account's trades must not render as if they
+    // belonged to the new one. queryKey[7] is accountId (see key above).
+    placeholderData: (prev, prevQuery) =>
+      prevQuery?.queryKey[7] === (filters.accountId ?? null) ? prev : undefined,
   });
 }
 
@@ -87,7 +90,9 @@ export function useTradeStats(filters: Omit<TradesPageFilters, 'page' | 'size'>)
     ],
     queryFn: () => getTradeStats(filters),
     staleTime: QUERY_STALE_TIMES.closedTrades,
-    placeholderData: (prev) => prev,
+    // Same account guard as useTradesList — queryKey[7] is accountId.
+    placeholderData: (prev, prevQuery) =>
+      prevQuery?.queryKey[7] === (filters.accountId ?? null) ? prev : undefined,
   });
 }
 

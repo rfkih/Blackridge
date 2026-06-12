@@ -2,6 +2,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import type { AccountSummary } from '@/types/account';
 
+import { EarnToggleCard } from './EarnToggleCard';
+
 const useActiveAccount = vi.fn();
 const useUpdateAccountEarnConfig = vi.fn();
 const useEarnPosition = vi.fn();
@@ -14,8 +16,6 @@ vi.mock('@/hooks/useAccounts', () => ({
 vi.mock('@/hooks/useEarnPosition', () => ({
   useEarnPosition: (...a: unknown[]) => useEarnPosition(...a),
 }));
-
-import { EarnToggleCard } from './EarnToggleCard';
 
 function hedgingAccount(earnEnabled: boolean): AccountSummary {
   return {
@@ -46,7 +46,9 @@ describe('EarnToggleCard', () => {
   });
 
   it('renders nothing for a non-hedging account', () => {
-    useActiveAccount.mockReturnValue({ activeAccount: { ...hedgingAccount(false), accountType: 'TRADING' } });
+    useActiveAccount.mockReturnValue({
+      activeAccount: { ...hedgingAccount(false), accountType: 'TRADING' },
+    });
     const { container } = render(<EarnToggleCard />);
     expect(container).toBeEmptyDOMElement();
   });
@@ -66,10 +68,7 @@ describe('EarnToggleCard', () => {
     useActiveAccount.mockReturnValue({ activeAccount: hedgingAccount(false) });
     render(<EarnToggleCard />);
     fireEvent.click(screen.getByRole('switch'));
-    expect(mutate).toHaveBeenCalledWith(
-      { accountId: 'acc-1', enabled: true },
-      expect.anything(),
-    );
+    expect(mutate).toHaveBeenCalledWith({ accountId: 'acc-1', enabled: true }, expect.anything());
   });
 
   it('shows the "not yet live platform-wide" hint when opted in but master off', () => {

@@ -1,9 +1,9 @@
 'use client';
 
 import Link from 'next/link';
-import { formatDistanceToNowStrict } from 'date-fns';
 import { useState } from 'react';
 import { useModels } from '@/lib/api/ml';
+import { formatRelativeTime } from '@/lib/formatters';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   Table,
@@ -37,19 +37,11 @@ const STATUS_STYLES: Record<string, string> = {
   rejected_by_operator: 'bg-rose-500/15 text-rose-300',
 };
 
-function fmtRelative(ts: string): string {
-  try {
-    return `${formatDistanceToNowStrict(new Date(ts))} ago`;
-  } catch {
-    return '—';
-  }
-}
-
 export function ModelsTable() {
   const [page, setPage] = useState(0);
   const [status, setStatus] = useState<string>('all');
 
-  const { data, isLoading, isError } = useModels({
+  const { data, isLoading, isError, isFetching } = useModels({
     status: status === 'all' ? undefined : status,
     limit: PAGE_SIZE,
     offset: page * PAGE_SIZE,
@@ -85,7 +77,7 @@ export function ModelsTable() {
           </SelectContent>
         </Select>
         <span className="ml-auto text-xs text-zinc-500">
-          {total} model{total === 1 ? '' : 's'}
+          {isLoading ? '…' : `${total} model${total === 1 ? '' : 's'}`}
         </span>
       </div>
 
@@ -141,7 +133,7 @@ export function ModelsTable() {
                     {m.artifactSha256 ? `${m.artifactSha256.slice(0, 12)}…` : '—'}
                   </TableCell>
                   <TableCell className="text-right text-xs text-zinc-400">
-                    {fmtRelative(m.createdTime)}
+                    {formatRelativeTime(m.createdTime)}
                   </TableCell>
                 </TableRow>
               ))}
@@ -154,7 +146,7 @@ export function ModelsTable() {
         <div className="flex items-center justify-between text-sm text-zinc-400">
           <button
             type="button"
-            disabled={page === 0}
+            disabled={page === 0 || isFetching}
             onClick={() => setPage(Math.max(0, page - 1))}
             className="rounded-md border border-zinc-800 px-3 py-1 hover:bg-zinc-900 disabled:opacity-40"
           >
@@ -165,7 +157,7 @@ export function ModelsTable() {
           </span>
           <button
             type="button"
-            disabled={page >= lastPage}
+            disabled={page >= lastPage || isFetching}
             onClick={() => setPage(Math.min(lastPage, page + 1))}
             className="rounded-md border border-zinc-800 px-3 py-1 hover:bg-zinc-900 disabled:opacity-40"
           >

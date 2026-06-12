@@ -1,9 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { useMemo, useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ChevronRight, FileText, Inbox, Loader2, Plus, ShieldCheck, X } from 'lucide-react';
-import { useEffect } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { generatePaper } from '@/lib/api/researchPapers';
 import { useIsAdmin } from '@/hooks/useIsAdmin';
@@ -25,7 +24,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from '@/hooks/useToast';
 import { normalizeError } from '@/lib/api/client';
 import { formatDate } from '@/lib/formatters';
-import { toneColor, type Tone } from '@/lib/tones';
+import { toneColor } from '@/lib/tones';
 import type {
   CreateQueueItemRequest,
   ResearchQueueItem,
@@ -314,8 +313,8 @@ function QueueRow({ row }: { row: ResearchQueueItem }) {
       </Td>
       <Td align="right">
         <div className="flex items-center justify-end gap-1.5">
-          {canGeneratePaper && (
-            generatedPaperId ? (
+          {canGeneratePaper &&
+            (generatedPaperId ? (
               <Link
                 href={`/research/papers/${generatedPaperId}`}
                 className="inline-flex items-center gap-1 rounded-sm border border-bd-subtle bg-bg-surface px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-[var(--accent-primary)] hover:bg-bg-hover"
@@ -333,11 +332,12 @@ function QueueRow({ row }: { row: ResearchQueueItem }) {
                 {generatePaperMutation.isPending ? (
                   <Loader2 size={10} className="animate-spin" />
                 ) : (
-                  <><FileText size={10} /> Paper</>
+                  <>
+                    <FileText size={10} /> Paper
+                  </>
                 )}
               </button>
-            )
-          )}
+            ))}
           <button
             type="button"
             onClick={handleCancel}

@@ -1,4 +1,5 @@
 'use client';
+
 import { useCallback, useEffect, useState } from 'react';
 import type { ChartIndicators, ChartIndicatorKey } from '@/types/market';
 import { DEFAULT_INDICATORS } from '@/lib/charts/indicatorConfig';
@@ -23,15 +24,22 @@ export function useChartIndicators(storageKey: string) {
   const [indicators, setIndicators] = useState<ChartIndicators>(DEFAULT_INDICATORS);
 
   // Rehydrate on mount (SSR-safe: read after mount to avoid hydration mismatch).
-  useEffect(() => { setIndicators(load(storageKey)); }, [storageKey]);
-
-  const toggle = useCallback((key: ChartIndicatorKey) => {
-    setIndicators((prev) => {
-      const next = { ...prev, [key]: !prev[key] };
-      try { window.localStorage.setItem(storageKey, JSON.stringify(next)); } catch {}
-      return next;
-    });
+  useEffect(() => {
+    setIndicators(load(storageKey));
   }, [storageKey]);
+
+  const toggle = useCallback(
+    (key: ChartIndicatorKey) => {
+      setIndicators((prev) => {
+        const next = { ...prev, [key]: !prev[key] };
+        try {
+          window.localStorage.setItem(storageKey, JSON.stringify(next));
+        } catch {}
+        return next;
+      });
+    },
+    [storageKey],
+  );
 
   const anyActive = Object.values(indicators).some(Boolean);
   return { indicators, toggle, anyActive };

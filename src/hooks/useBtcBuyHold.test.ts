@@ -4,12 +4,12 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { createElement, type ReactNode } from 'react';
 import type { EquityPoint, CandleData } from '@/types/market';
 
+import { useBtcBuyHold } from './useBtcBuyHold';
+
 const fetchCandles = vi.fn();
 vi.mock('@/lib/api/market', () => ({
   fetchCandles: (...a: unknown[]) => fetchCandles(...a),
 }));
-
-import { useBtcBuyHold } from './useBtcBuyHold';
 
 const DAY = 86_400_000;
 

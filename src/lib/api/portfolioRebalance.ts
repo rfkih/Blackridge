@@ -29,9 +29,7 @@ const BASE = '/api/v1/research-orch';
  * per-user view, omit it for the admin "view all accounts" surface. The
  * write path ({@link rebalancePortfolio}) always requires it.
  */
-export async function listPortfolioWeights(
-  accountId?: string,
-): Promise<PortfolioWeightsResponse> {
+export async function listPortfolioWeights(accountId?: string): Promise<PortfolioWeightsResponse> {
   const { data } = await apiClient.get<PortfolioWeightsResponse>(`${BASE}/portfolio/weights`, {
     params: accountId ? { account_id: accountId } : undefined,
   });

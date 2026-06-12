@@ -24,11 +24,11 @@ const KIND_OPTIONS: ReadonlyArray<{ value: PaperKind; label: string }> = [
 
 type SortOption = { label: string; sortBy: PaperSortBy; sortDir: 'asc' | 'desc' };
 const SORT_OPTIONS: SortOption[] = [
-  { label: 'Newest',           sortBy: 'created_time',          sortDir: 'desc' },
-  { label: 'Oldest',           sortBy: 'created_time',          sortDir: 'asc'  },
-  { label: 'Last updated',     sortBy: 'updated_time',          sortDir: 'desc' },
-  { label: 'Most profitable',  sortBy: 'annualized_return_pct', sortDir: 'desc' },
-  { label: 'Least profitable', sortBy: 'annualized_return_pct', sortDir: 'asc'  },
+  { label: 'Newest', sortBy: 'created_time', sortDir: 'desc' },
+  { label: 'Oldest', sortBy: 'created_time', sortDir: 'asc' },
+  { label: 'Last updated', sortBy: 'updated_time', sortDir: 'desc' },
+  { label: 'Most profitable', sortBy: 'annualized_return_pct', sortDir: 'desc' },
+  { label: 'Least profitable', sortBy: 'annualized_return_pct', sortDir: 'asc' },
 ];
 
 export default function ResearchPapersPage() {
@@ -135,7 +135,9 @@ export default function ResearchPapersPage() {
           className="rounded-sm border border-bd-subtle bg-bg-base px-2.5 py-1.5 font-mono text-[11px] text-text-primary focus:border-[var(--accent-primary)] focus:outline-none"
         >
           {SORT_OPTIONS.map((opt, i) => (
-            <option key={opt.label} value={i}>{opt.label}</option>
+            <option key={opt.label} value={i}>
+              {opt.label}
+            </option>
           ))}
         </select>
 
@@ -209,7 +211,10 @@ export default function ResearchPapersPage() {
           Could not load papers. The research orchestrator may be down.
         </div>
       ) : papers.length === 0 ? (
-        <EmptyState hasFilters={hasFilters} kindLabel={kind === 'HEDGING' ? 'hedging' : 'trading'} />
+        <EmptyState
+          hasFilters={hasFilters}
+          kindLabel={kind === 'HEDGING' ? 'hedging' : 'trading'}
+        />
       ) : (
         <>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

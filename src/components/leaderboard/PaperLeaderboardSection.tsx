@@ -211,9 +211,7 @@ export function PaperLeaderboardSection({
               const calmarN = toNumOrNull(paper.annualized_return_pct);
               const ddN = toNumOrNull(paper.max_drawdown_pct);
               const calmarStr =
-                calmarN != null && ddN != null && ddN !== 0
-                  ? fmtNum(calmarN / Math.abs(ddN))
-                  : '—';
+                calmarN != null && ddN != null && ddN !== 0 ? fmtNum(calmarN / Math.abs(ddN)) : '—';
               return (
                 <TableRow
                   key={paper.paper_id}
@@ -269,7 +267,11 @@ export function PaperLeaderboardSection({
                       hedging ? 'Profit factor — not applicable to hedging strategies' : undefined
                     }
                   >
-                    {hedging ? <span className="opacity-40">{fmtNum(paper.profit_factor)}</span> : fmtNum(paper.profit_factor)}
+                    {hedging ? (
+                      <span className="opacity-40">{fmtNum(paper.profit_factor)}</span>
+                    ) : (
+                      fmtNum(paper.profit_factor)
+                    )}
                   </TableCell>
                   <TableCell
                     className="text-right font-mono tabular-nums"
@@ -278,11 +280,19 @@ export function PaperLeaderboardSection({
                       hedging ? 'Sharpe ratio — not applicable to hedging strategies' : undefined
                     }
                   >
-                    {hedging ? <span className="opacity-40">{fmtNum(paper.sharpe_ratio)}</span> : fmtNum(paper.sharpe_ratio)}
+                    {hedging ? (
+                      <span className="opacity-40">{fmtNum(paper.sharpe_ratio)}</span>
+                    ) : (
+                      fmtNum(paper.sharpe_ratio)
+                    )}
                   </TableCell>
                   <TableCell
                     className="text-right font-mono tabular-nums text-[var(--text-primary)]"
-                    title={hedging ? 'Rebalance events (allocation tilts have very few trades)' : undefined}
+                    title={
+                      hedging
+                        ? 'Rebalance events (allocation tilts have very few trades)'
+                        : undefined
+                    }
                   >
                     {paper.n_trades ?? '—'}
                   </TableCell>

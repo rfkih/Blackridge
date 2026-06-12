@@ -1,4 +1,3 @@
-
 import { apiClient } from './client';
 import { addOptionalParam, buildPageParams } from './queryParams';
 import type { ISO8601, Page, UUID } from '@/types/api';

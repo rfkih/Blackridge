@@ -10,7 +10,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
     <div className="border-t border-zinc-800 pt-4">
       <button
         type="button"
-        onClick={() => setOpen(o => !o)}
+        onClick={() => setOpen((o) => !o)}
         className="flex w-full items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-zinc-400 hover:text-zinc-200"
       >
         {open ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
@@ -35,7 +35,9 @@ function VerdictBadge({ verdict }: { verdict: string | null }) {
   if (!verdict) return <span className="text-zinc-500">—</span>;
   const ok = verdict === 'PASS';
   return (
-    <span className={`inline-flex items-center gap-1 text-xs font-semibold ${ok ? 'text-emerald-400' : 'text-rose-400'}`}>
+    <span
+      className={`inline-flex items-center gap-1 text-xs font-semibold ${ok ? 'text-emerald-400' : 'text-rose-400'}`}
+    >
       {ok ? <CheckCircle className="h-3.5 w-3.5" /> : <XCircle className="h-3.5 w-3.5" />}
       {verdict}
     </span>
@@ -58,7 +60,9 @@ export function SignalModelCard({ model }: { model: ModelInfo }) {
 
       {/* What it predicts */}
       <div className="space-y-1">
-        <p className="text-xs font-medium uppercase tracking-wider text-zinc-500">What it predicts</p>
+        <p className="text-xs font-medium uppercase tracking-wider text-zinc-500">
+          What it predicts
+        </p>
         <p className="text-sm text-zinc-300">{model.predicts}</p>
         <p className="font-mono text-xs text-zinc-500">label: {model.labelFeature}</p>
       </div>
@@ -66,11 +70,14 @@ export function SignalModelCard({ model }: { model: ModelInfo }) {
       {/* Training overview */}
       <Section title="Training">
         <div className="divide-y divide-zinc-800/60">
-          <MetricRow label="Algorithm"     value={model.algorithm} />
-          <MetricRow label="Objective"     value={model.objective} />
-          <MetricRow label="Trained at"    value={model.trainedAt ? model.trainedAt.slice(0, 10) : '—'} />
-          <MetricRow label="Train rows"    value={model.nTrainRows?.toLocaleString() ?? '—'} />
-          <MetricRow label="Val rows"      value={model.nValRows?.toLocaleString() ?? '—'} />
+          <MetricRow label="Algorithm" value={model.algorithm} />
+          <MetricRow label="Objective" value={model.objective} />
+          <MetricRow
+            label="Trained at"
+            value={model.trainedAt ? model.trainedAt.slice(0, 10) : '—'}
+          />
+          <MetricRow label="Train rows" value={model.nTrainRows?.toLocaleString() ?? '—'} />
+          <MetricRow label="Val rows" value={model.nValRows?.toLocaleString() ?? '—'} />
           {model.trainStart && model.trainEnd && (
             <MetricRow
               label="Window"
@@ -83,20 +90,27 @@ export function SignalModelCard({ model }: { model: ModelInfo }) {
       {/* Hold-out metrics */}
       <Section title="Hold-out metrics (final fold)">
         <div className="divide-y divide-zinc-800/60">
-          <MetricRow label="AUC"           value={fmt4(model.auc)} />
-          <MetricRow label="Accuracy"      value={pct(model.accuracy)} />
-          <MetricRow label="Log loss"      value={fmt4(model.logLoss)} />
+          <MetricRow label="AUC" value={fmt4(model.auc)} />
+          <MetricRow label="Accuracy" value={pct(model.accuracy)} />
+          <MetricRow label="Log loss" value={fmt4(model.logLoss)} />
           <MetricRow
             label="Adversarial AUC"
             value={
-              <span className={model.adversarialAuc !== null && model.adversarialAuc > 0.90 ? 'text-amber-300' : ''}>
+              <span
+                className={
+                  model.adversarialAuc !== null && model.adversarialAuc > 0.9
+                    ? 'text-amber-300'
+                    : ''
+                }
+              >
                 {fmt4(model.adversarialAuc)}
               </span>
             }
           />
         </div>
         <p className="mt-2 text-xs text-zinc-600">
-          Adversarial AUC &gt; 0.90 indicates train/val covariate drift (not necessarily a defect, but worth monitoring).
+          Adversarial AUC &gt; 0.90 indicates train/val covariate drift (not necessarily a defect,
+          but worth monitoring).
         </p>
       </Section>
 
@@ -104,14 +118,15 @@ export function SignalModelCard({ model }: { model: ModelInfo }) {
       {model.walkForward && (
         <Section title={`Walk-forward (${model.walkForward.nFolds} folds)`}>
           <div className="divide-y divide-zinc-800/60">
-            <MetricRow label="Mean AUC"   value={fmt4(model.walkForward.primaryMean)} />
+            <MetricRow label="Mean AUC" value={fmt4(model.walkForward.primaryMean)} />
             <MetricRow label="Median AUC" value={fmt4(model.walkForward.primaryMedian)} />
-            <MetricRow label="Std AUC"    value={fmt4(model.walkForward.primaryStd)} />
+            <MetricRow label="Std AUC" value={fmt4(model.walkForward.primaryStd)} />
           </div>
-          {model.walkForward.primaryStd > 0.10 && (
+          {model.walkForward.primaryStd > 0.1 && (
             <p className="mt-2 flex items-center gap-1 text-xs text-amber-400">
               <AlertTriangle className="h-3 w-3" />
-              High fold variance (std {fmt4(model.walkForward.primaryStd)}) — performance is not stable across time periods.
+              High fold variance (std {fmt4(model.walkForward.primaryStd)}) — performance is not
+              stable across time periods.
             </p>
           )}
         </Section>
@@ -128,8 +143,11 @@ export function SignalModelCard({ model }: { model: ModelInfo }) {
             <div className="py-1">
               <p className="text-xs text-zinc-500">Gates passed</p>
               <div className="mt-1 flex flex-wrap gap-1.5">
-                {model.gauntletGates.map(g => (
-                  <span key={g} className="rounded bg-zinc-800 px-1.5 py-0.5 font-mono text-xs text-zinc-400">
+                {model.gauntletGates.map((g) => (
+                  <span
+                    key={g}
+                    className="rounded bg-zinc-800 px-1.5 py-0.5 font-mono text-xs text-zinc-400"
+                  >
                     {g}
                   </span>
                 ))}
@@ -141,7 +159,10 @@ export function SignalModelCard({ model }: { model: ModelInfo }) {
             <VerdictBadge verdict={model.leakageVerdict} />
           </div>
           {model.leakageMaxPearson !== null && (
-            <MetricRow label="Max |Pearson| feature↔label" value={model.leakageMaxPearson.toFixed(4)} />
+            <MetricRow
+              label="Max |Pearson| feature↔label"
+              value={model.leakageMaxPearson.toFixed(4)}
+            />
           )}
         </div>
       </Section>
@@ -149,23 +170,26 @@ export function SignalModelCard({ model }: { model: ModelInfo }) {
       {/* Feature importance */}
       <Section title={`Feature importance (${model.features.length} features)`}>
         <div className="space-y-1.5">
-          {Object.entries(model.featureImportance).map(([name, gain]) => {
-            const pctVal = gain / totalGain;
-            return (
-              <div key={name}>
-                <div className="flex items-center justify-between text-xs">
-                  <span className="font-mono text-zinc-400">{name}</span>
-                  <span className="tabular-nums text-zinc-300">{pct(pctVal)}</span>
+          {/* JSON key order is not a contract — render importance descending. */}
+          {Object.entries(model.featureImportance)
+            .sort(([, a], [, b]) => b - a)
+            .map(([name, gain]) => {
+              const pctVal = gain / totalGain;
+              return (
+                <div key={name}>
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-mono text-zinc-400">{name}</span>
+                    <span className="tabular-nums text-zinc-300">{pct(pctVal)}</span>
+                  </div>
+                  <div className="mt-0.5 h-1 rounded-full bg-zinc-800">
+                    <div
+                      className="h-1 rounded-full bg-sky-500/70"
+                      style={{ width: `${(pctVal * 100).toFixed(1)}%` }}
+                    />
+                  </div>
                 </div>
-                <div className="mt-0.5 h-1 rounded-full bg-zinc-800">
-                  <div
-                    className="h-1 rounded-full bg-sky-500/70"
-                    style={{ width: `${(pctVal * 100).toFixed(1)}%` }}
-                  />
-                </div>
-              </div>
-            );
-          })}
+              );
+            })}
         </div>
       </Section>
 

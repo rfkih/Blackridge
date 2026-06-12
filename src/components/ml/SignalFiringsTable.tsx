@@ -41,7 +41,7 @@ export function SignalFiringsTable({ signalId }: { signalId: string }) {
   const [page, setPage] = useState(0);
   const [source, setSource] = useState<SignalSource | 'all'>('all');
 
-  const { data, isLoading } = useSignalFirings(signalId, {
+  const { data, isLoading, isError, isFetching, refetch } = useSignalFirings(signalId, {
     source: source === 'all' ? undefined : source,
     limit: PAGE_SIZE,
     offset: page * PAGE_SIZE,
@@ -77,6 +77,13 @@ export function SignalFiringsTable({ signalId }: { signalId: string }) {
 
       {isLoading ? (
         <Skeleton className="h-40 w-full" />
+      ) : isError ? (
+        <div className="rounded-md border border-rose-500/30 bg-rose-500/5 px-4 py-8 text-center text-sm text-rose-200">
+          Failed to load firings.{' '}
+          <button type="button" onClick={() => refetch()} className="underline">
+            Retry
+          </button>
+        </div>
       ) : (data?.firings.length ?? 0) === 0 ? (
         <div className="rounded-md border border-dashed border-zinc-800 px-4 py-8 text-center text-sm text-zinc-500">
           No firings.
@@ -96,7 +103,12 @@ export function SignalFiringsTable({ signalId }: { signalId: string }) {
             </TableHeader>
             <TableBody>
               {data!.firings.map((f) => (
-                <TableRow key={`${f.ts}-${f.symbol}`} className="hover:bg-zinc-900/40">
+                // The same bar/symbol can appear twice with different sources
+                // (stream + catchup_scan) — source + producedAt disambiguate.
+                <TableRow
+                  key={`${f.ts}-${f.symbol}-${f.source}-${f.producedAt}`}
+                  className="hover:bg-zinc-900/40"
+                >
                   <TableCell className="font-mono text-xs tabular-nums text-zinc-300">
                     {fmtTs(f.ts)}
                   </TableCell>
@@ -122,7 +134,7 @@ export function SignalFiringsTable({ signalId }: { signalId: string }) {
         <div className="flex items-center justify-between text-sm text-zinc-400">
           <button
             type="button"
-            disabled={page === 0}
+            disabled={page === 0 || isFetching}
             onClick={() => setPage(Math.max(0, page - 1))}
             className="rounded-md border border-zinc-800 px-3 py-1 hover:bg-zinc-900 disabled:opacity-40"
           >
@@ -133,7 +145,7 @@ export function SignalFiringsTable({ signalId }: { signalId: string }) {
           </span>
           <button
             type="button"
-            disabled={page >= lastPage}
+            disabled={page >= lastPage || isFetching}
             onClick={() => setPage(Math.min(lastPage, page + 1))}
             className="rounded-md border border-zinc-800 px-3 py-1 hover:bg-zinc-900 disabled:opacity-40"
           >

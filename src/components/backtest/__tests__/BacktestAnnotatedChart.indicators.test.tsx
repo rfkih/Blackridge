@@ -42,9 +42,7 @@ vi.mock('lightweight-charts', () => {
   };
 });
 
-const candles: CandleData[] = [
-  { time: 1, open: 1, high: 2, low: 1, close: 1.5, volume: 10 },
-];
+const candles: CandleData[] = [{ time: 1, open: 1, high: 2, low: 1, close: 1.5, volume: 10 }];
 
 describe('BacktestAnnotatedChart indicators', () => {
   it('renders without features (regression: no indicators)', () => {

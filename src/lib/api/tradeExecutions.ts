@@ -4,8 +4,12 @@ import type { PageEnvelope } from '@/types/api';
 import type { TradeExecutionEvent } from '@/types/trading';
 
 export type FailureCategory =
-  | 'MIN_NOTIONAL' | 'INSUFFICIENT_BALANCE' | 'QUANTITY_PRECISION'
-  | 'NO_FILL_TIMEOUT' | 'EXCHANGE_API_ERROR' | 'OTHER';
+  | 'MIN_NOTIONAL'
+  | 'INSUFFICIENT_BALANCE'
+  | 'QUANTITY_PRECISION'
+  | 'NO_FILL_TIMEOUT'
+  | 'EXCHANGE_API_ERROR'
+  | 'OTHER';
 
 export type ExecutionStatusFilter = 'FAILED' | 'SUCCESS' | 'ALL';
 

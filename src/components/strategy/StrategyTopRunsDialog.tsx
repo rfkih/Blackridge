@@ -174,7 +174,7 @@ function RunRow({
   return (
     <>
       <tr
-        className="cursor-pointer border-b border-[var(--border-subtle)]/50 transition-colors hover:bg-[var(--bg-hover)]"
+        className="border-[var(--border-subtle)]/50 cursor-pointer border-b transition-colors hover:bg-[var(--bg-hover)]"
         onClick={onToggle}
       >
         <td className="py-3 pr-3 font-mono text-[11px] text-text-muted">#{rank}</td>

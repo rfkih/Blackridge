@@ -5,11 +5,7 @@ import { isHedging } from '@/lib/strategyKind';
  * Only renders a visible badge for HEDGING — TRADING strategies get no extra
  * visual noise since that is the default.
  */
-export function KindBadge({
-  strategyKind,
-}: {
-  strategyKind?: string | null;
-}) {
+export function KindBadge({ strategyKind }: { strategyKind?: string | null }) {
   if (!isHedging(strategyKind)) return null;
 
   return (

@@ -1,11 +1,6 @@
 import type { ISO8601, UUID } from './api';
 
-export type ResearchQueueStatus =
-  | 'PENDING'
-  | 'RUNNING'
-  | 'PARKED'
-  | 'COMPLETED'
-  | 'FAILED';
+export type ResearchQueueStatus = 'PENDING' | 'RUNNING' | 'PARKED' | 'COMPLETED' | 'FAILED';
 
 /** Mirrors backend `ResearchQueueItemResponse`. `sweepConfig` is JSONB on
  *  the wire — keep as `unknown` so callers explicitly cast/parse instead

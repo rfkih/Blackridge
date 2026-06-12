@@ -16,5 +16,4 @@ export const ACCOUNT_TYPES: AccountType[] = ['TRADING', 'HEDGING'];
 
 export const DEFAULT_ACCOUNT_TYPE: AccountType = 'TRADING';
 
-export const isAccountType = (v: unknown): v is AccountType =>
-  v === 'TRADING' || v === 'HEDGING';
+export const isAccountType = (v: unknown): v is AccountType => v === 'TRADING' || v === 'HEDGING';

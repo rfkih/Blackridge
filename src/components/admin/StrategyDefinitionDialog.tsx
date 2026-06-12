@@ -205,10 +205,20 @@ export function StrategyDefinitionDialog({
                 color: 'var(--accent-primary)',
               }}
             >
-              {isEdit ? <ShieldCheck size={14} /> : isReplicate ? <Copy size={14} /> : <Sparkles size={14} />}
+              {isEdit ? (
+                <ShieldCheck size={14} />
+              ) : isReplicate ? (
+                <Copy size={14} />
+              ) : (
+                <Sparkles size={14} />
+              )}
             </span>
             <DialogTitle className="font-display text-lg">
-              {isEdit ? 'Edit strategy definition' : isReplicate ? `Replicate ${replicateFrom!.strategyCode}` : 'Register a new strategy'}
+              {isEdit
+                ? 'Edit strategy definition'
+                : isReplicate
+                  ? `Replicate ${replicateFrom!.strategyCode}`
+                  : 'Register a new strategy'}
             </DialogTitle>
           </div>
           <DialogDescription className="text-[var(--text-secondary)]">
@@ -316,16 +326,15 @@ export function StrategyDefinitionDialog({
           {!isEdit && (
             <div className="col-span-2 flex items-center justify-between rounded-sm border border-bd-subtle bg-bg-base px-3 py-2.5">
               <div>
-                <p className="text-[11px] font-semibold text-text-primary">Simulated (paper trading)</p>
+                <p className="text-[11px] font-semibold text-text-primary">
+                  Simulated (paper trading)
+                </p>
                 <p className="text-[10px] text-text-muted">
                   When on, all accounts using this strategy route OPEN orders to paper_trade_run.
                   Turn off only when the strategy has passed walk-forward validation.
                 </p>
               </div>
-              <Switch
-                checked={form.simulated}
-                onCheckedChange={(v) => setField('simulated', v)}
-              />
+              <Switch checked={form.simulated} onCheckedChange={(v) => setField('simulated', v)} />
             </div>
           )}
 

@@ -43,9 +43,7 @@ export function FundingRatePanel({
         {configuredBpsPer8h != null && (
           <span className="font-mono text-[10px] uppercase tracking-wider text-text-muted">
             run config:{' '}
-            <span className="text-text-secondary">
-              {configuredBpsPer8h.toFixed(2)} bps/8h
-            </span>
+            <span className="text-text-secondary">{configuredBpsPer8h.toFixed(2)} bps/8h</span>
           </span>
         )}
       </div>
@@ -84,10 +82,7 @@ function FundingBody({ data }: { data: FundingRateSummary }) {
   return (
     <div className="flex flex-col gap-3 px-4 py-4">
       <div className="grid grid-cols-2 gap-x-4 gap-y-3 sm:grid-cols-5">
-        <Stat
-          label="Events"
-          value={data.count.toLocaleString()}
-        />
+        <Stat label="Events" value={data.count.toLocaleString()} />
         <Stat
           label="Mean (8h)"
           value={fmtPct(meanPct, 4)}
@@ -100,28 +95,19 @@ function FundingBody({ data }: { data: FundingRateSummary }) {
             )
           }
         />
-        <Stat
-          label="Range"
-          value={`${fmtPct(minPct, 4)} – ${fmtPct(maxPct, 4)}`}
-        />
+        <Stat label="Range" value={`${fmtPct(minPct, 4)} – ${fmtPct(maxPct, 4)}`} />
         <Stat
           label="Annualized"
           value={fmtPct(annualizedPct, 2)}
-          tone={
-            annualizedPct == null ? 'neutral' : annualizedPct >= 0 ? 'profit' : 'loss'
-          }
+          tone={annualizedPct == null ? 'neutral' : annualizedPct >= 0 ? 'profit' : 'loss'}
         />
-        <Stat
-          label="Latest"
-          value={fmtPct(latestPct, 4)}
-          sub={data.latestTime ?? undefined}
-        />
+        <Stat label="Latest" value={fmtPct(latestPct, 4)} sub={data.latestTime ?? undefined} />
       </div>
 
       <div className="text-[11px] text-text-muted">
-        Funding settles every 8h on Binance perpetuals. Longs pay shorts when
-        the rate is positive; shorts pay longs when negative. Annualized figure
-        is mean × 3 settlements/day × 365, informational only.
+        Funding settles every 8h on Binance perpetuals. Longs pay shorts when the rate is positive;
+        shorts pay longs when negative. Annualized figure is mean × 3 settlements/day × 365,
+        informational only.
       </div>
     </div>
   );
@@ -152,15 +138,13 @@ function Stat({
         {label}
       </span>
       <span
-        className="inline-flex items-center gap-1 font-mono tabular-nums text-[13px]"
+        className="inline-flex items-center gap-1 font-mono text-[13px] tabular-nums"
         style={{ color }}
       >
         {icon}
         {value}
       </span>
-      {sub && (
-        <span className="font-mono text-[10px] text-text-muted">{sub}</span>
-      )}
+      {sub && <span className="font-mono text-[10px] text-text-muted">{sub}</span>}
     </div>
   );
 }

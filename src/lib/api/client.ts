@@ -11,6 +11,20 @@ export { normalizeError } from './errorMap';
  * envelope unwrapping, 401-handling, and dev logging stay in lockstep
  * across the two JVMs.
  */
+function parseOrigin(url: string): string | null {
+  try {
+    return new URL(url).origin;
+  } catch {
+    return null;
+  }
+}
+
+function isTrustedOrigin(absoluteUrl: string): boolean {
+  const target = parseOrigin(absoluteUrl);
+  if (!target) return false;
+  return [env.apiUrl, env.researchUrl].some((trusted) => parseOrigin(trusted) === target);
+}
+
 function createApiClient(baseURL: string): AxiosInstance {
   const instance = axios.create({
     baseURL,
@@ -25,8 +39,9 @@ function createApiClient(baseURL: string): AxiosInstance {
     // Origin-safety belt: only the two known JVM origins are trusted with the
     // auth cookie. researchUrl is included so the research client keeps
     // credentials in a split-JVM deploy (it equals apiUrl in single-JVM prod).
-    const trustedOrigins = [env.apiUrl, env.researchUrl];
-    if (isAbsolute && !trustedOrigins.some((origin) => rawUrl.startsWith(origin))) {
+    // Compare parsed origins, not string prefixes — a prefix check would let
+    // "http://localhost:8080.evil.com" pass for "http://localhost:8080".
+    if (isAbsolute && !isTrustedOrigin(rawUrl)) {
       config.withCredentials = false;
       if (config.headers) delete config.headers.Authorization;
     }

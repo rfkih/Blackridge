@@ -63,8 +63,14 @@ export function ExecutionDetailDrawer({
 
   return (
     <div
-      onClick={onClose}
-      className="animate-in fade-in duration-150"
+      role="presentation"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+      onKeyDown={(e) => {
+        if (e.key === 'Escape') onClose();
+      }}
+      className="duration-150 animate-in fade-in"
       style={{
         position: 'fixed',
         inset: 0,
@@ -81,8 +87,7 @@ export function ExecutionDetailDrawer({
         role="dialog"
         aria-modal="true"
         aria-label="Execution detail"
-        onClick={(e) => e.stopPropagation()}
-        className="animate-in fade-in zoom-in-95 duration-150"
+        className="duration-150 animate-in fade-in zoom-in-95"
         style={{
           width: 'min(460px, 94vw)',
           maxHeight: '85vh',
@@ -123,7 +128,9 @@ export function ExecutionDetailDrawer({
                 {failed ? <AlertTriangle size={16} /> : <Check size={16} />}
               </span>
               <div>
-                <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--mm-ink-0)' }}>{title}</div>
+                <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--mm-ink-0)' }}>
+                  {title}
+                </div>
                 <div
                   style={{
                     fontSize: 11.5,
@@ -139,7 +146,12 @@ export function ExecutionDetailDrawer({
               type="button"
               onClick={onClose}
               aria-label="Close"
-              style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--mm-ink-2)' }}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                cursor: 'pointer',
+                color: 'var(--mm-ink-2)',
+              }}
             >
               <X size={16} />
             </button>
@@ -223,10 +235,21 @@ export function ExecutionDetailDrawer({
 
           {/* context rows */}
           <div
-            style={{ padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: 9, fontSize: 12.5 }}
+            style={{
+              padding: '12px 16px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 9,
+              fontSize: 12.5,
+            }}
           >
             <MetaRow label="Side">
-              <span style={{ color: event.side === 'SHORT' ? 'var(--mm-dn)' : 'var(--mm-up)', fontWeight: 500 }}>
+              <span
+                style={{
+                  color: event.side === 'SHORT' ? 'var(--mm-dn)' : 'var(--mm-up)',
+                  fontWeight: 500,
+                }}
+              >
                 {event.side ?? '—'}
                 {event.side === 'LONG' ? ' ↑' : event.side === 'SHORT' ? ' ↓' : ''}
               </span>
@@ -286,7 +309,10 @@ export function ExecutionDetailDrawer({
               View trade <ExternalLink size={13} />
             </Link>
           ) : (
-            <div className="flex items-center gap-2" style={{ color: 'var(--mm-ink-2)', fontSize: 11.5 }}>
+            <div
+              className="flex items-center gap-2"
+              style={{ color: 'var(--mm-ink-2)', fontSize: 11.5 }}
+            >
               <Info size={13} style={{ color: 'var(--mm-ink-3)', flexShrink: 0 }} />
               Rejected before a trade was created — no position opened.
             </div>

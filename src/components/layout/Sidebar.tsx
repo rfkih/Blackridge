@@ -364,15 +364,15 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                             transition: 'background 120ms, color 120ms',
                           }}
                           onMouseEnter={(e) => {
+                            const el = e.currentTarget as HTMLAnchorElement;
                             if (!active) {
-                              (e.currentTarget as HTMLAnchorElement).style.background =
-                                'rgba(255,255,255,0.04)';
+                              el.style.background = 'rgba(255,255,255,0.04)';
                             }
                           }}
                           onMouseLeave={(e) => {
+                            const el = e.currentTarget as HTMLAnchorElement;
                             if (!active) {
-                              (e.currentTarget as HTMLAnchorElement).style.background =
-                                'transparent';
+                              el.style.background = 'transparent';
                             }
                           }}
                         >

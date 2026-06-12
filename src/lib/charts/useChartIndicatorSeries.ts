@@ -1,4 +1,5 @@
 'use client';
+
 import { useEffect, type MutableRefObject } from 'react';
 import type { IChartApi, ISeriesApi, Time } from 'lightweight-charts';
 import type { ChartIndicators, ChartIndicatorKey, IndicatorData } from '@/types/market';
@@ -24,7 +25,8 @@ function buildData(features: IndicatorData[], spec: IndicatorLineSpec): LinePoin
     .filter((d) => d[spec.field] != null && Number.isFinite(d.time))
     .map((d) => {
       const value = d[spec.field] as number;
-      if (spec.histogram) return { time: d.time as Time, value, color: value >= 0 ? HIST_UP : HIST_DOWN };
+      if (spec.histogram)
+        return { time: d.time as Time, value, color: value >= 0 ? HIST_UP : HIST_DOWN };
       return { time: d.time as Time, value };
     });
 }
@@ -84,7 +86,11 @@ export function reconcileIndicatorSeries(
       // Toggled off, or no data available → remove the series (empty oscillator
       // panes are auto-dropped because addPane() does not preserve empty panes).
       state[key]!.forEach((series) => {
-        try { chart.removeSeries(series); } catch { /* already gone */ }
+        try {
+          chart.removeSeries(series);
+        } catch {
+          /* already gone */
+        }
       });
       delete state[key];
     }
@@ -106,6 +112,18 @@ export function useChartIndicatorSeries(
     if (!ready || !chart || !tv) return;
     reconcileIndicatorSeries(chart, tv, stateRef.current, active, features);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ready, features, active.ema20, active.ema50, active.ema100, active.ema200, active.bollingerBands,
-      active.keltnerChannel, active.rsi, active.macd, active.atr, active.adx]);
+  }, [
+    ready,
+    features,
+    active.ema20,
+    active.ema50,
+    active.ema100,
+    active.ema200,
+    active.bollingerBands,
+    active.keltnerChannel,
+    active.rsi,
+    active.macd,
+    active.atr,
+    active.adx,
+  ]);
 }

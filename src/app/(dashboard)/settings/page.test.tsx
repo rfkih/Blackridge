@@ -2,6 +2,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, within, fireEvent } from '@testing-library/react';
 import type { AccountSummary } from '@/types/account';
 
+import SettingsPage from './page';
+
 // --- control the accounts list + the active account ---
 const useAccounts = vi.fn();
 const useActiveAccount = vi.fn();
@@ -35,9 +37,16 @@ vi.mock('next/link', () => ({
 }));
 
 // --- ProfileSection's data/provider hooks (initial panel) — stub to no-ops ---
-vi.mock('@/hooks/useAuth', () => ({ useAuth: () => ({ user: { name: 'Trader' }, logout: vi.fn() }) }));
+vi.mock('@/hooks/useAuth', () => ({
+  useAuth: () => ({ user: { name: 'Trader' }, logout: vi.fn() }),
+}));
 vi.mock('@/hooks/useProfile', () => ({
-  useUpdateMyProfile: () => ({ mutateAsync: vi.fn(), isPending: false, isError: false, error: null }),
+  useUpdateMyProfile: () => ({
+    mutateAsync: vi.fn(),
+    isPending: false,
+    isError: false,
+    error: null,
+  }),
 }));
 vi.mock('@/components/theme/ThemeProvider', () => ({
   useTheme: () => ({ theme: 'dark', setTheme: vi.fn() }),
@@ -46,8 +55,6 @@ vi.mock('@/components/theme/PaletteProvider', () => ({
   usePalette: () => ({ palette: 'midnight', setPalette: vi.fn() }),
   PALETTE_META: { midnight: { label: 'Midnight', swatch: '#000', accent: '#111', desc: '' } },
 }));
-
-import SettingsPage from './page';
 
 function mkAccount(p: Partial<AccountSummary>): AccountSummary {
   return {

@@ -8,13 +8,12 @@ import { useCreateSweep, useListSweeps, useStrategyDefaults } from '@/hooks/useR
 import { useStrategies } from '@/hooks/useStrategies';
 import { useStrategyDefinitions } from '@/hooks/useStrategyDefinitions';
 import type { AccountStrategy } from '@/types/strategy';
-import type { SweepState } from '@/types/research';
+import type { SweepState, SweepSpec } from '@/types/research';
 import { Skeleton } from '@/components/ui/skeleton';
 import { DatePicker } from '@/components/ui/date-picker';
 import { toast } from '@/hooks/useToast';
 import { normalizeError } from '@/lib/api/client';
 import { formatDate } from '@/lib/formatters';
-import type { SweepSpec } from '@/types/research';
 import { SUPPORTED_SYMBOLS, DEFAULT_SYMBOL } from '@/lib/symbols';
 
 /**
@@ -76,7 +75,7 @@ export default function ResearchSweepsPage() {
                 <Th>Symbol · Int</Th>
                 <Th align="right">Combos</Th>
                 <Th align="right">Status</Th>
-                <Th></Th>
+                <Th />
               </tr>
             </thead>
             <tbody>

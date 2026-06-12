@@ -4,15 +4,15 @@ import { renderHook, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { AccountSummary } from '@/types/account';
 
+import { useActiveAccount } from './useAccounts';
+import { useAccountStore } from '@/store/accountStore';
+import { useAuthStore } from '@/store/authStore';
+
 // --- mock the accounts API the query calls ---
 const getMyAccounts = vi.fn();
 vi.mock('@/lib/api/accounts', () => ({
   getMyAccounts: () => getMyAccounts(),
 }));
-
-import { useActiveAccount } from './useAccounts';
-import { useAccountStore } from '@/store/accountStore';
-import { useAuthStore } from '@/store/authStore';
 
 function mkAccount(p: Partial<AccountSummary> & Pick<AccountSummary, 'id'>): AccountSummary {
   return {
@@ -46,7 +46,9 @@ describe('useActiveAccount — accountType', () => {
   beforeEach(() => {
     getMyAccounts.mockReset();
     // Auth: give the query a userId so `enabled` is true.
-    useAuthStore.setState({ user: { id: 'user-1', email: 'a@b.c', name: 'A', role: 'USER' } as never });
+    useAuthStore.setState({
+      user: { id: 'user-1', email: 'a@b.c', name: 'A', role: 'USER' } as never,
+    });
     // Reset persisted selection between tests.
     useAccountStore.setState({ selection: null });
   });

@@ -23,7 +23,9 @@ export function EarnToggleCard() {
 
   // Optimistic display: while the toggle is in flight, show the requested value
   // (reverts automatically to the cached value if the mutation errors).
-  const shown = mutation.isPending ? (mutation.variables?.enabled ?? activeAccount.earnEnabled) : activeAccount.earnEnabled;
+  const shown = mutation.isPending
+    ? (mutation.variables?.enabled ?? activeAccount.earnEnabled)
+    : activeAccount.earnEnabled;
   const runningPlatformWide = earn.data?.enabled ?? false;
 
   const onToggle = (next: boolean) => {
@@ -41,7 +43,10 @@ export function EarnToggleCard() {
       <div className="flex items-start justify-between gap-4">
         <div>
           <div className="mm-kicker">Idle-cash yield</div>
-          <h3 className="font-display" style={{ fontSize: 18, marginTop: 4, letterSpacing: '-0.02em' }}>
+          <h3
+            className="font-display"
+            style={{ fontSize: 18, marginTop: 4, letterSpacing: '-0.02em' }}
+          >
             Earn on idle USDT
           </h3>
           <p className="mt-1.5 text-[13px]" style={{ color: 'var(--mm-ink-2)', maxWidth: 520 }}>

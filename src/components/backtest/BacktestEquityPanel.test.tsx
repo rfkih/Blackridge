@@ -15,9 +15,30 @@ const SEC = 1_000;
 
 // equity ts is epoch-ms; candle time is epoch-seconds (per the candles mapper)
 const EQUITY: BacktestEquityPoint[] = [
-  { ts: 1_000 * SEC, equity: 10_000, drawdown: 0, drawdownPct: 0, assetValue: 6_000, cashBalance: 4_000 },
-  { ts: 2_000 * SEC, equity: 11_000, drawdown: 0, drawdownPct: -2, assetValue: 7_000, cashBalance: 4_000 },
-  { ts: 3_000 * SEC, equity: 12_500, drawdown: 0, drawdownPct: 0, assetValue: 8_500, cashBalance: 4_000 },
+  {
+    ts: 1_000 * SEC,
+    equity: 10_000,
+    drawdown: 0,
+    drawdownPct: 0,
+    assetValue: 6_000,
+    cashBalance: 4_000,
+  },
+  {
+    ts: 2_000 * SEC,
+    equity: 11_000,
+    drawdown: 0,
+    drawdownPct: -2,
+    assetValue: 7_000,
+    cashBalance: 4_000,
+  },
+  {
+    ts: 3_000 * SEC,
+    equity: 12_500,
+    drawdown: 0,
+    drawdownPct: 0,
+    assetValue: 8_500,
+    cashBalance: 4_000,
+  },
 ];
 
 // composition all-zero → the panel must NOT offer the composition toggles
@@ -85,7 +106,11 @@ describe('BacktestEquityPanel — equity composition (BTC / USDT)', () => {
 
   it('omits the composition toggles when the run carries no split (all zero)', () => {
     renderWithClient(
-      <BacktestEquityPanel points={EQUITY_NO_COMPOSITION} initialCapital={10_000} symbol="BTCUSDT" />,
+      <BacktestEquityPanel
+        points={EQUITY_NO_COMPOSITION}
+        initialCapital={10_000}
+        symbol="BTCUSDT"
+      />,
     );
     expect(screen.queryByText('BTC holdings')).not.toBeInTheDocument();
     expect(screen.queryByText('USDT cash')).not.toBeInTheDocument();

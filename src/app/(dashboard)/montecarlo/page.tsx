@@ -222,7 +222,9 @@ export default function MonteCarloPage() {
             type="button"
             className="mm-btn mm-btn-mint"
             disabled={mutation.isPending || !form.backtestRunId}
-            onClick={() => void handleSubmit()}
+            onClick={() => {
+              void handleSubmit();
+            }}
             style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
           >
             {mutation.isPending ? (
@@ -241,6 +243,7 @@ export default function MonteCarloPage() {
 
       {}
       <div
+        role="presentation"
         className="mm-card"
         onKeyDown={(e) => {
           if (e.key === 'Enter' && !e.shiftKey) {
@@ -793,7 +796,6 @@ function Field({
   children: React.ReactNode;
 }) {
   return (
-
     // eslint-disable-next-line jsx-a11y/label-has-associated-control
     <label className="flex flex-col gap-1">
       <span className="mm-label">{label}</span>

@@ -3,6 +3,8 @@ import { renderHook } from '@testing-library/react';
 import type { AccountType } from '@/types/accountType';
 import type { StrategyDefinition } from '@/types/strategyDefinition';
 
+import { useCompatibleStrategies } from './useCompatibleStrategies';
+
 // --- mock the two underlying hooks ---
 const useStrategyDefinitions = vi.fn();
 const useActiveAccount = vi.fn();
@@ -13,8 +15,6 @@ vi.mock('./useStrategyDefinitions', () => ({
 vi.mock('./useAccounts', () => ({
   useActiveAccount: () => useActiveAccount(),
 }));
-
-import { useCompatibleStrategies } from './useCompatibleStrategies';
 
 function mkDef(code: string, kind: AccountType): StrategyDefinition {
   return {

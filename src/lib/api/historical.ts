@@ -1,4 +1,3 @@
-
 import { researchClient as apiClient } from './client';
 import { addOptionalParam } from './queryParams';
 

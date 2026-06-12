@@ -112,11 +112,7 @@ function LoginPageContent() {
               className="br-input"
             />
             {errors.email && (
-              <p
-                role="alert"
-                className="mt-1.5 text-[12px]"
-                style={{ color: 'var(--color-loss)' }}
-              >
+              <p role="alert" className="mt-1.5 text-[12px]" style={{ color: 'var(--color-loss)' }}>
                 {errors.email.message}
               </p>
             )}
@@ -155,7 +151,7 @@ function LoginPageContent() {
                 tabIndex={-1}
                 onClick={() => setShowPassword((v) => !v)}
                 aria-label={showPassword ? 'Hide password' : 'Show password'}
-                className="absolute top-1/2 -translate-y-1/2 inline-flex items-center gap-1 text-[12px]"
+                className="absolute top-1/2 inline-flex -translate-y-1/2 items-center gap-1 text-[12px]"
                 style={{
                   right: 12,
                   background: 'transparent',
@@ -169,11 +165,7 @@ function LoginPageContent() {
               </button>
             </div>
             {errors.password && (
-              <p
-                role="alert"
-                className="mt-1.5 text-[12px]"
-                style={{ color: 'var(--color-loss)' }}
-              >
+              <p role="alert" className="mt-1.5 text-[12px]" style={{ color: 'var(--color-loss)' }}>
                 {errors.password.message}
               </p>
             )}
@@ -225,7 +217,9 @@ function LoginPageContent() {
           <button
             type="button"
             disabled={isSubmitting}
-            onClick={() => void submit()}
+            onClick={() => {
+              void submit();
+            }}
             className="br-btn br-btn-primary br-btn-lg br-btn-block"
           >
             {isSubmitting ? (
@@ -257,19 +251,11 @@ function LoginPageContent() {
             Protected by 2FA. We never custody funds.
             <br />
             By continuing you agree to our{' '}
-            <Link
-              href="/terms"
-              className="underline"
-              style={{ color: 'var(--text-secondary)' }}
-            >
+            <Link href="/terms" className="underline" style={{ color: 'var(--text-secondary)' }}>
               Terms
             </Link>{' '}
             and{' '}
-            <Link
-              href="/privacy"
-              className="underline"
-              style={{ color: 'var(--text-secondary)' }}
-            >
+            <Link href="/privacy" className="underline" style={{ color: 'var(--text-secondary)' }}>
               Privacy Policy
             </Link>
             .

@@ -1,6 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { BackendAccountSummary } from '@/types/account';
 
+import { getMyAccounts, createAccount } from './accounts';
+
 // --- mock the axios client the api module calls ---
 const get = vi.fn();
 const post = vi.fn();
@@ -10,8 +12,6 @@ vi.mock('./client', () => ({
     post: (...a: unknown[]) => post(...a),
   },
 }));
-
-import { getMyAccounts, createAccount } from './accounts';
 
 function mkBackend(p: Partial<BackendAccountSummary>): BackendAccountSummary {
   return {

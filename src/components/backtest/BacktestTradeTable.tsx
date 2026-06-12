@@ -121,8 +121,7 @@ const SORT_EXTRACTORS: Record<SortKey, (t: BacktestTrade) => number | string | n
 const TRADING_GRID_TEMPLATE =
   '40px 92px 56px 60px 150px 84px 150px 84px 80px 80px 80px 110px 92px 100px 64px 100px';
 /** Narrower template matching HEDGING_COLUMNS (no SL/TP/Legs/R). */
-const HEDGING_GRID_TEMPLATE =
-  '40px 92px 56px 72px 150px 84px 150px 84px 92px 100px 100px';
+const HEDGING_GRID_TEMPLATE = '40px 92px 56px 72px 150px 84px 150px 84px 92px 100px 100px';
 
 const ROW_HEIGHT = 36;
 const VIEWPORT_MAX_HEIGHT = 480;
@@ -275,18 +274,43 @@ export function BacktestTradeTable({
       return s;
     };
     const header = hedging
-      ? ['#', 'Strategy', 'TF', 'Switch', 'Entry Time', 'Entry Price', 'Exit Time', 'Exit Price', 'Outcome', 'P&L', 'Duration']
-      : ['#', 'Strategy', 'TF', 'Side', 'Entry Time', 'Entry Price', 'Exit Time', 'Exit Price', 'SL', 'TP1', 'TP2', 'Outcome', 'P&L', 'R', 'Duration'];
+      ? [
+          '#',
+          'Strategy',
+          'TF',
+          'Switch',
+          'Entry Time',
+          'Entry Price',
+          'Exit Time',
+          'Exit Price',
+          'Outcome',
+          'P&L',
+          'Duration',
+        ]
+      : [
+          '#',
+          'Strategy',
+          'TF',
+          'Side',
+          'Entry Time',
+          'Entry Price',
+          'Exit Time',
+          'Exit Price',
+          'SL',
+          'TP1',
+          'TP2',
+          'Outcome',
+          'P&L',
+          'R',
+          'Duration',
+        ];
     const rows = ordered.map((t, i) => {
       const duration = t.exitTime != null ? t.exitTime - t.entryTime : null;
       const outcome = deriveTradeOutcome(t.positions).label;
-      const base = [
-        i + 1,
-        t.strategyCode ?? t.strategyName ?? '',
-        t.interval ?? '',
-      ];
+      const base = [i + 1, t.strategyCode ?? t.strategyName ?? '', t.interval ?? ''];
       if (hedging) {
-        return [...base,
+        return [
+          ...base,
           t.direction === 'LONG' ? '→ BTC' : '→ Cash',
           t.entryTime ? new Date(t.entryTime).toISOString() : '',
           t.entryPrice,
@@ -297,7 +321,8 @@ export function BacktestTradeTable({
           duration != null ? formatDuration(duration) : '',
         ];
       }
-      return [...base,
+      return [
+        ...base,
         t.direction,
         t.entryTime ? new Date(t.entryTime).toISOString() : '',
         t.entryPrice,
@@ -393,80 +418,84 @@ export function BacktestTradeTable({
             : 'No trades were produced by this backtest.'}
         </div>
       ) : (
-    <div
-      role="table"
-      aria-rowcount={ordered.length + 1}
-      className="overflow-hidden rounded-xl border border-bd-subtle bg-bg-surface"
-    >
-      {}
-      <div className="overflow-x-auto">
-        <div style={{ minWidth: hedging ? 900 : 1348 }}>
-          <div
-            role="row"
-            className="border-b border-bd-subtle bg-bg-surface"
-            style={{ display: 'grid', gridTemplateColumns: GRID_TEMPLATE }}
-          >
-            {COLUMNS.map((col) => {
-              const isActive = col.sortable && col.key === sortKey;
-              const ariaSort = isActive ? (sortDir === 'asc' ? 'ascending' : 'descending') : 'none';
-              return (
-                <div
-                  key={col.key}
-                  role="columnheader"
-                  aria-sort={col.sortable ? ariaSort : undefined}
-                  className="label-caps whitespace-nowrap px-3 py-2.5 text-left"
-                >
-                  {col.sortable ? (
-                    <button
-                      type="button"
-                      onClick={() => handleSort(col.key as SortKey)}
-                      className={cn(
-                        'group inline-flex items-center gap-1 transition-colors duration-fast',
-                        'focus:outline-none focus-visible:text-[var(--accent-primary)]',
-                        isActive
-                          ? 'text-[var(--accent-primary)]'
-                          : 'text-text-muted hover:text-text-primary',
-                      )}
-                    >
-                      <span>{col.label}</span>
-                      <SortGlyph active={isActive} dir={sortDir} />
-                    </button>
-                  ) : (
-                    <span>{col.label}</span>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-
+        <div
+          role="table"
+          aria-rowcount={ordered.length + 1}
+          className="overflow-hidden rounded-xl border border-bd-subtle bg-bg-surface"
+        >
           {}
-          <div
-            ref={scrollRef}
-            className="overflow-y-auto"
-            style={{ maxHeight: VIEWPORT_MAX_HEIGHT }}
-          >
-            <div style={{ height: totalSize, width: '100%', position: 'relative' }}>
-              {items.map((vi) => {
-                const trade = ordered[vi.index];
-                const isSelected = trade.id === selectedTradeId;
-                return (
-                  <VirtualRow
-                    key={trade.id}
-                    trade={trade}
-                    index={vi.index + 1}
-                    isSelected={isSelected}
-                    top={vi.start}
-                    onClick={() => handleRowClick(trade.id)}
-                    gridTemplate={GRID_TEMPLATE}
-                    hedging={hedging}
-                  />
-                );
-              })}
+          <div className="overflow-x-auto">
+            <div style={{ minWidth: hedging ? 900 : 1348 }}>
+              <div
+                role="row"
+                className="border-b border-bd-subtle bg-bg-surface"
+                style={{ display: 'grid', gridTemplateColumns: GRID_TEMPLATE }}
+              >
+                {COLUMNS.map((col) => {
+                  const isActive = col.sortable && col.key === sortKey;
+                  const ariaSort = isActive
+                    ? sortDir === 'asc'
+                      ? 'ascending'
+                      : 'descending'
+                    : 'none';
+                  return (
+                    <div
+                      key={col.key}
+                      role="columnheader"
+                      aria-sort={col.sortable ? ariaSort : undefined}
+                      className="label-caps whitespace-nowrap px-3 py-2.5 text-left"
+                    >
+                      {col.sortable ? (
+                        <button
+                          type="button"
+                          onClick={() => handleSort(col.key as SortKey)}
+                          className={cn(
+                            'group inline-flex items-center gap-1 transition-colors duration-fast',
+                            'focus:outline-none focus-visible:text-[var(--accent-primary)]',
+                            isActive
+                              ? 'text-[var(--accent-primary)]'
+                              : 'text-text-muted hover:text-text-primary',
+                          )}
+                        >
+                          <span>{col.label}</span>
+                          <SortGlyph active={isActive} dir={sortDir} />
+                        </button>
+                      ) : (
+                        <span>{col.label}</span>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
+              {}
+              <div
+                ref={scrollRef}
+                className="overflow-y-auto"
+                style={{ maxHeight: VIEWPORT_MAX_HEIGHT }}
+              >
+                <div style={{ height: totalSize, width: '100%', position: 'relative' }}>
+                  {items.map((vi) => {
+                    const trade = ordered[vi.index];
+                    const isSelected = trade.id === selectedTradeId;
+                    return (
+                      <VirtualRow
+                        key={trade.id}
+                        trade={trade}
+                        index={vi.index + 1}
+                        isSelected={isSelected}
+                        top={vi.start}
+                        onClick={() => handleRowClick(trade.id)}
+                        gridTemplate={GRID_TEMPLATE}
+                        hedging={hedging}
+                      />
+                    );
+                  })}
+                </div>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-    </div>
       )}
     </div>
   );
@@ -579,11 +608,7 @@ function BacktestTradeFilters({
         {hasMultiOutcome && (
           <FilterDimension label="Outcome">
             {options.outcomes.map((o) => (
-              <FilterPill
-                key={o}
-                active={filters.outcomes.has(o)}
-                onClick={() => handleOutcome(o)}
-              >
+              <FilterPill key={o} active={filters.outcomes.has(o)} onClick={() => handleOutcome(o)}>
                 {o}
               </FilterPill>
             ))}
@@ -642,9 +667,7 @@ function FilterDimension({
 }) {
   return (
     <div className="flex items-center gap-1.5">
-      <span className="font-mono text-[9px] uppercase tracking-wider text-text-muted">
-        {label}
-      </span>
+      <span className="font-mono text-[9px] uppercase tracking-wider text-text-muted">{label}</span>
       <div className="flex flex-wrap items-center gap-1">{children}</div>
     </div>
   );
@@ -682,13 +705,9 @@ function FilterPill({
         'rounded-full border px-2.5 py-0.5 font-mono text-[10px] font-semibold tracking-wider transition-colors duration-fast',
         active
           ? 'border-transparent'
-          : 'border-bd-subtle text-text-muted hover:border-bd-default hover:text-text-primary',
+          : 'hover:border-bd-default border-bd-subtle text-text-muted hover:text-text-primary',
       )}
-      style={
-        active
-          ? { background: activeBg, color: activeFg, borderColor: activeFg }
-          : undefined
-      }
+      style={active ? { background: activeBg, color: activeFg, borderColor: activeFg } : undefined}
     >
       {children}
     </button>
@@ -724,7 +743,15 @@ interface VirtualRowProps {
   hedging: boolean;
 }
 
-function VirtualRow({ trade, index, isSelected, top, onClick, gridTemplate, hedging }: VirtualRowProps) {
+function VirtualRow({
+  trade,
+  index,
+  isSelected,
+  top,
+  onClick,
+  gridTemplate,
+  hedging,
+}: VirtualRowProps) {
   const duration = trade.exitTime != null ? trade.exitTime - trade.entryTime : null;
   const pnlUp = trade.realizedPnl >= 0;
   const isLong = trade.direction === 'LONG';
@@ -967,9 +994,13 @@ function StrategyStatsStrip({
               key={s.code}
               className="flex items-center gap-2 rounded-sm border border-bd-subtle bg-bg-base px-2.5 py-1.5"
             >
-              <span className="font-mono text-[11px] font-semibold text-text-primary">{s.code}</span>
+              <span className="font-mono text-[11px] font-semibold text-text-primary">
+                {s.code}
+              </span>
               <span className="text-text-muted">·</span>
-              <span className="font-mono text-[11px] tabular-nums text-text-secondary">{s.count} trades</span>
+              <span className="font-mono text-[11px] tabular-nums text-text-secondary">
+                {s.count} trades
+              </span>
               <span className="text-text-muted">·</span>
               <span
                 className="font-mono text-[11px] tabular-nums"
@@ -979,10 +1010,11 @@ function StrategyStatsStrip({
               </span>
               <span className="text-text-muted">·</span>
               <span
-                className="font-mono text-[11px] tabular-nums font-semibold"
+                className="font-mono text-[11px] font-semibold tabular-nums"
                 style={{ color: pnlUp ? 'var(--color-profit)' : 'var(--color-loss)' }}
               >
-                {pnlUp ? '+' : ''}{s.totalPnl.toFixed(2)}
+                {pnlUp ? '+' : ''}
+                {s.totalPnl.toFixed(2)}
               </span>
             </div>
           );

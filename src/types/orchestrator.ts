@@ -1,4 +1,3 @@
-
 import type { ISO8601, UUID } from './api';
 
 export type StatisticalVerdict =

@@ -2,6 +2,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import type { UseAllocationResult } from '@/hooks/useAllocation';
 
+import { AllocationStatCards } from './AllocationStatCards';
+
 const useAllocation = vi.fn();
 const useEquityCurve = vi.fn();
 const useEarnPosition = vi.fn();
@@ -20,8 +22,6 @@ vi.mock('@/hooks/useCurrency', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@/hooks/useCurrency')>()),
   useCurrencyFormatter: () => useCurrencyFormatter(),
 }));
-
-import { AllocationStatCards } from './AllocationStatCards';
 
 function mkAllocation(overrides: Partial<UseAllocationResult> = {}): UseAllocationResult {
   return {

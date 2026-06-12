@@ -18,7 +18,13 @@ import {
   type MarkerMeta,
   type OutcomeTone,
 } from '@/lib/backtest/buildTradeMarkers';
-import { formatDate, formatDuration, formatPnl, formatPrice, formatRMultiple } from '@/lib/formatters';
+import {
+  formatDate,
+  formatDuration,
+  formatPnl,
+  formatPrice,
+  formatRMultiple,
+} from '@/lib/formatters';
 import type { BacktestTrade } from '@/types/backtest';
 import type { PositionExitReason } from '@/types/trading';
 import type { CandleData, ChartIndicators, IndicatorData } from '@/types/market';
@@ -169,8 +175,7 @@ export function BacktestAnnotatedChart({
     return () => {
       try {
         chart.timeScale().unsubscribeVisibleTimeRangeChange(recomputeOverlays);
-      } catch {
-      }
+      } catch {}
     };
   }, [ready, recomputeOverlays]);
 
@@ -257,8 +262,7 @@ export function BacktestAnnotatedChart({
       clickUnsubRef.current = () => {
         try {
           chart.unsubscribeClick(clickHandler);
-        } catch {
-        }
+        } catch {}
       };
 
       const ro = new ResizeObserver(() => {
@@ -339,8 +343,7 @@ export function BacktestAnnotatedChart({
     for (const line of priceLineRefs.current) {
       try {
         series.removePriceLine(line);
-      } catch {
-      }
+      } catch {}
     }
     priceLineRefs.current = [];
 
@@ -376,8 +379,7 @@ export function BacktestAnnotatedChart({
       };
 
       const isRunnerOnly =
-        trade.positions.length > 0 &&
-        trade.positions.every((p) => p.type === 'RUNNER');
+        trade.positions.length > 0 && trade.positions.every((p) => p.type === 'RUNNER');
 
       add(trade.stopLossPrice, '#FF4D6A', isRunnerOnly ? 'INIT SL' : 'SL', 'SL');
       if (!isRunnerOnly) {
@@ -477,8 +479,7 @@ export function BacktestAnnotatedChart({
       if (rafId != null) cancelAnimationFrame(rafId);
       try {
         chart.unsubscribeCrosshairMove(handler);
-      } catch {
-      }
+      } catch {}
       crosshairRef.current = null;
     };
   }, [ready, metaByTime]);
@@ -491,12 +492,11 @@ export function BacktestAnnotatedChart({
   );
 
   const hoveredTrade = hover ? tradeById.get(hover.tradeId) : null;
-  const selectedTrade = selectedTradeId ? tradeById.get(selectedTradeId) ?? null : null;
+  const selectedTrade = selectedTradeId ? (tradeById.get(selectedTradeId) ?? null) : null;
 
   const cursorOverMarker = hoveredTrade != null;
 
   return (
-
     /* eslint-disable jsx-a11y/no-noninteractive-element-interactions, jsx-a11y/no-noninteractive-tabindex */
     <div
       ref={containerRef}
@@ -508,14 +508,22 @@ export function BacktestAnnotatedChart({
       aria-label="Backtest annotated candlestick chart"
     >
       {/* Trade duration bands rendered on a transparent canvas overlay */}
-      <canvas ref={bandsCanvasRef} className="pointer-events-none absolute left-0 top-0" aria-hidden="true" />
+      <canvas
+        ref={bandsCanvasRef}
+        className="pointer-events-none absolute left-0 top-0"
+        aria-hidden="true"
+      />
       {hoveredTrade && hover && <TradeMarkerTooltip trade={hoveredTrade} x={hover.x} y={hover.y} />}
       {selectedTrade && (
         <TradeDetailCard trade={selectedTrade} onClose={() => onTradeSelect(null)} />
       )}
       {!selectedTrade && trades.length > 0 && <ClickAnyMarkerHint />}
       {/* Cluster count badges for candles with multiple overlapping markers */}
-      <div ref={clusterBadgesRef} className="pointer-events-none absolute inset-0" aria-hidden="true" />
+      <div
+        ref={clusterBadgesRef}
+        className="pointer-events-none absolute inset-0"
+        aria-hidden="true"
+      />
       {ready && <ExportChartButton chartRef={chartRef} />}
     </div>
     /* eslint-enable jsx-a11y/no-noninteractive-element-interactions, jsx-a11y/no-noninteractive-tabindex */
@@ -542,8 +550,7 @@ function ClickAnyMarkerHint() {
     setDismissed(true);
     try {
       window.localStorage.setItem(HINT_DISMISS_KEY, '1');
-    } catch {
-    }
+    } catch {}
   };
 
   return (
@@ -578,8 +585,7 @@ function ExportChartButton({ chartRef }: { chartRef: { current: IChartApi | null
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-    } catch {
-    }
+    } catch {}
   }, [chartRef]);
 
   return (
@@ -616,8 +622,7 @@ function TradeMarkerTooltip({ trade, x, y }: { trade: BacktestTrade; x: number; 
         <span
           className="rounded-sm px-1.5 py-0.5 text-[10px] font-semibold tracking-wider"
           style={{
-            background:
-              trade.direction === 'LONG' ? 'var(--tint-profit)' : 'var(--tint-loss)',
+            background: trade.direction === 'LONG' ? 'var(--tint-profit)' : 'var(--tint-loss)',
             color: trade.direction === 'LONG' ? 'var(--color-profit)' : 'var(--color-loss)',
           }}
         >
@@ -729,16 +734,13 @@ function TradeDetailCard({ trade, onClose }: { trade: BacktestTrade; onClose: ()
           value={trade.exitTime != null ? formatDate(trade.exitTime) : '— still open'}
           muted
         />
-        {duration != null && (
-          <DetailRow label="Held" value={formatDuration(duration)} muted />
-        )}
+        {duration != null && <DetailRow label="Held" value={formatDuration(duration)} muted />}
       </div>
 
       {}
       {(() => {
         const isRunnerOnly =
-          trade.positions.length > 0 &&
-          trade.positions.every((p) => p.type === 'RUNNER');
+          trade.positions.length > 0 && trade.positions.every((p) => p.type === 'RUNNER');
         return (
           <div className="space-y-1 border-b border-[var(--border-subtle)] px-3 py-2 font-mono text-[11px] tabular-nums">
             <DetailRow label="Entry @" value={formatPrice(trade.entryPrice)} />
@@ -758,9 +760,7 @@ function TradeDetailCard({ trade, onClose }: { trade: BacktestTrade; onClose: ()
             {isRunnerOnly ? (
               <DetailRow
                 label="Trailing exit"
-                value={
-                  trade.exitPrice != null ? formatPrice(trade.exitPrice) : '— in flight'
-                }
+                value={trade.exitPrice != null ? formatPrice(trade.exitPrice) : '— in flight'}
                 dotColor="var(--color-info)"
               />
             ) : (
@@ -819,7 +819,9 @@ function TradeDetailCard({ trade, onClose }: { trade: BacktestTrade; onClose: ()
                   />
                   <span className="font-semibold text-[var(--text-primary)]">{p.type}</span>
                 </span>
-                <span className="text-[var(--text-muted)]">{legSummary(p.exitReason, p.exitPrice)}</span>
+                <span className="text-[var(--text-muted)]">
+                  {legSummary(p.exitReason, p.exitPrice)}
+                </span>
               </li>
             ))}
           </ul>
@@ -859,7 +861,10 @@ function DetailRow({
   );
 }
 
-function legSummary(reason: PositionExitReason | null | undefined, exitPrice: number | null): string {
+function legSummary(
+  reason: PositionExitReason | null | undefined,
+  exitPrice: number | null,
+): string {
   if (!reason) return 'open';
   const priceTail = exitPrice != null ? ` @ ${formatPrice(exitPrice)}` : '';
   switch (reason) {
@@ -938,6 +943,7 @@ function makeCandleTimeSnapper(sortedTimes: number[]): (t: number) => number {
     let hi = sortedTimes.length - 1;
 
     while (lo < hi) {
+      // eslint-disable-next-line no-bitwise -- integer midpoint for binary search
       const mid = (lo + hi + 1) >> 1;
       if (sortedTimes[mid] <= t) lo = mid;
       else hi = mid - 1;

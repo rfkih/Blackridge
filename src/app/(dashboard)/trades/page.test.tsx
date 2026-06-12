@@ -4,6 +4,8 @@ import type { AccountSummary } from '@/types/account';
 import type { AccountType } from '@/types/accountType';
 import { ACCOUNT_TYPE_VIEW } from '@/lib/accountType/registry';
 
+import TradesPage from './page';
+
 // --- control the active account + its view ---
 const useActiveAccount = vi.fn();
 vi.mock('@/hooks/useAccounts', () => ({
@@ -49,8 +51,6 @@ vi.mock('next/navigation', () => ({
   useRouter: () => ({ replace, push }),
   useSearchParams: () => new URLSearchParams(''),
 }));
-
-import TradesPage from './page';
 
 function mkAccount(p: Partial<AccountSummary>): AccountSummary {
   return { id: 'a1', accountType: 'TRADING', ...p } as AccountSummary;

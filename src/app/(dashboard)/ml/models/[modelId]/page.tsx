@@ -4,61 +4,17 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Copy } from 'lucide-react';
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { apiClient } from '@/lib/api/client';
+import { useModel } from '@/lib/api/ml';
+import { formatDate, parseIsoUtc } from '@/lib/formatters';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
-import type { MlModel } from '@/types/ml';
-
-interface ModelSnake {
-  id: string;
-  family: string;
-  purpose: string;
-  symbol: string | null;
-  interval: string | null;
-  horizon_bars: number | null;
-  status: string;
-  version: number;
-  artifact_sha256: string | null;
-  artifact_size_bytes: number | null;
-  created_time: string;
-  created_by: string | null;
-  metrics: Record<string, unknown> | null;
-}
-
-async function fetchModel(id: string): Promise<MlModel> {
-  // The orchestrator's /models/{id} ships raw asyncpg snake_case keys;
-  // normalize at the boundary so the UI consumes camelCase consistently
-  // (matches the mapping in lib/api/ml.ts:fetchModels).
-  const { data } = await apiClient.get<ModelSnake>(`/api/v1/research-orch/models/${id}`);
-  return {
-    id: data.id,
-    family: data.family,
-    purpose: data.purpose,
-    symbol: data.symbol,
-    interval: data.interval,
-    horizonBars: data.horizon_bars,
-    status: data.status as MlModel['status'],
-    version: data.version,
-    artifactSha256: data.artifact_sha256,
-    artifactSizeBytes: data.artifact_size_bytes,
-    createdTime: data.created_time,
-    createdBy: data.created_by,
-    metrics: data.metrics,
-  };
-}
 
 export default function ModelDetailPage() {
   const params = useParams<{ modelId: string }>();
   const modelId = params?.modelId ?? '';
   const [copied, setCopied] = useState(false);
 
-  const { data, isLoading, isError } = useQuery({
-    queryKey: ['ml', 'model', modelId] as const,
-    queryFn: () => fetchModel(modelId),
-    enabled: !!modelId,
-    staleTime: 60_000,
-  });
+  const { data, isLoading, isError } = useModel(modelId);
 
   if (isLoading) {
     return (
@@ -110,7 +66,7 @@ export default function ModelDetailPage() {
         </div>
         <p className="text-xs text-zinc-500">
           {data.symbol ?? '—'} · {data.interval ?? '—'}
-          {data.horizonBars && ` · ${data.horizonBars} bar horizon`}
+          {data.horizonBars != null && data.horizonBars > 0 && ` · ${data.horizonBars} bar horizon`}
         </p>
       </header>
 
@@ -146,11 +102,7 @@ export default function ModelDetailPage() {
           <dl className="space-y-1 text-sm">
             <Row
               k="Created"
-              v={
-                data.createdTime
-                  ? new Date(data.createdTime).toISOString().slice(0, 19).replace('T', ' ')
-                  : '—'
-              }
+              v={data.createdTime ? formatDate(parseIsoUtc(data.createdTime)) : '—'}
             />
             <Row k="Created by" v={data.createdBy ?? '—'} />
           </dl>

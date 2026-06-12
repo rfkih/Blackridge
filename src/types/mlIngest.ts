@@ -1,4 +1,3 @@
-
 /** Source identifier — matches Python module names + `ml_ingest_schedule.source`. */
 export type MlSource =
   | 'fred'
@@ -10,12 +9,7 @@ export type MlSource =
   | 'forexfactory';
 
 /** Health rollup status — see MlSourceHealth.java for transition rules. */
-export type MlSourceHealthStatus =
-  | 'healthy'
-  | 'degraded'
-  | 'failed'
-  | 'disabled'
-  | 'unknown';
+export type MlSourceHealthStatus = 'healthy' | 'degraded' | 'failed' | 'disabled' | 'unknown';
 
 export interface MlIngestSchedule {
   id: number;

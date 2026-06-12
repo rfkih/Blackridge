@@ -1,4 +1,3 @@
-
 import { researchClient } from './client';
 import type {
   CreateQueueItemRequest,
@@ -22,13 +21,8 @@ export async function listQueue(params?: {
   return data;
 }
 
-export async function createQueueItem(
-  payload: CreateQueueItemRequest,
-): Promise<ResearchQueueItem> {
-  const { data } = await researchClient.post<ResearchQueueItem>(
-    `${BASE}/me`,
-    payload,
-  );
+export async function createQueueItem(payload: CreateQueueItemRequest): Promise<ResearchQueueItem> {
+  const { data } = await researchClient.post<ResearchQueueItem>(`${BASE}/me`, payload);
   return data;
 }
 
@@ -36,10 +30,7 @@ export async function updateQueuePriority(
   queueId: string,
   payload: UpdateQueueItemRequest,
 ): Promise<ResearchQueueItem> {
-  const { data } = await researchClient.patch<ResearchQueueItem>(
-    `${BASE}/${queueId}`,
-    payload,
-  );
+  const { data } = await researchClient.patch<ResearchQueueItem>(`${BASE}/${queueId}`, payload);
   return data;
 }
 

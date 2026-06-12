@@ -1,4 +1,3 @@
-
 import { apiClient } from './client';
 import type { ISO8601 } from '@/types/api';
 
@@ -23,6 +22,8 @@ export async function pauseResearchAutomation(reason?: string): Promise<Research
 }
 
 export async function resumeResearchAutomation(): Promise<ResearchAutomationStatus> {
-  const { data } = await apiClient.post<ResearchAutomationStatus>('/api/v1/admin/research/control/resume');
+  const { data } = await apiClient.post<ResearchAutomationStatus>(
+    '/api/v1/admin/research/control/resume',
+  );
   return data;
 }

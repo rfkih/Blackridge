@@ -27,12 +27,18 @@ function otherType(t: AccountType): AccountType {
   return t === 'TRADING' ? 'HEDGING' : 'TRADING';
 }
 
-export function SwitchAccountTypeDialog({ account, open, onOpenChange }: SwitchAccountTypeDialogProps) {
+export function SwitchAccountTypeDialog({
+  account,
+  open,
+  onOpenChange,
+}: SwitchAccountTypeDialogProps) {
   const target: AccountType | null = account ? otherType(account.accountType) : null;
-  const { data: preview, isLoading, isError, error } = useAccountTypeSwitchPreview(
-    open && account ? account.id : null,
-    open ? target : null,
-  );
+  const {
+    data: preview,
+    isLoading,
+    isError,
+    error,
+  } = useAccountTypeSwitchPreview(open && account ? account.id : null, open ? target : null);
   const switchMutation = useSwitchAccountType();
 
   // Real-money safety gate: closing live positions requires an explicit ack.
@@ -73,9 +79,7 @@ export function SwitchAccountTypeDialog({ account, open, onOpenChange }: SwitchA
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg border-[var(--border-default)] bg-[var(--bg-surface)] text-[var(--text-primary)]">
         <DialogHeader>
-          <DialogTitle className="font-display text-lg">
-            Switch account to {target}
-          </DialogTitle>
+          <DialogTitle className="font-display text-lg">Switch account to {target}</DialogTitle>
           <DialogDescription className="text-[var(--text-secondary)]">
             {account ? (
               <span className="inline-flex items-center gap-2">
@@ -157,7 +161,8 @@ export function SwitchAccountTypeDialog({ account, open, onOpenChange }: SwitchA
             <div className="rounded-md border border-[var(--border-default)] bg-[var(--bg-muted,#161616)] p-3 text-sm">
               <div className="mb-1 flex items-center gap-2 font-medium text-[var(--text-secondary)]">
                 <RotateCcw className="h-4 w-4" />
-                {restores.length} previously auto-disabled strateg{restores.length > 1 ? 'ies' : 'y'} will be re-enabled
+                {restores.length} previously auto-disabled strateg
+                {restores.length > 1 ? 'ies' : 'y'} will be re-enabled
               </div>
               <ul className="text-xs text-[var(--text-secondary)]">
                 {restores.map((s) => (
@@ -176,11 +181,13 @@ export function SwitchAccountTypeDialog({ account, open, onOpenChange }: SwitchA
             </p>
           )}
 
-          {!isLoading && !isError && (disables.length > 0 || closes.length > 0 || restores.length > 0) && (
-            <p className="text-[11px] text-[var(--text-muted)]">
-              Reflects the current state — the exact actions are recalculated when you confirm.
-            </p>
-          )}
+          {!isLoading &&
+            !isError &&
+            (disables.length > 0 || closes.length > 0 || restores.length > 0) && (
+              <p className="text-[11px] text-[var(--text-muted)]">
+                Reflects the current state — the exact actions are recalculated when you confirm.
+              </p>
+            )}
         </div>
 
         <DialogFooter>
@@ -194,7 +201,9 @@ export function SwitchAccountTypeDialog({ account, open, onOpenChange }: SwitchA
           <Button
             variant={closes.length > 0 ? 'destructive' : 'default'}
             onClick={handleConfirm}
-            disabled={isLoading || isError || switchMutation.isPending || (needsAck && !ackLiveClose)}
+            disabled={
+              isLoading || isError || switchMutation.isPending || (needsAck && !ackLiveClose)
+            }
           >
             {switchMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Switch to {target}

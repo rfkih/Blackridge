@@ -43,27 +43,50 @@ const STATUSES: StatusFilter[] = ['ALL', 'OPEN', 'PARTIALLY_CLOSED', 'CLOSED'];
 
 function csvEscape(v: string | number | null | undefined): string {
   if (v == null) return '';
-  const s = String(v);
+  let s = String(v);
+  // Spreadsheet formula-injection guard: a leading = + @ or tab makes Excel /
+  // Sheets evaluate the cell. Prefix with ' to force text. Negative numbers
+  // are exempt — "-12.5" is data, not a formula.
+  if (/^[=+@\t]/.test(s) || (s.startsWith('-') && typeof v !== 'number' && !/^-\d/.test(s))) {
+    s = `'${s}`;
+  }
   if (s.includes(',') || s.includes('"') || s.includes('\n')) return `"${s.replace(/"/g, '""')}"`;
   return s;
 }
 
 function downloadTradesCsv(trades: Trades[]) {
-  const headers = ['id', 'symbol', 'strategy', 'direction', 'status', 'entry_time', 'entry_price', 'exit_time', 'exit_price', 'quantity', 'realized_pnl', 'fee_usdt'];
-  const rows = trades.map((t) => [
-    t.id,
-    t.symbol,
-    t.strategyCode,
-    t.direction,
-    t.status,
-    t.entryTime ? new Date(t.entryTime).toISOString() : '',
-    t.entryPrice,
-    t.exitTime ? new Date(t.exitTime).toISOString() : '',
-    t.exitAvgPrice ?? '',
-    t.quantity,
-    t.realizedPnl,
-    t.feeUsdt,
-  ].map(csvEscape).join(','));
+  const headers = [
+    'id',
+    'symbol',
+    'strategy',
+    'direction',
+    'status',
+    'entry_time',
+    'entry_price',
+    'exit_time',
+    'exit_price',
+    'quantity',
+    'realized_pnl',
+    'fee_usdt',
+  ];
+  const rows = trades.map((t) =>
+    [
+      t.id,
+      t.symbol,
+      t.strategyCode,
+      t.direction,
+      t.status,
+      t.entryTime ? new Date(t.entryTime).toISOString() : '',
+      t.entryPrice,
+      t.exitTime ? new Date(t.exitTime).toISOString() : '',
+      t.exitAvgPrice ?? '',
+      t.quantity,
+      t.realizedPnl,
+      t.feeUsdt,
+    ]
+      .map(csvEscape)
+      .join(','),
+  );
   const csv = [headers.join(','), ...rows].join('\n');
   const blob = new Blob([csv], { type: 'text/csv' });
   const url = URL.createObjectURL(blob);
@@ -118,7 +141,7 @@ export default function TradesPage() {
   return (
     <Suspense fallback={<Skeleton className="h-[60vh] w-full" />}>
       <Tabs defaultValue="journal" className="flex flex-col gap-4">
-        <TabsList className="bg-[var(--bg-elevated)] self-start">
+        <TabsList className="self-start bg-[var(--bg-elevated)]">
           <TabsTrigger value="journal">{isHedging ? 'Rebalances' : 'Journal'}</TabsTrigger>
           <TabsTrigger value="executions">Execution History</TabsTrigger>
         </TabsList>
@@ -223,7 +246,14 @@ function TradesPageContent() {
       to: filters.to,
       accountId: scopedAccountId,
     }),
-    [filters.status, filters.strategyCode, filters.symbol, filters.from, filters.to, scopedAccountId],
+    [
+      filters.status,
+      filters.strategyCode,
+      filters.symbol,
+      filters.from,
+      filters.to,
+      scopedAccountId,
+    ],
   );
 
   const openSlice = useMemo(
@@ -418,7 +448,13 @@ function TradesPageContent() {
           <button
             type="button"
             className="mm-btn"
-            style={{ display: 'inline-flex', alignItems: 'center', gap: 6, opacity: 0.5, cursor: 'not-allowed' }}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+              opacity: 0.5,
+              cursor: 'not-allowed',
+            }}
             title="FIFO tax report — coming soon"
             disabled
           >
@@ -811,17 +847,11 @@ function JournalStatsStrip({
           </span>
         </div>
         <div style={{ marginTop: 8 }}>
-          <StatsSparkline
-            values={cumSeries}
-            color={cumUp ? 'var(--mm-up)' : 'var(--mm-dn)'}
-          />
+          <StatsSparkline values={cumSeries} color={cumUp ? 'var(--mm-up)' : 'var(--mm-dn)'} />
         </div>
       </div>
 
-      <StatCard
-        label="WIN RATE"
-        value={winRate != null ? `${(winRate * 100).toFixed(1)}%` : '—'}
-      />
+      <StatCard label="WIN RATE" value={winRate != null ? `${(winRate * 100).toFixed(1)}%` : '—'} />
       <StatCard
         label="PROFIT FACTOR"
         value={profitFactor != null ? profitFactor.toFixed(2) : '—'}

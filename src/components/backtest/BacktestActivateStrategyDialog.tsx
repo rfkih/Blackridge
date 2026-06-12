@@ -109,8 +109,7 @@ export function BacktestActivateStrategyDialog({ run, open, onClose }: Props) {
     return `Backtest ${shortId} · ${date}`;
   }, [run.id, run.createdAt]);
 
-  const canSubmit =
-    selectedCode.length > 0 && selectedStrategyId.length > 0 && !activate.isPending;
+  const canSubmit = selectedCode.length > 0 && selectedStrategyId.length > 0 && !activate.isPending;
 
   async function handleActivate() {
     if (!canSubmit) return;
@@ -123,8 +122,7 @@ export function BacktestActivateStrategyDialog({ run, open, onClose }: Props) {
       setActivatedStrategyId(result.id);
       setActivatedSimulated(result.simulated);
       setStep('success');
-    } catch {
-    }
+    } catch {}
   }
 
   return (
@@ -278,7 +276,7 @@ function ConfigureStep({
             </SelectTrigger>
             <SelectContent>
               {strategyCodes.map((code) => (
-                <SelectItem key={code} value={code} className="text-[12px] font-mono">
+                <SelectItem key={code} value={code} className="font-mono text-[12px]">
                   {code}
                 </SelectItem>
               ))}
@@ -326,7 +324,7 @@ function ConfigureStep({
                       {s.symbol} · {s.interval}
                     </span>
                     {s.status === 'LIVE' && (
-                      <span className="rounded-full bg-profit/20 px-1.5 py-px text-[9px] font-semibold uppercase text-profit">
+                      <span className="bg-profit/20 rounded-full px-1.5 py-px text-[9px] font-semibold uppercase text-profit">
                         live
                       </span>
                     )}
@@ -340,7 +338,7 @@ function ConfigureStep({
 
       {}
       {selectedStrategy && (
-        <div className="rounded-sm border border-bd-subtle bg-bg-base px-3 py-2 text-[11px] space-y-1">
+        <div className="space-y-1 rounded-sm border border-bd-subtle bg-bg-base px-3 py-2 text-[11px]">
           <div className="flex items-center justify-between">
             <span className="text-text-muted">Current status</span>
             <span
@@ -364,16 +362,20 @@ function ConfigureStep({
                 selectedStrategy.simulated ? 'text-profit' : 'text-warning',
               )}
             >
-              {selectedStrategy.simulated ? 'Paper trading (simulated)' : 'Live trading (real capital)'}
+              {selectedStrategy.simulated
+                ? 'Paper trading (simulated)'
+                : 'Live trading (real capital)'}
             </span>
           </div>
           {selectedStrategy.isKillSwitchTripped && (
-            <div className="flex items-start gap-1.5 pt-1 border-t border-bd-subtle mt-1">
+            <div className="mt-1 flex items-start gap-1.5 border-t border-bd-subtle pt-1">
               <AlertTriangle size={11} className="mt-0.5 shrink-0 text-warning" />
               <span className="text-warning">
                 Drawdown kill-switch is tripped — new entries are blocked until re-armed.
                 {selectedStrategy.killSwitchReason && (
-                  <span className="block text-text-muted mt-0.5">{selectedStrategy.killSwitchReason}</span>
+                  <span className="mt-0.5 block text-text-muted">
+                    {selectedStrategy.killSwitchReason}
+                  </span>
                 )}
               </span>
             </div>
@@ -383,13 +385,10 @@ function ConfigureStep({
 
       {}
       <div className="rounded-sm border border-bd-subtle bg-bg-base px-3 py-2 text-[11px] text-text-secondary">
-        <span className="font-semibold text-text-primary">{paramCount}</span>{' '}
-        parameter{paramCount !== 1 ? 's' : ''} from this run will be saved as a new active
-        preset.
+        <span className="font-semibold text-text-primary">{paramCount}</span> parameter
+        {paramCount !== 1 ? 's' : ''} from this run will be saved as a new active preset.
         {paramCount === 0 && (
-          <span className="ml-1 text-text-muted">
-            (Strategy will use its default parameters.)
-          </span>
+          <span className="ml-1 text-text-muted">(Strategy will use its default parameters.)</span>
         )}
       </div>
 
@@ -410,7 +409,7 @@ function ConfigureStep({
 
       {}
       {error && (
-        <div className="flex items-start gap-2 rounded-sm border border-loss/30 bg-tint-loss px-3 py-2 text-[11px] text-loss">
+        <div className="border-loss/30 flex items-start gap-2 rounded-sm border bg-tint-loss px-3 py-2 text-[11px] text-loss">
           <AlertTriangle size={12} className="mt-0.5 shrink-0" />
           <span>{error}</span>
         </div>

@@ -29,11 +29,32 @@ function TooltipContent({
   );
 }
 
+/** Format a YYYY-MM-DD calendar date as "MMM d" without a UTC round-trip.
+ *  `new Date('2026-06-12')` parses as UTC midnight, so date-fns would render
+ *  the PREVIOUS day for operators west of UTC. Constructing from local parts
+ *  keeps the label on the calendar day the backend counted. */
+function fmtDayLabel(isoDay: string): string {
+  const [y, m, d] = isoDay.split('-').map(Number);
+  if (!y || !m || !d) return isoDay;
+  return format(new Date(y, m - 1, d), 'MMM d');
+}
+
 export function SignalTimelineChart({ signalId }: { signalId: string }) {
-  const { data, isLoading } = useSignalDailyCounts(signalId, 30);
+  const { data, isLoading, isError, refetch } = useSignalDailyCounts(signalId, 30);
 
   if (isLoading) {
     return <Skeleton className="h-44 w-full rounded-md" />;
+  }
+
+  if (isError) {
+    return (
+      <div className="flex h-44 items-center justify-center rounded-md border border-rose-500/30 bg-rose-500/5 text-sm text-rose-200">
+        Failed to load firing history.&nbsp;
+        <button type="button" onClick={() => refetch()} className="underline">
+          Retry
+        </button>
+      </div>
+    );
   }
 
   const days = data?.days ?? [];
@@ -46,7 +67,7 @@ export function SignalTimelineChart({ signalId }: { signalId: string }) {
   }
 
   const chartData = days.map((d) => ({
-    date: format(new Date(d.date), 'MMM d'),
+    date: fmtDayLabel(d.date),
     count: d.fireCount,
   }));
 

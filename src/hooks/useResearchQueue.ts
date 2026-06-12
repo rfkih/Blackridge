@@ -16,10 +16,7 @@ import type {
 
 const QUEUE_KEY = ['research', 'queue'] as const;
 
-export function useResearchQueue(filters?: {
-  strategyCode?: string;
-  status?: string[];
-}) {
+export function useResearchQueue(filters?: { strategyCode?: string; status?: string[] }) {
   const userId = useAuthStore((s) => s.user?.id);
   return useQuery<ResearchQueueItem[]>({
     queryKey: [...QUEUE_KEY, filters?.strategyCode ?? '*', filters?.status ?? []],

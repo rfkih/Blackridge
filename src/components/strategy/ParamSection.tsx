@@ -42,8 +42,7 @@ export function ParamSection({
       if (typeof window !== 'undefined') {
         try {
           window.sessionStorage.setItem(storageKey, next ? '1' : '0');
-        } catch {
-        }
+        } catch {}
       }
       return next;
     });

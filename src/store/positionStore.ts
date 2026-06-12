@@ -1,4 +1,3 @@
-
 import { create } from 'zustand';
 import type { LivePosition, PnlUpdate } from '@/types/trading';
 

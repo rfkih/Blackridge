@@ -106,8 +106,7 @@ export function NavigationProgressBar() {
           background:
             'linear-gradient(90deg, var(--brand-500) 0%, color-mix(in srgb, var(--brand-500) 85%, transparent) 70%, transparent 100%)',
           boxShadow: '0 0 10px var(--accent-glow), 0 0 2px var(--accent-subtle)',
-          transition:
-            'width 180ms cubic-bezier(0.25, 1, 0.5, 1), opacity 220ms ease-out',
+          transition: 'width 180ms cubic-bezier(0.25, 1, 0.5, 1), opacity 220ms ease-out',
           opacity: active || progress < 100 ? 1 : 0,
         }}
       />

@@ -3,8 +3,13 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { AccountSummary } from '@/types/account';
 import type { LeaderboardEntry } from '@/types/leaderboard';
-import type { BacktestLeaderboardEntry, BacktestLeaderboardPage } from '@/types/leaderboardBacktest';
+import type {
+  BacktestLeaderboardEntry,
+  BacktestLeaderboardPage,
+} from '@/types/leaderboardBacktest';
 import type { PaperRow } from '@/types/papers';
+
+import LeaderboardPage from './page';
 
 // --- control the leaderboard data hooks + the active-account context ---
 const useTopStrategies = vi.fn();
@@ -46,8 +51,6 @@ vi.mock('@/components/leaderboard/DeployStrategyDialog', () => ({
 vi.mock('@/components/leaderboard/RequestApprovalDialog', () => ({
   RequestApprovalDialog: () => null,
 }));
-
-import LeaderboardPage from './page';
 
 function mkAccount(p: Partial<AccountSummary>): AccountSummary {
   return {
@@ -291,7 +294,14 @@ describe('LeaderboardPage — filter by active account type', () => {
       refetch: vi.fn(),
     });
     useBacktestLeaderboard.mockReturnValue({
-      data: { entries: [], qualifyingCells: 0, shown: 0, hedgingEntries: [], hedgingQualifyingCells: 0, hedgingShown: 0 },
+      data: {
+        entries: [],
+        qualifyingCells: 0,
+        shown: 0,
+        hedgingEntries: [],
+        hedgingQualifyingCells: 0,
+        hedgingShown: 0,
+      },
       isLoading: false,
       isError: false,
       refetch: vi.fn(),

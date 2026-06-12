@@ -71,9 +71,7 @@ export function SpecTraceViewer({
     <div className="flex flex-col gap-3">
       <div className="flex flex-wrap items-center gap-3 rounded-xl border border-bd-subtle bg-bg-surface px-3 py-2">
         <label className="flex items-center gap-1.5 text-[12px] text-text-secondary">
-          <span className="text-[11px] uppercase tracking-widest text-text-muted">
-            Decision
-          </span>
+          <span className="text-[11px] uppercase tracking-widest text-text-muted">Decision</span>
           <select
             value={decision}
             onChange={(e) => {
@@ -192,9 +190,7 @@ function SpecTraceRowItem({ row }: { row: SpecTraceRow }) {
         )}
         <span className="ml-auto flex items-center gap-3">
           {row.evalLatencyUs != null && (
-            <span className="font-mono text-[10px] text-text-muted">
-              {row.evalLatencyUs}µs
-            </span>
+            <span className="font-mono text-[10px] text-text-muted">{row.evalLatencyUs}µs</span>
           )}
           <span className="font-mono text-[10px] text-text-muted">{row.barTime ?? '—'}</span>
         </span>

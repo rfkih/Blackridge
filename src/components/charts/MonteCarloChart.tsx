@@ -64,7 +64,11 @@ export function MonteCarloChart({ result, height = 320 }: MonteCarloChartProps) 
           return (
             <div key={p.name} className="flex items-center justify-between gap-3">
               <span className="flex items-center gap-1.5 text-[11px]" style={{ color: p.color }}>
-                <span aria-hidden className="h-2 w-2 rounded-full" style={{ background: p.color }} />
+                <span
+                  aria-hidden
+                  className="h-2 w-2 rounded-full"
+                  style={{ background: p.color }}
+                />
                 {p.name}
               </span>
               <span className="num text-[11px] text-[var(--text-primary)]">

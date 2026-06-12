@@ -261,8 +261,14 @@ async function mockApi(page: Page) {
     }
     if (path.endsWith('/api/v1/trades/stats')) {
       return fulfill(route, {
-        cumulativePnl: 0, winRate: 0, profitFactor: null, avgWin: null,
-        avgLoss: null, tradeCount: 0, winCount: 0, lossCount: 0,
+        cumulativePnl: 0,
+        winRate: 0,
+        profitFactor: null,
+        avgWin: null,
+        avgLoss: null,
+        tradeCount: 0,
+        winCount: 0,
+        lossCount: 0,
       });
     }
     if (path.includes('/api/v1/trades')) {
@@ -393,8 +399,6 @@ test.describe('Account type — HEDGING happy path', () => {
     await page.goto('/trades');
     // The HEDGING monitor retitles the page via the account view's
     // monitorLabel → an <h1> reading "Rebalances".
-    await expect(
-      page.getByRole('heading', { level: 1, name: 'Rebalances' }),
-    ).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1, name: 'Rebalances' })).toBeVisible();
   });
 });

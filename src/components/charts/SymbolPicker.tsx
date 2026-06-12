@@ -39,10 +39,10 @@ export function SymbolPicker({ value, onChange }: SymbolPickerProps) {
         </button>
       </PopoverTrigger>
       <PopoverContent
-          align="start"
-          sideOffset={6}
-          className="w-44 p-1.5 bg-[var(--bg-overlay)] border-[var(--border-default)] shadow-[var(--shadow-float)]"
-        >
+        align="start"
+        sideOffset={6}
+        className="w-44 border-[var(--border-default)] bg-[var(--bg-overlay)] p-1.5 shadow-[var(--shadow-float)]"
+      >
         <ul className="space-y-0.5" role="listbox">
           {SUPPORTED_SYMBOLS.map((sym) => (
             <li key={sym} role="option" aria-selected={sym === value}>

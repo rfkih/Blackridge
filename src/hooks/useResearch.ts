@@ -11,11 +11,10 @@ import {
   searchResearchLog,
   searchSweeps,
 } from '@/lib/api/research';
-import type { ResearchLogQuery, SweepsQuery } from '@/types/research';
+import type { ResearchLogQuery, SweepsQuery, SweepSpec } from '@/types/research';
 import { getLsrDefaults } from '@/lib/api/lsr-params';
 import { getVcbDefaults } from '@/lib/api/vcb-params';
 import { useAuthStore } from '@/store/authStore';
-import type { SweepSpec } from '@/types/research';
 
 const LOG_KEY = ['research', 'log'] as const;
 

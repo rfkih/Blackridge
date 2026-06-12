@@ -198,7 +198,10 @@ export default function ResearchDashboardPage() {
               : 'Tick now'}
           </button>
           {tick.isPending && (
-            <span className="font-mono text-[10px] text-text-muted" title="Tick runs synchronously and cannot be cancelled — wait for it to complete">
+            <span
+              className="font-mono text-[10px] text-text-muted"
+              title="Tick runs synchronously and cannot be cancelled — wait for it to complete"
+            >
               ⚠ up to ~30 min · no cancel
             </span>
           )}
@@ -2542,10 +2545,20 @@ function RecentIterationsPanel() {
                   {annGeom != null && (
                     <span
                       className="font-mono"
-                      style={{ color: annGeom >= 10 ? 'var(--color-profit)' : annGeom >= 0 ? 'var(--text-secondary)' : 'var(--color-loss)' }}
-                      title={utilPct != null ? `Deployed ${utilPct.toFixed(1)}% of window` : undefined}
+                      style={{
+                        color:
+                          annGeom >= 10
+                            ? 'var(--color-profit)'
+                            : annGeom >= 0
+                              ? 'var(--text-secondary)'
+                              : 'var(--color-loss)',
+                      }}
+                      title={
+                        utilPct != null ? `Deployed ${utilPct.toFixed(1)}% of window` : undefined
+                      }
                     >
-                      {annGeom >= 0 ? '+' : ''}{annGeom.toFixed(1)}%/yr
+                      {annGeom >= 0 ? '+' : ''}
+                      {annGeom.toFixed(1)}%/yr
                       {utilPct != null && (
                         <span className="text-text-muted"> @{utilPct.toFixed(0)}%</span>
                       )}

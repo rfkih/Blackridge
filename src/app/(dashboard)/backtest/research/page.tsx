@@ -628,7 +628,7 @@ function deriveRangeFromDefault(value: number): {
   const decimals = abs >= 50 ? 0 : abs >= 5 ? 1 : abs >= 1 ? 2 : 3;
   const lo = value * 0.8;
   const hi = value * 1.2;
-  const step = Math.max((hi - lo) / 4, Math.pow(10, -decimals));
+  const step = Math.max((hi - lo) / 4, 10 ** -decimals);
   return {
     min: lo.toFixed(decimals),
     max: hi.toFixed(decimals),

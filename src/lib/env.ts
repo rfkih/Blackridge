@@ -56,8 +56,9 @@ function readOptional(name: keyof typeof PUBLIC_ENV): string {
 const apiUrlResolved = read('NEXT_PUBLIC_API_URL', DEFAULT_API_URL);
 const researchExplicit = readOptional('NEXT_PUBLIC_RESEARCH_URL');
 
-const researchUrlResolved = researchExplicit
-  || (process.env.NODE_ENV === 'production' ? apiUrlResolved : DEFAULT_RESEARCH_URL);
+const researchUrlResolved =
+  researchExplicit ||
+  (process.env.NODE_ENV === 'production' ? apiUrlResolved : DEFAULT_RESEARCH_URL);
 
 /**
  * Frozen env table. Prefer this over raw `process.env` references so every

@@ -69,7 +69,10 @@ export function useLivePnl(accountId: string | undefined) {
           batch.push({
             tradeId: t.tradeId,
             accountId,
-            markPrice: mark ?? 0,
+            // NaN (not 0) when currentPrice is missing: the store's
+            // Number.isFinite guard skips NaN, whereas 0 would be written
+            // into markMap and rendered as a real price of 0.00.
+            markPrice: mark ?? Number.NaN,
             unrealizedPnl: pnl,
             unrealizedPnlPct: pnlPct ?? 0,
             ts,

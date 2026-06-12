@@ -27,10 +27,7 @@ import { useApprovalThresholds } from '@/hooks/useApprovalThresholds';
 import { normalizeError } from '@/lib/api/client';
 import { toast } from '@/hooks/useToast';
 import { BacktestRunPicker } from './BacktestRunPicker';
-import type {
-  GateFailureBody,
-  SymbolApproval,
-} from '@/types/symbolApproval';
+import type { GateFailureBody, SymbolApproval } from '@/types/symbolApproval';
 
 /**
  * Approve a (symbol, code) pair, or attach evidence to a grandfathered
@@ -77,7 +74,7 @@ export function NewApprovalDialog({
   const create = useCreateSymbolApproval();
   const attach = useAttachEvidence();
 
-  const lockedSymbol = mode === 'attach' ? attachToRow!.symbol : presetSymbol ?? null;
+  const lockedSymbol = mode === 'attach' ? attachToRow!.symbol : (presetSymbol ?? null);
   const lockedCode = mode === 'attach' ? attachToRow!.strategyCode : null;
 
   useEffect(() => {
@@ -108,11 +105,7 @@ export function NewApprovalDialog({
   );
 
   const pending = create.isPending || attach.isPending;
-  const canSubmit =
-    !pending &&
-    Boolean(symbol) &&
-    Boolean(strategyCode) &&
-    Boolean(runId);
+  const canSubmit = !pending && Boolean(symbol) && Boolean(strategyCode) && Boolean(runId);
 
   async function handleSubmit() {
     setGateFailure(null);
@@ -230,7 +223,7 @@ export function NewApprovalDialog({
           </div>
 
           {threshold && (
-            <div className="rounded-sm border border-bd-subtle bg-bg-base px-3 py-2 text-[10px] font-mono text-text-secondary">
+            <div className="rounded-sm border border-bd-subtle bg-bg-base px-3 py-2 font-mono text-[10px] text-text-secondary">
               Bar for {threshold.symbol}: CAGR ≥ {threshold.minCagrPct}% · cap ≥ $
               {threshold.minInitialCapitalUsd} · window ≥ {threshold.minWindowDays}d · trades ≥{' '}
               {threshold.minTrades}
@@ -285,7 +278,7 @@ export function NewApprovalDialog({
 
 function GateFailureCallout({ failure }: { failure: GateFailureBody }) {
   return (
-    <div className="space-y-1 rounded-sm border border-[var(--color-loss)]/30 bg-[var(--tint-loss)] px-3 py-2">
+    <div className="border-[var(--color-loss)]/30 space-y-1 rounded-sm border bg-[var(--tint-loss)] px-3 py-2">
       <div className="flex items-center gap-1.5 text-[11px] font-semibold text-[var(--color-loss)]">
         <AlertCircle size={12} />
         Gate rejected this run — {failure.failedChecks.length} threshold
@@ -294,9 +287,8 @@ function GateFailureCallout({ failure }: { failure: GateFailureBody }) {
       <ul className="space-y-0.5 pl-4 text-[11px] text-[var(--color-loss)]">
         {failure.failedChecks.map((c) => (
           <li key={c.name} className="font-mono">
-            {humanizeCheckName(c.name)}: needed{' '}
-            <span className="font-semibold">{c.threshold}</span>, got{' '}
-            <span className="font-semibold">{c.actual}</span>
+            {humanizeCheckName(c.name)}: needed <span className="font-semibold">{c.threshold}</span>
+            , got <span className="font-semibold">{c.actual}</span>
           </li>
         ))}
       </ul>
@@ -306,10 +298,15 @@ function GateFailureCallout({ failure }: { failure: GateFailureBody }) {
 
 function humanizeCheckName(name: string): string {
   switch (name) {
-    case 'min_cagr_pct': return 'CAGR (%/yr)';
-    case 'min_initial_capital_usd': return 'Initial capital ($)';
-    case 'min_window_days': return 'Window (days)';
-    case 'min_trades': return 'Trades';
-    default: return name;
+    case 'min_cagr_pct':
+      return 'CAGR (%/yr)';
+    case 'min_initial_capital_usd':
+      return 'Initial capital ($)';
+    case 'min_window_days':
+      return 'Window (days)';
+    case 'min_trades':
+      return 'Trades';
+    default:
+      return name;
   }
 }

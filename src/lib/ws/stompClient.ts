@@ -154,8 +154,7 @@ export function subscribeToTopic(topic: string, callback: (body: string) => void
   return () => {
     try {
       sub.unsubscribe();
-    } catch {
-    }
+    } catch {}
   };
 }
 
@@ -176,6 +175,5 @@ export function publishToApp(destination: string, body: unknown): void {
       body: JSON.stringify(body ?? {}),
       headers: { 'content-type': 'application/json' },
     });
-  } catch {
-  }
+  } catch {}
 }

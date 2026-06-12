@@ -1,4 +1,3 @@
-
 const STATIC_TITLES: Record<string, string> = {
   '/': 'Dashboard',
   '/portfolio': 'Portfolio',

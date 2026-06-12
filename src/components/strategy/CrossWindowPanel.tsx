@@ -76,8 +76,7 @@ export function CrossWindowPanel({
 }: CrossWindowPanelProps) {
   const query = useQuery({
     queryKey: ['cross-window', strategyCode, intervalName, instrument],
-    queryFn: () =>
-      listCrossWindowRuns({ strategyCode, intervalName, instrument, limit: 5 }),
+    queryFn: () => listCrossWindowRuns({ strategyCode, intervalName, instrument, limit: 5 }),
     staleTime: 60_000,
     retry: 0,
   });
@@ -106,8 +105,8 @@ export function CrossWindowPanel({
       <div className="rounded-xl border border-bd-subtle bg-bg-surface px-3 py-3 text-[12px] text-text-secondary">
         No cross-window run yet for {strategyCode} · {intervalName} · {instrument}.
         <div className="mt-1 text-[11px] text-text-muted">
-          Orchestrator will populate this after a SIGNIFICANT_EDGE iteration goes
-          through walk-forward + cross-window stratification.
+          Orchestrator will populate this after a SIGNIFICANT_EDGE iteration goes through
+          walk-forward + cross-window stratification.
         </div>
       </div>
     );
@@ -137,14 +136,15 @@ export function CrossWindowPanel({
           </span>
         </div>
 
-        {meta.blurb && (
-          <div className="text-[12px] text-text-secondary">{meta.blurb}</div>
-        )}
+        {meta.blurb && <div className="text-[12px] text-text-secondary">{meta.blurb}</div>}
 
         <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-[11px] sm:grid-cols-4">
           <Stat label="Windows" value={`${latest.nWindowsCompleted}/${latest.nWindows}`} />
           <Stat label="PF mean" value={fmtNum(latest.windowPfMean, 2)} />
-          <Stat label="PF range" value={`${fmtNum(latest.windowPfMin, 2)} – ${fmtNum(latest.windowPfMax, 2)}`} />
+          <Stat
+            label="PF range"
+            value={`${fmtNum(latest.windowPfMin, 2)} – ${fmtNum(latest.windowPfMax, 2)}`}
+          />
           <Stat label="% net+" value={fmtPct(latest.pctWindowsNetPositive)} />
           {!compact && (
             <>
@@ -173,22 +173,16 @@ export function CrossWindowPanel({
   );
 }
 
-function Stat({
-  label,
-  value,
-  mono,
-}: {
-  label: string;
-  value: string | number;
-  mono?: boolean;
-}) {
+function Stat({ label, value, mono }: { label: string; value: string | number; mono?: boolean }) {
   return (
     <div className="flex flex-col gap-0.5">
       <span className="font-mono text-[10px] uppercase tracking-widest text-text-muted">
         {label}
       </span>
       <span
-        className={mono ? 'font-mono text-[12px] text-text-primary' : 'text-[12px] text-text-primary'}
+        className={
+          mono ? 'font-mono text-[12px] text-text-primary' : 'text-[12px] text-text-primary'
+        }
       >
         {value}
       </span>

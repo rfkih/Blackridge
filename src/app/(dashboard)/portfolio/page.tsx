@@ -211,7 +211,12 @@ export default function PortfolioPage() {
         }}
       >
         <AllocationCard slices={allocation} isLoading={isLoading} isHedging={isHedgingAccount} />
-        <RiskCard totalUsdt={totalUsdt} rows={rows} lockedUsdt={lockedUsdt} isHedging={isHedgingAccount} />
+        <RiskCard
+          totalUsdt={totalUsdt}
+          rows={rows}
+          lockedUsdt={lockedUsdt}
+          isHedging={isHedgingAccount}
+        />
         {!isHedgingAccount && <PerformanceCard />}
       </section>
 
@@ -463,10 +468,7 @@ function RiskCard({
     totalUsdt > 0
       ? Math.max(
           0,
-          100 -
-            rows
-              .filter((r) => !isStable(r.asset))
-              .reduce((acc, r) => acc + r.portfolioPct, 0),
+          100 - rows.filter((r) => !isStable(r.asset)).reduce((acc, r) => acc + r.portfolioPct, 0),
         )
       : 0;
 

@@ -148,7 +148,6 @@ export function AccountSwitcher() {
 
           <DropdownMenuSeparator />
           <DropdownMenuItem
-
             onSelect={(event) => {
               event.preventDefault();
               setNewOpen(true);

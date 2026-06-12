@@ -1,5 +1,14 @@
 import { format, formatDistanceStrict } from 'date-fns';
 
+/** "3m ago" for an ISO timestamp; {@code fallback} for null/invalid. Parses
+ *  via {@link parseIsoUtc} so suffix-less orchestrator timestamps read as UTC. */
+export function formatRelativeTime(iso: string | null | undefined, fallback = '—'): string {
+  if (!iso) return fallback;
+  const ms = parseIsoUtc(iso);
+  if (!Number.isFinite(ms)) return fallback;
+  return `${formatDistanceStrict(ms, Date.now())} ago`;
+}
+
 export function formatPrice(n: number | null | undefined, decimals = 2): string {
   if (n == null || !Number.isFinite(n)) return '—';
   return n.toLocaleString('en-US', {
@@ -29,7 +38,8 @@ export function formatPercent(n: number | null | undefined): string {
  *  columns without a timezone suffix; Date.parse would treat those as local
  *  time in non-UTC environments. Appending 'Z' forces UTC interpretation. */
 export function parseIsoUtc(iso: string): number {
-  const s = iso.endsWith('Z') || iso.includes('+') || /[+-]\d{2}:\d{2}$/.test(iso) ? iso : `${iso}Z`;
+  const s =
+    iso.endsWith('Z') || iso.includes('+') || /[+-]\d{2}:\d{2}$/.test(iso) ? iso : `${iso}Z`;
   return Date.parse(s);
 }
 

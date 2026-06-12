@@ -54,9 +54,7 @@ export const PnlCell = memo(function PnlCell({
       )}
       style={{ color }}
     >
-      {value == null || !Number.isFinite(value)
-        ? '—'
-        : formatCurrency(value, { withSign: true })}
+      {value == null || !Number.isFinite(value) ? '—' : formatCurrency(value, { withSign: true })}
       {showPercent && percentValue !== undefined && (
         <span className="ml-1.5 opacity-70">{formatPercent(percentValue)}</span>
       )}

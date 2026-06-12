@@ -947,8 +947,7 @@ function CoverageBlockMicrostructure({ report }: { report: CoverageReport }) {
   const ofiEntries = Object.entries(ms.ofiRowsByFeature);
   // Only flag missing rows when there are actual candles; zero OFI on an
   // empty range is expected, not a data gap.
-  const anyOfiMissing =
-    report.marketData.actual > 0 && ofiEntries.some(([, v]) => v === 0);
+  const anyOfiMissing = report.marketData.actual > 0 && ofiEntries.some(([, v]) => v === 0);
 
   return (
     <div className="rounded-md border border-bd-subtle p-3 lg:col-span-2">
@@ -968,7 +967,13 @@ function CoverageBlockMicrostructure({ report }: { report: CoverageReport }) {
                 key={name}
                 label={name}
                 value={count.toLocaleString()}
-                tone={count === 0 && report.marketData.actual > 0 ? 'warn' : count > 0 ? 'ok' : undefined}
+                tone={
+                  count === 0 && report.marketData.actual > 0
+                    ? 'warn'
+                    : count > 0
+                      ? 'ok'
+                      : undefined
+                }
                 mono
               />
             ))}
@@ -1013,8 +1018,8 @@ function CoverageBlockMicrostructure({ report }: { report: CoverageReport }) {
             />
           </dl>
           <p className="mt-2 inline-flex items-center gap-1.5 text-[11px] text-text-muted">
-            <Info size={11} /> OB snapshots are live-only — Binance does not provide historical
-            L2 data. Gaps can only be closed by live streaming.
+            <Info size={11} /> OB snapshots are live-only — Binance does not provide historical L2
+            data. Gaps can only be closed by live streaming.
           </p>
         </div>
       </div>

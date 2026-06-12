@@ -14,7 +14,11 @@ interface AccountTypeSelectorProps {
  * create, so this only ever drives the create path. Presentational + control:
  * it owns no state, reflecting `value` and reporting via `onChange`.
  */
-export function AccountTypeSelector({ value, onChange, disabled = false }: AccountTypeSelectorProps) {
+export function AccountTypeSelector({
+  value,
+  onChange,
+  disabled = false,
+}: AccountTypeSelectorProps) {
   return (
     <div
       role="group"

@@ -57,10 +57,7 @@ import type { LsrParams, VboParams, VcbParams } from '@/types/strategy';
 export function useStrategies() {
   const all = useAllVisibleStrategies();
 
-  const data = useMemo(
-    () => all.data?.filter((s) => s.ownedByCurrentUser),
-    [all.data],
-  );
+  const data = useMemo(() => all.data?.filter((s) => s.ownedByCurrentUser), [all.data]);
   return { ...all, data };
 }
 

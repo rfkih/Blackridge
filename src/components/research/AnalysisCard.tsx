@@ -4,13 +4,7 @@ import { AlertCircle, Microscope } from 'lucide-react';
 import { useBacktestAnalysis } from '@/hooks/useResearch';
 import { Skeleton } from '@/components/ui/skeleton';
 import { formatDate } from '@/lib/formatters';
-import type {
-  AnalysisReport,
-  BucketRow,
-  Headline,
-  MfeCapture,
-  TradeSnapshot,
-} from '@/types/research';
+import type { BucketRow, Headline, MfeCapture, TradeSnapshot } from '@/types/research';
 
 interface AnalysisCardProps {
   runId: string;
@@ -62,8 +56,7 @@ export function AnalysisCard({ runId }: AnalysisCardProps) {
       <section className="overflow-hidden rounded-xl border border-bd-subtle bg-bg-surface">
         <CardHeader version={data.strategyVersion} asset={data.asset} interval={data.interval} />
         <div className="p-6 text-sm text-text-muted">
-          No trades produced — nothing to diagnose. Widen entry filters or the backtest
-          window.
+          No trades produced — nothing to diagnose. Widen entry filters or the backtest window.
         </div>
       </section>
     );
@@ -130,11 +123,7 @@ function CardHeader({
 }
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="label-caps">
-      {children}
-    </div>
-  );
+  return <div className="label-caps">{children}</div>;
 }
 
 function HeadlineRow({ h }: { h: Headline }) {
@@ -165,7 +154,11 @@ function HeadlineRow({ h }: { h: Headline }) {
       <Stat label="Profit factor" value={pfStr} tone={pfTone} />
       <Stat label="Avg R" value={avgR} tone={rTone} />
       <Stat label="Avg R:R" value={rrrStr} tone={rrrTone} />
-      <Stat label="Net PnL" value={formatSignedUsdt(h.netPnl)} tone={h.netPnl >= 0 ? 'profit' : 'loss'} />
+      <Stat
+        label="Net PnL"
+        value={formatSignedUsdt(h.netPnl)}
+        tone={h.netPnl >= 0 ? 'profit' : 'loss'}
+      />
       <Stat label="Max DD" value={formatSignedUsdt(h.maxDrawdown)} tone="loss" />
       <Stat label="Avg win" value={formatSignedUsdt(h.avgWin)} tone="profit" />
       <Stat
@@ -210,10 +203,7 @@ function Stat({
       style={{ minWidth: 0 }}
     >
       <div className="label-caps !text-[9px]">{label}</div>
-      <div
-        className="num mt-0.5 truncate text-[14px] font-semibold tabular-nums"
-        style={{ color }}
-      >
+      <div className="num mt-0.5 truncate text-[14px] font-semibold tabular-nums" style={{ color }}>
         {value}
       </div>
     </div>
@@ -237,9 +227,9 @@ function BucketTable({ bucketKey, rows }: { bucketKey: string; rows: BucketRow[]
       </div>
       <div className="grid grid-cols-[1fr_auto_auto_auto] gap-x-3 gap-y-1 px-3 py-2 text-[11px]">
         <div className="label-caps !text-[9px]">Range</div>
-        <div className="label-caps !text-[9px] text-right">n</div>
-        <div className="label-caps !text-[9px] text-right">WR</div>
-        <div className="label-caps !text-[9px] text-right">Total</div>
+        <div className="label-caps text-right !text-[9px]">n</div>
+        <div className="label-caps text-right !text-[9px]">WR</div>
+        <div className="label-caps text-right !text-[9px]">Total</div>
         {rows.map((row, idx) => {
           const wr = row.winRate * 100;
           const wrColor = row.winRate >= 0.5 ? 'var(--color-profit)' : 'var(--color-loss)';

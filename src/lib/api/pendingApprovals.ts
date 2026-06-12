@@ -78,8 +78,8 @@ function coercePendingApproval(a: PendingApproval): PendingApproval {
 const ADMIN = '/api/v1/admin/pending-approvals';
 
 export interface ListPendingApprovalsParams {
-  status?: PendingApprovalStatus;     // defaults to PENDING server-side
-  symbol?: string;                    // optional filter
+  status?: PendingApprovalStatus; // defaults to PENDING server-side
+  symbol?: string; // optional filter
 }
 
 /**
@@ -103,10 +103,7 @@ export async function replicatePendingApproval(
   id: string,
   request: ReplicateRequest,
 ): Promise<ReplicateResponseDto> {
-  const { data } = await apiClient.post<ReplicateResponseDto>(
-    `${ADMIN}/${id}/replicate`,
-    request,
-  );
+  const { data } = await apiClient.post<ReplicateResponseDto>(`${ADMIN}/${id}/replicate`, request);
   return data;
 }
 
@@ -125,10 +122,7 @@ export async function approvePendingApproval(
   id: string,
   request: ApproveRequest,
 ): Promise<PendingApproval> {
-  const { data } = await apiClient.post<PendingApproval>(
-    `${ADMIN}/${id}/approve`,
-    request,
-  );
+  const { data } = await apiClient.post<PendingApproval>(`${ADMIN}/${id}/approve`, request);
   return data;
 }
 
@@ -136,9 +130,6 @@ export async function dismissPendingApproval(
   id: string,
   request: DismissRequest,
 ): Promise<PendingApproval> {
-  const { data } = await apiClient.post<PendingApproval>(
-    `${ADMIN}/${id}/dismiss`,
-    request,
-  );
+  const { data } = await apiClient.post<PendingApproval>(`${ADMIN}/${id}/dismiss`, request);
   return data;
 }

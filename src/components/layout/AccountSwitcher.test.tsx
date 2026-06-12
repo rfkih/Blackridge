@@ -3,6 +3,8 @@ import { render, screen } from '@testing-library/react';
 import type { AccountSummary } from '@/types/account';
 import type { ActiveAccountContext } from '@/hooks/useAccounts';
 
+import { AccountSwitcher } from './AccountSwitcher';
+
 // --- mock the account + strategy hooks ---
 const useActiveAccount = vi.fn();
 vi.mock('@/hooks/useAccounts', () => ({
@@ -18,8 +20,6 @@ vi.mock('@/hooks/useStrategies', () => ({
 vi.mock('@/components/account/NewAccountDialog', () => ({
   NewAccountDialog: () => null,
 }));
-
-import { AccountSwitcher } from './AccountSwitcher';
 
 function mkAccount(p: Partial<AccountSummary>): AccountSummary {
   return {

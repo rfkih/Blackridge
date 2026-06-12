@@ -2,6 +2,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, within } from '@testing-library/react';
 import type { StrategyDefinition } from '@/types/strategyDefinition';
 
+import AdminStrategiesPage from './page';
+
 // --- admin gating: pretend we're an authed admin ---
 vi.mock('@/hooks/useIsAdmin', () => ({ useIsAdmin: () => true }));
 vi.mock('@/store/authStore', () => ({ useAuthHydrated: () => true }));
@@ -31,8 +33,6 @@ vi.mock('@/hooks/useToast', () => ({
   toast: { success: vi.fn(), error: vi.fn() },
   useToast: () => ({ success: vi.fn(), error: vi.fn() }),
 }));
-
-import AdminStrategiesPage from './page';
 
 function mkDef(p: Partial<StrategyDefinition>): StrategyDefinition {
   return {

@@ -25,7 +25,15 @@ export function LegalPage({ title, subtitle, children }: LegalPageProps) {
         padding: '32px 20px',
       }}
     >
-      <div style={{ maxWidth: 760, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 24 }}>
+      <div
+        style={{
+          maxWidth: 760,
+          margin: '0 auto',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 24,
+        }}
+      >
         <Link
           href="/"
           style={{

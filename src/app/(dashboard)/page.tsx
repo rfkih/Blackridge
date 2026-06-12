@@ -90,8 +90,7 @@ export default function DashboardPage() {
       <section
         className="dashboard-hero-row grid gap-4"
         style={{
-          gridTemplateColumns:
-            'minmax(0, 1.4fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr)',
+          gridTemplateColumns: 'minmax(0, 1.4fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr)',
         }}
       >
         <CompactBalanceCard
@@ -258,10 +257,10 @@ function AllViewHedgingSection({
 }
 
 function formatAbsCurrency(n: number): string {
-  return (
-    '$' +
-    Math.abs(n).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-  );
+  return `$${Math.abs(n).toLocaleString(undefined, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
 }
 
 function PromoTileColumn() {
@@ -397,14 +396,21 @@ interface EquityPanelProps {
   setPeriod: ReturnType<typeof useEquityCurve>['setPeriod'];
 }
 
-function EquityPanel({ balance, changeToday, changePct, points, period, setPeriod }: EquityPanelProps) {
+function EquityPanel({
+  balance,
+  changeToday,
+  changePct,
+  points,
+  period,
+  setPeriod,
+}: EquityPanelProps) {
   const formatCurrency = useCurrencyFormatter();
   const chartData = useMemo(() => points.map((p) => p.equity), [points]);
   const isUp = changeToday >= 0;
 
   return (
     <div className="br-card" style={{ padding: 24, display: 'flex', flexDirection: 'column' }}>
-      <div className="mb-4 flex items-start justify-between gap-4 flex-wrap">
+      <div className="mb-4 flex flex-wrap items-start justify-between gap-4">
         <div>
           <div
             className="text-[12px] font-semibold uppercase tracking-[0.08em]"
@@ -467,10 +473,7 @@ function EquityPanel({ balance, changeToday, changePct, points, period, setPerio
       </div>
 
       <div style={{ flex: 1, minHeight: 220 }}>
-        <MiniEquityChart
-          data={chartData.length ? chartData : fallbackCurve()}
-          height={220}
-        />
+        <MiniEquityChart data={chartData.length ? chartData : fallbackCurve()} height={220} />
       </div>
     </div>
   );
@@ -539,7 +542,7 @@ function WatchlistPanel() {
         }}
       >
         <Zap size={24} style={{ color: 'var(--text-muted)', opacity: 0.4 }} />
-        <div className="text-center px-4">
+        <div className="px-4 text-center">
           <div className="text-[13px] font-medium" style={{ color: 'var(--text-secondary)' }}>
             Live market data coming soon
           </div>
@@ -962,7 +965,6 @@ function PositionRow({ trade, isLast }: { trade: LivePosition; isLast?: boolean 
   return (
     <Link
       href={`/trades/${trade.tradeId}`}
-
       className="position-row"
       style={{
         display: 'grid',

@@ -63,9 +63,9 @@ export function CloneStrategyDialog({
             Clone {strategy.strategyCode} · {strategy.symbol}?
           </DialogTitle>
           <DialogDescription className="text-[var(--text-secondary)]">
-            Copies the preset (parameters, side flags, allocation, risk settings) into your
-            account. The clone is private and disabled by default — nothing trades until you
-            explicitly enable it.
+            Copies the preset (parameters, side flags, allocation, risk settings) into your account.
+            The clone is private and disabled by default — nothing trades until you explicitly
+            enable it.
           </DialogDescription>
         </DialogHeader>
 
@@ -91,9 +91,7 @@ export function CloneStrategyDialog({
           <p className="font-mono text-sm">
             <span className="text-[var(--text-muted)]">Destination:</span>{' '}
             <span className="text-[var(--text-primary)]">
-              {scopedAccountId && activeAccount
-                ? activeAccount.label
-                : 'Your first account'}
+              {scopedAccountId && activeAccount ? activeAccount.label : 'Your first account'}
             </span>
           </p>
         </div>

@@ -6,9 +6,9 @@ export default function PrivacyPage() {
   return (
     <LegalPage title="Privacy" subtitle={EFFECTIVE_DATE}>
       <p>
-        This page describes what Blackridge collects when you use the platform, why we
-        collect it, and how to remove it. We hold the minimum needed to operate trading on your
-        behalf, and we never sell or rent your data.
+        This page describes what Blackridge collects when you use the platform, why we collect it,
+        and how to remove it. We hold the minimum needed to operate trading on your behalf, and we
+        never sell or rent your data.
       </p>
 
       <H2>What we collect</H2>

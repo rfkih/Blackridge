@@ -2,13 +2,13 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import type { AccountSummary } from '@/types/account';
 
+import { ACCOUNT_TYPE_VIEW, useAccountView } from './registry';
+
 // --- mock the hook the registry reads the active account from ---
 const useActiveAccount = vi.fn();
 vi.mock('@/hooks/useAccounts', () => ({
   useActiveAccount: () => useActiveAccount(),
 }));
-
-import { ACCOUNT_TYPE_VIEW, useAccountView } from './registry';
 
 function mkAccount(p: Partial<AccountSummary>): AccountSummary {
   return { id: 'a1', accountType: 'TRADING', ...p } as AccountSummary;

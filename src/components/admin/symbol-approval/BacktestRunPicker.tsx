@@ -58,16 +58,17 @@ export function BacktestRunPicker({
     const filtered = hideBelow ? scored.filter((r) => r.eval.passesAll) : scored;
     if (!filter.trim()) return filtered;
     const needle = filter.trim().toLowerCase();
-    return filtered.filter(({ run }) =>
-      run.id.toLowerCase().includes(needle) ||
-      (run.interval ?? '').toLowerCase().includes(needle),
+    return filtered.filter(
+      ({ run }) =>
+        run.id.toLowerCase().includes(needle) ||
+        (run.interval ?? '').toLowerCase().includes(needle),
     );
   }, [runsQ.data, hideBelow, filter, threshold]);
 
   return (
     <div className="space-y-2">
       <div className="flex flex-wrap items-center gap-2">
-        <div className="relative flex-1 min-w-[200px]">
+        <div className="relative min-w-[200px] flex-1">
           <Search
             size={11}
             className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-text-muted"

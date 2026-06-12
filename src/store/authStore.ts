@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
@@ -10,7 +9,8 @@ const SIGNAL_MAX_AGE_SECONDS = 60 * 60 * 24;
 
 function writeSignalCookie(present: boolean) {
   if (typeof document === 'undefined') return;
-  const secure = typeof window !== 'undefined' && window.location.protocol === 'https:' ? '; secure' : '';
+  const secure =
+    typeof window !== 'undefined' && window.location.protocol === 'https:' ? '; secure' : '';
   if (present) {
     document.cookie = `${SIGNAL_COOKIE}=1; path=/; samesite=lax; max-age=${SIGNAL_MAX_AGE_SECONDS}${secure}`;
   } else {

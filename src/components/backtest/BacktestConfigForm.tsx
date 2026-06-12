@@ -38,10 +38,10 @@ import { SUPPORTED_SYMBOLS, DEFAULT_SYMBOL } from '@/lib/symbols';
  *  for "show placeholder / clear selection" — we use a non-empty token
  *  internally and translate it back to '' before storing in state. */
 const INHERIT_PRIMARY = '__inherit_primary__';
-const INHERIT_ALLOC   = '__inherit_alloc__';
-const INHERIT_RISK    = '__inherit_risk__';
+const INHERIT_ALLOC = '__inherit_alloc__';
+const INHERIT_RISK = '__inherit_risk__';
 
-const INHERIT_GATE    = '__inherit_gate__';
+const INHERIT_GATE = '__inherit_gate__';
 
 const configSchema = z
   .object({
@@ -229,7 +229,7 @@ export function BacktestConfigForm() {
   const [allowShort] = useState<boolean>(true);
   const [errors, setErrors] = useState<FormErrors>({});
 
-const strategyOptionsByCode = useMemo(() => {
+  const strategyOptionsByCode = useMemo(() => {
     const map = new Map<string, AccountStrategy[]>();
     for (const def of activeDefinitions) map.set(def.strategyCode, []);
     for (const s of strategies) {
@@ -797,7 +797,9 @@ const strategyOptionsByCode = useMemo(() => {
                           }
                         />
                         <Select
-                          value={strategyAllocations[code] ? strategyAllocations[code] : INHERIT_ALLOC}
+                          value={
+                            strategyAllocations[code] ? strategyAllocations[code] : INHERIT_ALLOC
+                          }
                           onValueChange={(value) =>
                             setStrategyAllocations((prev) => ({
                               ...prev,
@@ -805,7 +807,10 @@ const strategyOptionsByCode = useMemo(() => {
                             }))
                           }
                         >
-                          <SelectTrigger className="h-8 font-mono text-[11px]" aria-label={`${code} allocation`}>
+                          <SelectTrigger
+                            className="h-8 font-mono text-[11px]"
+                            aria-label={`${code} allocation`}
+                          >
                             <SelectValue placeholder="alloc %" />
                           </SelectTrigger>
                           <SelectContent>
@@ -826,7 +831,10 @@ const strategyOptionsByCode = useMemo(() => {
                             }))
                           }
                         >
-                          <SelectTrigger className="h-8 font-mono text-[11px]" aria-label={`${code} risk per trade`}>
+                          <SelectTrigger
+                            className="h-8 font-mono text-[11px]"
+                            aria-label={`${code} risk per trade`}
+                          >
                             <SelectValue placeholder="risk %" />
                           </SelectTrigger>
                           <SelectContent>
@@ -842,7 +850,6 @@ const strategyOptionsByCode = useMemo(() => {
                           on
                         </span>
                         <Select
-
                           value={
                             strategyIntervals[code] ? strategyIntervals[code] : INHERIT_PRIMARY
                           }
@@ -877,11 +884,10 @@ const strategyOptionsByCode = useMemo(() => {
                   <strong className="font-semibold text-text-secondary">Both</strong>,{' '}
                   <strong className="font-semibold text-profit">Long</strong>, or{' '}
                   <strong className="font-semibold text-loss">Short</strong> to override for this
-                  run only. A{' '}
-                  <span className="font-semibold text-text-secondary">≠ live</span> badge appears
-                  when you&apos;ve changed it. Allocation and Risk% blank → fall back to each
-                  strategy&apos;s saved settings. Setting Risk% forces risk-based sizing on for
-                  that strategy in this run.
+                  run only. A <span className="font-semibold text-text-secondary">≠ live</span>{' '}
+                  badge appears when you&apos;ve changed it. Allocation and Risk% blank → fall back
+                  to each strategy&apos;s saved settings. Setting Risk% forces risk-based sizing on
+                  for that strategy in this run.
                 </p>
 
                 {}
@@ -906,14 +912,14 @@ const strategyOptionsByCode = useMemo(() => {
                     <div className="mt-3 rounded-sm border border-bd-subtle bg-bg-base p-3">
                       <p className="mb-2 text-[10px] text-text-muted">
                         Each gate defaults to the strategy&apos;s persisted toggle. Pick{' '}
-                        <strong className="font-semibold text-profit">On</strong> to force
-                        the gate active for this run, or{' '}
-                        <strong className="font-semibold text-loss">Off</strong> to disable.
-                        Same gate stack runs in live and backtest after V62.
+                        <strong className="font-semibold text-profit">On</strong> to force the gate
+                        active for this run, or{' '}
+                        <strong className="font-semibold text-loss">Off</strong> to disable. Same
+                        gate stack runs in live and backtest after V62.
                       </p>
                       <div className="grid grid-cols-1 gap-1.5">
                         <div className="grid grid-cols-[5rem_repeat(4,_minmax(0,_1fr))] items-center gap-2 border-b border-bd-subtle pb-1 font-mono text-[9px] uppercase tracking-wider text-text-muted">
-                          <span></span>
+                          <span />
                           <span>Kill-switch</span>
                           <span>Regime</span>
                           <span>Correlation</span>
@@ -989,13 +995,12 @@ const strategyOptionsByCode = useMemo(() => {
                           ML regime gate (V100)
                         </p>
                         <p className="mb-2 text-[10px] text-text-muted">
-                          Override the ML gate per strategy. Enables A/B paired backtests
-                          without touching live settings. Gate fails-open on missing signal
-                          data.
+                          Override the ML gate per strategy. Enables A/B paired backtests without
+                          touching live settings. Gate fails-open on missing signal data.
                         </p>
                         <div className="grid grid-cols-1 gap-1.5">
                           <div className="grid grid-cols-[5rem_1fr_2fr_1fr] items-center gap-2 border-b border-bd-subtle pb-1 font-mono text-[9px] uppercase tracking-wider text-text-muted">
-                            <span></span>
+                            <span />
                             <span>Gate</span>
                             <span>Signal name</span>
                             <span>Mode</span>
@@ -1290,8 +1295,8 @@ function DirectionSelect({
   };
 
   const segments: { mode: DirectionMode; label: string; title: string }[] = [
-    { mode: 'both',  label: 'Both',  title: 'Long and short entries allowed' },
-    { mode: 'long',  label: 'Long',  title: 'Long entries only for this run' },
+    { mode: 'both', label: 'Both', title: 'Long and short entries allowed' },
+    { mode: 'long', label: 'Long', title: 'Long entries only for this run' },
     { mode: 'short', label: 'Short', title: 'Short entries only for this run' },
   ];
 
@@ -1320,7 +1325,7 @@ function DirectionSelect({
               disabled={disabled}
               title={title}
               className={cn(
-                'h-7 px-2.5 text-[10px] font-semibold whitespace-nowrap transition-colors',
+                'h-7 whitespace-nowrap px-2.5 text-[10px] font-semibold transition-colors',
                 isActive
                   ? activeClass
                   : 'bg-bg-surface text-text-muted hover:bg-bg-elevated hover:text-text-secondary',
@@ -1362,16 +1367,16 @@ function GateOverrideSelect({
   value: boolean | undefined;
   onChange: (next: boolean | undefined) => void;
 }) {
-  const selectValue =
-    value === undefined ? INHERIT_GATE : value ? 'true' : 'false';
+  const selectValue = value === undefined ? INHERIT_GATE : value ? 'true' : 'false';
   return (
     <Select
       value={selectValue}
-      onValueChange={(v) =>
-        onChange(v === INHERIT_GATE ? undefined : v === 'true')
-      }
+      onValueChange={(v) => onChange(v === INHERIT_GATE ? undefined : v === 'true')}
     >
-      <SelectTrigger className="h-7 font-mono text-[10px]" aria-label={`${code} ${gate} gate override`}>
+      <SelectTrigger
+        className="h-7 font-mono text-[10px]"
+        aria-label={`${code} ${gate} gate override`}
+      >
         <SelectValue />
       </SelectTrigger>
       <SelectContent>

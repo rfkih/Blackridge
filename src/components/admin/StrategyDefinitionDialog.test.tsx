@@ -3,6 +3,8 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { StrategyDefinition } from '@/types/strategyDefinition';
 
+import { StrategyDefinitionDialog } from './StrategyDefinitionDialog';
+
 // --- mock the create/update hooks so we can assert the mutation payloads ---
 const createMutate = vi.fn();
 const updateMutate = vi.fn();
@@ -35,8 +37,6 @@ vi.mock('@/components/ui/select', () => {
     SelectValue: () => null,
   };
 });
-
-import { StrategyDefinitionDialog } from './StrategyDefinitionDialog';
 
 function mkDef(p: Partial<StrategyDefinition>): StrategyDefinition {
   return {
@@ -72,10 +72,7 @@ describe('StrategyDefinitionDialog — strategy_kind picker', () => {
     await user.type(screen.getByPlaceholderText('Long/Short Regime v3'), 'New strategy');
 
     // kind selector defaults to TRADING — untouched
-    expect(screen.getByRole('button', { name: /Trading/ })).toHaveAttribute(
-      'aria-pressed',
-      'true',
-    );
+    expect(screen.getByRole('button', { name: /Trading/ })).toHaveAttribute('aria-pressed', 'true');
 
     await user.click(screen.getByRole('button', { name: /Register strategy/ }));
 
@@ -103,14 +100,15 @@ describe('StrategyDefinitionDialog — strategy_kind picker', () => {
   it('prefills strategyKind from the definition on edit and submits it in the update payload', async () => {
     const user = userEvent.setup();
     render(
-      <StrategyDefinitionDialog open onOpenChange={() => {}} existing={mkDef({ strategyKind: 'HEDGING' })} />,
+      <StrategyDefinitionDialog
+        open
+        onOpenChange={() => {}}
+        existing={mkDef({ strategyKind: 'HEDGING' })}
+      />,
     );
 
     // prefilled to HEDGING
-    expect(screen.getByRole('button', { name: /Hedging/ })).toHaveAttribute(
-      'aria-pressed',
-      'true',
-    );
+    expect(screen.getByRole('button', { name: /Hedging/ })).toHaveAttribute('aria-pressed', 'true');
 
     await user.click(screen.getByRole('button', { name: /Save changes/ }));
 

@@ -4,7 +4,12 @@ export interface StrategyRankRow {
   symbol: string;
   intervalName: string;
   verdict: 'PASS' | 'ITERATE' | 'DISCARD' | 'FAILED';
-  statisticalVerdict: 'SIGNIFICANT_EDGE' | 'INSUFFICIENT_EVIDENCE' | 'NO_EDGE' | 'NOT_TESTED' | null;
+  statisticalVerdict:
+    | 'SIGNIFICANT_EDGE'
+    | 'INSUFFICIENT_EVIDENCE'
+    | 'NO_EDGE'
+    | 'NOT_TESTED'
+    | null;
   windowDays: number;
   startTime: string;
   endTime: string;

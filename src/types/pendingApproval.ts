@@ -30,7 +30,7 @@ export type ReplicationStatus = 'QUEUED' | 'RUNNING' | 'COMPLETED' | 'FAILED';
 export type ConcernSeverity = 'CONCERN';
 
 export interface Concern {
-  source: string;          // e.g. "quant-skeptic", "quant-ml-judge"
+  source: string; // e.g. "quant-skeptic", "quant-ml-judge"
   severity: ConcernSeverity;
   message: string;
 }
@@ -65,7 +65,7 @@ export interface ReplicationMetricsSummary {
 
 export interface Replication {
   backtestRunId: string;
-  requestedAt: string | null;       // ISO LocalDateTime; null only for malformed legacy entries
+  requestedAt: string | null; // ISO LocalDateTime; null only for malformed legacy entries
   requestedBy: string | null;
   status: ReplicationStatus;
   metricsSummary: ReplicationMetricsSummary | null;
@@ -78,14 +78,17 @@ export interface EvidenceSummary {
   dsr: number;
   n_trades: number;
   pf_lo: number;
-  wf_stability: string;             // "ROBUST" | "MARGINAL" | "FAIL"
+  wf_stability: string; // "ROBUST" | "MARGINAL" | "FAIL"
 }
 
 /**
  * Loose record for the frozen effective_params_snapshot (V104 reproducibility).
  * Key set is strategy-specific; we render generically with parameter-prefix grouping.
  */
-export type EffectiveParams = Record<string, string | number | boolean | null | Record<string, unknown>>;
+export type EffectiveParams = Record<
+  string,
+  string | number | boolean | null | Record<string, unknown>
+>;
 
 export interface PendingApproval {
   id: string;

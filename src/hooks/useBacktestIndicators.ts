@@ -14,7 +14,8 @@ export function useBacktestIndicators(
 ) {
   return useQuery({
     queryKey: ['backtest', 'indicators', symbol, interval, fromMs, toMs],
-    queryFn: () => fetchIndicatorsRange(symbol as string, interval as string, fromMs as number, toMs as number),
+    queryFn: () =>
+      fetchIndicatorsRange(symbol as string, interval as string, fromMs as number, toMs as number),
     enabled: enabled && !!symbol && !!interval && fromMs != null && toMs != null,
     staleTime: 5 * 60_000,
   });

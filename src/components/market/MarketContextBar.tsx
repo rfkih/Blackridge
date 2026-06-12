@@ -63,10 +63,7 @@ function RegimeCard() {
         tone={verdict.tone}
       />
 
-      <div
-        className="font-mono text-[11px] tabular-nums"
-        style={{ color: 'var(--text-muted)' }}
-      >
+      <div className="font-mono text-[11px] tabular-nums" style={{ color: 'var(--text-muted)' }}>
         {verdict.detail}
       </div>
     </ContextCard>
@@ -83,7 +80,13 @@ interface RegimeVerdict {
 
 function classifyRegime(candles: CandleData[] | undefined): RegimeVerdict {
   if (!candles || candles.length < 30) {
-    return { label: '—', tag: 'No data', tone: 'neutral', position: 0, detail: 'Waiting on candles' };
+    return {
+      label: '—',
+      tag: 'No data',
+      tone: 'neutral',
+      position: 0,
+      detail: 'Waiting on candles',
+    };
   }
   const window = candles.slice(-30);
   const first = window[0]!.close;
@@ -287,10 +290,7 @@ function ContextCard({ eyebrow, source, loading, error, children }: ContextCardP
           aria-hidden="true"
         />
       ) : error ? (
-        <div
-          className="text-[12px]"
-          style={{ color: 'var(--text-muted)' }}
-        >
+        <div className="text-[12px]" style={{ color: 'var(--text-muted)' }}>
           Unable to compute right now.
         </div>
       ) : (

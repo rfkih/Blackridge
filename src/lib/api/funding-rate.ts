@@ -1,4 +1,3 @@
-
 import { apiClient } from './client';
 
 export interface FundingRatePoint {
@@ -29,19 +28,14 @@ export interface FundingSummaryOpts {
   limit?: number;
 }
 
-export async function getFundingRateSummary(
-  opts: FundingSummaryOpts,
-): Promise<FundingRateSummary> {
-  const { data } = await apiClient.get<FundingRateSummary>(
-    '/api/v1/funding-rate/summary',
-    {
-      params: {
-        symbol: opts.symbol,
-        startTime: opts.startTime,
-        endTime: opts.endTime,
-        limit: opts.limit ?? 200,
-      },
+export async function getFundingRateSummary(opts: FundingSummaryOpts): Promise<FundingRateSummary> {
+  const { data } = await apiClient.get<FundingRateSummary>('/api/v1/funding-rate/summary', {
+    params: {
+      symbol: opts.symbol,
+      startTime: opts.startTime,
+      endTime: opts.endTime,
+      limit: opts.limit ?? 200,
     },
-  );
+  });
   return data;
 }

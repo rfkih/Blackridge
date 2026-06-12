@@ -3,6 +3,8 @@ import React from 'react';
 import { renderHook } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
+import { useLeaderboardStream } from './useLeaderboardStream';
+
 // --- mocks ------------------------------------------------------------------
 let subscribeCb: ((body: string) => void) | null = null;
 const unsubscribe = vi.fn();
@@ -18,8 +20,6 @@ let connected = true;
 vi.mock('@/store/wsStore', () => ({
   useWsStore: (selector: (s: { connected: boolean }) => unknown) => selector({ connected }),
 }));
-
-import { useLeaderboardStream } from './useLeaderboardStream';
 
 function makeWrapper(client: QueryClient) {
   return function Wrapper({ children }: { children: React.ReactNode }) {

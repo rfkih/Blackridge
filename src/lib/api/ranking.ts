@@ -4,7 +4,10 @@ import type { StrategyRankingResponse } from '@/types/ranking';
 
 const ORCH = '/api/v1/research-orch';
 
-async function fetchStrategyRanking(minDays: number, limit: number): Promise<StrategyRankingResponse> {
+async function fetchStrategyRanking(
+  minDays: number,
+  limit: number,
+): Promise<StrategyRankingResponse> {
   const { data } = await apiClient.get<StrategyRankingResponse>(`${ORCH}/strategy-ranking`, {
     params: { min_days: minDays, limit },
   });

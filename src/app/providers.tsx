@@ -19,8 +19,11 @@ export function Providers({ children }: { children: React.ReactNode }) {
             staleTime: 30_000,
             refetchOnWindowFocus: false,
             retry: 1,
-
-            placeholderData: (previous: unknown) => previous,
+            // NO global placeholderData. A global `(prev) => prev` carries the
+            // previous key's data across ANY key change — switching the active
+            // account would keep rendering the old account's positions/P&L as
+            // if they were current. Paginated list queries that want smooth
+            // page flips opt in locally with `placeholderData: keepPreviousData`.
           },
           mutations: {
             retry: 0,

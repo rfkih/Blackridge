@@ -28,22 +28,21 @@ export function PaperCard({ paper }: PaperCardProps) {
   return (
     <Link
       href={`/research/papers/${paper.paper_id}`}
-      className="group flex flex-col gap-3 rounded-xl border border-bd-subtle bg-bg-surface p-5 transition-colors hover:border-[var(--accent-primary)]/40 hover:bg-bg-hover"
+      className="hover:border-[var(--accent-primary)]/40 group flex flex-col gap-3 rounded-xl border border-bd-subtle bg-bg-surface p-5 transition-colors hover:bg-bg-hover"
     >
       <div className="flex items-start justify-between gap-2">
         <div className="flex min-w-0 items-center gap-1.5">
           <FileText size={12} className="shrink-0 text-text-muted" strokeWidth={1.75} />
-          <span className="truncate font-mono text-[10px] text-text-muted">
-            {paper.paper_id}
-          </span>
-          <span className="shrink-0 font-mono text-[10px] text-text-muted">
-            v{paper.version}
-          </span>
+          <span className="truncate font-mono text-[10px] text-text-muted">{paper.paper_id}</span>
+          <span className="shrink-0 font-mono text-[10px] text-text-muted">v{paper.version}</span>
         </div>
         <div className="flex shrink-0 items-center gap-2">
           <span
             className="rounded-sm px-1.5 py-0.5 font-mono text-[9px] font-semibold uppercase tracking-wider"
-            style={{ background: 'rgba(0,0,0,0.25)', color: toneColor(statusTone(paper.paper_status)) }}
+            style={{
+              background: 'rgba(0,0,0,0.25)',
+              color: toneColor(statusTone(paper.paper_status)),
+            }}
           >
             {paper.paper_status === 'WORKING_PAPER' ? 'Working' : 'Finalized'}
           </span>

@@ -356,7 +356,7 @@ export default function SweepDetailPage({ params }: PageProps) {
                 >
                   Progress
                 </SortableTh>
-                <Th></Th>
+                <Th />
               </tr>
             </thead>
             <tbody>
@@ -539,7 +539,7 @@ function ResultRow({
   rank,
   paramKeys,
   result,
-  rankMetric,
+  rankMetric: _rankMetric,
   showRound,
   progress,
   dsrThreshold,

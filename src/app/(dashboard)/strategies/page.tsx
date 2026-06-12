@@ -1439,13 +1439,17 @@ export default function StrategiesPage() {
       />
       <StrategyTopRunsDialog
         open={topRunsTarget != null}
-        onOpenChange={(open) => { if (!open) setTopRunsTarget(null); }}
+        onOpenChange={(open) => {
+          if (!open) setTopRunsTarget(null);
+        }}
         strategy={topRunsTarget}
       />
 
       <Dialog
         open={intervalConfirmTarget != null}
-        onOpenChange={(open) => { if (!open) setIntervalConfirmTarget(null); }}
+        onOpenChange={(open) => {
+          if (!open) setIntervalConfirmTarget(null);
+        }}
       >
         <DialogContent className="max-w-sm">
           <DialogHeader>
@@ -1472,7 +1476,10 @@ export default function StrategiesPage() {
               type="button"
               onClick={() => {
                 if (intervalConfirmTarget) {
-                  doIntervalChange(intervalConfirmTarget.strategy, intervalConfirmTarget.intervalName);
+                  doIntervalChange(
+                    intervalConfirmTarget.strategy,
+                    intervalConfirmTarget.intervalName,
+                  );
                 }
               }}
               disabled={intervalMutation.isPending}

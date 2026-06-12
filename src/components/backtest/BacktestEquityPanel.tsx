@@ -202,8 +202,7 @@ export function BacktestEquityPanel({
 
   const endingEquity = points.length ? points[points.length - 1].equity : initialCapital;
 
-  const strategyReturnPct =
-    initialCapital !== 0 ? (endingEquity / initialCapital - 1) * 100 : 0;
+  const strategyReturnPct = initialCapital !== 0 ? (endingEquity / initialCapital - 1) * 100 : 0;
 
   const buyHoldStats = useMemo(() => {
     if (!hasBuyHold) return null;
@@ -227,72 +226,72 @@ export function BacktestEquityPanel({
         />
       )}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-5">
-      <div className="lg:col-span-3">
-        <PanelShell
-          title="Equity Curve"
-          subtitle={`End: $${endingEquity.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
-          headerRight={
-            hasBuyHold || hasComposition ? (
-              <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                <span
-                  className="flex items-center gap-1 font-mono text-[10px] font-semibold"
-                  style={{ color: '#00C896' }}
-                >
-                  <span aria-hidden>●</span> Strategy
-                </span>
-                {hasBuyHold && (
-                  <LegendToggle
-                    label={`Buy & Hold ${symbol ?? ''}`.trim()}
-                    color={buyHoldColor(symbol)}
-                    checked={showBuyHold}
-                    onChange={setShowBuyHold}
-                  />
-                )}
-                {hasComposition && (
-                  <>
+        <div className="lg:col-span-3">
+          <PanelShell
+            title="Equity Curve"
+            subtitle={`End: $${endingEquity.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+            headerRight={
+              hasBuyHold || hasComposition ? (
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                  <span
+                    className="flex items-center gap-1 font-mono text-[10px] font-semibold"
+                    style={{ color: '#00C896' }}
+                  >
+                    <span aria-hidden>●</span> Strategy
+                  </span>
+                  {hasBuyHold && (
                     <LegendToggle
-                      label={`${baseAssetLabel} holdings`}
+                      label={`Buy & Hold ${symbol ?? ''}`.trim()}
                       color={buyHoldColor(symbol)}
-                      checked={showAsset}
-                      onChange={setShowAsset}
+                      checked={showBuyHold}
+                      onChange={setShowBuyHold}
                     />
-                    <LegendToggle
-                      label="USDT cash"
-                      color="#26A17B"
-                      checked={showCash}
-                      onChange={setShowCash}
-                    />
-                  </>
-                )}
-              </div>
-            ) : undefined
-          }
-        >
-          {isLoading ? (
-            <Skeleton className="h-[220px] w-full" />
-          ) : equityPoints.length ? (
-            <EquityCurve
-              points={equityPoints}
-              initialCapital={initialCapital}
-              compareSeries={compareSeries}
-              overlaySeries={overlaySeries}
-            />
-          ) : (
-            <EmptyChartState label="No equity points available" />
-          )}
-        </PanelShell>
-      </div>
-      <div className="lg:col-span-2">
-        <PanelShell title="Drawdown" subtitle={`Max: ${Math.abs(maxDrawdown).toFixed(2)}%`}>
-          {isLoading ? (
-            <Skeleton className="h-[220px] w-full" />
-          ) : drawdownPoints.length ? (
-            <DrawdownChart points={drawdownPoints} />
-          ) : (
-            <EmptyChartState label="No drawdown data" />
-          )}
-        </PanelShell>
-      </div>
+                  )}
+                  {hasComposition && (
+                    <>
+                      <LegendToggle
+                        label={`${baseAssetLabel} holdings`}
+                        color={buyHoldColor(symbol)}
+                        checked={showAsset}
+                        onChange={setShowAsset}
+                      />
+                      <LegendToggle
+                        label="USDT cash"
+                        color="#26A17B"
+                        checked={showCash}
+                        onChange={setShowCash}
+                      />
+                    </>
+                  )}
+                </div>
+              ) : undefined
+            }
+          >
+            {isLoading ? (
+              <Skeleton className="h-[220px] w-full" />
+            ) : equityPoints.length ? (
+              <EquityCurve
+                points={equityPoints}
+                initialCapital={initialCapital}
+                compareSeries={compareSeries}
+                overlaySeries={overlaySeries}
+              />
+            ) : (
+              <EmptyChartState label="No equity points available" />
+            )}
+          </PanelShell>
+        </div>
+        <div className="lg:col-span-2">
+          <PanelShell title="Drawdown" subtitle={`Max: ${Math.abs(maxDrawdown).toFixed(2)}%`}>
+            {isLoading ? (
+              <Skeleton className="h-[220px] w-full" />
+            ) : drawdownPoints.length ? (
+              <DrawdownChart points={drawdownPoints} />
+            ) : (
+              <EmptyChartState label="No drawdown data" />
+            )}
+          </PanelShell>
+        </div>
       </div>
     </div>
   );

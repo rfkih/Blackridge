@@ -3,6 +3,8 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
+import { NewAccountDialog } from './NewAccountDialog';
+
 // --- mock the create-account hook so we can assert the mutation payload ---
 const mutate = vi.fn();
 let isPending = false;
@@ -44,8 +46,6 @@ vi.mock('@/components/ui/select', () => {
   };
 });
 
-import { NewAccountDialog } from './NewAccountDialog';
-
 describe('NewAccountDialog — account type wiring', () => {
   beforeEach(() => {
     mutate.mockReset();
@@ -68,10 +68,7 @@ describe('NewAccountDialog — account type wiring', () => {
     );
 
     // selector defaults to TRADING — do not touch it
-    expect(screen.getByRole('button', { name: /Trading/ })).toHaveAttribute(
-      'aria-pressed',
-      'true',
-    );
+    expect(screen.getByRole('button', { name: /Trading/ })).toHaveAttribute('aria-pressed', 'true');
 
     await user.click(screen.getByRole('button', { name: /Connect account/ }));
 

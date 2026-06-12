@@ -2,12 +2,12 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import type { UseAllocationResult } from '@/hooks/useAllocation';
 
+import { AllocationPanel } from './AllocationPanel';
+
 const useAllocation = vi.fn();
 vi.mock('@/hooks/useAllocation', () => ({
   useAllocation: (...a: unknown[]) => useAllocation(...a),
 }));
-
-import { AllocationPanel } from './AllocationPanel';
 
 function mkAllocation(overrides: Partial<UseAllocationResult> = {}): UseAllocationResult {
   return {

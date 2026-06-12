@@ -68,7 +68,7 @@ export default function SettingsPage() {
       {}
       <nav
         aria-label="Settings sections"
-        className="self-start sticky top-5"
+        className="sticky top-5 self-start"
         style={{ display: 'flex', flexDirection: 'column', gap: 2 }}
       >
         {SETTINGS_NAV.map((it) => {
@@ -270,6 +270,23 @@ function RecentActivitySection() {
   );
 }
 
+const ACTIVITY_TONE_COLOURS: Record<ActivityTone, string> = {
+  positive: 'var(--color-profit)',
+  negative: 'var(--color-loss)',
+  warning: 'var(--color-warning)',
+  neutral: 'var(--color-info)',
+};
+
+const ACTION_TONE: Record<string, ActivityTone> = {
+  STRATEGY_CREATED: 'positive',
+  STRATEGY_ACTIVATED: 'positive',
+  STRATEGY_DEACTIVATED: 'warning',
+  STRATEGY_DELETED: 'negative',
+  STRATEGY_UPDATED: 'neutral',
+  KILL_SWITCH_REARMED: 'warning',
+  ACCOUNT_RISK_UPDATED: 'neutral',
+};
+
 function ActivityRow({ event }: { event: import('@/lib/api/auditEvents').AuditEvent }) {
   const ts = event.createdAt ? new Date(event.createdAt).getTime() : null;
   const tone = ACTION_TONE[event.action] ?? 'neutral';
@@ -323,23 +340,6 @@ function ActivityRow({ event }: { event: import('@/lib/api/auditEvents').AuditEv
 }
 
 type ActivityTone = 'positive' | 'negative' | 'warning' | 'neutral';
-
-const ACTIVITY_TONE_COLOURS: Record<ActivityTone, string> = {
-  positive: 'var(--color-profit)',
-  negative: 'var(--color-loss)',
-  warning: 'var(--color-warning)',
-  neutral: 'var(--color-info)',
-};
-
-const ACTION_TONE: Record<string, ActivityTone> = {
-  STRATEGY_CREATED: 'positive',
-  STRATEGY_ACTIVATED: 'positive',
-  STRATEGY_DEACTIVATED: 'warning',
-  STRATEGY_DELETED: 'negative',
-  STRATEGY_UPDATED: 'neutral',
-  KILL_SWITCH_REARMED: 'warning',
-  ACCOUNT_RISK_UPDATED: 'neutral',
-};
 
 function humanAction(action: string): string {
   const parts = action.split('_');
@@ -446,6 +446,7 @@ function SupportSection() {
       )}
 
       <div
+        role="presentation"
         onKeyDown={(e) => {
           if (e.key === 'Enter' && !e.shiftKey) {
             const target = e.target as HTMLElement;
@@ -561,7 +562,9 @@ function SupportSection() {
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
           <button
             type="button"
-            onClick={() => void onSubmit()}
+            onClick={() => {
+              void onSubmit();
+            }}
             className="mm-btn mm-btn-mint"
             disabled={!valid || submitting}
             style={{
@@ -996,7 +999,9 @@ function SecuritySection() {
         </div>
         <button
           type="button"
-          onClick={() => void logout()}
+          onClick={() => {
+            void logout();
+          }}
           className="mm-btn"
           style={{
             display: 'inline-flex',
@@ -1132,12 +1137,20 @@ function HedgingRiskCard({ account }: { account: AccountSummary }) {
 
       <p
         data-testid="hedging-risk-note"
-        style={{ marginTop: 12, fontSize: 12, lineHeight: 1.55, color: 'var(--mm-ink-2, var(--text-secondary))' }}
+        style={{
+          marginTop: 12,
+          fontSize: 12,
+          lineHeight: 1.55,
+          color: 'var(--mm-ink-2, var(--text-secondary))',
+        }}
       >
         Hedging risk — target allocation, rebalance deadband, and cash yield — is configured{' '}
         <strong style={{ color: 'var(--text-primary)' }}>per-strategy</strong> on each hedging
         strategy&rsquo;s params, not at the account level. Open the{' '}
-        <Link href="/strategies" style={{ color: 'var(--brand-600, var(--accent-primary))', textDecoration: 'underline' }}>
+        <Link
+          href="/strategies"
+          style={{ color: 'var(--brand-600, var(--accent-primary))', textDecoration: 'underline' }}
+        >
           strategies page
         </Link>{' '}
         and edit a bound hedging strategy to adjust its allocation band and rebalance guard.
@@ -1601,7 +1614,7 @@ function AppearanceSection() {
                 style={{
                   border: `1.5px solid ${on ? meta.swatch : 'var(--border-default)'}`,
                   background: on
-                    ? 'color-mix(in srgb, ' + meta.swatch + ' 8%, var(--bg-elevated))'
+                    ? `color-mix(in srgb, ${meta.swatch} 8%, var(--bg-elevated))`
                     : 'var(--bg-elevated)',
                 }}
               >
@@ -1838,7 +1851,7 @@ function ApiSection() {
             style={{ borderTop: i ? '1px solid var(--border-subtle)' : 'none' }}
           >
             <div
-              className="font-display grid place-items-center"
+              className="grid place-items-center font-display"
               style={{
                 width: 38,
                 height: 38,
@@ -1904,17 +1917,26 @@ function ToggleRow({
           {sub}
         </div>
       </div>
-      <Toggle on={on} onChange={onChange} />
+      <Toggle on={on} onChange={onChange} ariaLabel={title} />
     </div>
   );
 }
 
-function Toggle({ on, onChange }: { on: boolean; onChange: () => void }) {
+function Toggle({
+  on,
+  onChange,
+  ariaLabel,
+}: {
+  on: boolean;
+  onChange: () => void;
+  ariaLabel: string;
+}) {
   return (
     <button
       type="button"
       onClick={onChange}
       aria-pressed={on}
+      aria-label={ariaLabel}
       className="relative shrink-0 transition-colors"
       style={{
         width: 44,

@@ -65,7 +65,7 @@ export function SymbolApprovalsSection() {
   }
 
   return (
-    <section id="approvals" className="space-y-4 scroll-mt-20">
+    <section id="approvals" className="scroll-mt-20 space-y-4">
       <div>
         <h2 className="font-display text-[18px] font-semibold tracking-tighter text-text-primary">
           Symbol approvals
@@ -97,15 +97,9 @@ export function SymbolApprovalsSection() {
         </div>
       </div>
 
-      <ThresholdChips
-        onAddForSymbol={handleAddForSymbol}
-        onEditThresholds={setEditThreshold}
-      />
+      <ThresholdChips onAddForSymbol={handleAddForSymbol} onEditThresholds={setEditThreshold} />
 
-      <ApprovalsTable
-        onAttachEvidence={handleAttachEvidence}
-        onRevoke={setRevokeRow}
-      />
+      <ApprovalsTable onAttachEvidence={handleAttachEvidence} onRevoke={setRevokeRow} />
 
       <NewApprovalDialog
         open={newOpen}

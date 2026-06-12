@@ -30,15 +30,28 @@ interface Props {
 function Stat({ label, value, tone }: { label: string; value: string; tone?: string }) {
   return (
     <div className="mm-card" style={{ flex: 1, padding: '9px 12px' }}>
-      <div className="mm-kicker" style={{ fontSize: 10 }}>{label}</div>
-      <div className="font-num" style={{ fontSize: 18, color: tone ?? 'var(--mm-ink-1)' }}>{value}</div>
+      <div className="mm-kicker" style={{ fontSize: 10 }}>
+        {label}
+      </div>
+      <div className="font-num" style={{ fontSize: 18, color: tone ?? 'var(--mm-ink-1)' }}>
+        {value}
+      </div>
     </div>
   );
 }
 
-export function FailureBreakdownPanel({ summary, isLoading, activeCategory, onSelectCategory }: Props) {
+export function FailureBreakdownPanel({
+  summary,
+  isLoading,
+  activeCategory,
+  onSelectCategory,
+}: Props) {
   if (isLoading && !summary) {
-    return <div className="mm-card" style={{ padding: 16, color: 'var(--mm-ink-3)' }}>Loading breakdown…</div>;
+    return (
+      <div className="mm-card" style={{ padding: 16, color: 'var(--mm-ink-3)' }}>
+        Loading breakdown…
+      </div>
+    );
   }
   if (!summary) return null;
   const maxCount = summary.byCategory.reduce((m, c) => Math.max(m, c.count), 0) || 1;
@@ -48,12 +61,21 @@ export function FailureBreakdownPanel({ summary, isLoading, activeCategory, onSe
       <div className="flex gap-2">
         <Stat label="Executions" value={String(summary.totalExecutions)} />
         <Stat label="Failed" value={String(summary.failedCount)} tone="var(--mm-dn)" />
-        <Stat label="Success rate" value={`${Math.round(summary.successRatePct)}%`} tone="var(--mm-up)" />
-        <Stat label="Top cause" value={summary.topCategory ? CATEGORY_LABEL[summary.topCategory] : '—'} />
+        <Stat
+          label="Success rate"
+          value={`${Math.round(summary.successRatePct)}%`}
+          tone="var(--mm-up)"
+        />
+        <Stat
+          label="Top cause"
+          value={summary.topCategory ? CATEGORY_LABEL[summary.topCategory] : '—'}
+        />
       </div>
 
       <div className="mm-card" style={{ padding: 12 }}>
-        <div className="mm-kicker" style={{ marginBottom: 9 }}>Why trades failed · click to filter</div>
+        <div className="mm-kicker" style={{ marginBottom: 9 }}>
+          Why trades failed · click to filter
+        </div>
         {summary.byCategory.length === 0 ? (
           <div style={{ color: 'var(--mm-ink-3)', fontSize: 13 }}>No failures in this range 🎉</div>
         ) : (
@@ -67,20 +89,48 @@ export function FailureBreakdownPanel({ summary, isLoading, activeCategory, onSe
                   onClick={() => onSelectCategory(active ? null : c.category)}
                   aria-pressed={active}
                   className="flex items-center gap-2 text-left"
-                  style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: 0 }}
+                  style={{
+                    background: 'transparent',
+                    border: 'none',
+                    cursor: 'pointer',
+                    padding: 0,
+                  }}
                 >
                   <span style={{ width: 132, color: 'var(--mm-ink-1)', fontSize: 12 }}>
                     {CATEGORY_LABEL[c.category]}
                   </span>
-                  <span style={{ flex: 1, height: 13, background: 'var(--mm-hair)', borderRadius: 3, position: 'relative' }}>
-                    <span style={{
-                      position: 'absolute', left: 0, top: 0, bottom: 0,
-                      width: `${(c.count / maxCount) * 100}%`,
-                      background: CATEGORY_COLOR[c.category], borderRadius: 3,
-                      outline: active ? '1.5px solid var(--mm-ink-2)' : 'none', outlineOffset: 1,
-                    }} />
+                  <span
+                    style={{
+                      flex: 1,
+                      height: 13,
+                      background: 'var(--mm-hair)',
+                      borderRadius: 3,
+                      position: 'relative',
+                    }}
+                  >
+                    <span
+                      style={{
+                        position: 'absolute',
+                        left: 0,
+                        top: 0,
+                        bottom: 0,
+                        width: `${(c.count / maxCount) * 100}%`,
+                        background: CATEGORY_COLOR[c.category],
+                        borderRadius: 3,
+                        outline: active ? '1.5px solid var(--mm-ink-2)' : 'none',
+                        outlineOffset: 1,
+                      }}
+                    />
                   </span>
-                  <span className="font-num" style={{ width: 70, textAlign: 'right', color: 'var(--mm-ink-2)', fontSize: 12 }}>
+                  <span
+                    className="font-num"
+                    style={{
+                      width: 70,
+                      textAlign: 'right',
+                      color: 'var(--mm-ink-2)',
+                      fontSize: 12,
+                    }}
+                  >
                     {c.count} · {Math.round(c.pct)}%
                   </span>
                 </button>

@@ -2,16 +2,8 @@
 
 import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import {
-  ArrowDown,
-  ArrowUp,
-  Loader2,
-  TestTube,
-} from 'lucide-react';
-import {
-  getPaperTrades,
-  type PaperTradeRun,
-} from '@/lib/api/strategy-promotion';
+import { ArrowDown, ArrowUp, Loader2, TestTube } from 'lucide-react';
+import { getPaperTrades, type PaperTradeRun } from '@/lib/api/strategy-promotion';
 import { useIsAdmin } from '@/hooks/useIsAdmin';
 import { formatDate } from '@/lib/formatters';
 
@@ -22,10 +14,7 @@ interface PaperTradePanelProps {
   isPaperTrade: boolean;
 }
 
-export function PaperTradePanel({
-  accountStrategyId,
-  isPaperTrade,
-}: PaperTradePanelProps) {
+export function PaperTradePanel({ accountStrategyId, isPaperTrade }: PaperTradePanelProps) {
   const isAdmin = useIsAdmin();
 
   const query = useQuery({
@@ -110,13 +99,7 @@ function buildSummary(rows: PaperTradeRun[]): Summary {
   };
 }
 
-function PaperTradeBody({
-  rows,
-  summary,
-}: {
-  rows: PaperTradeRun[];
-  summary: Summary;
-}) {
+function PaperTradeBody({ rows, summary }: { rows: PaperTradeRun[]; summary: Summary }) {
   const decisionMix = Object.entries(summary.byDecision)
     .sort((a, b) => b[1] - a[1])
     .slice(0, 4);
@@ -148,11 +131,7 @@ function PaperTradeBody({
         />
         <Stat
           label="Last event"
-          value={
-            summary.lastTime
-              ? formatDate(new Date(summary.lastTime).getTime())
-              : '—'
-          }
+          value={summary.lastTime ? formatDate(new Date(summary.lastTime).getTime()) : '—'}
         />
       </div>
 
@@ -193,30 +172,20 @@ function PaperTradeBody({
                 <td className="px-2 py-1.5 text-text-secondary">
                   {formatDate(new Date(r.createdTime).getTime())}
                 </td>
-                <td className="px-2 py-1.5 text-text-secondary">
-                  {r.decisionType}
-                </td>
+                <td className="px-2 py-1.5 text-text-secondary">{r.decisionType}</td>
                 <td className="px-2 py-1.5">
                   <SideBadge side={r.side} />
                 </td>
-                <td className="px-2 py-1.5 text-right tabular-nums">
-                  {fmtNum(r.intendedPrice)}
-                </td>
+                <td className="px-2 py-1.5 text-right tabular-nums">{fmtNum(r.intendedPrice)}</td>
                 <td className="px-2 py-1.5 text-right tabular-nums">
                   {fmtNum(r.intendedQuantity)}
                 </td>
                 <td className="px-2 py-1.5 text-right tabular-nums">
                   {fmtNum(r.intendedNotionalUsdt)}
                 </td>
-                <td className="px-2 py-1.5 text-right tabular-nums">
-                  {fmtNum(r.stopLossPrice)}
-                </td>
-                <td className="px-2 py-1.5 text-right tabular-nums">
-                  {fmtNum(r.takeProfitPrice)}
-                </td>
-                <td className="px-2 py-1.5 text-text-muted">
-                  {r.skipReason ?? '—'}
-                </td>
+                <td className="px-2 py-1.5 text-right tabular-nums">{fmtNum(r.stopLossPrice)}</td>
+                <td className="px-2 py-1.5 text-right tabular-nums">{fmtNum(r.takeProfitPrice)}</td>
+                <td className="px-2 py-1.5 text-text-muted">{r.skipReason ?? '—'}</td>
               </tr>
             ))}
           </tbody>
@@ -229,9 +198,9 @@ function PaperTradeBody({
       </div>
 
       <p className="text-[11px] text-text-muted">
-        Paper-trade rows capture only OPEN_LONG / OPEN_SHORT decisions while
-        the strategy is simulated. CLOSE_* and position-management decisions
-        always execute against real positions and are not diverted.
+        Paper-trade rows capture only OPEN_LONG / OPEN_SHORT decisions while the strategy is
+        simulated. CLOSE_* and position-management decisions always execute against real positions
+        and are not diverted.
       </p>
     </div>
   );
@@ -257,10 +226,7 @@ function Stat({
       <span className="font-mono text-[10px] uppercase tracking-widest text-text-muted">
         {label}
       </span>
-      <span
-        className="font-mono tabular-nums text-[13px]"
-        style={{ color }}
-      >
+      <span className="font-mono text-[13px] tabular-nums" style={{ color }}>
         {value}
       </span>
     </div>
@@ -280,11 +246,7 @@ function SideBadge({ side }: { side: 'LONG' | 'SHORT' | null }) {
         color: isLong ? 'var(--color-profit)' : 'var(--color-loss)',
       }}
     >
-      {isLong ? (
-        <ArrowUp size={10} strokeWidth={2} />
-      ) : (
-        <ArrowDown size={10} strokeWidth={2} />
-      )}
+      {isLong ? <ArrowUp size={10} strokeWidth={2} /> : <ArrowDown size={10} strokeWidth={2} />}
       {side}
     </span>
   );

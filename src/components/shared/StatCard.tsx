@@ -4,12 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { HelpCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 type ValueColor = 'profit' | 'loss' | 'info' | 'warning' | 'neutral';
 

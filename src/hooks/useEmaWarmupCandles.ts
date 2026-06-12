@@ -16,7 +16,13 @@ export function useEmaWarmupCandles(
   const fromMs = windowStartMs != null ? windowStartMs - WARMUP_BARS * stepMs : undefined;
   return useQuery({
     queryKey: ['ema-warmup', symbol, interval, windowStartMs],
-    queryFn: () => fetchCandlesRange(symbol as string, interval as string, fromMs as number, windowStartMs as number),
+    queryFn: () =>
+      fetchCandlesRange(
+        symbol as string,
+        interval as string,
+        fromMs as number,
+        windowStartMs as number,
+      ),
     enabled: enabled && !!symbol && !!interval && windowStartMs != null,
     staleTime: 5 * 60_000,
   });

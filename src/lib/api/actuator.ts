@@ -1,4 +1,3 @@
-
 import { apiClient } from './client';
 
 export type Jvm = 'trading' | 'research';
@@ -28,9 +27,7 @@ export async function getHealth(jvm: Jvm): Promise<HealthStatus> {
 }
 
 export async function getMetric(jvm: Jvm, name: string): Promise<MetricResponse> {
-  const { data } = await apiClient.get<MetricResponse>(
-    `${ACTUATOR_PREFIX[jvm]}/metrics/${name}`,
-  );
+  const { data } = await apiClient.get<MetricResponse>(`${ACTUATOR_PREFIX[jvm]}/metrics/${name}`);
   return data;
 }
 
@@ -69,7 +66,7 @@ const NONHEAP_AREA_TAG = 'area:nonheap';
  * is the operator's only visibility.
  */
 export async function getJvmTelemetry(jvm: Jvm): Promise<JvmTelemetrySnapshot> {
-  const safe = async <T,>(fn: () => Promise<T>): Promise<T | null> => {
+  const safe = async <T>(fn: () => Promise<T>): Promise<T | null> => {
     try {
       return await fn();
     } catch (err) {
@@ -79,37 +76,35 @@ export async function getJvmTelemetry(jvm: Jvm): Promise<JvmTelemetrySnapshot> {
   };
 
   const prefix = ACTUATOR_PREFIX[jvm];
-  const [
-    heapUsed,
-    heapMax,
-    nonHeapUsed,
-    gcPause,
-    threads,
-    uptime,
-    sysCpu,
-    procCpu,
-  ] = await Promise.all([
-    safe(() =>
-      apiClient.get<MetricResponse>(`${prefix}/metrics/jvm.memory.used`, {
-        params: { tag: HEAP_AREA_TAG },
-      }).then((r) => r.data),
-    ),
-    safe(() =>
-      apiClient.get<MetricResponse>(`${prefix}/metrics/jvm.memory.max`, {
-        params: { tag: HEAP_AREA_TAG },
-      }).then((r) => r.data),
-    ),
-    safe(() =>
-      apiClient.get<MetricResponse>(`${prefix}/metrics/jvm.memory.used`, {
-        params: { tag: NONHEAP_AREA_TAG },
-      }).then((r) => r.data),
-    ),
-    safe(() => getMetric(jvm, 'jvm.gc.pause')),
-    safe(() => getMetric(jvm, 'jvm.threads.live')),
-    safe(() => getMetric(jvm, 'process.uptime')),
-    safe(() => getMetric(jvm, 'system.cpu.usage')),
-    safe(() => getMetric(jvm, 'process.cpu.usage')),
-  ]);
+  const [heapUsed, heapMax, nonHeapUsed, gcPause, threads, uptime, sysCpu, procCpu] =
+    await Promise.all([
+      safe(() =>
+        apiClient
+          .get<MetricResponse>(`${prefix}/metrics/jvm.memory.used`, {
+            params: { tag: HEAP_AREA_TAG },
+          })
+          .then((r) => r.data),
+      ),
+      safe(() =>
+        apiClient
+          .get<MetricResponse>(`${prefix}/metrics/jvm.memory.max`, {
+            params: { tag: HEAP_AREA_TAG },
+          })
+          .then((r) => r.data),
+      ),
+      safe(() =>
+        apiClient
+          .get<MetricResponse>(`${prefix}/metrics/jvm.memory.used`, {
+            params: { tag: NONHEAP_AREA_TAG },
+          })
+          .then((r) => r.data),
+      ),
+      safe(() => getMetric(jvm, 'jvm.gc.pause')),
+      safe(() => getMetric(jvm, 'jvm.threads.live')),
+      safe(() => getMetric(jvm, 'process.uptime')),
+      safe(() => getMetric(jvm, 'system.cpu.usage')),
+      safe(() => getMetric(jvm, 'process.cpu.usage')),
+    ]);
 
   return {
     takenAt: Date.now(),
@@ -117,9 +112,7 @@ export async function getJvmTelemetry(jvm: Jvm): Promise<JvmTelemetrySnapshot> {
     heapMaxBytes: heapMax ? readStat(heapMax, 'VALUE') : null,
     nonHeapUsedBytes: nonHeapUsed ? readStat(nonHeapUsed, 'VALUE') : null,
 
-    gcPauseP99Seconds: gcPause
-      ? readStat(gcPause, '0.99') ?? readStat(gcPause, 'MAX')
-      : null,
+    gcPauseP99Seconds: gcPause ? (readStat(gcPause, '0.99') ?? readStat(gcPause, 'MAX')) : null,
     liveThreads: threads ? readStat(threads, 'VALUE') : null,
     uptimeSeconds: uptime ? readStat(uptime, 'VALUE') : null,
     systemCpu: sysCpu ? readStat(sysCpu, 'VALUE') : null,

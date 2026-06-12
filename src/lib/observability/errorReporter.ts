@@ -60,7 +60,8 @@ export function reportError(input: ErrorReportInput): void {
   const loggerName = input.loggerName ?? 'frontend.unknown';
   const exceptionClass = input.exceptionClass;
 
-  const fingerprint = input.fingerprint ?? computeFingerprint(loggerName, exceptionClass, stackTrace);
+  const fingerprint =
+    input.fingerprint ?? computeFingerprint(loggerName, exceptionClass, stackTrace);
 
   const now = Date.now();
   prunestale(now);
@@ -116,7 +117,11 @@ export function reportException(
   });
 }
 
-function normalizeError(err: unknown): { name: string; message: string; stack: string | undefined } {
+function normalizeError(err: unknown): {
+  name: string;
+  message: string;
+  stack: string | undefined;
+} {
   if (err instanceof Error) {
     return { name: err.name || 'Error', message: err.message || '(no message)', stack: err.stack };
   }
@@ -139,16 +144,24 @@ function buildMdc(extra?: Record<string, string>): Record<string, string> {
   }
   if (extra) {
     for (const [k, v] of Object.entries(extra)) {
-      if (typeof v === 'string' && v.length > 0) base[k] = v.length > 500 ? `${v.slice(0, 500)}…` : v;
+      if (typeof v === 'string' && v.length > 0)
+        base[k] = v.length > 500 ? `${v.slice(0, 500)}…` : v;
     }
   }
   return base;
 }
 
-function computeFingerprint(loggerName: string, exClass: string | undefined, stack: string | undefined): string {
+function computeFingerprint(
+  loggerName: string,
+  exClass: string | undefined,
+  stack: string | undefined,
+): string {
   const parts = [loggerName ?? '?', exClass ?? '?'];
   if (stack) {
-    const lines = stack.split(/\r?\n/, 6).slice(0, 5).map((s) => s.trim());
+    const lines = stack
+      .split(/\r?\n/, 6)
+      .slice(0, 5)
+      .map((s) => s.trim());
     parts.push(lines.join('|'));
   }
 
@@ -164,6 +177,7 @@ function computeFingerprint(loggerName: string, exClass: string | undefined, sta
  * Synchronous on purpose — `crypto.subtle.digest` would force the entire
  * report path async and complicate the fire-and-forget call sites.
  */
+/* eslint-disable no-bitwise -- DJB2-style hashing requires integer bit ops */
 function multiStreamHash(s: string): string {
   const seeds = [5381, 52711, 14695981, 31, 17, 41, 53, 71];
   let out = '';
@@ -175,6 +189,7 @@ function multiStreamHash(s: string): string {
     out += h.toString(16).padStart(8, '0');
   }
   return out;
+  /* eslint-enable no-bitwise */
 }
 
 function truncate(s: string | undefined, max: number): string | undefined {

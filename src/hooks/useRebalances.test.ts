@@ -2,14 +2,14 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import type { Trades, TradePosition } from '@/types/trading';
 
+import { useRebalances } from './useRebalances';
+
 // --- mock the underlying trades-list read ---
 const useTradesList = vi.fn();
 
 vi.mock('./useTrades', () => ({
   useTradesList: (...args: unknown[]) => useTradesList(...args),
 }));
-
-import { useRebalances } from './useRebalances';
 
 const ACCOUNT_ID = 'acct-1';
 

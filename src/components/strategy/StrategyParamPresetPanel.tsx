@@ -10,10 +10,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
-import {
-  useActivateStrategyParam,
-  useStrategyParamPresets,
-} from '@/hooks/useStrategyParams';
+import { useActivateStrategyParam, useStrategyParamPresets } from '@/hooks/useStrategyParams';
 import { toast } from '@/hooks/useToast';
 import { normalizeError } from '@/lib/api/client';
 import type { AccountStrategy, StrategyParamPreset } from '@/types/strategy';
@@ -108,12 +105,16 @@ export function StrategyParamPresetPanel({ strategy }: { strategy: AccountStrate
                 {presets.map((p) => (
                   <SelectItem key={p.paramId} value={p.paramId} className="font-mono text-[11px]">
                     {p.name}
-                    {p.sourceBacktestRunId ? ` · from run #${p.sourceBacktestRunId.slice(0, 8)}` : ''}
+                    {p.sourceBacktestRunId
+                      ? ` · from run #${p.sourceBacktestRunId.slice(0, 8)}`
+                      : ''}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
-            <span className="font-mono text-[10px] text-text-muted">· {overrideSummary(active)}</span>
+            <span className="font-mono text-[10px] text-text-muted">
+              · {overrideSummary(active)}
+            </span>
             {activate.isPending && (
               <span className="font-mono text-[10px] text-text-muted">Switching…</span>
             )}

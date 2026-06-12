@@ -2,18 +2,40 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { screen, fireEvent } from '@testing-library/react';
 import { renderWithClient } from '../test-utils';
 
+import { ExecutionHistoryTab } from '@/components/trades/execution/ExecutionHistoryTab';
+
 const summary = {
-  totalExecutions: 20, failedCount: 3, successCount: 17, successRatePct: 85, topCategory: 'MIN_NOTIONAL',
-  byCategory: [{ category: 'MIN_NOTIONAL', count: 2, pct: 66.7 }, { category: 'INSUFFICIENT_BALANCE', count: 1, pct: 33.3 }],
+  totalExecutions: 20,
+  failedCount: 3,
+  successCount: 17,
+  successRatePct: 85,
+  topCategory: 'MIN_NOTIONAL',
+  byCategory: [
+    { category: 'MIN_NOTIONAL', count: 2, pct: 66.7 },
+    { category: 'INSUFFICIENT_BALANCE', count: 1, pct: 33.3 },
+  ],
 };
 const listData = {
-  content: [{
-    id: '1', executionType: 'OPEN', side: 'LONG', status: 'FAILED', accountId: 'a', username: 'u',
-    asset: 'BTCUSDT', strategyName: 'VRP_BTC', executionReason: null,
-    errorMessage: 'below minimum notional', tradeId: null,
-    executedAt: '2026-06-11T12:34:07', failureCategory: 'MIN_NOTIONAL',
-  }],
-  page: 0, size: 20, total: 1,
+  content: [
+    {
+      id: '1',
+      executionType: 'OPEN',
+      side: 'LONG',
+      status: 'FAILED',
+      accountId: 'a',
+      username: 'u',
+      asset: 'BTCUSDT',
+      strategyName: 'VRP_BTC',
+      executionReason: null,
+      errorMessage: 'below minimum notional',
+      tradeId: null,
+      executedAt: '2026-06-11T12:34:07',
+      failureCategory: 'MIN_NOTIONAL',
+    },
+  ],
+  page: 0,
+  size: 20,
+  total: 1,
 };
 
 const useExecutionSummary = vi.fn();
@@ -23,8 +45,6 @@ vi.mock('@/hooks/useTradeExecutions', () => ({
   useExecutionsList: (...a: unknown[]) => useExecutionsList(...a),
 }));
 vi.mock('@/hooks/useStrategies', () => ({ useStrategies: () => ({ data: [] }) }));
-
-import { ExecutionHistoryTab } from '@/components/trades/execution/ExecutionHistoryTab';
 
 describe('ExecutionHistoryTab', () => {
   beforeEach(() => {

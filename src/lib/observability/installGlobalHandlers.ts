@@ -28,9 +28,10 @@ export function installGlobalErrorHandlers(): void {
           },
         });
       } else {
-        const message = typeof eventOrMessage === 'string'
-          ? eventOrMessage
-          : 'window.onerror fired without an Error instance';
+        const message =
+          typeof eventOrMessage === 'string'
+            ? eventOrMessage
+            : 'window.onerror fired without an Error instance';
         reportError({
           loggerName: 'frontend.window.onerror',
           message,
@@ -41,8 +42,7 @@ export function installGlobalErrorHandlers(): void {
           },
         });
       }
-    } catch {
-    }
+    } catch {}
     if (typeof priorOnError === 'function') {
       try {
         return priorOnError.call(window, eventOrMessage, source, lineno, colno, error);
@@ -58,13 +58,11 @@ export function installGlobalErrorHandlers(): void {
     try {
       const reason = (event as PromiseRejectionEvent).reason;
       reportException(reason, { loggerName: 'frontend.unhandledrejection' });
-    } catch {
-    }
+    } catch {}
     if (typeof priorOnUnhandled === 'function') {
       try {
         return priorOnUnhandled.call(window, event);
-      } catch {
-      }
+      } catch {}
     }
   };
 }

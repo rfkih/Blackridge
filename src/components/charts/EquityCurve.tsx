@@ -43,7 +43,10 @@ interface EquityCurveProps {
   overlaySeries?: EquityCompareSeries[];
 }
 
-type EquityRow = { ts: number; equity: number; compare: number | null } & Record<string, number | null>;
+type EquityRow = { ts: number; equity: number; compare: number | null } & Record<
+  string,
+  number | null
+>;
 
 const overlayKey = (i: number) => `ov${i}`;
 

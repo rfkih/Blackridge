@@ -18,7 +18,12 @@ interface BacktestProgressBarProps {
  * For FAILED runs we surface the error message inline so users don't have
  * to dig through the JSON response to find out why it died.
  */
-export function BacktestProgressBar({ run, className, onCancel, canceling }: BacktestProgressBarProps) {
+export function BacktestProgressBar({
+  run,
+  className,
+  onCancel,
+  canceling,
+}: BacktestProgressBarProps) {
   const status = (run.status ?? 'PENDING').toUpperCase();
   const isPending = status === 'PENDING';
   const isRunning = status === 'RUNNING';
@@ -42,18 +47,12 @@ export function BacktestProgressBar({ run, className, onCancel, canceling }: Bac
     >
       <div className="flex items-center justify-between gap-3">
         <div className="flex min-w-0 items-center gap-2">
-          {isPending && (
-            <Clock size={14} className="shrink-0 text-[var(--color-warning)]" />
-          )}
+          {isPending && <Clock size={14} className="shrink-0 text-[var(--color-warning)]" />}
           {isRunning && (
-            <Loader2 size={14} className="animate-spin shrink-0 text-[var(--color-info)]" />
+            <Loader2 size={14} className="shrink-0 animate-spin text-[var(--color-info)]" />
           )}
           <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-[var(--text-secondary)]">
-            {isPending
-              ? 'In Queue'
-              : isRunning
-                ? 'Running backtest'
-                : 'Backtest failed'}
+            {isPending ? 'In Queue' : isRunning ? 'Running backtest' : 'Backtest failed'}
           </span>
         </div>
         <div className="flex items-center gap-3">
@@ -77,11 +76,7 @@ export function BacktestProgressBar({ run, className, onCancel, canceling }: Bac
               disabled={canceling}
               className="flex shrink-0 items-center gap-1 rounded-md border border-[var(--border-subtle)] px-2 py-1 text-[10px] uppercase tracking-[0.18em] text-[var(--text-secondary)] transition-colors hover:border-[rgba(229,72,77,0.5)] hover:text-[var(--color-loss)] disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {canceling ? (
-                <Loader2 size={11} className="animate-spin" />
-              ) : (
-                <X size={11} />
-              )}
+              {canceling ? <Loader2 size={11} className="animate-spin" /> : <X size={11} />}
               {canceling ? 'Canceling' : 'Cancel'}
             </button>
           )}
@@ -104,8 +99,7 @@ export function BacktestProgressBar({ run, className, onCancel, canceling }: Bac
               : isPending
                 ? 'var(--color-warning)'
                 : 'linear-gradient(90deg, var(--color-info) 0%, color-mix(in srgb, var(--color-info) 60%, transparent) 100%)',
-            boxShadow:
-              isFailed || isPending ? 'none' : '0 0 12px var(--accent-glow)',
+            boxShadow: isFailed || isPending ? 'none' : '0 0 12px var(--accent-glow)',
           }}
         />
       </div>

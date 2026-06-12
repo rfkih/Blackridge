@@ -33,14 +33,7 @@ export function useStrategyDefinitions() {
  */
 export function useSearchStrategyDefinitions(q: StrategyDefinitionsQuery) {
   return useQuery({
-    queryKey: [
-      ...QUERY_KEY,
-      'search',
-      q.query ?? '',
-      q.sort ?? '',
-      q.page ?? 0,
-      q.size ?? 25,
-    ],
+    queryKey: [...QUERY_KEY, 'search', q.query ?? '', q.sort ?? '', q.page ?? 0, q.size ?? 25],
     queryFn: () => searchStrategyDefinitions(q),
     staleTime: QUERY_STALE_TIMES.strategyParams,
     refetchInterval: 30_000,

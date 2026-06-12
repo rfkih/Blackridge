@@ -1,20 +1,11 @@
 import Link from 'next/link';
-import { formatDistanceToNowStrict } from 'date-fns';
 import { ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { formatRelativeTime } from '@/lib/formatters';
 import type { MlMonitorRow } from '@/types/ml';
 import { HealthDot } from './HealthDot';
 import { SignalStatusPill } from './SignalStatusPill';
 import { CoverageBar } from './CoverageBar';
-
-function fmtRelative(ts: string | null): string {
-  if (!ts) return '—';
-  try {
-    return `${formatDistanceToNowStrict(new Date(ts))} ago`;
-  } catch {
-    return '—';
-  }
-}
 
 function fmtAuc(v: number | null): string {
   if (v === null || !Number.isFinite(v)) return '—';
@@ -61,7 +52,7 @@ export function MlHealthStripRow({ row }: { row: MlMonitorRow }) {
           24h <span className="text-zinc-200">{row.fires24h}</span>
         </span>
         <span className="hidden font-mono tabular-nums text-zinc-400 md:inline">
-          {fmtRelative(row.lastFireTs)}
+          {formatRelativeTime(row.lastFireTs)}
         </span>
         <CoverageBar ratio={row.coverage7dRatio} />
         <ChevronRight aria-hidden className="h-4 w-4 text-zinc-600 group-hover:text-zinc-400" />

@@ -110,11 +110,12 @@ export function BacktestLeaderboardSection({
         <>
           <div className="px-1">
             <p className="font-mono text-[10px] uppercase tracking-[0.1em] text-[var(--text-muted)]">
-              Showing top {shown} of {qualifyingCells} qualifying cells · candidates (not deployable)
+              Showing top {shown} of {qualifyingCells} qualifying cells · candidates (not
+              deployable)
             </p>
             <p className="mt-1 text-[11px] text-[var(--text-muted)]">
-              One most-recent run per (symbol × interval × strategy) · ≥100 trades · ≥2y data window ·
-              ordered by deflated Sharpe.
+              One most-recent run per (symbol × interval × strategy) · ≥100 trades · ≥2y data window
+              · ordered by deflated Sharpe.
             </p>
             <p className="mt-0.5 text-[10px] text-[var(--text-muted)]">
               Deflated Sharpe for older runs may understate trial multiplicity until the analyzer
@@ -220,7 +221,9 @@ function BacktestRow({
               <Metric
                 label="Calmar"
                 value={
-                  entry.cagrPct != null && entry.maxDrawdownPct != null && entry.maxDrawdownPct !== 0
+                  entry.cagrPct != null &&
+                  entry.maxDrawdownPct != null &&
+                  entry.maxDrawdownPct !== 0
                     ? fmtNum(entry.cagrPct / Math.abs(entry.maxDrawdownPct))
                     : '—'
                 }

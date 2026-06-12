@@ -32,8 +32,7 @@ function applyTheme(next: Theme) {
   root.style.colorScheme = next;
   try {
     localStorage.setItem(STORAGE_KEY, next);
-  } catch {
-  }
+  } catch {}
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {

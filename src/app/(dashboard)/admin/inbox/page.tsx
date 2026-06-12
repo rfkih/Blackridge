@@ -98,7 +98,9 @@ export default function AdminInboxPage() {
         <button
           type="button"
           className="mm-btn mm-btn-ghost"
-          onClick={() => void query.refetch()}
+          onClick={() => {
+            void query.refetch();
+          }}
           disabled={query.isFetching}
           style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
         >
@@ -117,6 +119,7 @@ export default function AdminInboxPage() {
           const active = filter === f.value;
           return (
             <button
+              type="button"
               key={f.value}
               role="tab"
               aria-selected={active}
@@ -241,6 +244,12 @@ interface MessageRowProps {
   onReopen: () => void;
   busy: boolean;
 }
+
+const STATUS_TONE: Record<SupportMessageStatus, { bg: string; fg: string }> = {
+  NEW: { bg: 'rgba(245,166,35,0.16)', fg: 'var(--color-warning)' },
+  READ: { bg: 'rgba(59,130,246,0.14)', fg: 'var(--color-info)' },
+  RESOLVED: { bg: 'rgba(22,179,100,0.14)', fg: 'var(--color-profit)' },
+};
 
 function MessageRow({
   message,
@@ -446,9 +455,3 @@ function MessageRow({
     </li>
   );
 }
-
-const STATUS_TONE: Record<SupportMessageStatus, { bg: string; fg: string }> = {
-  NEW: { bg: 'rgba(245,166,35,0.16)', fg: 'var(--color-warning)' },
-  READ: { bg: 'rgba(59,130,246,0.14)', fg: 'var(--color-info)' },
-  RESOLVED: { bg: 'rgba(22,179,100,0.14)', fg: 'var(--color-profit)' },
-};

@@ -127,11 +127,7 @@ export function EditThresholdsDialog({ open, onOpenChange, threshold }: EditThre
             formValid={formValid}
           />
         ) : (
-          <ConfirmStep
-            threshold={threshold}
-            parsed={parsed!}
-            impact={impact}
-          />
+          <ConfirmStep threshold={threshold} parsed={parsed!} impact={impact} />
         )}
 
         <DialogFooter>
@@ -140,11 +136,7 @@ export function EditThresholdsDialog({ open, onOpenChange, threshold }: EditThre
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                 Cancel
               </Button>
-              <Button
-                type="button"
-                onClick={() => setStep('confirm')}
-                disabled={!formValid}
-              >
+              <Button type="button" onClick={() => setStep('confirm')} disabled={!formValid}>
                 Continue <ChevronRight size={12} className="ml-1" />
               </Button>
             </>
@@ -211,7 +203,7 @@ function InputStep({
         className={cn(
           'col-span-2 rounded-sm px-3 py-2 text-[11px]',
           willStaleCount > 0
-            ? 'border border-[var(--color-warning)]/30 bg-[var(--tint-warning)] text-[var(--color-warning)]'
+            ? 'border-[var(--color-warning)]/30 border bg-[var(--tint-warning)] text-[var(--color-warning)]'
             : 'border border-bd-subtle bg-bg-base text-text-muted',
         )}
       >
@@ -240,7 +232,11 @@ function ConfirmStep({
 }: {
   threshold: SymbolApprovalThreshold;
   parsed: NonNullable<ReturnType<typeof parseForm>>;
-  impact: { approval: SymbolApproval; before: ApprovalClassification; after: ApprovalClassification }[];
+  impact: {
+    approval: SymbolApproval;
+    before: ApprovalClassification;
+    after: ApprovalClassification;
+  }[];
 }) {
   const diffs: { label: string; from: string; to: string }[] = [];
   if (parsed.minCagrPct !== threshold.minCagrPct) {
@@ -261,7 +257,11 @@ function ConfirmStep({
     });
   }
   if (parsed.minTrades !== threshold.minTrades) {
-    diffs.push({ label: 'Trades', from: String(threshold.minTrades), to: String(parsed.minTrades) });
+    diffs.push({
+      label: 'Trades',
+      from: String(threshold.minTrades),
+      to: String(parsed.minTrades),
+    });
   }
 
   return (
@@ -332,9 +332,12 @@ function Field({
   );
 }
 
-function parseForm(f: FormState):
-  | { minCagrPct: number; minInitialCapitalUsd: number; minWindowDays: number; minTrades: number }
-  | null {
+function parseForm(f: FormState): {
+  minCagrPct: number;
+  minInitialCapitalUsd: number;
+  minWindowDays: number;
+  minTrades: number;
+} | null {
   const cagr = Number(f.minCagrPct);
   const cap = Number(f.minInitialCapitalUsd);
   const win = Number(f.minWindowDays);
@@ -355,16 +358,15 @@ type ApprovalClassification = 'approved' | 'grandfathered' | 'stale';
 
 function classify(
   a: SymbolApproval,
-  t: Pick<SymbolApprovalThreshold, 'minCagrPct' | 'minInitialCapitalUsd' | 'minWindowDays' | 'minTrades'>,
+  t: Pick<
+    SymbolApprovalThreshold,
+    'minCagrPct' | 'minInitialCapitalUsd' | 'minWindowDays' | 'minTrades'
+  >,
 ): ApprovalClassification {
   if (a.backtestRunId == null) return 'grandfathered';
-  const cagrFail =
-    a.evidenceCagrPct != null && a.evidenceCagrPct < t.minCagrPct;
-  const capFail =
-    a.evidenceCapitalUsd != null && a.evidenceCapitalUsd < t.minInitialCapitalUsd;
-  const winFail =
-    a.evidenceWindowDays != null && a.evidenceWindowDays < t.minWindowDays;
-  const trFail =
-    a.evidenceTrades != null && a.evidenceTrades < t.minTrades;
+  const cagrFail = a.evidenceCagrPct != null && a.evidenceCagrPct < t.minCagrPct;
+  const capFail = a.evidenceCapitalUsd != null && a.evidenceCapitalUsd < t.minInitialCapitalUsd;
+  const winFail = a.evidenceWindowDays != null && a.evidenceWindowDays < t.minWindowDays;
+  const trFail = a.evidenceTrades != null && a.evidenceTrades < t.minTrades;
   return cagrFail || capFail || winFail || trFail ? 'stale' : 'approved';
 }

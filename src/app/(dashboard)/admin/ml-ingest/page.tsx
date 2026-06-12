@@ -2,7 +2,7 @@
 
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { format, formatDistanceToNowStrict, parseISO, subMonths } from 'date-fns';
+import { format, subMonths } from 'date-fns';
 import {
   Activity,
   AlertTriangle,
@@ -50,6 +50,7 @@ import {
 import { useCancelJob, useJob } from '@/hooks/useHistoricalBackfill';
 import { isJobTerminal, type HistoricalBackfillJob } from '@/lib/api/historical';
 import { normalizeError } from '@/lib/api/client';
+import { formatRelativeTime } from '@/lib/formatters';
 import { toast } from '@/hooks/useToast';
 import {
   ML_SOURCE_DESCRIPTIONS,
@@ -82,15 +83,6 @@ function jobTypeToMlSource(jobType: string | null | undefined): MlSource | null 
   if (!jobType || !jobType.startsWith('BACKFILL_ML_')) return null;
   const candidate = jobType.replace('BACKFILL_ML_', '').toLowerCase();
   return VALID_SOURCES.has(candidate as MlSource) ? (candidate as MlSource) : null;
-}
-
-function fmtRelative(iso: string | null): string {
-  if (!iso) return '—';
-  try {
-    return formatDistanceToNowStrict(parseISO(iso), { addSuffix: true });
-  } catch {
-    return iso;
-  }
 }
 
 function healthBadgeClass(status: MlSourceHealthStatus): string {
@@ -218,22 +210,25 @@ export default function MlIngestAdminPage() {
     if (!activeJobId) return;
     try {
       await cancelMutation.mutateAsync(activeJobId);
-      toast.info({ title: 'Cancel requested', description: 'Handler will exit at its next poll point.' });
+      toast.info({
+        title: 'Cancel requested',
+        description: 'Handler will exit at its next poll point.',
+      });
     } catch (e) {
       toast.error({ title: 'Failed to cancel', description: normalizeError(e) });
     }
   };
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="space-y-6 p-6">
       {}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-text-primary flex items-center gap-2">
+          <h1 className="flex items-center gap-2 text-2xl font-semibold text-text-primary">
             <Database className="h-5 w-5 text-text-secondary" />
             ML Data Sources
           </h1>
-          <p className="text-sm text-text-secondary mt-1">
+          <p className="mt-1 text-sm text-text-secondary">
             Admin control plane for ML/sentiment ingestion. 7 free sources, all PIT-correct.
           </p>
         </div>
@@ -247,7 +242,7 @@ export default function MlIngestAdminPage() {
           disabled={schedulesQ.isFetching || healthQ.isFetching}
         >
           <RefreshCw
-            className={`h-4 w-4 mr-1.5 ${schedulesQ.isFetching || healthQ.isFetching ? 'animate-spin' : ''}`}
+            className={`mr-1.5 h-4 w-4 ${schedulesQ.isFetching || healthQ.isFetching ? 'animate-spin' : ''}`}
           />
           Refresh
         </Button>
@@ -255,11 +250,15 @@ export default function MlIngestAdminPage() {
 
       {}
       {jobQ.data && !isJobTerminal(jobQ.data) ? (
-        <ActiveJobBanner job={jobQ.data} onCancel={onCancelActive} isCancelling={cancelMutation.isPending} />
+        <ActiveJobBanner
+          job={jobQ.data}
+          onCancel={onCancelActive}
+          isCancelling={cancelMutation.isPending}
+        />
       ) : null}
 
       {}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
         {SOURCE_ORDER.map((source) => (
           <SourceCard
             key={source}
@@ -269,7 +268,11 @@ export default function MlIngestAdminPage() {
             loading={schedulesQ.isLoading || healthQ.isLoading}
             onBackfill={() => setBackfillDialogFor(source)}
             onSchedule={() => setScheduleDialogFor(source)}
-            isJobRunning={!!jobQ.data && !isJobTerminal(jobQ.data) && jobTypeToMlSource(jobQ.data.jobType) === source}
+            isJobRunning={
+              !!jobQ.data &&
+              !isJobTerminal(jobQ.data) &&
+              jobTypeToMlSource(jobQ.data.jobType) === source
+            }
           />
         ))}
       </div>
@@ -318,7 +321,7 @@ function SourceCard({
   const description = ML_SOURCE_DESCRIPTIONS[source];
 
   return (
-    <div className="rounded-lg border border-bd-subtle bg-bg-elevated p-4 space-y-3">
+    <div className="space-y-3 rounded-lg border border-bd-subtle bg-bg-elevated p-4">
       <div className="flex items-start justify-between gap-2">
         <div className="space-y-1">
           <div className="text-sm font-medium text-text-primary">{label}</div>
@@ -326,7 +329,7 @@ function SourceCard({
         </div>
         <Badge
           variant="outline"
-          className={`shrink-0 inline-flex items-center gap-1 ${healthBadgeClass(status)}`}
+          className={`inline-flex shrink-0 items-center gap-1 ${healthBadgeClass(status)}`}
         >
           {healthIcon(status)}
           <span className="capitalize">{status}</span>
@@ -334,9 +337,9 @@ function SourceCard({
       </div>
 
       {}
-      <div className="grid grid-cols-2 gap-2 text-xs font-mono tabular-nums">
-        <Stat label="Last pull" value={fmtRelative(health?.lastPullAt ?? null)} />
-        <Stat label="Last success" value={fmtRelative(health?.lastSuccessAt ?? null)} />
+      <div className="grid grid-cols-2 gap-2 font-mono text-xs tabular-nums">
+        <Stat label="Last pull" value={formatRelativeTime(health?.lastPullAt ?? null)} />
+        <Stat label="Last success" value={formatRelativeTime(health?.lastSuccessAt ?? null)} />
         <Stat
           label="Rows (total)"
           value={loading ? '…' : (health?.rowsInsertedTotal ?? 0).toLocaleString()}
@@ -359,23 +362,25 @@ function SourceCard({
       </div>
 
       {health?.healthMessage ? (
-        <div className="text-xs text-text-secondary italic line-clamp-2">{health.healthMessage}</div>
+        <div className="line-clamp-2 text-xs italic text-text-secondary">
+          {health.healthMessage}
+        </div>
       ) : null}
 
       <div className="flex items-center gap-2 pt-1">
         <Button size="sm" onClick={onBackfill} disabled={isJobRunning} className="flex-1">
           {isJobRunning ? (
             <>
-              <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" /> Running
+              <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> Running
             </>
           ) : (
             <>
-              <CalendarClock className="h-3.5 w-3.5 mr-1.5" /> Backfill
+              <CalendarClock className="mr-1.5 h-3.5 w-3.5" /> Backfill
             </>
           )}
         </Button>
         <Button size="sm" variant="outline" onClick={onSchedule} disabled={!schedule}>
-          <Settings className="h-3.5 w-3.5 mr-1.5" /> Schedule
+          <Settings className="mr-1.5 h-3.5 w-3.5" /> Schedule
         </Button>
       </div>
     </div>
@@ -413,21 +418,21 @@ function ActiveJobBanner({
   const progressPct =
     job.progressTotal > 0 ? Math.round((job.progressDone / job.progressTotal) * 100) : 0;
   return (
-    <div className="rounded-lg border border-info/30 bg-tint-info p-4 flex items-center gap-4">
-      <Loader2 className="h-5 w-5 text-info animate-spin shrink-0" />
-      <div className="flex-1 min-w-0 space-y-1">
-        <div className="text-sm text-text-primary truncate">
+    <div className="border-info/30 flex items-center gap-4 rounded-lg border bg-tint-info p-4">
+      <Loader2 className="h-5 w-5 shrink-0 animate-spin text-info" />
+      <div className="min-w-0 flex-1 space-y-1">
+        <div className="truncate text-sm text-text-primary">
           <span className="font-medium">{job.jobType}</span>
-          <span className="text-text-secondary mx-2">·</span>
+          <span className="mx-2 text-text-secondary">·</span>
           <span className="text-text-secondary">phase: {job.phase ?? 'pending'}</span>
         </div>
-        <div className="h-1.5 rounded-full bg-bg-hover overflow-hidden">
+        <div className="h-1.5 overflow-hidden rounded-full bg-bg-hover">
           <div
             className="h-full bg-brand-500 transition-all"
             style={{ width: `${progressPct}%` }}
           />
         </div>
-        <div className="text-xs text-text-muted font-mono tabular-nums">
+        <div className="font-mono text-xs tabular-nums text-text-muted">
           {job.progressDone} / {job.progressTotal} · status {job.status}
         </div>
       </div>
@@ -543,9 +548,7 @@ function BackfillDialog({
 
           {}
           <div>
-            <Label className="text-xs uppercase tracking-wide text-text-muted">
-              Quick range
-            </Label>
+            <Label className="text-xs uppercase tracking-wide text-text-muted">Quick range</Label>
             <div className="mt-1.5 flex flex-wrap gap-1.5">
               {BACKFILL_PRESETS.map((preset) => {
                 const presetVals = presetRange(preset.months);
@@ -555,7 +558,7 @@ function BackfillDialog({
                     key={preset.label}
                     type="button"
                     onClick={() => setRange(presetVals)}
-                    className={`rounded-md border px-2.5 py-1 text-xs font-mono tabular-nums transition-colors ${
+                    className={`rounded-md border px-2.5 py-1 font-mono text-xs tabular-nums transition-colors ${
                       isActive
                         ? 'border-brand-500 bg-brand-50 text-brand-700'
                         : 'border-bd-subtle bg-bg-elevated text-text-secondary hover:border-bd hover:text-text-primary'
@@ -597,9 +600,9 @@ function BackfillDialog({
             </div>
           </div>
 
-          <div className="text-xs text-text-muted italic">
-            Ranges are inclusive day-boundaries (00:00:00 → 23:59:59 UTC). Default 17
-            months matches the Phase 1 backfill window.
+          <div className="text-xs italic text-text-muted">
+            Ranges are inclusive day-boundaries (00:00:00 → 23:59:59 UTC). Default 17 months matches
+            the Phase 1 backfill window.
           </div>
         </div>
 
@@ -610,7 +613,7 @@ function BackfillDialog({
           <Button onClick={onSubmit} disabled={triggerMutation.isPending}>
             {triggerMutation.isPending ? (
               <>
-                <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" /> Submitting…
+                <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> Submitting…
               </>
             ) : (
               <>Run backfill</>
@@ -636,7 +639,6 @@ function ScheduleDialog({
     <Dialog open={open} onOpenChange={(o) => (o ? null : onClose())}>
       <DialogContent>
         {schedule ? (
-
           <ScheduleEditForm key={schedule.id} schedule={schedule} onSaved={onClose} />
         ) : null}
       </DialogContent>
@@ -732,8 +734,9 @@ function ScheduleEditForm({
             placeholder="0 0 22 * * *"
             className="font-mono tabular-nums"
           />
-          <div className="text-xs text-text-muted mt-1">
-            Format: <span className="font-mono">sec min hour day month dow</span>. Validated server-side.
+          <div className="mt-1 text-xs text-text-muted">
+            Format: <span className="font-mono">sec min hour day month dow</span>. Validated
+            server-side.
           </div>
         </div>
 
@@ -749,7 +752,7 @@ function ScheduleEditForm({
             onChange={(e) => setLookback(e.target.value)}
             className="font-mono tabular-nums"
           />
-          <div className="text-xs text-text-muted mt-1">
+          <div className="mt-1 text-xs text-text-muted">
             How many hours of history each tick pulls. Range [1, 720].
           </div>
         </div>
@@ -762,15 +765,16 @@ function ScheduleEditForm({
             value={configText}
             onChange={(e) => setConfigText(e.target.value)}
             rows={6}
-            className="w-full rounded-md border border-bd-subtle bg-bg-elevated px-3 py-2 text-xs font-mono tabular-nums text-text-primary"
+            className="w-full rounded-md border border-bd-subtle bg-bg-elevated px-3 py-2 font-mono text-xs tabular-nums text-text-primary"
           />
           {configError ? (
             <div className="mt-1 flex items-center gap-1 text-xs text-loss">
               <ShieldAlert className="h-3 w-3" /> {configError}
             </div>
           ) : (
-            <div className="text-xs text-text-muted mt-1">
-              Source-specific. E.g. <span className="font-mono">{`{"series_ids":["DXY","DGS10"]}`}</span>
+            <div className="mt-1 text-xs text-text-muted">
+              Source-specific. E.g.{' '}
+              <span className="font-mono">{`{"series_ids":["DXY","DGS10"]}`}</span>
             </div>
           )}
         </div>
@@ -783,7 +787,7 @@ function ScheduleEditForm({
         <Button onClick={onSave} disabled={updateMutation.isPending}>
           {updateMutation.isPending ? (
             <>
-              <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" /> Saving…
+              <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> Saving…
             </>
           ) : (
             <>Save</>

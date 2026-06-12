@@ -337,8 +337,10 @@ export function PendingApprovalCard({ row, onDialogOpenChange }: PendingApproval
             <DialogDescription>
               This will kick off a fresh backtest run for{' '}
               <span className="font-mono font-semibold">{row.strategyCode}</span> ·{' '}
-              <span className="font-mono">{row.symbol} {row.interval}</span>.
-              Results appear in the Replications panel below when complete.
+              <span className="font-mono">
+                {row.symbol} {row.interval}
+              </span>
+              . Results appear in the Replications panel below when complete.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>

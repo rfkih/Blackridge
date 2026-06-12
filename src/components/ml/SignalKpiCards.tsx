@@ -1,34 +1,25 @@
-import { formatDistanceToNowStrict } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { formatRelativeTime, parseIsoUtc } from '@/lib/formatters';
 import type { SignalHealth, SignalStatus } from '@/types/ml';
 import { CoverageBar } from './CoverageBar';
 import { HealthDot } from './HealthDot';
 import { SignalStatusPill } from './SignalStatusPill';
 
-function fmtRelative(ts: string | null): string {
-  if (!ts) return 'never';
-  try {
-    return `${formatDistanceToNowStrict(new Date(ts))} ago`;
-  } catch {
-    return '—';
-  }
-}
-
 function fmtBarTime(ts: string | null): string {
   if (!ts) return '';
-  try {
-    const d = new Date(ts);
-    const hh = d.getUTCHours().toString().padStart(2, '0');
-    const mm = d.getUTCMinutes().toString().padStart(2, '0');
-    const mo = (d.getUTCMonth() + 1).toString().padStart(2, '0');
-    const dd = d.getUTCDate().toString().padStart(2, '0');
-    return `${d.getUTCFullYear()}-${mo}-${dd} ${hh}:${mm} UTC`;
-  } catch {
-    return '';
-  }
+  // Invalid Date doesn't throw — getUTC*() returns NaN — so guard explicitly
+  // instead of try/catch, or we'd render "NaN-NaN-NaN NaN:NaN UTC".
+  const ms = parseIsoUtc(ts);
+  if (!Number.isFinite(ms)) return '';
+  const d = new Date(ms);
+  const hh = d.getUTCHours().toString().padStart(2, '0');
+  const mm = d.getUTCMinutes().toString().padStart(2, '0');
+  const mo = (d.getUTCMonth() + 1).toString().padStart(2, '0');
+  const dd = d.getUTCDate().toString().padStart(2, '0');
+  return `${d.getUTCFullYear()}-${mo}-${dd} ${hh}:${mm} UTC`;
 }
 function fmtRatio(v: number | null): string {
-  if (v === null) return '—';
+  if (v === null || !Number.isFinite(v)) return '—';
   return `${Math.round(v * 100)}%`;
 }
 
@@ -62,14 +53,12 @@ export function SignalKpiCards({ status, health }: { status: SignalStatus; healt
 
       <Card label="Last written">
         <p className="text-lg font-medium tabular-nums text-zinc-100">
-          {fmtRelative(health.lastProducedAt)}
+          {formatRelativeTime(health.lastProducedAt, 'never')}
         </p>
         {health.lastFireTs && (
-          <p className="mt-1 text-xs text-zinc-500">
-            candle: {fmtBarTime(health.lastFireTs)}
-          </p>
+          <p className="mt-1 text-xs text-zinc-500">candle: {fmtBarTime(health.lastFireTs)}</p>
         )}
-        {health.expectedFireSeconds && (
+        {health.expectedFireSeconds != null && health.expectedFireSeconds > 0 && (
           <p className="mt-1 text-xs text-zinc-500">
             Expected every {Math.round(health.expectedFireSeconds / 60)}m
           </p>

@@ -4,10 +4,19 @@ import { ExecutionDetailDrawer } from '@/components/trades/execution/ExecutionDe
 import type { ExecutionEvent } from '@/lib/api/tradeExecutions';
 
 const base: ExecutionEvent = {
-  id: '1', executionType: 'OPEN', side: 'LONG', status: 'FAILED',
-  accountId: 'a', username: 'u', asset: 'BTCUSDT', strategyName: 'VRP_BTC',
-  executionReason: 'ZSCORE entry', errorMessage: 'Pre-trade validation: below minimum notional',
-  tradeId: null, executedAt: '2026-06-11T12:34:07', failureCategory: 'MIN_NOTIONAL',
+  id: '1',
+  executionType: 'OPEN',
+  side: 'LONG',
+  status: 'FAILED',
+  accountId: 'a',
+  username: 'u',
+  asset: 'BTCUSDT',
+  strategyName: 'VRP_BTC',
+  executionReason: 'ZSCORE entry',
+  errorMessage: 'Pre-trade validation: below minimum notional',
+  tradeId: null,
+  executedAt: '2026-06-11T12:34:07',
+  failureCategory: 'MIN_NOTIONAL',
 };
 
 describe('ExecutionDetailDrawer', () => {
@@ -19,7 +28,10 @@ describe('ExecutionDetailDrawer', () => {
 
   it('renders a trade link when tradeId is present', () => {
     render(<ExecutionDetailDrawer event={{ ...base, tradeId: 't-9' }} onClose={() => {}} />);
-    expect(screen.getByRole('link', { name: /view trade/i })).toHaveAttribute('href', '/trades/t-9');
+    expect(screen.getByRole('link', { name: /view trade/i })).toHaveAttribute(
+      'href',
+      '/trades/t-9',
+    );
   });
 
   it('calls onClose', () => {

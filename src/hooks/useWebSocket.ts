@@ -41,7 +41,7 @@ export function useWebSocket() {
     return async () => {
       if (!userRef.current) return null;
       if (tokenRef.current) return tokenRef.current;
-      return await fetchWsTicket();
+      return fetchWsTicket();
     };
   }, [user]);
 

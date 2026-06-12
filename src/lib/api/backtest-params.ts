@@ -20,8 +20,7 @@ function writeAll(presets: BacktestParamPreset[]): void {
   if (typeof window === 'undefined') return;
   try {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(presets));
-  } catch {
-  }
+  } catch {}
 }
 
 export function listPresets(strategyCode?: string): BacktestParamPreset[] {

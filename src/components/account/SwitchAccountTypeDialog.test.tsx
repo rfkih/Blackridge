@@ -2,6 +2,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import type { AccountSummary } from '@/types/account';
 
+import { SwitchAccountTypeDialog } from './SwitchAccountTypeDialog';
+
 // Passthrough the Radix dialog so content renders inline (no portal).
 vi.mock('@/components/ui/dialog', () => ({
   Dialog: ({ children, open }: any) => (open ? <div>{children}</div> : null),
@@ -23,16 +25,23 @@ vi.mock('@/hooks/useAccounts', () => ({
 vi.mock('@/hooks/useToast', () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
 vi.mock('@/lib/api/client', () => ({ normalizeError: (e: unknown) => String(e) }));
 
-import { SwitchAccountTypeDialog } from './SwitchAccountTypeDialog';
-
-const ACCOUNT = { id: 'acc-1', accountType: 'TRADING', label: 'Main', exchange: 'BINANCE' } as AccountSummary;
+const ACCOUNT = {
+  id: 'acc-1',
+  accountType: 'TRADING',
+  label: 'Main',
+  exchange: 'BINANCE',
+} as AccountSummary;
 
 const PREVIEW = {
   currentType: 'TRADING',
   targetType: 'HEDGING',
   alreadyTargetType: false,
-  strategiesToDisable: [{ accountStrategyId: 's1', strategyCode: 'LSR', presetName: 'LSR base', simulated: false }],
-  strategiesToRestore: [{ accountStrategyId: 's2', strategyCode: 'ENS_TREND_BTC', presetName: 'Ens', simulated: false }],
+  strategiesToDisable: [
+    { accountStrategyId: 's1', strategyCode: 'LSR', presetName: 'LSR base', simulated: false },
+  ],
+  strategiesToRestore: [
+    { accountStrategyId: 's2', strategyCode: 'ENS_TREND_BTC', presetName: 'Ens', simulated: false },
+  ],
   openTradesToClose: [{ tradeId: 't1', accountStrategyId: 's1', asset: 'BTCUSDT', side: 'LONG' }],
   hasLivePositions: true,
 };
@@ -40,7 +49,11 @@ const PREVIEW = {
 describe('SwitchAccountTypeDialog', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    useAccountTypeSwitchPreview.mockReturnValue({ data: PREVIEW, isLoading: false, isError: false });
+    useAccountTypeSwitchPreview.mockReturnValue({
+      data: PREVIEW,
+      isLoading: false,
+      isError: false,
+    });
   });
 
   it('warns about real-money closes, disables and restores', () => {
@@ -85,7 +98,13 @@ describe('SwitchAccountTypeDialog', () => {
 
   it('shows the no-op message when nothing is affected', () => {
     useAccountTypeSwitchPreview.mockReturnValue({
-      data: { ...PREVIEW, strategiesToDisable: [], strategiesToRestore: [], openTradesToClose: [], hasLivePositions: false },
+      data: {
+        ...PREVIEW,
+        strategiesToDisable: [],
+        strategiesToRestore: [],
+        openTradesToClose: [],
+        hasLivePositions: false,
+      },
       isLoading: false,
       isError: false,
     });

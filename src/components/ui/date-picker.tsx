@@ -65,10 +65,6 @@ export function DatePicker({
   const [open, setOpen] = useState(false);
   const [viewDate, setViewDate] = useState<Date>(() => selected ?? new Date());
 
-  const lastValue = useMemo(() => value, [value]);
-  if (selected && !isSameMonth(viewDate, selected) && lastValue !== format(viewDate, ISO_FMT)) {
-  }
-
   const days = useMemo(() => buildMonthGrid(viewDate), [viewDate]);
 
   const handleSelect = (d: Date) => {
@@ -116,6 +112,12 @@ export function DatePicker({
               onClick={(e) => {
                 e.stopPropagation();
                 onChange('');
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.stopPropagation();
+                  onChange('');
+                }
               }}
               className="rounded-sm p-0.5 text-[var(--text-muted)] transition-colors hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]"
               aria-label="Clear date"
@@ -258,7 +260,7 @@ function parseIso(value: string | undefined): Date | null {
 
   const stripped = value.includes('T') ? value.slice(0, 10) : value;
   const d = parse(stripped, ISO_FMT, new Date());
-  return isNaN(d.getTime()) ? null : d;
+  return Number.isNaN(d.getTime()) ? null : d;
 }
 
 function isDisabled(d: Date, min: Date | null, max: Date | null): boolean {

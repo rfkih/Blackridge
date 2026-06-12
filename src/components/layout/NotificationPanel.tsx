@@ -110,7 +110,20 @@ export function NotificationPanel() {
   // callback always returns false when no PENDING/RUNNING rows are present,
   // meaning new completions never surface during a session without this.
   const recentBacktests = useQuery({
-    queryKey: ['backtest-runs', 'COMPLETED', null, null, null, null, null, 'createdAt', 'DESC', 0, 3, null],
+    queryKey: [
+      'backtest-runs',
+      'COMPLETED',
+      null,
+      null,
+      null,
+      null,
+      null,
+      'createdAt',
+      'DESC',
+      0,
+      3,
+      null,
+    ],
     queryFn: () => listBacktestRuns({ status: 'COMPLETED', size: 3 }),
     staleTime: 2_000,
     refetchInterval: 30_000,

@@ -1,10 +1,10 @@
 'use client';
 
 import Link from 'next/link';
-import { formatDistanceToNowStrict } from 'date-fns';
 import { AlertTriangle, Search } from 'lucide-react';
 import { useState, type ChangeEvent } from 'react';
 import { useSignals, useStreamingStatus } from '@/lib/api/ml';
+import { formatRelativeTime } from '@/lib/formatters';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
@@ -27,15 +27,6 @@ import type { SignalStatus } from '@/types/ml';
 import { SignalStatusPill } from './SignalStatusPill';
 
 const PAGE_SIZE = 50;
-
-function fmtRelative(ts: string | null): string {
-  if (!ts) return '—';
-  try {
-    return `${formatDistanceToNowStrict(new Date(ts))} ago`;
-  } catch {
-    return '—';
-  }
-}
 
 function StreamingBanner() {
   const { data } = useStreamingStatus();
@@ -65,7 +56,7 @@ export function SignalsTable() {
   const { searchInput, setSearchInput, debouncedSearch, page, setPage } = useDebouncedSearchPage();
   const [status, setStatus] = useState<SignalStatus | 'all'>('all');
 
-  const { data, isLoading, isError } = useSignals({
+  const { data, isLoading, isError, isFetching, refetch } = useSignals({
     q: debouncedSearch || undefined,
     status: status === 'all' ? undefined : status,
     limit: PAGE_SIZE,
@@ -106,7 +97,7 @@ export function SignalsTable() {
           </SelectContent>
         </Select>
         <span className="ml-auto text-xs text-zinc-500">
-          {total} signal{total === 1 ? '' : 's'}
+          {isLoading ? '…' : `${total} signal${total === 1 ? '' : 's'}`}
         </span>
       </div>
 
@@ -118,7 +109,10 @@ export function SignalsTable() {
         </div>
       ) : isError ? (
         <div className="rounded-md border border-rose-500/30 bg-rose-500/5 p-4 text-sm text-rose-200">
-          Failed to load signals.
+          Failed to load signals.{' '}
+          <button type="button" onClick={() => refetch()} className="underline">
+            Retry
+          </button>
         </div>
       ) : (data?.signals.length ?? 0) === 0 ? (
         <div className="rounded-md border border-dashed border-zinc-800 px-4 py-8 text-center text-sm text-zinc-500">
@@ -141,53 +135,55 @@ export function SignalsTable() {
               {data!.signals.map((s) => {
                 const isFail = s.gauntletVerdict === 'FAIL';
                 return (
-                <TableRow
-                  key={s.signalId}
-                  className="hover:bg-zinc-900/40"
-                  style={isFail ? { opacity: 0.45 } : undefined}
-                >
-                  <TableCell>
-                    <Link
-                      href={`/ml/signals/${s.signalId}`}
-                      className="font-medium text-zinc-100 hover:underline"
-                    >
-                      {s.signalName}
-                    </Link>
-                    {isFail && (
-                      <span className="ml-2 rounded px-1 py-0.5 text-[9px] font-bold uppercase tracking-wider"
-                        style={{ background: 'rgba(239,68,68,0.12)', color: 'var(--color-loss)' }}>
-                        FAIL
-                      </span>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <SignalStatusPill status={s.status} />
-                  </TableCell>
-                  <TableCell className="text-sm text-zinc-300">
-                    {s.symbol ?? '—'} <span className="text-zinc-500">·</span>{' '}
-                    {s.intervalName ?? '—'}
-                  </TableCell>
-                  <TableCell className="text-sm">
-                    {s.boundStrategyCodes.length === 0 ? (
-                      <span className="text-zinc-500">none</span>
-                    ) : (
-                      <span className="font-mono text-zinc-300">
-                        {s.boundStrategyCodes.join(', ')}
-                      </span>
-                    )}
-                  </TableCell>
-                  <TableCell className="text-sm">
-                    <Link
-                      href={`/ml/models/${s.modelId}`}
-                      className="text-zinc-400 hover:text-zinc-200 hover:underline"
-                    >
-                      {s.modelSpecName}
-                    </Link>
-                  </TableCell>
-                  <TableCell className="text-right text-xs text-zinc-400">
-                    {fmtRelative(s.createdAt)}
-                  </TableCell>
-                </TableRow>
+                  <TableRow
+                    key={s.signalId}
+                    className="hover:bg-zinc-900/40"
+                    style={isFail ? { opacity: 0.45 } : undefined}
+                  >
+                    <TableCell>
+                      <Link
+                        href={`/ml/signals/${s.signalId}`}
+                        className="font-medium text-zinc-100 hover:underline"
+                      >
+                        {s.signalName}
+                      </Link>
+                      {isFail && (
+                        <span
+                          className="ml-2 rounded px-1 py-0.5 text-[9px] font-bold uppercase tracking-wider"
+                          style={{ background: 'rgba(239,68,68,0.12)', color: 'var(--color-loss)' }}
+                        >
+                          FAIL
+                        </span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <SignalStatusPill status={s.status} />
+                    </TableCell>
+                    <TableCell className="text-sm text-zinc-300">
+                      {s.symbol ?? '—'} <span className="text-zinc-500">·</span>{' '}
+                      {s.intervalName ?? '—'}
+                    </TableCell>
+                    <TableCell className="text-sm">
+                      {s.boundStrategyCodes.length === 0 ? (
+                        <span className="text-zinc-500">none</span>
+                      ) : (
+                        <span className="font-mono text-zinc-300">
+                          {s.boundStrategyCodes.join(', ')}
+                        </span>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-sm">
+                      <Link
+                        href={`/ml/models/${s.modelId}`}
+                        className="text-zinc-400 hover:text-zinc-200 hover:underline"
+                      >
+                        {s.modelSpecName}
+                      </Link>
+                    </TableCell>
+                    <TableCell className="text-right text-xs text-zinc-400">
+                      {formatRelativeTime(s.createdAt)}
+                    </TableCell>
+                  </TableRow>
                 );
               })}
             </TableBody>
@@ -199,7 +195,7 @@ export function SignalsTable() {
         <div className="flex items-center justify-between text-sm text-zinc-400">
           <button
             type="button"
-            disabled={page === 0}
+            disabled={page === 0 || isFetching}
             onClick={() => setPage(Math.max(0, page - 1))}
             className="rounded-md border border-zinc-800 px-3 py-1 hover:bg-zinc-900 disabled:opacity-40"
           >
@@ -210,7 +206,7 @@ export function SignalsTable() {
           </span>
           <button
             type="button"
-            disabled={page >= lastPage}
+            disabled={page >= lastPage || isFetching}
             onClick={() => setPage(Math.min(lastPage, page + 1))}
             className="rounded-md border border-zinc-800 px-3 py-1 hover:bg-zinc-900 disabled:opacity-40"
           >

@@ -54,10 +54,7 @@ export function drawdownSeries(series: { time: number; value: number }[]): Drawd
  * equity sample's timestamp so the two series share an x-axis. Equity samples
  * with no same-day close are dropped (we never invent a price).
  */
-export function alignClosesToEquity(
-  equity: EquitySample[],
-  closes: ClosePoint[],
-): ClosePoint[] {
+export function alignClosesToEquity(equity: EquitySample[], closes: ClosePoint[]): ClosePoint[] {
   if (equity.length === 0 || closes.length === 0) return [];
   const byDay = new Map<number, number>();
   for (const c of closes) {
@@ -80,10 +77,7 @@ export function alignClosesToEquity(
  * The closes are day-aligned to the equity samples first, so a mismatched
  * cadence can't smear the two series.
  */
-export function btcStackSeries(
-  equity: EquitySample[],
-  closes: ClosePoint[],
-): BtcStackPoint[] {
+export function btcStackSeries(equity: EquitySample[], closes: ClosePoint[]): BtcStackPoint[] {
   const aligned = alignClosesToEquity(equity, closes);
   if (aligned.length === 0) return [];
   const equityByTime = new Map(equity.map((e) => [e.time, e.equity]));

@@ -75,10 +75,7 @@ export async function attachEvidence(
   id: string,
   request: AttachEvidenceRequest,
 ): Promise<SymbolApproval> {
-  const { data } = await apiClient.patch<SymbolApproval>(
-    `${ADMIN}/${id}/attach-evidence`,
-    request,
-  );
+  const { data } = await apiClient.patch<SymbolApproval>(`${ADMIN}/${id}/attach-evidence`, request);
   return coerceSymbolApproval(data);
 }
 

@@ -13,8 +13,7 @@
  */
 
 /** Returns true iff the strategy kind is HEDGING (case-insensitive). */
-export const isHedging = (k?: string | null): boolean =>
-  (k ?? '').toUpperCase() === 'HEDGING';
+export const isHedging = (k?: string | null): boolean => (k ?? '').toUpperCase() === 'HEDGING';
 
 /** Returns true iff the strategy kind is TRADING (or legacy undefined/null). */
 export const isTrading = (k?: string | null): boolean => !isHedging(k);

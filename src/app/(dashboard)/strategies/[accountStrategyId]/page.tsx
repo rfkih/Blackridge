@@ -952,7 +952,7 @@ function PositionSizingPanel({ strategy }: { strategy: AccountStrategy }) {
               </div>
               {isRisk && (
                 <div className="flex items-center gap-1">
-                  <label className="font-mono text-[10px] text-text-muted">Risk/trade</label>
+                  <span className="font-mono text-[10px] text-text-muted">Risk/trade</span>
                   <Select value={riskInput} onValueChange={setRiskInput}>
                     <SelectTrigger
                       className="h-7 w-[88px] font-mono text-[11px]"

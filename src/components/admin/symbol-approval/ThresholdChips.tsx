@@ -20,9 +20,7 @@ export function ThresholdChips({ onAddForSymbol, onEditThresholds }: ThresholdCh
   const { data: thresholds = [], isLoading } = useApprovalThresholds();
 
   if (isLoading) {
-    return (
-      <div className="font-mono text-[11px] text-text-muted">Loading thresholds…</div>
-    );
+    return <div className="font-mono text-[11px] text-text-muted">Loading thresholds…</div>;
   }
 
   if (thresholds.length === 0) {

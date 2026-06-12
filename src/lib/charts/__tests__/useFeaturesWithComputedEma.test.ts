@@ -20,15 +20,24 @@ const mkAt = (closes: number[], t0 = 1) =>
 
 describe('mergeComputedEma warmup', () => {
   it('has ema100 at the FIRST window bar when warmup candles are supplied', () => {
-    const warmup = mkAt(Array.from({ length: 120 }, (_v, i) => 100 + i), 1); // times 1..120
-    const window = mkAt(Array.from({ length: 10 }, (_v, i) => 220 + i), 121); // times 121..130
+    const warmup = mkAt(
+      Array.from({ length: 120 }, (_v, i) => 100 + i),
+      1,
+    ); // times 1..120
+    const window = mkAt(
+      Array.from({ length: 10 }, (_v, i) => 220 + i),
+      121,
+    ); // times 121..130
     const out = mergeComputedEma(window, [], warmup);
     const first = out.find((r) => r.time === 121);
     expect(first?.ema100).not.toBeNull(); // covered from the very first window bar
     expect(out.every((r) => r.time >= 121)).toBe(true); // only window rows emitted, no warmup rows
   });
   it('without warmup, the first bars of a short window have null ema100', () => {
-    const window = mkAt(Array.from({ length: 10 }, (_v, i) => 220 + i), 121);
+    const window = mkAt(
+      Array.from({ length: 10 }, (_v, i) => 220 + i),
+      121,
+    );
     const out = mergeComputedEma(window, []);
     expect(out[0].ema100).toBeNull();
   });

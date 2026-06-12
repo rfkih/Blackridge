@@ -1,8 +1,9 @@
 'use client';
 
 import Link from 'next/link';
-import { formatDistanceToNowStrict } from 'date-fns';
 import { useMlMonitor } from '@/lib/api/ml';
+import { formatRelativeTime } from '@/lib/formatters';
+import type { HealthVerdict } from '@/types/ml';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   Table,
@@ -16,15 +17,6 @@ import { HealthDot } from './HealthDot';
 import { SignalStatusPill } from './SignalStatusPill';
 import { CoverageBar } from './CoverageBar';
 import { MlMonitorAlertRibbon } from './MlMonitorAlertRibbon';
-
-function fmtRelative(ts: string | null): string {
-  if (!ts) return '—';
-  try {
-    return `${formatDistanceToNowStrict(new Date(ts))} ago`;
-  } catch {
-    return '—';
-  }
-}
 
 function fmtAuc(v: number | null): string {
   if (v === null || !Number.isFinite(v)) return '—';
@@ -66,7 +58,12 @@ export function MlMonitorTable() {
     );
   }
 
-  const rows = data?.rows ?? [];
+  // Page copy promises "red rows alert at the top" — the rollup is the full
+  // (non-paginated) dataset, so display ordering happens here.
+  const HEALTH_RANK: Record<HealthVerdict, number> = { red: 0, amber: 1, green: 2 };
+  const rows = [...(data?.rows ?? [])].sort(
+    (a, b) => HEALTH_RANK[a.health] - HEALTH_RANK[b.health],
+  );
   if (rows.length === 0) {
     return (
       <div className="rounded-md border border-dashed border-zinc-800 px-4 py-8 text-center text-sm text-zinc-500">
@@ -136,13 +133,15 @@ export function MlMonitorTable() {
                 </TableCell>
                 <TableCell className="text-right font-mono tabular-nums">{r.fires24h}</TableCell>
                 <TableCell className="text-right text-xs text-zinc-400">
-                  <div title="Latest signal bar (data recency)">{fmtRelative(r.lastFireTs)}</div>
+                  <div title="Latest signal bar (data recency)">
+                    {formatRelativeTime(r.lastFireTs)}
+                  </div>
                   {r.lastProducedAt && (
                     <div
                       className="text-[10px] text-zinc-600"
                       title="When the inference worker last wrote this signal (pipeline liveness)"
                     >
-                      written {fmtRelative(r.lastProducedAt)}
+                      written {formatRelativeTime(r.lastProducedAt)}
                     </div>
                   )}
                 </TableCell>

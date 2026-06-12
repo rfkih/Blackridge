@@ -76,8 +76,8 @@ export function AuthShell({
               maxWidth: 380,
             }}
           >
-            &ldquo;I sleep through Asia open now. Last quarter the bot beat my discretionary book
-            by 14%.&rdquo;
+            &ldquo;I sleep through Asia open now. Last quarter the bot beat my discretionary book by
+            14%.&rdquo;
           </div>
           <div className="mt-7 flex items-center gap-3">
             <div
@@ -105,7 +105,10 @@ export function AuthShell({
       </aside>
 
       {}
-      <main className="relative w-full p-8 sm:p-12 md:p-14" style={{ background: 'var(--bg-base)' }}>
+      <main
+        className="relative w-full p-8 sm:p-12 md:p-14"
+        style={{ background: 'var(--bg-base)' }}
+      >
         {}
         <div className="mb-6 flex items-center justify-between md:hidden">
           <Link href="/welcome" className="inline-flex items-center gap-2.5">
@@ -153,10 +156,7 @@ export function AuthShell({
           </div>
         )}
 
-        <div
-          className="mx-auto w-full"
-          style={{ maxWidth, paddingTop: 28 }}
-        >
+        <div className="mx-auto w-full" style={{ maxWidth, paddingTop: 28 }}>
           {children}
         </div>
       </main>

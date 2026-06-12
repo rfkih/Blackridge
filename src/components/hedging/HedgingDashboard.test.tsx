@@ -2,6 +2,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import type { UseAllocationResult } from '@/hooks/useAllocation';
 
+import { HedgingDashboard } from './HedgingDashboard';
+
 // The composition renders leaf widgets that each read their own data hooks.
 // Mock the leaf hooks so the dashboard renders without a query client / network.
 const useAllocation = vi.fn();
@@ -32,8 +34,6 @@ vi.mock('@/hooks/useRebalances', () => ({
 vi.mock('@/hooks/useBtcBuyHold', () => ({
   useBtcBuyHold: (...a: unknown[]) => useBtcBuyHold(...a),
 }));
-
-import { HedgingDashboard } from './HedgingDashboard';
 
 function mkAllocation(overrides: Partial<UseAllocationResult> = {}): UseAllocationResult {
   return {
@@ -134,10 +134,7 @@ describe('HedgingDashboard', () => {
     // both panels render plotted content, not their price-history empty state
     expect(screen.queryByText(/requires price history/i)).not.toBeInTheDocument();
     // the equity points + period are forwarded to the BTC compare hook
-    expect(useBtcBuyHold).toHaveBeenCalledWith(
-      [{ time: 1, equity: 100, drawdown: 0 }],
-      '30D',
-    );
+    expect(useBtcBuyHold).toHaveBeenCalledWith([{ time: 1, equity: 100, drawdown: 0 }], '30D');
   });
 
   it('still renders the panels honestly when the BTC compare series is unavailable', () => {

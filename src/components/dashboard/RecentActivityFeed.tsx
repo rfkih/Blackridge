@@ -41,8 +41,7 @@ export function RecentActivityFeed() {
     const trades: Trades[] = data?.content ?? [];
     const out: ActivityEvent[] = [];
     for (const t of trades) {
-      const isClosed =
-        t.status === 'CLOSED' && t.exitTime != null && t.exitAvgPrice != null;
+      const isClosed = t.status === 'CLOSED' && t.exitTime != null && t.exitAvgPrice != null;
       if (isClosed) {
         out.push({
           id: `${t.id}-exit`,
@@ -89,10 +88,7 @@ export function RecentActivityFeed() {
           marginBottom: 12,
         }}
       >
-        <h3
-          className="mm-display"
-          style={{ fontSize: 16, color: 'var(--mm-ink-0)', margin: 0 }}
-        >
+        <h3 className="mm-display" style={{ fontSize: 16, color: 'var(--mm-ink-0)', margin: 0 }}>
           Recent activity
         </h3>
         <Link
@@ -187,10 +183,7 @@ function ActivityRow({ event, isLast }: { event: ActivityEvent; isLast: boolean 
         }}
       >
         <strong style={{ fontWeight: 700 }}>{event.strategyCode}</strong> {verb}{' '}
-        <span
-          className="font-mono"
-          style={{ color: 'var(--mm-ink-2)' }}
-        >
+        <span className="font-mono" style={{ color: 'var(--mm-ink-2)' }}>
           {qty} {displaySym}
         </span>{' '}
         at {formatCurrency(event.price)}

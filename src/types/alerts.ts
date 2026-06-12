@@ -1,4 +1,3 @@
-
 import type { PageEnvelope } from './api';
 
 /** Operational alert severity — `INFO`/`WARN` route to the inbox; `CRITICAL` also pages on-call. */

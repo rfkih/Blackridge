@@ -31,9 +31,7 @@ interface EditAccountDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
-const EXCHANGE_OPTIONS = [
-  { value: 'BNC', label: 'Binance Spot' },
-];
+const EXCHANGE_OPTIONS = [{ value: 'BNC', label: 'Binance Spot' }];
 
 const USERNAME_PATTERN = /^[A-Za-z0-9 _-]+$/;
 
@@ -115,6 +113,7 @@ export function EditAccountDialog({ account, open, onOpenChange }: EditAccountDi
         </DialogHeader>
 
         <div
+          role="presentation"
           className="grid grid-cols-2 gap-4"
           onKeyDown={(e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
@@ -188,12 +187,7 @@ export function EditAccountDialog({ account, open, onOpenChange }: EditAccountDi
             >
               Cancel
             </Button>
-            <Button
-              type="button"
-              onClick={handleSubmit}
-              disabled={!canSubmit}
-              className="gap-2"
-            >
+            <Button type="button" onClick={handleSubmit} disabled={!canSubmit} className="gap-2">
               {mutation.isPending ? (
                 <>
                   <Loader2 size={14} className="animate-spin" /> Saving

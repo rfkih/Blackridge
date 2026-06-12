@@ -182,9 +182,7 @@ function ApprovalRow({
         <div className="flex flex-col">
           <span>{row.createdBy ?? '—'}</span>
           {row.createdTime && (
-            <span className="text-[9px]">
-              {format(new Date(row.createdTime), 'yyyy-MM-dd')}
-            </span>
+            <span className="text-[9px]">{format(new Date(row.createdTime), 'yyyy-MM-dd')}</span>
           )}
         </div>
       </td>

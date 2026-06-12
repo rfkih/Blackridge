@@ -1,11 +1,9 @@
-
 import { apiClient } from './client';
 import type {
   EnqueueSweepRequest,
   IterationRow,
   IterationsPage,
   JournalPage,
-  JournalRow,
   LeaderboardResponse,
   LeaderboardRow,
   QueuePage,

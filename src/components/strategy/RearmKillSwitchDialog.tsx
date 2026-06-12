@@ -66,9 +66,9 @@ export function RearmKillSwitchDialog({
             Re-arm kill-switch?
           </DialogTitle>
           <DialogDescription className="text-[var(--text-secondary)]">
-            The drawdown kill-switch tripped to halt new entries on this preset. Re-arming
-            clears the flag and the strategy resumes trading on the next signal — even if the
-            condition that tripped it has not resolved.
+            The drawdown kill-switch tripped to halt new entries on this preset. Re-arming clears
+            the flag and the strategy resumes trading on the next signal — even if the condition
+            that tripped it has not resolved.
           </DialogDescription>
         </DialogHeader>
 
@@ -85,9 +85,7 @@ export function RearmKillSwitchDialog({
           </p>
           <p className="font-mono text-sm">
             <span className="text-[var(--text-muted)]">Tripped:</span>{' '}
-            <span className="text-[var(--text-primary)]">
-              {trippedLabel ?? 'unknown time'}
-            </span>
+            <span className="text-[var(--text-primary)]">{trippedLabel ?? 'unknown time'}</span>
           </p>
           <p className="font-mono text-xs text-[var(--text-secondary)]">
             <span className="text-[var(--text-muted)]">Reason:</span> {reason}
@@ -95,8 +93,8 @@ export function RearmKillSwitchDialog({
         </div>
 
         <p className="rounded border border-[rgba(229,72,77,0.32)] bg-[rgba(229,72,77,0.08)] px-3 py-2 text-xs text-[var(--color-loss)]">
-          Open positions are unaffected — they continue to be managed by their stops. Re-arming
-          only clears the block on opening new positions.
+          Open positions are unaffected — they continue to be managed by their stops. Re-arming only
+          clears the block on opening new positions.
         </p>
 
         <DialogFooter>
@@ -113,9 +111,7 @@ export function RearmKillSwitchDialog({
             disabled={disabled}
             className="rounded-md bg-[var(--color-loss)] px-3 py-1.5 text-xs font-semibold text-[var(--text-inverse)] transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
             aria-label={
-              cooldownActive
-                ? `Re-arm available in ${secondsLeft} seconds`
-                : 'Re-arm kill-switch'
+              cooldownActive ? `Re-arm available in ${secondsLeft} seconds` : 'Re-arm kill-switch'
             }
           >
             {isRearming

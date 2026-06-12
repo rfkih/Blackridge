@@ -29,8 +29,7 @@ export function CookieConsentBanner() {
     setDecision(next);
     try {
       window.localStorage.setItem(STORAGE_KEY, next);
-    } catch {
-    }
+    } catch {}
   };
 
   if (decision === undefined || decision !== null) return null;
@@ -68,10 +67,7 @@ export function CookieConsentBanner() {
       >
         <div style={{ flex: '1 1 280px', fontSize: 12, color: 'var(--mm-ink-1)', lineHeight: 1.5 }}>
           We use a session signal cookie + a few localStorage entries for sign-in and preferences.{' '}
-          <Link
-            href="/cookies"
-            style={{ color: 'var(--brand-600)', textDecoration: 'underline' }}
-          >
+          <Link href="/cookies" style={{ color: 'var(--brand-600)', textDecoration: 'underline' }}>
             Read what we use
           </Link>
           . No advertising or analytics trackers.

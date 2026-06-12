@@ -27,16 +27,14 @@ describe('executionTitle', () => {
 
   it('labels a stop-loss close with the mapped reason', () => {
     expect(
-      executionTitle(
-        event({ executionType: 'CLOSE', executionReason: 'STOP_LOSS', side: 'LONG' }),
-      ),
+      executionTitle(event({ executionType: 'CLOSE', executionReason: 'STOP_LOSS', side: 'LONG' })),
     ).toBe('Trade closed (stop loss) — LONG ETHUSDT');
   });
 
   it('labels a take-profit close with the mapped reason', () => {
-    expect(
-      executionTitle(event({ executionType: 'CLOSE', executionReason: 'TAKE_PROFIT' })),
-    ).toBe('Trade closed (take profit) — LONG ETHUSDT');
+    expect(executionTitle(event({ executionType: 'CLOSE', executionReason: 'TAKE_PROFIT' }))).toBe(
+      'Trade closed (take profit) — LONG ETHUSDT',
+    );
   });
 
   it('labels a close without a mapped reason plainly', () => {
@@ -70,15 +68,15 @@ describe('executionBody', () => {
   });
 
   it('shows free-form entry reasons on success', () => {
-    expect(
-      executionBody(event({ executionReason: 'DCB long: donchian breakout + volume' })),
-    ).toBe('DCB · DCB long: donchian breakout + volume');
+    expect(executionBody(event({ executionReason: 'DCB long: donchian breakout + volume' }))).toBe(
+      'DCB · DCB long: donchian breakout + volume',
+    );
   });
 
   it('omits mapped reason codes already shown in the title', () => {
-    expect(
-      executionBody(event({ executionType: 'CLOSE', executionReason: 'TAKE_PROFIT' })),
-    ).toBe('DCB');
+    expect(executionBody(event({ executionType: 'CLOSE', executionReason: 'TAKE_PROFIT' }))).toBe(
+      'DCB',
+    );
   });
 
   it('falls back when nothing else is available', () => {

@@ -166,6 +166,7 @@ function RegisterPageContent() {
       maxWidth={480}
       topRight={{ label: 'Already a trader?', cta: 'Sign in →', href: '/login' }}
     >
+      {/* eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions -- Enter-to-submit convenience on the no-<form> house pattern; inputs inside remain natively focusable */}
       <div
         role="form"
         aria-label="Create account"
@@ -357,9 +358,7 @@ function RegisterPageContent() {
                     onChange={(e) => setField('confirmPassword', e.target.value)}
                     disabled={isSubmitting}
                     aria-invalid={Boolean(errors.confirmPassword)}
-                    aria-describedby={
-                      errors.confirmPassword ? 'confirmPassword-error' : undefined
-                    }
+                    aria-describedby={errors.confirmPassword ? 'confirmPassword-error' : undefined}
                     style={{ ...FIELD_INPUT_STYLE, paddingRight: 56 }}
                   />
                   <button
@@ -486,7 +485,9 @@ function RegisterPageContent() {
               <button
                 type="button"
                 disabled={isSubmitting}
-                onClick={() => void submit()}
+                onClick={() => {
+                  void submit();
+                }}
                 style={{
                   width: '100%',
                   marginTop: 14,

@@ -3,6 +3,8 @@ import { render, screen, within } from '@testing-library/react';
 import type { AccountSummary } from '@/types/account';
 import type { AccountStrategy } from '@/types/strategy';
 
+import StrategiesPage from './page';
+
 // --- control the strategies list + the accounts/active-account context ---
 const useAllVisibleStrategies = vi.fn();
 const useActiveAccount = vi.fn();
@@ -40,11 +42,13 @@ vi.mock('next/link', () => ({
 vi.mock('@/components/strategy/NewStrategyDialog', () => ({ NewStrategyDialog: () => null }));
 vi.mock('@/components/strategy/DeleteStrategyDialog', () => ({ DeleteStrategyDialog: () => null }));
 vi.mock('@/components/strategy/CloneStrategyDialog', () => ({ CloneStrategyDialog: () => null }));
-vi.mock('@/components/strategy/RearmKillSwitchDialog', () => ({ RearmKillSwitchDialog: () => null }));
+vi.mock('@/components/strategy/RearmKillSwitchDialog', () => ({
+  RearmKillSwitchDialog: () => null,
+}));
 vi.mock('@/components/strategy/SwitchToLiveDialog', () => ({ SwitchToLiveDialog: () => null }));
-vi.mock('@/components/strategy/StrategyTopRunsDialog', () => ({ StrategyTopRunsDialog: () => null }));
-
-import StrategiesPage from './page';
+vi.mock('@/components/strategy/StrategyTopRunsDialog', () => ({
+  StrategyTopRunsDialog: () => null,
+}));
 
 function mkAccount(p: Partial<AccountSummary>): AccountSummary {
   return {

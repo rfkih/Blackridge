@@ -1,4 +1,3 @@
-
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect } from 'react';
@@ -127,8 +126,7 @@ export function useAuth() {
   const logout = useCallback(async () => {
     try {
       await apiClient.post('/api/v1/users/logout');
-    } catch {
-    }
+    } catch {}
     clearAuth();
     queryClient.removeQueries({ queryKey: ME_QUERY_KEY });
     queryClient.clear();

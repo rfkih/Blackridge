@@ -9,7 +9,11 @@ interface MarketingShellProps {
   activeNav?: 'product' | 'strategies' | 'pricing' | 'security' | 'docs';
 }
 
-const NAV_LINKS: { label: string; href: string; key: NonNullable<MarketingShellProps['activeNav']> }[] = [
+const NAV_LINKS: {
+  label: string;
+  href: string;
+  key: NonNullable<MarketingShellProps['activeNav']>;
+}[] = [
   { label: 'Product', href: '/product', key: 'product' },
   { label: 'Strategies', href: '/strategies-overview', key: 'strategies' },
   { label: 'Pricing', href: '/pricing', key: 'pricing' },

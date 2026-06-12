@@ -1,4 +1,3 @@
-
 import { apiClient } from './client';
 import type { ISO8601 } from '@/types/api';
 
@@ -39,10 +38,7 @@ export async function updateScheduler(
   id: number,
   patch: SchedulerUpdateInput,
 ): Promise<SchedulerJobStatus> {
-  const { data } = await apiClient.patch<SchedulerJobStatus>(
-    `/api/v1/scheduler/${id}`,
-    patch,
-  );
+  const { data } = await apiClient.patch<SchedulerJobStatus>(`/api/v1/scheduler/${id}`, patch);
   return data;
 }
 

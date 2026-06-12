@@ -196,7 +196,6 @@ export default function TradeDetailPage({ params }: { params: { id: string } }) 
                   position={p}
                   direction={trade.direction}
                   isOpen={legOpen}
-
                   liveUnrealizedPnl={legOpen ? (livePnl ?? trade.unrealizedPnl) : null}
                 />
               );

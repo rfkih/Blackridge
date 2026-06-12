@@ -2,13 +2,16 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, ArrowRight, Clock, Loader2, Play, AlertTriangle, HelpCircle } from 'lucide-react';
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
+  ArrowLeft,
+  ArrowRight,
+  Clock,
+  Loader2,
+  Play,
+  AlertTriangle,
+  HelpCircle,
+} from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import {
   Dialog,
   DialogContent,
@@ -199,7 +202,11 @@ export function BacktestParamTuner() {
   }, [totalOverrides]);
 
   const createMutation = useCreateBacktestRun();
-  const { count: activeBacktestCount, isLoading: activeCountLoading, firstActiveId } = useActiveBacktestCount();
+  const {
+    count: activeBacktestCount,
+    isLoading: activeCountLoading,
+    firstActiveId,
+  } = useActiveBacktestCount();
   const isAtLimit = activeBacktestCount >= BACKTEST_QUEUE_LIMIT;
   const hasQueued = activeBacktestCount > 0 && !isAtLimit;
   const [confirmQueueOpen, setConfirmQueueOpen] = useState(false);
@@ -415,7 +422,7 @@ export function BacktestParamTuner() {
           />
           <label
             htmlFor="useCalibratedSlippage"
-            className="flex flex-col gap-0.5 text-[12px] text-text-primary cursor-pointer"
+            className="flex cursor-pointer flex-col gap-0.5 text-[12px] text-text-primary"
           >
             <span className="inline-flex items-center gap-1.5 font-semibold">
               Use calibrated slippage
@@ -478,7 +485,9 @@ export function BacktestParamTuner() {
           <button
             type="button"
             onClick={handleRunClick}
-            disabled={createMutation.isPending || defaultsLoading || isAtLimit || activeCountLoading}
+            disabled={
+              createMutation.isPending || defaultsLoading || isAtLimit || activeCountLoading
+            }
             className={cn(
               'inline-flex items-center gap-1.5 rounded-sm bg-profit px-4 py-2 text-[12px] font-semibold text-text-inverse',
               'transition-opacity duration-fast hover:opacity-90',
@@ -514,14 +523,12 @@ export function BacktestParamTuner() {
       <Dialog open={confirmQueueOpen} onOpenChange={setConfirmQueueOpen}>
         <DialogContent className="max-w-md border-[var(--border-default)] bg-[var(--bg-surface)] text-[var(--text-primary)]">
           <DialogHeader>
-            <DialogTitle className="font-display text-lg">
-              Add to queue?
-            </DialogTitle>
+            <DialogTitle className="font-display text-lg">Add to queue?</DialogTitle>
             <DialogDescription className="text-[var(--text-secondary)]">
               You already have {activeBacktestCount} backtest
-              {activeBacktestCount === 1 ? '' : 's'} pending or running. This run
-              will start automatically after the current queue finishes. Queue
-              capacity is {BACKTEST_QUEUE_LIMIT}.
+              {activeBacktestCount === 1 ? '' : 's'} pending or running. This run will start
+              automatically after the current queue finishes. Queue capacity is{' '}
+              {BACKTEST_QUEUE_LIMIT}.
             </DialogDescription>
           </DialogHeader>
 
@@ -534,9 +541,7 @@ export function BacktestParamTuner() {
             </p>
             <p className="font-mono">
               <span className="text-[var(--text-muted)]">Strategies:</span>{' '}
-              <span className="text-[var(--text-primary)]">
-                {strategyCodes.join(', ')}
-              </span>
+              <span className="text-[var(--text-primary)]">{strategyCodes.join(', ')}</span>
             </p>
             <p className="font-mono">
               <span className="text-[var(--text-muted)]">Queue position:</span>{' '}
@@ -814,19 +819,19 @@ function SlippageHelpHint() {
           className="max-w-sm bg-bg-base text-[11px] leading-relaxed text-text-primary"
         >
           <p>
-            Replaces the platform&apos;s default 0.05% slippage assumption
-            with a value <strong>measured from your own past fills</strong>.
-            Every closed trade records its intended-vs-actual entry price;
-            the calibration service averages those into a per-symbol estimate.
+            Replaces the platform&apos;s default 0.05% slippage assumption with a value{' '}
+            <strong>measured from your own past fills</strong>. Every closed trade records its
+            intended-vs-actual entry price; the calibration service averages those into a per-symbol
+            estimate.
           </p>
           <p className="mt-1.5">
-            Need ≥ 20 fills for a trustworthy number — below that the backend
-            falls back to the default. Useful when your real costs diverge
-            from textbook assumptions (high-vol symbols, thin-orderbook hours).
+            Need ≥ 20 fills for a trustworthy number — below that the backend falls back to the
+            default. Useful when your real costs diverge from textbook assumptions (high-vol
+            symbols, thin-orderbook hours).
           </p>
           <p className="mt-1.5 text-text-muted">
-            Off by default so existing &quot;deterministic replay&quot;
-            backtests stay reproducible. Toggle on for cost-realistic runs.
+            Off by default so existing &quot;deterministic replay&quot; backtests stay reproducible.
+            Toggle on for cost-realistic runs.
           </p>
         </TooltipContent>
       </Tooltip>

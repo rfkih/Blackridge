@@ -4,6 +4,8 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { StrategyParamPreset } from '@/types/strategy';
 
+import { StrategyParamPresetPanel } from './StrategyParamPresetPanel';
+
 // --- mock the api module the hooks call ---
 const listStrategyParams = vi.fn();
 const activateStrategyParam = vi.fn();
@@ -47,8 +49,6 @@ vi.mock('@/components/ui/select', () => {
     SelectValue: () => null,
   };
 });
-
-import { StrategyParamPresetPanel } from './StrategyParamPresetPanel';
 
 function mkPreset(p: Partial<StrategyParamPreset>): StrategyParamPreset {
   return {

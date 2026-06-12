@@ -1,4 +1,3 @@
-
 import { apiClient } from './client';
 
 export async function verifyEmail(token: string): Promise<void> {

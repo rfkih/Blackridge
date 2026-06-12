@@ -119,15 +119,15 @@ export function PageLoader({ label = 'Loading', fullscreen = true, className }: 
             <span>{label}</span>
             <span className="ml-1 inline-flex items-baseline gap-[3px] align-baseline">
               <span
-                className="inline-block h-[3px] w-[3px] rounded-full bg-[var(--brand-500)] animate-[mm-dot_1.2s_ease-in-out_infinite]"
+                className="inline-block h-[3px] w-[3px] animate-[mm-dot_1.2s_ease-in-out_infinite] rounded-full bg-[var(--brand-500)]"
                 style={{ animationDelay: '0ms' }}
               />
               <span
-                className="inline-block h-[3px] w-[3px] rounded-full bg-[var(--brand-500)] animate-[mm-dot_1.2s_ease-in-out_infinite]"
+                className="inline-block h-[3px] w-[3px] animate-[mm-dot_1.2s_ease-in-out_infinite] rounded-full bg-[var(--brand-500)]"
                 style={{ animationDelay: '200ms' }}
               />
               <span
-                className="inline-block h-[3px] w-[3px] rounded-full bg-[var(--brand-500)] animate-[mm-dot_1.2s_ease-in-out_infinite]"
+                className="inline-block h-[3px] w-[3px] animate-[mm-dot_1.2s_ease-in-out_infinite] rounded-full bg-[var(--brand-500)]"
                 style={{ animationDelay: '400ms' }}
               />
             </span>
@@ -141,8 +141,7 @@ export function PageLoader({ label = 'Loading', fullscreen = true, className }: 
             <span
               className="absolute inset-y-0 w-1/3 animate-[mm-scan_1.8s_cubic-bezier(0.65,0,0.35,1)_infinite] rounded-full"
               style={{
-                background:
-                  'linear-gradient(90deg, transparent, var(--brand-500), transparent)',
+                background: 'linear-gradient(90deg, transparent, var(--brand-500), transparent)',
                 boxShadow: '0 0 8px var(--accent-subtle)',
               }}
             />

@@ -2,12 +2,12 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import type { RebalanceEvent } from '@/hooks/useRebalances';
 
+import { RebalanceHistory } from './RebalanceHistory';
+
 const useRebalances = vi.fn();
 vi.mock('@/hooks/useRebalances', () => ({
   useRebalances: (...a: unknown[]) => useRebalances(...a),
 }));
-
-import { RebalanceHistory } from './RebalanceHistory';
 
 const EVENTS: RebalanceEvent[] = [
   {

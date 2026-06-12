@@ -13,11 +13,7 @@ import {
   YAxis,
 } from 'recharts';
 import { Layers, TrendingUp } from 'lucide-react';
-import {
-  AXIS_TICK,
-  CHART_COLORS,
-  type ChartTooltipItem,
-} from '@/lib/charts/rechartsTheme';
+import { AXIS_TICK, CHART_COLORS, type ChartTooltipItem } from '@/lib/charts/rechartsTheme';
 import type { EquityPoint } from '@/types/papers';
 
 interface PaperEquityCurveChartProps {
@@ -46,7 +42,11 @@ interface TooltipPayload {
 // ---------------------------------------------------------------------------
 
 type ZoneType = 'strong' | 'weak';
-interface Zone { x1: number; x2: number; type: ZoneType }
+interface Zone {
+  x1: number;
+  x2: number;
+  type: ZoneType;
+}
 
 const ZONE_WINDOW = 30;
 const ZONE_THRESHOLD = 1.5;
@@ -113,7 +113,11 @@ function computeZones(data: ChartDatum[]): Zone[] {
 // Regime zones (market regime from strategy classification)
 // ---------------------------------------------------------------------------
 
-interface RegimeZone { x1: number; x2: number; regime: string }
+interface RegimeZone {
+  x1: number;
+  x2: number;
+  regime: string;
+}
 
 function regimeFill(regime: string): string {
   const u = regime.toUpperCase();
@@ -131,7 +135,10 @@ function regimeSwatch(regime: string): string {
 }
 
 function fmtRegime(regime: string): string {
-  return regime.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase());
+  return regime
+    .replace(/_/g, ' ')
+    .toLowerCase()
+    .replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
 function computeRegimeZones(data: ChartDatum[]): RegimeZone[] {
@@ -140,7 +147,10 @@ function computeRegimeZones(data: ChartDatum[]): RegimeZone[] {
   for (const d of data) {
     const r = d.regime;
     if (!r) {
-      if (current) { zones.push(current); current = null; }
+      if (current) {
+        zones.push(current);
+        current = null;
+      }
       continue;
     }
     if (current && current.regime === r) {
@@ -177,15 +187,21 @@ const EqTooltip = ({
         {fmtDate(d.t)}
       </p>
       {d.is !== null && (
-        <p className="font-mono text-[12px] font-semibold tabular-nums" style={{ color: CHART_COLORS.profit }}>
+        <p
+          className="font-mono text-[12px] font-semibold tabular-nums"
+          style={{ color: CHART_COLORS.profit }}
+        >
           IS: {d.is.toFixed(2)}{' '}
-          <span className="font-normal text-[10px]">({(d.is - 100).toFixed(2)}%)</span>
+          <span className="text-[10px] font-normal">({(d.is - 100).toFixed(2)}%)</span>
         </p>
       )}
       {d.wf !== null && (
-        <p className="font-mono text-[12px] font-semibold tabular-nums" style={{ color: CHART_COLORS.info }}>
+        <p
+          className="font-mono text-[12px] font-semibold tabular-nums"
+          style={{ color: CHART_COLORS.info }}
+        >
           WF: {d.wf.toFixed(2)}{' '}
-          <span className="font-normal text-[10px]">({(d.wf - 100).toFixed(2)}%)</span>
+          <span className="text-[10px] font-normal">({(d.wf - 100).toFixed(2)}%)</span>
         </p>
       )}
       {d.regime && (
@@ -276,7 +292,9 @@ export function PaperEquityCurveChart({
     }
     const wfMap = new Map<number, number>();
     for (const p of wfCurve ?? []) wfMap.set(p.t, p.value);
-    const allTs = Array.from(new Set([...Array.from(isMap.keys()), ...Array.from(wfMap.keys())])).sort((a, b) => a - b);
+    const allTs = Array.from(
+      new Set([...Array.from(isMap.keys()), ...Array.from(wfMap.keys())]),
+    ).sort((a, b) => a - b);
     return allTs.map((t) => ({
       t,
       is: isMap.has(t) ? isMap.get(t)! : null,
@@ -287,10 +305,7 @@ export function PaperEquityCurveChart({
 
   const hasRegimeData = useMemo(() => curve.some((p) => p.regime != null), [curve]);
 
-  const zones = useMemo<Zone[]>(
-    () => (showZones ? computeZones(data) : []),
-    [data, showZones],
-  );
+  const zones = useMemo<Zone[]>(() => (showZones ? computeZones(data) : []), [data, showZones]);
 
   const regimeZones = useMemo<RegimeZone[]>(
     () => (showRegime && hasRegimeData ? computeRegimeZones(data) : []),
@@ -310,8 +325,14 @@ export function PaperEquityCurveChart({
     let lo = 100;
     let hi = 100;
     for (const d of data) {
-      if (d.is !== null) { if (d.is < lo) lo = d.is; if (d.is > hi) hi = d.is; }
-      if (d.wf !== null) { if (d.wf < lo) lo = d.wf; if (d.wf > hi) hi = d.wf; }
+      if (d.is !== null) {
+        if (d.is < lo) lo = d.is;
+        if (d.is > hi) hi = d.is;
+      }
+      if (d.wf !== null) {
+        if (d.wf < lo) lo = d.wf;
+        if (d.wf > hi) hi = d.wf;
+      }
     }
     const pad = (hi - lo) * 0.06 || 2;
     return [Math.floor(lo - pad), Math.ceil(hi + pad)];
@@ -319,18 +340,27 @@ export function PaperEquityCurveChart({
 
   if (!data.length) {
     return (
-      <div className="flex items-center justify-center text-[12px] text-text-muted" style={{ height }}>
+      <div
+        className="flex items-center justify-center text-[12px] text-text-muted"
+        style={{ height }}
+      >
         No equity data available.
       </div>
     );
   }
 
   const tooShort = data.length <= ZONE_WINDOW;
-  const activeLegend = showRegime ? regimeLegendLabels : showZones ? (Object.keys(ZONE_LEGEND) as ZoneType[]) : [];
+  const activeLegend = showRegime
+    ? regimeLegendLabels
+    : showZones
+      ? (Object.keys(ZONE_LEGEND) as ZoneType[])
+      : [];
 
   return (
-    <div className="relative" style={{ height: typeof height === 'number' ? `${height}px` : height }}>
-
+    <div
+      className="relative"
+      style={{ height: typeof height === 'number' ? `${height}px` : height }}
+    >
       {/* Legend — shown below toggle buttons, left-anchored after Y axis */}
       {activeLegend.length > 0 && (
         <div
@@ -340,17 +370,38 @@ export function PaperEquityCurveChart({
           {showRegime
             ? regimeLegendLabels.map((r) => (
                 <span key={r} className="flex items-center gap-1">
-                  <span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: 2, background: regimeSwatch(r), flexShrink: 0 }} />
-                  <span className="font-mono text-[10px]" style={{ color: CHART_COLORS.neutral }}>{fmtRegime(r)}</span>
+                  <span
+                    style={{
+                      display: 'inline-block',
+                      width: 8,
+                      height: 8,
+                      borderRadius: 2,
+                      background: regimeSwatch(r),
+                      flexShrink: 0,
+                    }}
+                  />
+                  <span className="font-mono text-[10px]" style={{ color: CHART_COLORS.neutral }}>
+                    {fmtRegime(r)}
+                  </span>
                 </span>
               ))
             : (Object.keys(ZONE_LEGEND) as ZoneType[]).map((type) => (
                 <span key={type} className="flex items-center gap-1">
-                  <span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: 2, background: ZONE_LEGEND[type].swatch, flexShrink: 0 }} />
-                  <span className="font-mono text-[10px]" style={{ color: CHART_COLORS.neutral }}>{ZONE_LEGEND[type].label}</span>
+                  <span
+                    style={{
+                      display: 'inline-block',
+                      width: 8,
+                      height: 8,
+                      borderRadius: 2,
+                      background: ZONE_LEGEND[type].swatch,
+                      flexShrink: 0,
+                    }}
+                  />
+                  <span className="font-mono text-[10px]" style={{ color: CHART_COLORS.neutral }}>
+                    {ZONE_LEGEND[type].label}
+                  </span>
                 </span>
-              ))
-          }
+              ))}
         </div>
       )}
 
@@ -361,7 +412,13 @@ export function PaperEquityCurveChart({
           label="Regime"
           active={showRegime}
           disabled={!hasRegimeData}
-          title={!hasRegimeData ? 'Regenerate paper to get regime data' : showRegime ? 'Hide market regime' : 'Show market regime'}
+          title={
+            !hasRegimeData
+              ? 'Regenerate paper to get regime data'
+              : showRegime
+                ? 'Hide market regime'
+                : 'Show market regime'
+          }
           onClick={() => hasRegimeData && setShowRegime((v) => !v)}
           activeColor="#818cf8"
         />
@@ -370,7 +427,13 @@ export function PaperEquityCurveChart({
           label="Zones"
           active={showZones}
           disabled={tooShort}
-          title={tooShort ? `Need >${ZONE_WINDOW} bars for zones` : showZones ? 'Hide performance zones' : 'Show performance zones'}
+          title={
+            tooShort
+              ? `Need >${ZONE_WINDOW} bars for zones`
+              : showZones
+                ? 'Hide performance zones'
+                : 'Show performance zones'
+          }
           onClick={() => !tooShort && setShowZones((v) => !v)}
           activeColor={CHART_COLORS.profit}
         />
@@ -415,12 +478,24 @@ export function PaperEquityCurveChart({
 
           {/* Regime zones — deepest layer */}
           {regimeZones.map((z, i) => (
-            <ReferenceArea key={`r${i}`} x1={z.x1} x2={z.x2} fill={regimeFill(z.regime)} stroke="none" />
+            <ReferenceArea
+              key={`r${i}`}
+              x1={z.x1}
+              x2={z.x2}
+              fill={regimeFill(z.regime)}
+              stroke="none"
+            />
           ))}
 
           {/* Performance zones — on top of regime, below curves */}
           {zones.map((z, i) => (
-            <ReferenceArea key={`z${i}`} x1={z.x1} x2={z.x2} fill={ZONE_COLORS[z.type]} stroke="none" />
+            <ReferenceArea
+              key={`z${i}`}
+              x1={z.x1}
+              x2={z.x2}
+              fill={ZONE_COLORS[z.type]}
+              stroke="none"
+            />
           ))}
 
           <Area

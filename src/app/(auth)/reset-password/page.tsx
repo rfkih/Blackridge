@@ -217,6 +217,7 @@ function ResetPasswordContent() {
           </div>
         ) : (
           <div
+            role="presentation"
             onKeyDown={(e) => {
               if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
@@ -308,7 +309,9 @@ function ResetPasswordContent() {
 
             <button
               type="button"
-              onClick={() => void submit()}
+              onClick={() => {
+                void submit();
+              }}
               disabled={isSubmitting}
               style={{
                 width: '100%',

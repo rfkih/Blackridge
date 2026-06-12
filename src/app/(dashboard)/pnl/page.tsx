@@ -381,7 +381,6 @@ function DateInput({
   max?: string;
 }) {
   return (
-
     // eslint-disable-next-line jsx-a11y/label-has-associated-control
     <label className="flex flex-col gap-1">
       <span className="label-caps inline-flex items-center gap-1">
@@ -411,7 +410,6 @@ function SelectInput({
   options: Array<{ value: string; label: string }>;
 }) {
   return (
-
     // eslint-disable-next-line jsx-a11y/label-has-associated-control
     <label className="flex flex-col gap-1">
       <span className="label-caps">{label}</span>

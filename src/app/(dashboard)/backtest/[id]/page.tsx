@@ -95,9 +95,7 @@ export default function BacktestResultPage({ params }: { params: { id: string } 
   // Chart indicators: persisted toggle state + lazy fetch of indicator series
   // for this run's exact window. fromDate/toDate are ISO-8601 strings on the
   // normalized run, so convert to epoch ms for the range fetch.
-  const { indicators, toggle, anyActive } = useChartIndicators(
-    'blackheart:backtest-indicators',
-  );
+  const { indicators, toggle, anyActive } = useChartIndicators('blackheart:backtest-indicators');
   const fromMs = runQ.data?.fromDate ? new Date(runQ.data.fromDate).getTime() : undefined;
   const toMs = runQ.data?.toDate ? new Date(runQ.data.toDate).getTime() : undefined;
   const indicatorsQ = useBacktestIndicators(
@@ -164,8 +162,10 @@ export default function BacktestResultPage({ params }: { params: { id: string } 
     // Compute verdict for the panel caption.
     const strategyEndEquity = equity[equity.length - 1]?.equity ?? capital;
     const strategyReturnPctVal = totalReturnPct(capital, strategyEndEquity);
-    const strategyMaxDdPctVal =
-      equity.reduce((acc, p) => (p.drawdownPct < acc ? p.drawdownPct : acc), 0);
+    const strategyMaxDdPctVal = equity.reduce(
+      (acc, p) => (p.drawdownPct < acc ? p.drawdownPct : acc),
+      0,
+    );
 
     const bhFirst = buyHoldAligned[0]?.equity ?? capital;
     const bhLast = buyHoldAligned[buyHoldAligned.length - 1]?.equity ?? capital;
@@ -541,7 +541,6 @@ function ResultHeader({
       <div className="flex shrink-0 flex-wrap items-center gap-2">
         {run?.status === 'COMPLETED' &&
           (liveSourceStrategies.length > 0 ? (
-
             <div className="border-[var(--color-profit)]/30 bg-[var(--color-profit)]/5 inline-flex items-center gap-2 rounded-full border px-3 py-2">
               <Zap size={13} strokeWidth={2} className="text-[var(--color-profit)]/70 shrink-0" />
               <span className="text-[12px] text-[var(--text-secondary)]">Active strategy</span>
@@ -815,7 +814,8 @@ function ReproducibilityPanel({ run }: { run: BacktestRun }) {
       {overrideEntries.length > 0 && (
         <div className="border-t border-bd-subtle px-4 py-3">
           <p className="mb-2 font-mono text-[9px] uppercase tracking-wider text-text-muted">
-            Override values <span className="text-text-muted/70 ml-1 normal-case">(deltas vs defaults)</span>
+            Override values{' '}
+            <span className="text-text-muted/70 ml-1 normal-case">(deltas vs defaults)</span>
           </p>
           <ParamSnapshotTables entries={overrideEntries} />
         </div>
@@ -838,11 +838,7 @@ function ReproducibilityPanel({ run }: { run: BacktestRun }) {
   );
 }
 
-function ParamSnapshotTables({
-  entries,
-}: {
-  entries: Array<[string, Record<string, unknown>]>;
-}) {
+function ParamSnapshotTables({ entries }: { entries: Array<[string, Record<string, unknown>]> }) {
   return (
     <div className="space-y-3">
       {entries.map(([code, kv]) => (
@@ -853,9 +849,7 @@ function ParamSnapshotTables({
               {Object.entries(kv).map(([k, v]) => (
                 <tr key={k} className="border-bd-subtle/60 border-t">
                   <td className="py-1 pr-3 text-text-secondary">{k}</td>
-                  <td className="py-1 tabular-nums text-text-primary">
-                    {formatOverrideValue(v)}
-                  </td>
+                  <td className="py-1 tabular-nums text-text-primary">{formatOverrideValue(v)}</td>
                 </tr>
               ))}
             </tbody>

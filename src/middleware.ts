@@ -1,4 +1,3 @@
-
 import { NextResponse, type NextRequest } from 'next/server';
 
 const SIGNAL_COOKIE = 'blackheart-session';

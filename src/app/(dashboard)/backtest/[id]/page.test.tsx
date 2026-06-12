@@ -4,6 +4,8 @@ import type { BacktestEquityPoint, BacktestRun } from '@/types/backtest';
 import type { CandleData } from '@/types/market';
 import type { BtcStackPoint } from '@/lib/hedging/btcCompare';
 
+import BacktestResultPage from './page';
+
 const DAY = 86_400_000;
 
 // --- backtest data hooks (the page's data sources) -------------------------
@@ -68,7 +70,9 @@ vi.mock('next/dynamic', () => ({ default: () => () => null }));
 
 // Heavier sibling panels render nothing — we only care about the BTC-stack feed.
 vi.mock('@/components/backtest/BacktestMetricsGrid', () => ({ BacktestMetricsGrid: () => null }));
-vi.mock('@/components/backtest/BacktestMonthlyReturns', () => ({ BacktestMonthlyReturns: () => null }));
+vi.mock('@/components/backtest/BacktestMonthlyReturns', () => ({
+  BacktestMonthlyReturns: () => null,
+}));
 vi.mock('@/components/backtest/BacktestTradeTable', () => ({ BacktestTradeTable: () => null }));
 vi.mock('@/components/backtest/FundingRatePanel', () => ({ FundingRatePanel: () => null }));
 vi.mock('@/components/backtest/BacktestProgressBar', () => ({ BacktestProgressBar: () => null }));
@@ -85,8 +89,6 @@ vi.mock('@/components/hedging/BtcStackPanel', () => ({
     return null;
   },
 }));
-
-import BacktestResultPage from './page';
 
 function eqPoint(ts: number, equity: number): BacktestEquityPoint {
   return { ts, equity, drawdown: 0, drawdownPct: 0, assetValue: 0, cashBalance: equity };

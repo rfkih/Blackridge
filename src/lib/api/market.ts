@@ -67,38 +67,64 @@ export async function fetchCandles(
     params: { symbol, interval, from, to, limit: count },
   });
 
-  return data.map(mapCandle).filter((c) => Number.isFinite(c.time)).sort((a, b) => a.time - b.time);
+  return data
+    .map(mapCandle)
+    .filter((c) => Number.isFinite(c.time))
+    .sort((a, b) => a.time - b.time);
 }
 
 /** Candles over an explicit epoch-ms window (used to seed long EMAs with warmup bars). */
 export async function fetchCandlesRange(
-  symbol: string, interval: string, fromMs: number, toMs: number,
+  symbol: string,
+  interval: string,
+  fromMs: number,
+  toMs: number,
 ): Promise<CandleData[]> {
   const { data } = await apiClient.get<BackendCandle[]>('/api/v1/market', {
     params: { symbol, interval, from: fromMs, to: toMs },
   });
-  return data.map(mapCandle).filter((c) => Number.isFinite(c.time)).sort((a, b) => a.time - b.time);
+  return data
+    .map(mapCandle)
+    .filter((c) => Number.isFinite(c.time))
+    .sort((a, b) => a.time - b.time);
 }
 
 /** Map a backend indicator row → IndicatorData (shared by both fetchers). */
 function mapIndicator(d: BackendIndicator): IndicatorData {
   return {
     time: resolveTimeSec(d),
-    ema20: d.ema20 ?? null, ema50: d.ema50 ?? null, ema100: null, ema200: d.ema200 ?? null,
-    bbUpper: d.bbUpper ?? null, bbMiddle: d.bbMiddle ?? null, bbLower: d.bbLower ?? null,
-    kcUpper: d.kcUpper ?? null, kcMiddle: d.kcMiddle ?? null, kcLower: d.kcLower ?? null,
-    rsi: d.rsi ?? null, macd: d.macd ?? null, macdSignal: d.macdSignal ?? null,
-    macdHistogram: d.macdHistogram ?? null, atr: d.atr ?? null, adx: d.adx ?? null,
+    ema20: d.ema20 ?? null,
+    ema50: d.ema50 ?? null,
+    ema100: null,
+    ema200: d.ema200 ?? null,
+    bbUpper: d.bbUpper ?? null,
+    bbMiddle: d.bbMiddle ?? null,
+    bbLower: d.bbLower ?? null,
+    kcUpper: d.kcUpper ?? null,
+    kcMiddle: d.kcMiddle ?? null,
+    kcLower: d.kcLower ?? null,
+    rsi: d.rsi ?? null,
+    macd: d.macd ?? null,
+    macdSignal: d.macdSignal ?? null,
+    macdHistogram: d.macdHistogram ?? null,
+    atr: d.atr ?? null,
+    adx: d.adx ?? null,
   };
 }
 
 export async function fetchIndicatorsRange(
-  symbol: string, interval: string, fromMs: number, toMs: number,
+  symbol: string,
+  interval: string,
+  fromMs: number,
+  toMs: number,
 ): Promise<IndicatorData[]> {
   const { data } = await apiClient.get<BackendIndicator[]>('/api/v1/market/indicators', {
     params: { symbol, interval, from: fromMs, to: toMs },
   });
-  return data.map(mapIndicator).filter((d) => Number.isFinite(d.time)).sort((a, b) => a.time - b.time);
+  return data
+    .map(mapIndicator)
+    .filter((d) => Number.isFinite(d.time))
+    .sort((a, b) => a.time - b.time);
 }
 
 export async function fetchIndicators(

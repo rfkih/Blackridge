@@ -20,10 +20,15 @@ interface BadgeMeta {
 }
 
 const META: Record<ApprovalStatus, BadgeMeta> = {
-  approved:      { icon: Check,          label: 'approved',      bg: 'var(--tint-profit)',  fg: 'var(--color-profit)' },
-  grandfathered: { icon: AlertTriangle,  label: 'grandfathered', bg: 'var(--tint-warning)', fg: 'var(--color-warning)' },
-  stale:         { icon: Clock,          label: 'stale',         bg: 'var(--tint-warning)', fg: 'var(--color-warning)' },
-  revoked:       { icon: X,              label: 'revoked',       bg: 'var(--bg-elevated)',  fg: 'var(--text-muted)' },
+  approved: { icon: Check, label: 'approved', bg: 'var(--tint-profit)', fg: 'var(--color-profit)' },
+  grandfathered: {
+    icon: AlertTriangle,
+    label: 'grandfathered',
+    bg: 'var(--tint-warning)',
+    fg: 'var(--color-warning)',
+  },
+  stale: { icon: Clock, label: 'stale', bg: 'var(--tint-warning)', fg: 'var(--color-warning)' },
+  revoked: { icon: X, label: 'revoked', bg: 'var(--bg-elevated)', fg: 'var(--text-muted)' },
 };
 
 interface ApprovalStatusBadgeProps {

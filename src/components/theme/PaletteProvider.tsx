@@ -49,8 +49,7 @@ function applyPalette(next: Palette) {
   document.documentElement.setAttribute('data-palette', next);
   try {
     localStorage.setItem(STORAGE_KEY, next);
-  } catch {
-  }
+  } catch {}
 }
 
 export function PaletteProvider({ children }: { children: React.ReactNode }) {

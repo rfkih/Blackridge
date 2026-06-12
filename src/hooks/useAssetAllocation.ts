@@ -20,7 +20,7 @@ import type {
 } from '@/types/assetAllocation';
 
 const QK_TARGETS = (accountId: string | undefined) => ['asset-allocation', 'targets', accountId];
-const QK_POLICY  = (accountId: string | undefined) => ['asset-allocation', 'policy', accountId];
+const QK_POLICY = (accountId: string | undefined) => ['asset-allocation', 'policy', accountId];
 
 export function useAssetTargets(accountId: string | undefined) {
   return useQuery<AssetAllocationTarget[]>({
@@ -88,12 +88,21 @@ export function useExecuteRebalance() {
  * fallback if the executor request times out client-side.
  */
 const TERMINAL_STATUSES = new Set([
-  'COMPLETED', 'FAILED', 'CANCELLED', 'EXPIRED',
-  'SKIP_WITHIN_BAND', 'SKIP_CALENDAR_FLOOR', 'SKIP_DISABLED',
-  'SKIP_NO_TARGETS', 'SKIP_USDT_FLOOR_INFEASIBLE',
+  'COMPLETED',
+  'FAILED',
+  'CANCELLED',
+  'EXPIRED',
+  'SKIP_WITHIN_BAND',
+  'SKIP_CALENDAR_FLOOR',
+  'SKIP_DISABLED',
+  'SKIP_NO_TARGETS',
+  'SKIP_USDT_FLOOR_INFEASIBLE',
 ]);
 
-export function useRebalancePoll(rebalanceId: string | undefined, currentStatus: string | undefined) {
+export function useRebalancePoll(
+  rebalanceId: string | undefined,
+  currentStatus: string | undefined,
+) {
   const isTerminal = currentStatus ? TERMINAL_STATUSES.has(currentStatus) : false;
   return useQuery<AssetRebalanceHistoryView>({
     queryKey: ['asset-allocation', 'rebalance', rebalanceId],

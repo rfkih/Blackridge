@@ -27,11 +27,7 @@
  * have no data flowing. Symbols in the env var but missing here are
  * captured server-side but invisible in the UI. Keep them in sync.
  */
-export const SUPPORTED_SYMBOLS = [
-    'BTCUSDT',
-    'ETHUSDT',
-    'SOLUSDT',
-] as const;
+export const SUPPORTED_SYMBOLS = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT'] as const;
 
 /** Compile-time union of supported symbols. */
 export type SupportedSymbol = (typeof SUPPORTED_SYMBOLS)[number];
@@ -60,7 +56,7 @@ export const SYMBOL_PLACEHOLDER: string = `e.g. ${SYMBOL_EXAMPLES}`;
 
 /** Runtime predicate for narrowing strings to `SupportedSymbol`. */
 export function isSupportedSymbol(s: string): s is SupportedSymbol {
-    return (SUPPORTED_SYMBOLS as readonly string[]).includes(s);
+  return (SUPPORTED_SYMBOLS as readonly string[]).includes(s);
 }
 
 /**
@@ -82,8 +78,8 @@ export function isSupportedSymbol(s: string): s is SupportedSymbol {
 /** Minimal shape required by the helpers — re-typed locally to avoid a
  *  cycle with the `useSymbolApprovals` module. */
 interface ApprovalLike {
-    symbol: string;
-    strategyCode: string;
+  symbol: string;
+  strategyCode: string;
 }
 
 /**
@@ -91,20 +87,26 @@ interface ApprovalLike {
  * an empty list (fail-closed: no rows can be created on a symbol the
  * approval table has no entries for).
  */
-export function getSupportedStrategies(symbol: string, approvals: readonly ApprovalLike[]): string[] {
-    return approvals.filter((a) => a.symbol === symbol).map((a) => a.strategyCode);
+export function getSupportedStrategies(
+  symbol: string,
+  approvals: readonly ApprovalLike[],
+): string[] {
+  return approvals.filter((a) => a.symbol === symbol).map((a) => a.strategyCode);
 }
 
 /** True when at least one validated strategy exists for the symbol. */
-export function hasSupportedStrategies(symbol: string, approvals: readonly ApprovalLike[]): boolean {
-    return approvals.some((a) => a.symbol === symbol);
+export function hasSupportedStrategies(
+  symbol: string,
+  approvals: readonly ApprovalLike[],
+): boolean {
+  return approvals.some((a) => a.symbol === symbol);
 }
 
 /** True when the strategy is validated for the symbol. */
 export function isStrategySupportedForSymbol(
-    strategyCode: string,
-    symbol: string,
-    approvals: readonly ApprovalLike[],
+  strategyCode: string,
+  symbol: string,
+  approvals: readonly ApprovalLike[],
 ): boolean {
-    return approvals.some((a) => a.symbol === symbol && a.strategyCode === strategyCode);
+  return approvals.some((a) => a.symbol === symbol && a.strategyCode === strategyCode);
 }

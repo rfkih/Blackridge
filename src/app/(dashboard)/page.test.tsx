@@ -2,6 +2,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import type { AccountSummary } from '@/types/account';
 
+import DashboardPage from './page';
+
 // --- control the active account ---
 const useActiveAccount = vi.fn();
 vi.mock('@/hooks/useAccounts', () => ({
@@ -43,8 +45,6 @@ vi.mock('@/components/dashboard/EmailVerificationBanner', () => ({
 vi.mock('@/components/dashboard/KillSwitchBanner', () => ({ KillSwitchBanner: () => null }));
 vi.mock('@/components/ml/MlHealthStrip', () => ({ MlHealthStrip: () => null }));
 vi.mock('@/store/positionStore', () => ({ usePositionStore: () => undefined }));
-
-import DashboardPage from './page';
 
 function mkAccount(p: Partial<AccountSummary>): AccountSummary {
   return { id: 'a1', accountType: 'TRADING', ...p } as AccountSummary;

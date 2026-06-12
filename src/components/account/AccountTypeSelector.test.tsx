@@ -36,6 +36,9 @@ describe('AccountTypeSelector', () => {
   it('marks the selected option with aria-pressed', () => {
     render(<AccountTypeSelector value="HEDGING" onChange={onChange} />);
     expect(screen.getByRole('button', { name: /Hedging/ })).toHaveAttribute('aria-pressed', 'true');
-    expect(screen.getByRole('button', { name: /Trading/ })).toHaveAttribute('aria-pressed', 'false');
+    expect(screen.getByRole('button', { name: /Trading/ })).toHaveAttribute(
+      'aria-pressed',
+      'false',
+    );
   });
 });

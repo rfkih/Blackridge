@@ -1,4 +1,3 @@
-
 /**
  * Merge backend-returned params on top of the canonical defaults.
  *

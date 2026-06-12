@@ -72,12 +72,11 @@ export function PortfolioRebalanceSection() {
         />
         <div className="text-[12px] leading-relaxed text-text-secondary">
           <span className="font-semibold text-text-primary">Per-account</span> &mdash; rebalance
-          targets only the active account. Switch the account selector in the top bar to rebalance
-          a different book.{' '}
-          <span className="font-semibold text-text-primary">Two-step apply</span> &mdash; Preview
-          always runs first (dry-run, no writes) so the operator sees proposed weights and clamp
-          diagnostics before committing. Apply UPDATEs the live rows and journals a{' '}
-          <span className="font-mono">CROSS_STRATEGY_FINDING</span> row atomically.
+          targets only the active account. Switch the account selector in the top bar to rebalance a
+          different book. <span className="font-semibold text-text-primary">Two-step apply</span>{' '}
+          &mdash; Preview always runs first (dry-run, no writes) so the operator sees proposed
+          weights and clamp diagnostics before committing. Apply UPDATEs the live rows and journals
+          a <span className="font-mono">CROSS_STRATEGY_FINDING</span> row atomically.
         </div>
       </div>
 

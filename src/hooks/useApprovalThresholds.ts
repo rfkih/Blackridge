@@ -22,8 +22,13 @@ export function useApprovalThresholds() {
 export function useUpsertApprovalThreshold() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ symbol, payload }: { symbol: string; payload: UpdateApprovalThresholdRequest }) =>
-      upsertThreshold(symbol, payload),
+    mutationFn: ({
+      symbol,
+      payload,
+    }: {
+      symbol: string;
+      payload: UpdateApprovalThresholdRequest;
+    }) => upsertThreshold(symbol, payload),
     onSuccess: () => {
       // Threshold changes can flip rows to stale, so invalidate the
       // approval lists too — not just the threshold cache.

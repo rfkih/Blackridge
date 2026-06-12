@@ -1,6 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { BackendAccountStrategy } from '@/types/api';
 
+import { mapAccountStrategy } from './strategies';
+
 // --- mock the axios client the api module calls ---
 const get = vi.fn();
 vi.mock('./client', () => ({
@@ -8,8 +10,6 @@ vi.mock('./client', () => ({
     get: (...a: unknown[]) => get(...a),
   },
 }));
-
-import { mapAccountStrategy } from './strategies';
 
 function mkBackend(p: Partial<BackendAccountStrategy>): BackendAccountStrategy {
   return {

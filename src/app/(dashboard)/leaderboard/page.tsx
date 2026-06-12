@@ -53,11 +53,7 @@ export default function LeaderboardPage() {
   // A strategy is "hedging" iff its kind is HEDGING; TRADING/null counts as trading.
   const acctType = activeAccount?.accountType;
   const matchesAcctType = (kind?: string | null): boolean =>
-    acctType === undefined
-      ? true
-      : acctType === 'HEDGING'
-        ? isHedging(kind)
-        : !isHedging(kind);
+    acctType === undefined ? true : acctType === 'HEDGING' ? isHedging(kind) : !isHedging(kind);
 
   // Conviction tab — filter the ranked rows by the active account's type.
   const convictionEntries =
@@ -73,7 +69,9 @@ export default function LeaderboardPage() {
   // Research papers — classify by the paper's own strategy_kind.
   const paperItems = papers.data?.items ?? [];
   const filteredPapers =
-    acctType === undefined ? paperItems : paperItems.filter((p) => matchesAcctType(p.strategy_kind));
+    acctType === undefined
+      ? paperItems
+      : paperItems.filter((p) => matchesAcctType(p.strategy_kind));
 
   return (
     <div className="space-y-6">

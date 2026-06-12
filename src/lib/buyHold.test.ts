@@ -1,11 +1,6 @@
 import { describe, it, expect } from 'vitest';
 
-import {
-  buyHoldSeries,
-  maxDrawdownPct,
-  totalReturnPct,
-  compareToBuyHold,
-} from './buyHold';
+import { buyHoldSeries, maxDrawdownPct, totalReturnPct, compareToBuyHold } from './buyHold';
 
 describe('buyHoldSeries', () => {
   it('normalizes to initialCapital at the first candle', () => {

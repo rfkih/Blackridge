@@ -28,10 +28,7 @@ export interface BuyHoldPoint {
  * need a clean series should pre-filter, but the first-close guard protects the
  * normalization base.
  */
-export function buyHoldSeries(
-  candles: ClosePoint[],
-  initialCapital: number,
-): BuyHoldPoint[] {
+export function buyHoldSeries(candles: ClosePoint[], initialCapital: number): BuyHoldPoint[] {
   if (!candles.length) return [];
   const close0 = candles[0].close;
   if (!Number.isFinite(close0) || close0 <= 0) return [];

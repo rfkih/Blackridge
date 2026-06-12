@@ -170,8 +170,7 @@ export function useActiveBacktestCount(): {
     count: (pendingQ.data?.total ?? 0) + (runningQ.data?.total ?? 0),
     isLoading: pendingQ.isLoading || runningQ.isLoading,
 
-    firstActiveId:
-      runningQ.data?.content[0]?.id ?? pendingQ.data?.content[0]?.id ?? null,
+    firstActiveId: runningQ.data?.content[0]?.id ?? pendingQ.data?.content[0]?.id ?? null,
   };
 }
 
@@ -242,23 +241,17 @@ export function useBacktestProgressStream(runId: string | undefined): void {
       }
       if (frame.backtestRunId && frame.backtestRunId !== runId) return;
 
-      queryClient.setQueryData<BacktestRun | undefined>(
-        ['backtest-run', runId],
-        (prev) => {
-          if (!prev) return prev;
-          const next: BacktestRun = { ...prev };
-          if (typeof frame.progressPercent === 'number') {
-            next.progressPercent = Math.max(
-              0,
-              Math.min(100, Math.round(frame.progressPercent)),
-            );
-          }
-          if (frame.status) {
-            next.status = frame.status;
-          }
-          return next;
-        },
-      );
+      queryClient.setQueryData<BacktestRun | undefined>(['backtest-run', runId], (prev) => {
+        if (!prev) return prev;
+        const next: BacktestRun = { ...prev };
+        if (typeof frame.progressPercent === 'number') {
+          next.progressPercent = Math.max(0, Math.min(100, Math.round(frame.progressPercent)));
+        }
+        if (frame.status) {
+          next.status = frame.status;
+        }
+        return next;
+      });
 
       if (frame.status === 'COMPLETED' || frame.status === 'FAILED') {
         void queryClient.invalidateQueries({ queryKey: ['backtest-run', runId] });
@@ -271,7 +264,7 @@ export function useBacktestProgressStream(runId: string | undefined): void {
 
 /** Converts a total compounded return % to annualized (CAGR) %. */
 export function annualizeReturnPct(totalPct: number, fromDate: string, toDate: string): number {
-  if (!isFinite(totalPct)) return totalPct;
+  if (!Number.isFinite(totalPct)) return totalPct;
   const years =
     (new Date(toDate).getTime() - new Date(fromDate).getTime()) / (365.25 * 24 * 3600 * 1000);
   if (years <= 0) return totalPct;

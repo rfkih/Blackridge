@@ -41,8 +41,7 @@ function writeDismissed(v: boolean) {
   try {
     if (v) window.localStorage.setItem(DISMISSED_KEY, '1');
     else window.localStorage.removeItem(DISMISSED_KEY);
-  } catch {
-  }
+  } catch {}
 }
 
 export function OnboardingPanel() {
@@ -100,8 +99,7 @@ export function OnboardingPanel() {
     {
       key: 'activate-strategy',
       title: 'Take the strategy live',
-      blurb:
-        'Toggle the strategy ON so the orchestrator evaluates it on every interval bar close.',
+      blurb: 'Toggle the strategy ON so the orchestrator evaluates it on every interval bar close.',
       icon: Zap,
       done: hasLiveStrategy,
       cta: { href: '/strategies', label: 'Open strategies' },
@@ -125,52 +123,55 @@ export function OnboardingPanel() {
 
   return (
     <>
-    <NewAccountDialog open={newAccountOpen} onOpenChange={setNewAccountOpen} />
-    <section
-      className="rounded-xl border border-bd-subtle bg-bg-surface p-4"
-      aria-labelledby="onboarding-heading"
-    >
-      <header className="mb-3 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <span
-            aria-hidden="true"
-            className="flex h-7 w-7 items-center justify-center rounded-sm"
-            style={{
-              background: 'rgba(59,130,246,0.12)',
-              color: 'var(--color-info)',
-            }}
-          >
-            <Zap size={14} strokeWidth={1.75} />
-          </span>
-          <h2 id="onboarding-heading" className="font-display text-sm font-semibold text-text-primary">
-            Get set up
-          </h2>
-        </div>
-        <div className="flex items-center gap-3">
-          <span className="font-mono text-[10px] uppercase tracking-widest text-text-muted">
-            {completed}/{steps.length} complete
-          </span>
-          <button
-            type="button"
-            onClick={() => {
-              writeDismissed(true);
-              setDismissed(true);
-            }}
-            className="rounded p-1 text-text-muted transition-colors hover:bg-bg-hover hover:text-text-primary"
-            aria-label="Hide onboarding panel"
-            title="Hide — clear the dismissed flag from localStorage to bring it back"
-          >
-            <X size={13} strokeWidth={2} />
-          </button>
-        </div>
-      </header>
+      <NewAccountDialog open={newAccountOpen} onOpenChange={setNewAccountOpen} />
+      <section
+        className="rounded-xl border border-bd-subtle bg-bg-surface p-4"
+        aria-labelledby="onboarding-heading"
+      >
+        <header className="mb-3 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span
+              aria-hidden="true"
+              className="flex h-7 w-7 items-center justify-center rounded-sm"
+              style={{
+                background: 'rgba(59,130,246,0.12)',
+                color: 'var(--color-info)',
+              }}
+            >
+              <Zap size={14} strokeWidth={1.75} />
+            </span>
+            <h2
+              id="onboarding-heading"
+              className="font-display text-sm font-semibold text-text-primary"
+            >
+              Get set up
+            </h2>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="font-mono text-[10px] uppercase tracking-widest text-text-muted">
+              {completed}/{steps.length} complete
+            </span>
+            <button
+              type="button"
+              onClick={() => {
+                writeDismissed(true);
+                setDismissed(true);
+              }}
+              className="rounded p-1 text-text-muted transition-colors hover:bg-bg-hover hover:text-text-primary"
+              aria-label="Hide onboarding panel"
+              title="Hide — clear the dismissed flag from localStorage to bring it back"
+            >
+              <X size={13} strokeWidth={2} />
+            </button>
+          </div>
+        </header>
 
-      <ol className="space-y-2">
-        {steps.map((step, idx) => (
-          <OnboardingStep key={step.key} step={step} isFocus={idx === focusIdx} />
-        ))}
-      </ol>
-    </section>
+        <ol className="space-y-2">
+          {steps.map((step, idx) => (
+            <OnboardingStep key={step.key} step={step} isFocus={idx === focusIdx} />
+          ))}
+        </ol>
+      </section>
     </>
   );
 }
@@ -231,8 +232,10 @@ function OnboardingStep({ step, isFocus }: { step: Step; isFocus: boolean }) {
         <p className="text-[11px] text-text-muted">{step.blurb}</p>
       </div>
 
-      {!step.done && step.cta && !dim && (
-        'href' in step.cta ? (
+      {!step.done &&
+        step.cta &&
+        !dim &&
+        ('href' in step.cta ? (
           <Link
             href={step.cta.href}
             className={`inline-flex shrink-0 items-center gap-1 rounded-sm border px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.14em] transition-colors ${
@@ -257,8 +260,7 @@ function OnboardingStep({ step, isFocus }: { step: Step; isFocus: boolean }) {
             {step.cta.label}
             <ChevronRight size={11} strokeWidth={2} />
           </button>
-        )
-      )}
+        ))}
     </li>
   );
 }
