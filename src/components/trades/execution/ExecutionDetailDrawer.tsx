@@ -86,7 +86,7 @@ export function ExecutionDetailDrawer({
         style={{
           width: 'min(460px, 94vw)',
           maxHeight: '85vh',
-          background: 'var(--mm-card)',
+          background: 'var(--mm-surface-2)',
           border: '1px solid var(--mm-hair)',
           borderRadius: 12,
           boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
