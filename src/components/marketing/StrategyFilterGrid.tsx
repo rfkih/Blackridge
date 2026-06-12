@@ -148,7 +148,7 @@ function StrategyRow({ strategy }: { strategy: PublicStrategy }) {
             fontSize: 9,
             letterSpacing: '0.06em',
             textTransform: 'uppercase',
-            color: 'var(--qp-ink-faint)',
+            color: 'var(--qp-ink-muted)',
             marginTop: 2,
           }}
         >
