@@ -35,7 +35,7 @@ jobs:
     steps:
       # Actions are pinned to commit SHAs (supply-chain hardening). Update the SHA
       # AND the trailing `# vX.Y.Z` comment together; never trust a moving major tag.
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
 
       - name: Set up pnpm
         uses: pnpm/action-setup@a3252b78c470c02df07e9d59298aecedc3ccdd6d # v3.0.0
@@ -99,16 +99,16 @@ jobs:
       # in /home/starsky/blackheart/.env on the VPS as FRONTEND_TAG.
       sha_tag: ${{ steps.tag.outputs.sha_tag }}
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
 
       - name: Compute tag (short SHA)
         id: tag
         run: echo "sha_tag=${GITHUB_SHA::8}" >> "$GITHUB_OUTPUT"
 
-      - uses: docker/setup-buildx-action@988b5a0280414f521da01fcc63a27aeeb4b104db # v3.6.1
+      - uses: docker/setup-buildx-action@d7f5e7f509e45cec5c76c4d5afdd7de93d0b3df5 # v4.1.0
 
       - name: Log in to GHCR
-        uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3.3.0
+        uses: docker/login-action@650006c6eb7dba73a995cc03b0b2d7f5ca915bee # v4.2.0
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
@@ -124,7 +124,7 @@ jobs:
         # Two tags pushed: the immutable SHA tag (what the VPS pins to via
         # FRONTEND_TAG) and `latest` (operator escape hatch — never used by
         # CI deploys, but handy for `docker pull` smoke tests).
-        uses: docker/build-push-action@5cd11c3a4ced054e52742c5fd54dca954e0edd85 # v6.7.0
+        uses: docker/build-push-action@f9f3042f7e2789586610d6e8b85c8f03e5195baf # v7.2.0
         with:
           context: .
           file: ./Dockerfile
@@ -147,7 +147,7 @@ jobs:
     timeout-minutes: 12
     environment: blackridge
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
 
       - name: Configure SSH
         # Trim whitespace from VPS_HOST/VPS_USER defensively — if the secret
