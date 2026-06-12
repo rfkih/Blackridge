@@ -1683,7 +1683,10 @@ input[type='number'].no-native-spinners {
   --qp-brand: var(--brand-500);
   --qp-brand-deep: var(--brand-700);
   --qp-brand-soft: var(--brand-50);
-  --qp-loss: var(--color-loss);
+  /* Profit/loss are pinned per theme rather than chained to the app tokens —
+     the app's #e5484d / #0e9f50 sit below 4.5:1 contrast on white paper. */
+  --qp-loss: #c0353a;
+  --qp-profit: #0c7d42;
   --qp-loss-soft: var(--tint-loss);
   --qp-chart-area: rgba(14, 17, 22, 0.05);
   --qp-chart-axis: #6b7280;
@@ -1704,6 +1707,8 @@ input[type='number'].no-native-spinners {
   --qp-ink-soft: #c5ccd5;
   --qp-ink-muted: #8c95a2;
   --qp-ink-faint: #5a6371;
+  --qp-loss: #ee686c;
+  --qp-profit: var(--color-profit);
   --qp-chart-area: rgba(255, 255, 255, 0.06);
   --qp-chart-axis: #8c95a2;
 }
@@ -1996,9 +2001,9 @@ input[type='number'].no-native-spinners {
   color: #fff;
 }
 .qp-section.brand .qp-section-eye {
-  /* brand-500 is now near-black ink — use the lighter brand-300 so the
-     eyebrow remains readable on the always-dark Risk band in both modes. */
-  color: var(--brand-300);
+  /* Fixed light tone — the band is always dark and brand-300 (#5a6173)
+     only reaches ~3:1 there. */
+  color: rgba(255, 255, 255, 0.64);
 }
 .qp-section.brand h2 {
   color: #fff;
@@ -2441,9 +2446,9 @@ input[type='number'].no-native-spinners {
 .qp-risk-grid .num {
   font-family: var(--font-mono);
   font-size: 10.5px;
-  /* See `.qp-section.brand .qp-section-eye` — brand-300 stays readable on the
-     fixed-dark Risk band whether the rest of the app is in light or dark. */
-  color: var(--brand-300);
+  /* See `.qp-section.brand .qp-section-eye` — fixed light tone on the
+     always-dark Risk band whether the rest of the app is light or dark. */
+  color: rgba(255, 255, 255, 0.64);
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -2789,7 +2794,7 @@ input[type='number'].no-native-spinners {
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.08em;
-  color: var(--qp-ink-faint);
+  color: var(--qp-ink-muted);
   margin-bottom: 16px;
 }
 .qp-gates h3 {
@@ -2892,7 +2897,7 @@ input[type='number'].no-native-spinners {
   text-align: right;
 }
 .qp-table .up {
-  color: var(--color-profit);
+  color: var(--qp-profit);
 }
 .qp-table .dn {
   color: var(--qp-loss);
@@ -3031,7 +3036,7 @@ input[type='number'].no-native-spinners {
   font-size: 10.5px;
   font-weight: 700;
   letter-spacing: 0.06em;
-  color: var(--qp-ink-faint);
+  color: var(--qp-ink-muted);
   flex-shrink: 0;
   width: 22px;
 }
@@ -3068,7 +3073,7 @@ input[type='number'].no-native-spinners {
 .qp-faq summary .marker {
   font-family: var(--font-mono);
   font-size: 14px;
-  color: var(--qp-ink-faint);
+  color: var(--qp-ink-muted);
   flex-shrink: 0;
   transition: transform var(--dur-fast) var(--ease-out-quart);
 }
@@ -3105,7 +3110,7 @@ input[type='number'].no-native-spinners {
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.06em;
-  color: var(--qp-ink-faint);
+  color: var(--qp-ink-muted);
 }
 .qp-docdex h3 {
   font-family: var(--qp-serif);
@@ -3197,7 +3202,7 @@ input[type='number'].no-native-spinners {
 .qp-footer-brand p {
   font-size: 13px;
   line-height: 1.6;
-  color: rgba(255, 255, 255, 0.5);
+  color: rgba(255, 255, 255, 0.62);
   max-width: 280px;
   margin: 14px 0 0;
 }
@@ -3207,7 +3212,7 @@ input[type='number'].no-native-spinners {
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.42);
+  color: rgba(255, 255, 255, 0.58);
   margin: 0 0 16px;
 }
 .qp-footer-col ul {
@@ -3230,11 +3235,11 @@ input[type='number'].no-native-spinners {
   padding: 32px 0 0;
   font-size: 11.5px;
   line-height: 1.7;
-  color: rgba(255, 255, 255, 0.38);
+  color: rgba(255, 255, 255, 0.55);
   max-width: 880px;
 }
 .qp-footer-disclosures strong {
-  color: rgba(255, 255, 255, 0.55);
+  color: rgba(255, 255, 255, 0.75);
   font-weight: 600;
 }
 .qp-footer-bottom {
@@ -3248,7 +3253,7 @@ input[type='number'].no-native-spinners {
   font-family: var(--font-mono);
   font-size: 10.5px;
   letter-spacing: 0.04em;
-  color: rgba(255, 255, 255, 0.4);
+  color: rgba(255, 255, 255, 0.55);
 }
 @media (max-width: 860px) {
   .qp-footer-grid {
