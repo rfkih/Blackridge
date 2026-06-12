@@ -5,7 +5,7 @@ import { StrategyFilterGrid, type PublicStrategy } from '@/components/marketing/
 export const metadata: Metadata = {
   title: 'Strategies',
   description:
-    'A library of trading and spot-hedging strategies. Long-Short Reversal, Volatility Compression, Trend Pullback, the EMA-band BTC hedge, and more — each documented, tunable, and runnable in paper before you go live.',
+    'The Blackridge strategy library — trading and spot-hedging strategies, each documented, tunable, and validated through walk-forward and Monte-Carlo analysis before deployment.',
 };
 
 // Hedging strategies carry a REAL backtest where one exists (EMA-band, computed on
@@ -24,7 +24,7 @@ const STRATEGIES: PublicStrategy[] = [
     drawdown: -30,
     winRate: 0,
     trades30d: 0,
-    footnote: 'Backtest 2022–26 · 22 switches',
+    footnote: 'Backtest ’22–’26',
     tags: ['BTC', 'Spot', 'Daily', 'Full-balance'],
     highlight: 'Robust 9-yr',
     sparkSeed: 41,
@@ -138,91 +138,73 @@ const STRATEGIES: PublicStrategy[] = [
 
 const CATEGORIES = ['All', 'Hedging', 'Mean reversion', 'Breakout', 'Trend follow', 'Momentum'];
 
+const GATES = [
+  {
+    num: '01',
+    title: 'Hypothesis',
+    body: 'A documented edge: which inefficiency, why it persists, which regimes degrade it.',
+  },
+  {
+    num: '02',
+    title: 'Backtest',
+    body: 'Walk-forward across price, macro, on-chain, and sentiment — slippage and fees modelled in.',
+  },
+  {
+    num: '03',
+    title: 'Monte-Carlo',
+    body: 'Fills, slippage, and trade ordering stressed across thousands of resampled paths.',
+  },
+  {
+    num: '04',
+    title: 'Paper',
+    body: 'Live ticks, no real orders, until the paper record agrees with the research.',
+  },
+  {
+    num: '05',
+    title: 'Live',
+    body: 'Small size first; risk caps armed before the first order is placed.',
+  },
+] as const;
+
 export default function StrategiesOverviewPage() {
   return (
     <MarketingShell activeNav="strategies">
-      {}
-      <section style={{ padding: '72px 0 32px' }}>
-        <div className="mx-auto max-w-[1180px] px-5 text-center sm:px-8">
-          <span
-            className="text-[12px] font-bold uppercase tracking-[0.14em]"
-            style={{ color: 'var(--brand-600)' }}
-          >
-            Strategy library
-          </span>
-          <h1
-            className="font-display"
-            style={{
-              fontSize: 'clamp(36px, 6vw, 56px)',
-              lineHeight: 1.05,
-              fontWeight: 800,
-              letterSpacing: '-0.03em',
-              margin: '14px 0 16px',
-              color: 'var(--text-primary)',
-            }}
-          >
-            Start with a strategy. Not a blinking cursor.
-          </h1>
-          <p
-            className="mx-auto"
-            style={{
-              fontSize: 'clamp(15px, 2vw, 19px)',
-              lineHeight: 1.55,
-              color: 'var(--text-secondary)',
-              maxWidth: 620,
-              margin: '0 auto 28px',
-            }}
-          >
-            Trading and spot-hedging strategies, each documented end-to-end and validated on up to
-            nine years of history. Enable the ones you trust, tune the parameters, run them in paper
-            first. The EMA-band hedge shows a real backtest; the rest are illustrative.
+      <section className="qp-hero" style={{ paddingBottom: 48 }}>
+        <div className="qp-wrap">
+          <div className="qp-hero-eyebrow">
+            <span>Strategy library</span>
+            <span className="dot" />
+            <span>Trading &amp; hedging</span>
+          </div>
+          <h1 style={{ maxWidth: 720 }}>The library, with the evidence attached.</h1>
+          <p className="lede" style={{ maxWidth: 620 }}>
+            Trading and spot-hedging strategies, each documented end-to-end and validated through
+            walk-forward and Monte-Carlo analysis on up to nine years of history. Enable the ones
+            you trust, tune the parameters, run them in paper first.
           </p>
+        </div>
+      </section>
 
+      <section style={{ padding: '0 0 88px' }}>
+        <div className="qp-wrap">
           <StrategyFilterGrid strategies={STRATEGIES} categories={CATEGORIES} />
         </div>
       </section>
 
-      {}
-      <section style={{ padding: '64px 0', background: 'var(--bg-surface)' }}>
-        <div className="mx-auto max-w-[1180px] px-5 sm:px-8">
+      <section className="qp-section paper">
+        <div className="qp-wrap">
           <SectionHead
-            eyebrow="How we build them"
+            eyebrow="Methodology"
             title="From idea to live capital in five gates."
             sub="No strategy goes live until every gate is green. The same gauntlet runs when you tune one to your own parameters."
           />
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-5">
-            {[
-              {
-                step: '01',
-                title: 'Hypothesis',
-                body: 'Documented edge, regime, expected behavior.',
-              },
-              {
-                step: '02',
-                title: 'Backtest',
-                body: 'Walk-forward across price + macro + sentiment; slippage + fees in.',
-              },
-              { step: '03', title: 'Monte-Carlo', body: 'Stress fills, slippage, ordering.' },
-              { step: '04', title: 'Paper', body: 'Live ticks, no real orders, 30 days.' },
-              { step: '05', title: 'Live', body: 'Tiny size first; risk caps armed.' },
-            ].map((g) => (
-              <div key={g.step} className="br-card" style={{ padding: 20, borderRadius: 16 }}>
-                <div
-                  className="font-mono text-[11px] font-bold"
-                  style={{ color: 'var(--brand-600)' }}
-                >
-                  {g.step}
-                </div>
-                <div
-                  className="mt-2 font-display text-[16px] font-bold"
-                  style={{ color: 'var(--text-primary)' }}
-                >
-                  {g.title}
-                </div>
-                <div className="mt-1 text-[13px]" style={{ color: 'var(--text-muted)' }}>
-                  {g.body}
-                </div>
-              </div>
+          <div className="qp-gates">
+            {GATES.map((g) => (
+              <article key={g.num}>
+                <div className="num">{g.num}</div>
+                <h3>{g.title}</h3>
+                <p>{g.body}</p>
+              </article>
             ))}
           </div>
         </div>

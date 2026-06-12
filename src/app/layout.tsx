@@ -25,7 +25,8 @@ export const metadata: Metadata = {
     default: 'Blackridge',
     template: '%s · Blackridge',
   },
-  description: 'Algorithmic crypto trading. Run your strategies on Binance Futures while you sleep.',
+  description:
+    'Systematic trading and hedging for digital assets. Research-built strategies, validated before deployment, executed on your own exchange account.',
   applicationName: 'Blackridge',
 };
 

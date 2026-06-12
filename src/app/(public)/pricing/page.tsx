@@ -1,12 +1,11 @@
 import Link from 'next/link';
-import { ArrowRight, Check, Plus } from 'lucide-react';
 import type { Metadata } from 'next';
 import { MarketingShell, SectionHead, MarketingCta } from '@/components/marketing/MarketingShell';
 
 export const metadata: Metadata = {
   title: 'Pricing',
   description:
-    'Blackridge is in early access — free to use today. Connect your Binance account, run trading and hedging strategies, no subscription. No funds custodied.',
+    'Blackridge fee schedule — free during early access. No subscription, no performance fee, no custody. We announce pricing before we ever charge.',
 };
 
 // What's actually available today. No invented tiers, SLAs, or seat counts.
@@ -47,210 +46,88 @@ const FAQ: { q: string; a: string }[] = [
 export default function PricingPage() {
   return (
     <MarketingShell activeNav="pricing">
-      {/* Hero */}
-      <section style={{ padding: '72px 0 24px' }}>
-        <div className="mx-auto max-w-[1180px] px-5 text-center sm:px-8">
-          <span
-            className="inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-[12px] font-semibold"
-            style={{ background: 'var(--brand-50)', color: 'var(--brand-700)' }}
-          >
-            <span className="br-live-dot" /> Early access
-          </span>
-          <h1
-            className="font-display"
-            style={{
-              fontSize: 'clamp(36px, 6vw, 56px)',
-              lineHeight: 1.05,
-              fontWeight: 800,
-              letterSpacing: '-0.03em',
-              margin: '18px 0 16px',
-              color: 'var(--text-primary)',
-            }}
-          >
-            Free while we&apos;re in early access.
-          </h1>
-          <p
-            className="mx-auto"
-            style={{
-              fontSize: 19,
-              lineHeight: 1.55,
-              color: 'var(--text-secondary)',
-              maxWidth: 600,
-              margin: '0 auto',
-            }}
-          >
-            Connect your Binance account, run trading and hedging strategies, and backtest as much
-            as you like — at no cost today. No subscription, no card, no performance fee. We&apos;ll
-            announce pricing before we ever charge.
+      <section className="qp-hero" style={{ paddingBottom: 56 }}>
+        <div className="qp-wrap">
+          <div className="qp-hero-eyebrow">
+            <span>Fee schedule</span>
+            <span className="dot" />
+            <span>Early access</span>
+          </div>
+          <h1 style={{ maxWidth: 700 }}>No fee today. No performance fee, ever.</h1>
+          <p className="lede" style={{ maxWidth: 600 }}>
+            Blackridge is in early access and free to use: connect your Binance account, run trading
+            and hedging strategies, and backtest without limit. No subscription, no card on file,
+            and never a share of your returns. Pricing will be announced before we ever charge.
           </p>
         </div>
       </section>
 
-      {/* Plan cards */}
-      <section style={{ padding: '32px 0 64px' }}>
-        <div className="mx-auto max-w-[820px] px-5 sm:px-8">
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-            {/* Early access */}
-            <div
-              className="br-card flex flex-col"
-              style={{
-                padding: 32,
-                borderRadius: 28,
-                border: '1.5px solid var(--brand-500)',
-                boxShadow: '0 20px 48px var(--accent-glow)',
-                position: 'relative',
-              }}
-            >
-              <span
-                className="br-chip br-chip-brand absolute -top-3 left-7 text-[10px] font-bold uppercase tracking-[0.12em]"
-                style={{ padding: '4px 10px' }}
-              >
-                Available now
-              </span>
-              <div
-                className="text-[12px] font-bold uppercase tracking-[0.14em]"
-                style={{ color: 'var(--brand-600)' }}
-              >
-                Early access
+      <section style={{ padding: '0 0 88px' }}>
+        <div className="qp-wrap" style={{ maxWidth: 1000 }}>
+          <div className="qp-plan-grid">
+            <div className="qp-plan">
+              <div className="tag">01 — Early access · available now</div>
+              <div className="price">$0</div>
+              <div className="terms">no card · no subscription · founder rate later</div>
+              <p>
+                The full platform: every strategy in the library, both account types, unlimited
+                backtesting, paper trading, and live execution on your own Binance account.
+              </p>
+              <div className="foot">
+                <Link href="/onboarding" className="qp-btn-primary lg" style={{ width: '100%' }}>
+                  Open account
+                </Link>
               </div>
-              <h3
-                className="font-display"
-                style={{
-                  fontSize: 22,
-                  fontWeight: 700,
-                  letterSpacing: '-0.015em',
-                  margin: '8px 0 10px',
-                  color: 'var(--text-primary)',
-                }}
-              >
-                Everything, free, today.
-              </h3>
-              <div className="mt-3 flex items-baseline gap-2">
-                <span
-                  className="font-display tabular-nums"
-                  style={{
-                    fontSize: 'clamp(36px, 6vw, 56px)',
-                    fontWeight: 800,
-                    letterSpacing: '-0.03em',
-                    color: 'var(--text-primary)',
-                  }}
-                >
-                  Free
-                </span>
-              </div>
-              <div className="mt-1 text-[13px]" style={{ color: 'var(--text-muted)' }}>
-                no card · no subscription · founder rate later
-              </div>
-              <Link
-                href="/onboarding"
-                className="br-btn br-btn-lg br-btn-block br-btn-primary mt-6"
-              >
-                Open account <ArrowRight size={14} />
-              </Link>
             </div>
-
-            {/* Desk / teams */}
-            <div className="br-card flex flex-col" style={{ padding: 32, borderRadius: 28 }}>
-              <div
-                className="text-[12px] font-bold uppercase tracking-[0.14em]"
-                style={{ color: 'var(--text-muted)' }}
-              >
-                Desk &amp; teams
+            <div className="qp-plan">
+              <div className="tag">02 — Desk &amp; teams</div>
+              <div className="price">Enquire</div>
+              <div className="terms">multiple accounts · custom risk policies</div>
+              <p>
+                Running real size, several accounts, or a mandate with specific risk constraints?
+                Speak with the desk about a configuration that fits.
+              </p>
+              <div className="foot">
+                <Link href="/product" className="qp-btn-outline lg" style={{ width: '100%' }}>
+                  Contact the desk
+                </Link>
               </div>
-              <h3
-                className="font-display"
-                style={{
-                  fontSize: 22,
-                  fontWeight: 700,
-                  letterSpacing: '-0.015em',
-                  margin: '8px 0 10px',
-                  color: 'var(--text-primary)',
-                }}
-              >
-                Running real size?
-              </h3>
-              <div className="mt-3 flex items-baseline gap-2">
-                <span
-                  className="font-display tabular-nums"
-                  style={{
-                    fontSize: 'clamp(32px, 5vw, 48px)',
-                    fontWeight: 800,
-                    letterSpacing: '-0.03em',
-                    color: 'var(--text-primary)',
-                  }}
-                >
-                  Talk to us
-                </span>
-              </div>
-              <div className="mt-1 text-[13px]" style={{ color: 'var(--text-muted)' }}>
-                multiple accounts · custom risk policies
-              </div>
-              <Link href="/product" className="br-btn br-btn-lg br-btn-block br-btn-secondary mt-6">
-                Contact the desk <ArrowRight size={14} />
-              </Link>
             </div>
           </div>
         </div>
       </section>
 
-      {/* What's included */}
-      <section style={{ padding: '64px 0', background: 'var(--bg-surface)' }}>
-        <div className="mx-auto max-w-[820px] px-5 sm:px-8">
+      <section className="qp-section paper">
+        <div className="qp-wrap" style={{ maxWidth: 1000 }}>
           <SectionHead
             eyebrow="What's included"
-            title="What you get today"
-            sub="Everything below is live in the product right now — no asterisks, no upsell gates."
+            title="Everything below is live today."
+            sub="No asterisks, no upsell gates — the early-access plan is the whole product."
           />
-          <div className="br-card" style={{ padding: 28, borderRadius: 24 }}>
-            <ul className="m-0 grid list-none grid-cols-1 gap-3 p-0 sm:grid-cols-2">
-              {INCLUDED.map((item) => (
-                <li key={item} className="flex items-start gap-2.5">
-                  <span
-                    className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full"
-                    style={{ background: 'var(--brand-50)', color: 'var(--brand-700)' }}
-                  >
-                    <Check size={12} strokeWidth={2.5} />
-                  </span>
-                  <span className="text-[14px]" style={{ color: 'var(--text-secondary)' }}>
-                    {item}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </div>
+          <ul className="qp-list-ruled">
+            {INCLUDED.map((item, i) => (
+              <li key={item}>
+                <span className="idx">{String(i + 1).padStart(2, '0')}</span>
+                {item}
+              </li>
+            ))}
+          </ul>
         </div>
       </section>
 
-      {/* FAQ */}
-      <section style={{ padding: '80px 0' }}>
-        <div className="mx-auto max-w-[820px] px-5 sm:px-8">
-          <SectionHead eyebrow="Questions" title="Common questions" />
-          <div className="flex flex-col gap-3">
+      <section className="qp-section">
+        <div className="qp-wrap" style={{ maxWidth: 1000 }}>
+          <SectionHead eyebrow="Questions" title="Asked, answered." />
+          <div className="qp-faq">
             {FAQ.map((item) => (
-              <details
-                key={item.q}
-                className="br-card group"
-                style={{ padding: 0, borderRadius: 'var(--br-radius-md)' }}
-              >
-                <summary
-                  className="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 text-[15px] font-semibold"
-                  style={{ color: 'var(--text-primary)' }}
-                >
+              <details key={item.q}>
+                <summary>
                   <span>{item.q}</span>
-                  <span
-                    aria-hidden="true"
-                    className="shrink-0 transition-transform group-open:rotate-45"
-                    style={{ color: 'var(--text-muted)' }}
-                  >
-                    <Plus size={16} strokeWidth={2} />
+                  <span className="marker" aria-hidden="true">
+                    +
                   </span>
                 </summary>
-                <div
-                  className="px-5 pb-5 text-[14px]"
-                  style={{ color: 'var(--text-secondary)', lineHeight: 1.6 }}
-                >
-                  {item.a}
-                </div>
+                <div className="body">{item.a}</div>
               </details>
             ))}
           </div>

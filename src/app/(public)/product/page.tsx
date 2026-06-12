@@ -2,40 +2,13 @@ import Link from 'next/link';
 import type { Metadata } from 'next';
 import { MarketingShell } from '@/components/marketing/MarketingShell';
 import { Sparkline, makeSpark } from '@/components/marketing/Sparkline';
+import { EquityChart } from '@/components/marketing/EquityChart';
+import { HEDGE_CURVE, BUYHOLD_CURVE, HEDGE_STATS } from '@/components/marketing/hedgeBacktest';
 
 export const metadata: Metadata = {
   title: 'Product — A self-serve algorithmic trading & hedging desk',
   description:
     'Blackridge runs systematic trading and spot-hedging strategies on your own Binance account. Non-custodial — your funds never leave your exchange. Backtest, deploy, monitor from one dashboard.',
-};
-
-// Real backtest equity curves — EMA-band BTC hedge (EMA100, 3% band) vs buy-and-hold,
-// computed on BTC daily closes Jan 2022 – Jun 2026 (includes the 2022 bear). $10k start.
-// Reproducible from the public daily series; NOT live trading results.
-const HEDGE_CURVE = [
-  10000, 10000, 10000, 8806, 7910, 7907, 7907, 7907, 7907, 7907, 7907, 7907, 7907, 7907, 7907, 7907,
-  9617, 9840, 10521, 10575, 10486, 10023, 10495, 10074, 9156, 9156, 9156, 11368, 12668, 13946,
-  13352, 16660, 23146, 21779, 19483, 22251, 20865, 19354, 18375, 17035, 17791, 18239, 24504, 27355,
-  26608, 28328, 24766, 23979, 23979, 26885, 26856, 27795, 30356, 29814, 29763, 31124, 27742, 27742,
-  27742, 27742, 27742, 27742, 27742, 27535, 27509, 26398,
-];
-const BUYHOLD_CURVE = [
-  10000, 7713, 8044, 8574, 8283, 7547, 6664, 4503, 4866, 5093, 4048, 4113, 4315, 3400, 3515, 3760,
-  4806, 4917, 5684, 5713, 5665, 5415, 6392, 6136, 5486, 5608, 5629, 7418, 8267, 9100, 8713, 10871,
-  15104, 14211, 12714, 14519, 13615, 12740, 12926, 12391, 13782, 14129, 18982, 21190, 20612, 21944,
-  19184, 17620, 17527, 21962, 21939, 22706, 24798, 24355, 24313, 25425, 23070, 18960, 18578, 20033,
-  14697, 14273, 14309, 16266, 16251, 13292,
-];
-
-// The honest, computed figures for the EMA-band BTC hedge over the window above.
-const HEDGE_STATS = {
-  cagr: '+24.5%',
-  maxDd: '−30%',
-  sharpe: '0.83',
-  total: '+164%',
-  bhCagr: '+6.6%',
-  bhMaxDd: '−67%',
-  bhTotal: '+33%',
 };
 
 const ACCOUNT_TYPES = [
@@ -164,16 +137,14 @@ const RISK = [
 export default function ProductPage() {
   return (
     <MarketingShell activeNav="product">
-      <div className="qp-page">
-        <Hero />
-        <Venues />
-        <AccountTypes />
-        <Discipline />
-        <Signals />
-        <StrategyLibrary />
-        <Risk />
-        <Contact />
-      </div>
+      <Hero />
+      <Venues />
+      <AccountTypes />
+      <Discipline />
+      <Signals />
+      <StrategyLibrary />
+      <Risk />
+      <Contact />
     </MarketingShell>
   );
 }
@@ -256,90 +227,6 @@ function HeroFactsheet() {
         </span>
       </div>
     </div>
-  );
-}
-
-function EquityChart({
-  hedge,
-  bh,
-  height = 180,
-}: {
-  hedge: number[];
-  bh: number[];
-  height?: number;
-}) {
-  if (!hedge.length) return null;
-  const w = 600;
-  const h = height;
-  const pl = 40;
-  const pr = 16;
-  const pt = 14;
-  const pb = 24;
-  const all = [...hedge, ...bh];
-  const min = Math.min(...all) * 0.97;
-  const max = Math.max(...all) * 1.03;
-  const toPath = (data: number[]) => {
-    const pts = data.map((v, i) => ({
-      x: pl + (i / (data.length - 1)) * (w - pl - pr),
-      y: pt + (1 - (v - min) / (max - min)) * (h - pt - pb),
-    }));
-    return pts
-      .map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x.toFixed(2)} ${p.y.toFixed(2)}`)
-      .join(' ');
-  };
-  const hedgePath = toPath(hedge);
-  const bhPath = toPath(bh);
-  const lastX = pl + (w - pl - pr);
-  const area = `${hedgePath} L ${lastX.toFixed(2)} ${(h - pb).toFixed(2)} L ${pl} ${(h - pb).toFixed(2)} Z`;
-  const yTicks = 4;
-  const yLabels = Array.from({ length: yTicks }, (_, i) => {
-    const v = min + (max - min) * (i / (yTicks - 1));
-    const y = pt + (1 - i / (yTicks - 1)) * (h - pt - pb);
-    return { v, y };
-  });
-  const xMarks = [
-    { idx: 0, label: "'22" },
-    { idx: Math.floor(hedge.length * 0.5), label: "'24" },
-    { idx: hedge.length - 1, label: "'26" },
-  ];
-  return (
-    <svg
-      viewBox={`0 0 ${w} ${h}`}
-      width="100%"
-      preserveAspectRatio="xMidYMid meet"
-      className="qp-fact-svg"
-      aria-hidden="true"
-    >
-      {yLabels.map(({ v, y }, i) => (
-        <g key={i}>
-          <line x1={pl} y1={y} x2={w - pr} y2={y} className="qp-chart-grid" />
-          <text x={pl - 6} y={y + 3} textAnchor="end" className="qp-chart-axis">
-            ${(v / 1000).toFixed(0)}k
-          </text>
-        </g>
-      ))}
-      <path d={area} className="qp-chart-area" />
-      <path
-        d={bhPath}
-        fill="none"
-        stroke="var(--qp-ink-muted)"
-        strokeWidth={1.25}
-        strokeDasharray="3 3"
-        opacity={0.7}
-      />
-      <path d={hedgePath} className="qp-chart-line" />
-      {xMarks.map((m, i) => (
-        <text
-          key={i}
-          x={pl + (m.idx / (hedge.length - 1)) * (w - pl - pr)}
-          y={h - 8}
-          textAnchor="middle"
-          className="qp-chart-axis"
-        >
-          {m.label}
-        </text>
-      ))}
-    </svg>
   );
 }
 

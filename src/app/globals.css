@@ -1161,7 +1161,6 @@ input[type='number'].no-native-spinners {
   --chart-3: 177 49% 28%;
 }
 
-
 /* ─────────────────────────────────────────────────────────────────────
    Blackridge superbank — shared visual primitives used by the new
    marketing, onboarding, dashboard reskin, and settings appearance
@@ -1806,7 +1805,9 @@ input[type='number'].no-native-spinners {
   border-bottom: 1px solid var(--qp-ink-faint);
   white-space: nowrap;
   text-decoration: none;
-  transition: color var(--dur-fast) var(--ease-out-quart), border-color var(--dur-fast) var(--ease-out-quart);
+  transition:
+    color var(--dur-fast) var(--ease-out-quart),
+    border-color var(--dur-fast) var(--ease-out-quart);
 }
 .qp-btn-textlink:hover {
   color: var(--qp-ink);
@@ -2604,5 +2605,696 @@ input[type='number'].no-native-spinners {
   }
   .qp-contact-meta {
     grid-template-columns: 1fr;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────
+   qp v2 — "Research Desk" layer. Extends the .qp-* quant-credibility
+   system across the whole public marketing surface (shell, welcome,
+   strategies, pricing, security, docs). Adds the editorial serif
+   display face (--qp-serif ← Newsreader, loaded in the (public)
+   layout), institutional nav/footer chrome, ledger tables, the
+   validation-gates rail, fee panels, and the ruled FAQ/doc index.
+   ───────────────────────────────────────────────────────────────────── */
+.qp-page {
+  --qp-serif: var(--font-newsreader, Georgia), Georgia, 'Times New Roman', serif;
+}
+
+/* Serif display voice — headlines + key numerals read like a research
+   letter; UI/body stays on the sans, data on the mono. */
+.qp-hero h1,
+.qp-section-head h2,
+.qp-contact-copy h2,
+.qp-letter-quote p,
+.qp-cta h2 {
+  font-family: var(--qp-serif);
+  font-weight: 500;
+}
+.qp-hero h1 {
+  font-size: 64px;
+  letter-spacing: -0.015em;
+  line-height: 1.04;
+}
+.qp-section-head h2,
+.qp-contact-copy h2 {
+  letter-spacing: -0.012em;
+  font-size: 42px;
+}
+.qp-fact-val {
+  font-family: var(--qp-serif);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.qp-disc-num {
+  font-family: var(--qp-serif);
+  font-style: italic;
+}
+
+/* ── Nav ───────────────────────────────────────────────────────────── */
+.qp-nav {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: color-mix(in srgb, var(--qp-paper) 92%, transparent);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--qp-line);
+}
+.qp-nav-inner {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 32px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  gap: 40px;
+}
+.qp-nav-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 11px;
+  text-decoration: none;
+}
+.qp-nav-brand .name {
+  font-family: var(--qp-serif);
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--qp-ink);
+  line-height: 1;
+}
+.qp-nav-links {
+  display: flex;
+  gap: 28px;
+  flex: 1;
+}
+.qp-nav-links a {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--qp-ink-muted);
+  text-decoration: none;
+  padding: 23px 0 21px;
+  border-bottom: 2px solid transparent;
+  transition: color var(--dur-fast) var(--ease-out-quart);
+}
+.qp-nav-links a:hover {
+  color: var(--qp-ink);
+}
+.qp-nav-links a.active {
+  color: var(--qp-ink);
+  border-bottom-color: var(--qp-ink);
+}
+.qp-nav-cta {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin-left: auto;
+}
+.qp-nav-signin {
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--qp-ink-soft);
+  text-decoration: none;
+  white-space: nowrap;
+}
+.qp-nav-signin:hover {
+  color: var(--qp-ink);
+}
+@media (max-width: 860px) {
+  .qp-nav-links {
+    display: none;
+  }
+  .qp-nav-inner {
+    padding: 0 20px;
+  }
+}
+
+/* ── Hero stat strip (hairline columns under the hero copy) ────────── */
+.qp-hero-stats {
+  display: grid;
+  grid-template-columns: repeat(4, auto);
+  justify-content: start;
+  gap: 48px;
+  margin-top: 52px;
+  padding-top: 26px;
+  border-top: 1px solid var(--qp-edge);
+}
+.qp-hero-stats > div {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.qp-hero-stats strong {
+  font-family: var(--qp-serif);
+  font-size: 26px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--qp-ink);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.qp-hero-stats span {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--qp-ink-muted);
+}
+@media (max-width: 640px) {
+  .qp-hero-stats {
+    grid-template-columns: repeat(2, auto);
+    gap: 24px 40px;
+  }
+}
+
+/* ── Validation gates rail ─────────────────────────────────────────── */
+.qp-gates {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  border-top: 1px solid var(--qp-edge);
+  border-bottom: 1px solid var(--qp-edge);
+}
+.qp-gates > article {
+  padding: 30px 24px 28px;
+  border-right: 1px solid var(--qp-hair);
+}
+.qp-gates > article:last-child {
+  border-right: 0;
+}
+.qp-gates .num {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--qp-ink-faint);
+  margin-bottom: 16px;
+}
+.qp-gates h3 {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin: 0 0 8px;
+  color: var(--qp-ink);
+}
+.qp-gates p {
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--qp-ink-soft);
+  margin: 0;
+}
+@media (max-width: 1024px) {
+  .qp-gates {
+    grid-template-columns: 1fr;
+  }
+  .qp-gates > article {
+    border-right: 0;
+    border-bottom: 1px solid var(--qp-hair);
+  }
+  .qp-gates > article:last-child {
+    border-bottom: 0;
+  }
+}
+
+/* ── Ledger table (strategy index, compliance, fee schedule) ───────── */
+.qp-table-wrap {
+  border: 1px solid var(--qp-edge);
+  background: var(--qp-elevated);
+  overflow-x: auto;
+}
+.qp-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 720px;
+}
+.qp-table th {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--qp-ink-muted);
+  text-align: left;
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--qp-edge);
+  background: var(--qp-surface);
+  white-space: nowrap;
+}
+.qp-table td {
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--qp-hair);
+  font-size: 14px;
+  color: var(--qp-ink-soft);
+  vertical-align: middle;
+}
+.qp-table tr:last-child td {
+  border-bottom: 0;
+}
+.qp-table tbody tr {
+  transition: background var(--dur-fast) var(--ease-out-quart);
+}
+.qp-table tbody tr:hover {
+  background: var(--qp-surface);
+}
+.qp-table .code {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--qp-ink);
+  white-space: nowrap;
+}
+.qp-table .name {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--qp-ink);
+}
+.qp-table .sub {
+  display: block;
+  font-size: 12.5px;
+  font-weight: 400;
+  color: var(--qp-ink-muted);
+  margin-top: 3px;
+}
+.qp-table .mono {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  color: var(--qp-ink);
+}
+.qp-table .num-r {
+  text-align: right;
+}
+.qp-table .up {
+  color: var(--color-profit);
+}
+.qp-table .dn {
+  color: var(--qp-loss);
+}
+
+/* Outline status tag (compliance, real-backtest markers) */
+.qp-status {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--qp-ink-muted);
+  border: 1px solid var(--qp-line);
+  padding: 4px 8px;
+  white-space: nowrap;
+}
+.qp-status.ink {
+  color: var(--qp-paper);
+  background: var(--qp-ink);
+  border-color: var(--qp-ink);
+}
+
+/* ── Filter tabs (mono, ruled) ─────────────────────────────────────── */
+.qp-tabs {
+  display: flex;
+  gap: 26px;
+  border-bottom: 1px solid var(--qp-line);
+  flex-wrap: wrap;
+}
+.qp-tabs button {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--qp-ink-muted);
+  background: none;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  padding: 10px 0 12px;
+  margin-bottom: -1px;
+  cursor: pointer;
+  transition: color var(--dur-fast) var(--ease-out-quart);
+}
+.qp-tabs button:hover {
+  color: var(--qp-ink);
+}
+.qp-tabs button[aria-pressed='true'] {
+  color: var(--qp-ink);
+  border-bottom-color: var(--qp-ink);
+}
+
+/* ── Fee panels ────────────────────────────────────────────────────── */
+.qp-plan-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  border: 1px solid var(--qp-edge);
+}
+.qp-plan {
+  padding: 36px 36px 32px;
+  background: var(--qp-elevated);
+  display: flex;
+  flex-direction: column;
+}
+.qp-plan + .qp-plan {
+  border-left: 1px solid var(--qp-hair);
+}
+.qp-plan .tag {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--qp-ink-muted);
+  margin-bottom: 22px;
+}
+.qp-plan .price {
+  font-family: var(--qp-serif);
+  font-size: 52px;
+  font-weight: 500;
+  letter-spacing: -0.015em;
+  line-height: 1;
+  color: var(--qp-ink);
+  margin: 0 0 10px;
+}
+.qp-plan .terms {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.03em;
+  color: var(--qp-ink-muted);
+  margin-bottom: 26px;
+}
+.qp-plan p {
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: var(--qp-ink-soft);
+  margin: 0 0 28px;
+}
+.qp-plan .foot {
+  margin-top: auto;
+}
+@media (max-width: 860px) {
+  .qp-plan-grid {
+    grid-template-columns: 1fr;
+  }
+  .qp-plan + .qp-plan {
+    border-left: 0;
+    border-top: 1px solid var(--qp-hair);
+  }
+}
+
+/* ── Ruled list (what's included) ──────────────────────────────────── */
+.qp-list-ruled {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border-top: 1px solid var(--qp-edge);
+}
+.qp-list-ruled li {
+  display: flex;
+  gap: 16px;
+  align-items: baseline;
+  padding: 16px 18px 16px 2px;
+  border-bottom: 1px solid var(--qp-hair);
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--qp-ink-soft);
+}
+.qp-list-ruled li .idx {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--qp-ink-faint);
+  flex-shrink: 0;
+  width: 22px;
+}
+@media (max-width: 720px) {
+  .qp-list-ruled {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── Ruled FAQ ─────────────────────────────────────────────────────── */
+.qp-faq {
+  border-top: 1px solid var(--qp-edge);
+}
+.qp-faq details {
+  border-bottom: 1px solid var(--qp-hair);
+}
+.qp-faq summary {
+  list-style: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 24px;
+  cursor: pointer;
+  padding: 20px 2px;
+  font-family: var(--qp-serif);
+  font-size: 19px;
+  font-weight: 500;
+  letter-spacing: -0.005em;
+  color: var(--qp-ink);
+}
+.qp-faq summary::-webkit-details-marker {
+  display: none;
+}
+.qp-faq summary .marker {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  color: var(--qp-ink-faint);
+  flex-shrink: 0;
+  transition: transform var(--dur-fast) var(--ease-out-quart);
+}
+.qp-faq details[open] summary .marker {
+  transform: rotate(45deg);
+}
+.qp-faq .body {
+  padding: 0 48px 22px 2px;
+  font-size: 14.5px;
+  line-height: 1.65;
+  color: var(--qp-ink-soft);
+  max-width: 680px;
+}
+
+/* ── Document index (docs page) ────────────────────────────────────── */
+.qp-docdex {
+  border-top: 1px solid var(--qp-edge);
+}
+.qp-docdex a {
+  display: grid;
+  grid-template-columns: 64px 280px 1fr auto;
+  gap: 28px;
+  align-items: baseline;
+  padding: 26px 2px;
+  border-bottom: 1px solid var(--qp-hair);
+  text-decoration: none;
+  transition: background var(--dur-fast) var(--ease-out-quart);
+}
+.qp-docdex a:hover {
+  background: var(--qp-surface);
+}
+.qp-docdex .idx {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--qp-ink-faint);
+}
+.qp-docdex h3 {
+  font-family: var(--qp-serif);
+  font-size: 21px;
+  font-weight: 500;
+  letter-spacing: -0.005em;
+  margin: 0;
+  color: var(--qp-ink);
+}
+.qp-docdex p {
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--qp-ink-soft);
+  margin: 0;
+  max-width: 520px;
+}
+.qp-docdex .go {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--qp-ink-muted);
+}
+.qp-docdex a:hover .go {
+  color: var(--qp-ink);
+}
+@media (max-width: 860px) {
+  .qp-docdex a {
+    grid-template-columns: 40px 1fr;
+    gap: 8px 20px;
+  }
+  .qp-docdex h3 {
+    grid-column: 2;
+  }
+  .qp-docdex p {
+    grid-column: 2;
+  }
+  .qp-docdex .go {
+    display: none;
+  }
+}
+
+/* ── CTA strip ─────────────────────────────────────────────────────── */
+.qp-cta {
+  padding: 96px 0 104px;
+  text-align: center;
+}
+.qp-cta h2 {
+  font-size: 46px;
+  letter-spacing: -0.012em;
+  line-height: 1.08;
+  margin: 0 0 18px;
+  color: var(--qp-ink);
+  text-wrap: balance;
+}
+.qp-cta p {
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--qp-ink-soft);
+  max-width: 480px;
+  margin: 0 auto 32px;
+}
+.qp-cta .note {
+  margin-top: 16px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--qp-ink-muted);
+}
+
+/* ── Footer (always dark, with disclosures) ────────────────────────── */
+.qp-footer {
+  background: #0a0d12;
+  color: rgba(255, 255, 255, 0.62);
+  padding: 64px 0 40px;
+}
+.qp-footer-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  gap: 48px;
+  padding-bottom: 48px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+.qp-footer-brand .name {
+  font-family: var(--qp-serif);
+  font-size: 21px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: #fff;
+}
+.qp-footer-brand p {
+  font-size: 13px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.5);
+  max-width: 280px;
+  margin: 14px 0 0;
+}
+.qp-footer-col h5 {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.42);
+  margin: 0 0 16px;
+}
+.qp-footer-col ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+}
+.qp-footer-col a {
+  font-size: 13.5px;
+  color: rgba(255, 255, 255, 0.72);
+  text-decoration: none;
+}
+.qp-footer-col a:hover {
+  color: #fff;
+}
+.qp-footer-disclosures {
+  padding: 32px 0 0;
+  font-size: 11.5px;
+  line-height: 1.7;
+  color: rgba(255, 255, 255, 0.38);
+  max-width: 880px;
+}
+.qp-footer-disclosures strong {
+  color: rgba(255, 255, 255, 0.55);
+  font-weight: 600;
+}
+.qp-footer-bottom {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-top: 28px;
+  padding-top: 22px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
+  color: rgba(255, 255, 255, 0.4);
+}
+@media (max-width: 860px) {
+  .qp-footer-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 36px;
+  }
+}
+
+/* ── Misc helpers ──────────────────────────────────────────────────── */
+.qp-btn-outline {
+  background: transparent;
+  color: var(--qp-ink);
+  border: 1px solid var(--qp-ink);
+  padding: 10px 17px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 4px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  text-decoration: none;
+  transition:
+    background var(--dur-fast) var(--ease-out-quart),
+    color var(--dur-fast) var(--ease-out-quart);
+}
+.qp-btn-outline:hover {
+  background: var(--qp-ink);
+  color: var(--qp-paper);
+}
+.qp-btn-outline.lg {
+  padding: 13px 21px;
+}
+.qp-foot-note {
+  margin-top: 18px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--qp-ink-muted);
+}
+@media (max-width: 640px) {
+  .qp-hero h1 {
+    font-size: 38px;
+  }
+  .qp-cta h2 {
+    font-size: 32px;
   }
 }

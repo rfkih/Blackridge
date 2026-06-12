@@ -2,7 +2,6 @@
 
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
-import { ArrowRight, TrendingUp, TrendingDown, BarChart3 } from 'lucide-react';
 import { Sparkline, makeSpark } from '@/components/marketing/Sparkline';
 
 export interface PublicStrategy {
@@ -32,9 +31,9 @@ interface Props {
 }
 
 /**
- * Client-side filter UI for the public strategies catalog. Lifts state out
- * of the server page so the category pills are actually wired to a state,
- * not decorative dead buttons.
+ * Client-side filter for the public strategy library — qp "ledger"
+ * presentation: mono ruled tabs above a hairline table. Real-backtest
+ * rows carry an ink status tag; illustrative rows are labelled as such.
  */
 export function StrategyFilterGrid({ strategies, categories }: Props) {
   const [active, setActive] = useState<string>('All');
@@ -45,214 +44,126 @@ export function StrategyFilterGrid({ strategies, categories }: Props) {
   }, [active, strategies]);
 
   return (
-    <>
-      {}
-      <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
-        {categories.map((c) => {
-          const isOn = active === c;
-          return (
-            <button
-              key={c}
-              type="button"
-              onClick={() => setActive(c)}
-              aria-pressed={isOn}
-              className="br-chip transition-colors"
-              style={{
-                padding: '6px 14px',
-                fontSize: 12,
-                background: isOn ? 'var(--brand-500)' : undefined,
-                color: isOn ? '#fff' : undefined,
-                cursor: 'pointer',
-              }}
-            >
-              {c}
-            </button>
-          );
-        })}
-      </div>
-
-      {}
-      <section style={{ padding: '32px 0 64px' }}>
-        <div className="mx-auto max-w-[1180px] px-5 sm:px-8">
-          <div
-            className="mb-5 text-center text-[13px]"
-            style={{ color: 'var(--text-muted)' }}
-            aria-live="polite"
-          >
-            Showing {visible.length} of {strategies.length}{' '}
-            {active === 'All' ? 'strategies' : `${active.toLowerCase()} strategies`}
-          </div>
-          {visible.length === 0 ? (
-            <div className="br-card mx-auto max-w-md text-center" style={{ padding: 32 }}>
-              <div
-                className="font-display"
-                style={{
-                  fontSize: 18,
-                  fontWeight: 700,
-                  color: 'var(--text-primary)',
-                }}
-              >
-                No strategies in this category yet.
-              </div>
-              <p className="mt-2 text-[14px]" style={{ color: 'var(--text-muted)' }}>
-                Try “All” or another category.
-              </p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
-              {visible.map((s) => (
-                <StrategyCard key={s.code} strategy={s} />
-              ))}
-            </div>
-          )}
-        </div>
-      </section>
-    </>
-  );
-}
-
-function StrategyCard({ strategy }: { strategy: PublicStrategy }) {
-  const isProfit = strategy.pnl30d >= 0;
-  const isReal = strategy.illustrative === false;
-  return (
-    <Link
-      href="/onboarding"
-      className="br-card flex flex-col transition-all hover:-translate-y-0.5"
-      style={{
-        padding: 24,
-        borderRadius: 24,
-        gap: 16,
-        textDecoration: 'none',
-      }}
-    >
-      <div className="flex items-start justify-between gap-3">
-        <div
-          className="br-ticker"
-          style={{ width: 48, height: 48, borderRadius: 12, fontSize: 12 }}
-        >
-          {strategy.code}
-        </div>
-        {strategy.highlight && (
-          <span className="br-chip br-chip-brand text-[10px]">{strategy.highlight}</span>
-        )}
-      </div>
-      <div>
-        <h3
-          className="font-display"
-          style={{
-            fontSize: 19,
-            fontWeight: 700,
-            letterSpacing: '-0.015em',
-            margin: 0,
-            color: 'var(--text-primary)',
-          }}
-        >
-          {strategy.name}
-        </h3>
-        <p className="mt-1 text-[13px]" style={{ color: 'var(--text-muted)', margin: '4px 0 0' }}>
-          {strategy.tagline}
-        </p>
-      </div>
-
-      <Sparkline
-        data={makeSpark(strategy.sparkSeed, 40)}
-        color={isReal ? 'var(--color-profit)' : isProfit ? 'var(--brand-500)' : 'var(--color-loss)'}
-        width={280}
-        height={48}
-      />
-
-      <div>
-        <span
-          className="br-chip text-[10px]"
-          style={{
-            padding: '2px 8px',
-            fontWeight: 600,
-            background: isReal ? 'var(--brand-50)' : undefined,
-            color: isReal ? 'var(--brand-700)' : 'var(--text-muted)',
-          }}
-        >
-          {isReal ? 'Real backtest' : 'Illustrative'}
-        </span>
-      </div>
-
-      <div
-        className="grid grid-cols-3 gap-3 pt-3"
-        style={{ borderTop: '1px solid var(--border-subtle)' }}
-      >
-        <MiniStat
-          label={strategy.returnLabel ?? '30d return'}
-          value={`${isProfit ? '+' : ''}${strategy.pnl30d.toFixed(2)}%`}
-          tone={isProfit ? 'profit' : 'loss'}
-          icon={isProfit ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
-        />
-        <MiniStat label="Sharpe" value={strategy.sharpe.toFixed(2)} />
-        <MiniStat label="Max DD" value={`${strategy.drawdown.toFixed(2)}%`} tone="loss" />
-      </div>
-
-      <div className="flex flex-wrap gap-1.5 pt-1">
-        {strategy.tags.map((t) => (
-          <span
-            key={t}
-            className="br-chip text-[10px]"
-            style={{ padding: '2px 8px', fontWeight: 500 }}
-          >
-            {t}
-          </span>
+    <div style={{ textAlign: 'left' }}>
+      <div className="qp-tabs" role="group" aria-label="Filter strategies by category">
+        {categories.map((c) => (
+          <button key={c} type="button" onClick={() => setActive(c)} aria-pressed={active === c}>
+            {c}
+          </button>
         ))}
       </div>
 
       <div
-        className="flex items-center justify-between pt-3 text-[12px]"
-        style={{ borderTop: '1px solid var(--border-subtle)', color: 'var(--text-muted)' }}
+        aria-live="polite"
+        style={{
+          fontFamily: 'var(--font-mono)',
+          fontSize: 11,
+          letterSpacing: '0.05em',
+          textTransform: 'uppercase',
+          color: 'var(--qp-ink-muted)',
+          padding: '18px 2px 14px',
+        }}
       >
-        <span className="inline-flex items-center gap-1.5">
-          <BarChart3 size={12} />{' '}
-          {strategy.footnote ??
-            `${strategy.trades30d} trades · ${strategy.winRate.toFixed(1)}% win`}
-        </span>
-        <span
-          className="inline-flex items-center gap-1 font-semibold"
-          style={{ color: 'var(--brand-700)' }}
-        >
-          Enable <ArrowRight size={12} />
-        </span>
+        Showing {visible.length} of {strategies.length} strategies
+        {active !== 'All' ? ` · ${active}` : ''}
       </div>
-    </Link>
+
+      {visible.length === 0 ? (
+        <div
+          style={{
+            border: '1px solid var(--qp-line)',
+            padding: 40,
+            textAlign: 'center',
+            color: 'var(--qp-ink-muted)',
+            fontSize: 14,
+          }}
+        >
+          No strategies in this category yet — try “All” or another category.
+        </div>
+      ) : (
+        <div className="qp-table-wrap">
+          <table className="qp-table">
+            <thead>
+              <tr>
+                <th>Code</th>
+                <th>Strategy</th>
+                <th>Category</th>
+                <th aria-label="Equity sketch" />
+                <th className="num-r">Return</th>
+                <th className="num-r">Sharpe</th>
+                <th className="num-r">Max DD</th>
+                <th>Evidence</th>
+              </tr>
+            </thead>
+            <tbody>
+              {visible.map((s) => (
+                <StrategyRow key={s.code} strategy={s} />
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      <div className="qp-foot-note">
+        Figures marked <em>Illustrative</em> are example numbers, not live or backtested results;
+        real per-strategy statistics render inside the app against your own data window. The
+        EMA-band hedge row is a real backtest on BTC daily closes, 2022–2026.{' '}
+        <Link
+          href="/onboarding"
+          style={{ color: 'var(--qp-ink)', fontWeight: 600, textDecoration: 'none' }}
+        >
+          Open an account&ensp;→
+        </Link>
+      </div>
+    </div>
   );
 }
 
-function MiniStat({
-  label,
-  value,
-  tone,
-  icon,
-}: {
-  label: string;
-  value: string;
-  tone?: 'profit' | 'loss';
-  icon?: React.ReactNode;
-}) {
-  const color =
-    tone === 'profit'
-      ? 'var(--color-profit)'
-      : tone === 'loss'
-        ? 'var(--color-loss)'
-        : 'var(--text-primary)';
+function StrategyRow({ strategy }: { strategy: PublicStrategy }) {
+  const isProfit = strategy.pnl30d >= 0;
+  const isReal = strategy.illustrative === false;
   return (
-    <div>
-      <div
-        className="text-[10px] font-semibold uppercase tracking-[0.06em]"
-        style={{ color: 'var(--text-muted)' }}
-      >
-        {label}
-      </div>
-      <div
-        className="num mt-0.5 inline-flex items-center gap-1 font-display text-[14px] font-bold"
-        style={{ color }}
-      >
-        {icon}
-        {value}
-      </div>
-    </div>
+    <tr>
+      <td className="code">{strategy.code}</td>
+      <td className="name">
+        {strategy.name}
+        <span className="sub">{strategy.tagline}</span>
+      </td>
+      <td>{strategy.category}</td>
+      <td style={{ color: 'var(--qp-ink-muted)' }}>
+        <Sparkline
+          data={makeSpark(strategy.sparkSeed, 32)}
+          color="currentColor"
+          width={96}
+          height={28}
+          fill={false}
+        />
+      </td>
+      <td className={`mono num-r ${isProfit ? 'up' : 'dn'}`}>
+        {isProfit ? '+' : ''}
+        {strategy.pnl30d.toFixed(2)}%
+        <span
+          style={{
+            display: 'block',
+            fontSize: 9,
+            letterSpacing: '0.06em',
+            textTransform: 'uppercase',
+            color: 'var(--qp-ink-faint)',
+            marginTop: 2,
+          }}
+        >
+          {strategy.returnLabel ?? '30d'}
+        </span>
+      </td>
+      <td className="mono num-r">{strategy.sharpe.toFixed(2)}</td>
+      <td className="mono num-r dn">{strategy.drawdown.toFixed(2)}%</td>
+      <td>
+        {isReal ? (
+          <span className="qp-status ink">{strategy.footnote ?? 'Real backtest'}</span>
+        ) : (
+          <span className="qp-status">Illustrative</span>
+        )}
+      </td>
+    </tr>
   );
 }
