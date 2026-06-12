@@ -13,13 +13,18 @@
 const isProd = process.env.NODE_ENV === 'production';
 
 // Server-side only (no NEXT_PUBLIC prefix — never exposed to the browser).
-// Used by Next.js rewrites to forward browser API calls to the JVMs.
+// Used by Next.js rewrites to forward browser API calls to the trading JVM.
 // In Docker compose all services share blackheart_default bridge, so the
-// service names resolve. Override via env var for non-compose topologies.
+// service name resolves. Override via env var for non-compose topologies.
+//
+// Every rewrite targets the trading JVM, including /research-actuator/**:
+// its ResearchProxyController strips that prefix and forwards to the
+// loopback-only research JVM (single security perimeter). Pointing the
+// rewrite straight at research:8081 404s — the research JVM has no
+// /research-actuator handler (the proxy bean is @Profile("!research")),
+// which made the dashboard render a healthy research JVM as UNREACHABLE.
 const INTERNAL_API_URL =
   process.env.INTERNAL_API_URL || (isProd ? 'http://trading:8080' : 'http://localhost:8080');
-const INTERNAL_RESEARCH_URL =
-  process.env.INTERNAL_RESEARCH_URL || (isProd ? 'http://research:8081' : 'http://localhost:8081');
 
 function requireProdEnv(name, fallback) {
   const raw = process.env[name];
@@ -110,7 +115,7 @@ const nextConfig = {
       },
       {
         source: '/research-actuator/:path*',
-        destination: `${INTERNAL_RESEARCH_URL}/research-actuator/:path*`,
+        destination: `${INTERNAL_API_URL}/research-actuator/:path*`,
       },
     ];
   },
