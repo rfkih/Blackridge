@@ -19,8 +19,7 @@ const isProd = process.env.NODE_ENV === 'production';
 const INTERNAL_API_URL =
   process.env.INTERNAL_API_URL || (isProd ? 'http://trading:8080' : 'http://localhost:8080');
 const INTERNAL_RESEARCH_URL =
-  process.env.INTERNAL_RESEARCH_URL ||
-  (isProd ? 'http://research:8081' : 'http://localhost:8081');
+  process.env.INTERNAL_RESEARCH_URL || (isProd ? 'http://research:8081' : 'http://localhost:8081');
 
 function requireProdEnv(name, fallback) {
   const raw = process.env[name];
@@ -87,6 +86,12 @@ const nextConfig = {
   poweredByHeader: false,
   // Enforce strict ESLint/TS; a prod build should never ship with header config errors.
   reactStrictMode: true,
+
+  experimental: {
+    // Tree-shake big named-export packages at the import level — keeps unused
+    // lucide icons / recharts / date-fns modules out of page chunks.
+    optimizePackageImports: ['lucide-react', 'recharts', 'date-fns'],
+  },
 
   // Proxy API + actuator calls to the JVMs. In production the browser sends
   // all requests to the Tailscale URL (NEXT_PUBLIC_API_URL); these rewrites

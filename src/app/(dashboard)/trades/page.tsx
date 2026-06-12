@@ -49,21 +49,38 @@ function csvEscape(v: string | number | null | undefined): string {
 }
 
 function downloadTradesCsv(trades: Trades[]) {
-  const headers = ['id', 'symbol', 'strategy', 'direction', 'status', 'entry_time', 'entry_price', 'exit_time', 'exit_price', 'quantity', 'realized_pnl', 'fee_usdt'];
-  const rows = trades.map((t) => [
-    t.id,
-    t.symbol,
-    t.strategyCode,
-    t.direction,
-    t.status,
-    t.entryTime ? new Date(t.entryTime).toISOString() : '',
-    t.entryPrice,
-    t.exitTime ? new Date(t.exitTime).toISOString() : '',
-    t.exitAvgPrice ?? '',
-    t.quantity,
-    t.realizedPnl,
-    t.feeUsdt,
-  ].map(csvEscape).join(','));
+  const headers = [
+    'id',
+    'symbol',
+    'strategy',
+    'direction',
+    'status',
+    'entry_time',
+    'entry_price',
+    'exit_time',
+    'exit_price',
+    'quantity',
+    'realized_pnl',
+    'fee_usdt',
+  ];
+  const rows = trades.map((t) =>
+    [
+      t.id,
+      t.symbol,
+      t.strategyCode,
+      t.direction,
+      t.status,
+      t.entryTime ? new Date(t.entryTime).toISOString() : '',
+      t.entryPrice,
+      t.exitTime ? new Date(t.exitTime).toISOString() : '',
+      t.exitAvgPrice ?? '',
+      t.quantity,
+      t.realizedPnl,
+      t.feeUsdt,
+    ]
+      .map(csvEscape)
+      .join(','),
+  );
   const csv = [headers.join(','), ...rows].join('\n');
   const blob = new Blob([csv], { type: 'text/csv' });
   const url = URL.createObjectURL(blob);
@@ -118,7 +135,7 @@ export default function TradesPage() {
   return (
     <Suspense fallback={<Skeleton className="h-[60vh] w-full" />}>
       <Tabs defaultValue="journal" className="flex flex-col gap-4">
-        <TabsList className="bg-[var(--bg-elevated)] self-start">
+        <TabsList className="self-start bg-[var(--bg-elevated)]">
           <TabsTrigger value="journal">{isHedging ? 'Rebalances' : 'Journal'}</TabsTrigger>
           <TabsTrigger value="executions">Execution History</TabsTrigger>
         </TabsList>
@@ -223,7 +240,14 @@ function TradesPageContent() {
       to: filters.to,
       accountId: scopedAccountId,
     }),
-    [filters.status, filters.strategyCode, filters.symbol, filters.from, filters.to, scopedAccountId],
+    [
+      filters.status,
+      filters.strategyCode,
+      filters.symbol,
+      filters.from,
+      filters.to,
+      scopedAccountId,
+    ],
   );
 
   const openSlice = useMemo(
@@ -418,7 +442,13 @@ function TradesPageContent() {
           <button
             type="button"
             className="mm-btn"
-            style={{ display: 'inline-flex', alignItems: 'center', gap: 6, opacity: 0.5, cursor: 'not-allowed' }}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+              opacity: 0.5,
+              cursor: 'not-allowed',
+            }}
             title="FIFO tax report — coming soon"
             disabled
           >
@@ -442,6 +472,7 @@ function TradesPageContent() {
         {}
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center' }}>
           <label
+            htmlFor="trades-symbol-filter"
             style={{
               flex: '0 1 280px',
               display: 'flex',
@@ -457,11 +488,11 @@ function TradesPageContent() {
           >
             <Search size={12} strokeWidth={1.75} aria-hidden="true" />
             <input
+              id="trades-symbol-filter"
               type="text"
               value={filters.symbol}
               onChange={(e) => patchFilters({ symbol: e.target.value })}
               placeholder="Search symbol…"
-              aria-label="Filter by symbol"
               style={{
                 background: 'transparent',
                 border: 'none',
@@ -627,6 +658,10 @@ function TradesPageContent() {
         columns={columns}
         data={rows}
         isLoading={tradesQuery.isLoading}
+        isError={tradesQuery.isError}
+        errorTitle="Could not load trades"
+        errorDescription="The trades request failed — this is not an empty journal."
+        onRetry={() => tradesQuery.refetch()}
         onRowClick={(t) => router.push(`/trades/${t.id}`)}
         initialSort={[{ id: 'entryTime', desc: true }]}
         manualSorting
@@ -811,17 +846,11 @@ function JournalStatsStrip({
           </span>
         </div>
         <div style={{ marginTop: 8 }}>
-          <StatsSparkline
-            values={cumSeries}
-            color={cumUp ? 'var(--mm-up)' : 'var(--mm-dn)'}
-          />
+          <StatsSparkline values={cumSeries} color={cumUp ? 'var(--mm-up)' : 'var(--mm-dn)'} />
         </div>
       </div>
 
-      <StatCard
-        label="WIN RATE"
-        value={winRate != null ? `${(winRate * 100).toFixed(1)}%` : '—'}
-      />
+      <StatCard label="WIN RATE" value={winRate != null ? `${(winRate * 100).toFixed(1)}%` : '—'} />
       <StatCard
         label="PROFIT FACTOR"
         value={profitFactor != null ? profitFactor.toFixed(2) : '—'}

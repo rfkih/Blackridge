@@ -18,7 +18,13 @@ import {
   type MarkerMeta,
   type OutcomeTone,
 } from '@/lib/backtest/buildTradeMarkers';
-import { formatDate, formatDuration, formatPnl, formatPrice, formatRMultiple } from '@/lib/formatters';
+import {
+  formatDate,
+  formatDuration,
+  formatPnl,
+  formatPrice,
+  formatRMultiple,
+} from '@/lib/formatters';
 import type { BacktestTrade } from '@/types/backtest';
 import type { PositionExitReason } from '@/types/trading';
 import type { CandleData, ChartIndicators, IndicatorData } from '@/types/market';
@@ -29,6 +35,19 @@ import {
 } from '@/lib/charts/useChartIndicatorSeries';
 import { useFeaturesWithComputedEma } from '@/lib/charts/useFeaturesWithComputedEma';
 import { X } from 'lucide-react';
+
+// Overlay palette — plain hex by necessity: these feed lightweight-charts'
+// price-line options and a raw canvas 2d context, neither of which resolves
+// CSS var() tokens. Single source of truth for every trade-annotation color;
+// keep visually consistent with --color-loss/--color-profit/--color-info.
+const OVERLAY = {
+  sl: '#FF4D6A',
+  tp1: '#00C896',
+  tp2: '#00E5B0',
+  entry: '#3B82F6',
+  longFill: 'rgba(0,200,150,0.06)',
+  shortFill: 'rgba(255,77,106,0.06)',
+} as const;
 
 const EMPTY_FEATURES: IndicatorData[] = [];
 const EMPTY_CANDLES: CandleData[] = [];
@@ -139,8 +158,7 @@ export function BacktestAnnotatedChart({
         const left = Math.max(0, x0 ?? 0);
         const right = Math.min(w, (x1 ?? w) + 1);
         if (right <= left) continue;
-        ctx2d.fillStyle =
-          trade.direction === 'LONG' ? 'rgba(0,200,150,0.06)' : 'rgba(255,77,106,0.06)';
+        ctx2d.fillStyle = trade.direction === 'LONG' ? OVERLAY.longFill : OVERLAY.shortFill;
         ctx2d.fillRect(left, 0, right - left, h);
       }
     }
@@ -169,8 +187,7 @@ export function BacktestAnnotatedChart({
     return () => {
       try {
         chart.timeScale().unsubscribeVisibleTimeRangeChange(recomputeOverlays);
-      } catch {
-      }
+      } catch {}
     };
   }, [ready, recomputeOverlays]);
 
@@ -257,8 +274,7 @@ export function BacktestAnnotatedChart({
       clickUnsubRef.current = () => {
         try {
           chart.unsubscribeClick(clickHandler);
-        } catch {
-        }
+        } catch {}
       };
 
       const ro = new ResizeObserver(() => {
@@ -339,8 +355,7 @@ export function BacktestAnnotatedChart({
     for (const line of priceLineRefs.current) {
       try {
         series.removePriceLine(line);
-      } catch {
-      }
+      } catch {}
     }
     priceLineRefs.current = [];
 
@@ -376,27 +391,26 @@ export function BacktestAnnotatedChart({
       };
 
       const isRunnerOnly =
-        trade.positions.length > 0 &&
-        trade.positions.every((p) => p.type === 'RUNNER');
+        trade.positions.length > 0 && trade.positions.every((p) => p.type === 'RUNNER');
 
-      add(trade.stopLossPrice, '#FF4D6A', isRunnerOnly ? 'INIT SL' : 'SL', 'SL');
+      add(trade.stopLossPrice, OVERLAY.sl, isRunnerOnly ? 'INIT SL' : 'SL', 'SL');
       if (!isRunnerOnly) {
-        add(trade.tp1Price, '#00C896', 'TP1', 'TP1');
-        add(trade.tp2Price, '#00E5B0', 'TP2', 'TP2');
+        add(trade.tp1Price, OVERLAY.tp1, 'TP1', 'TP1');
+        add(trade.tp2Price, OVERLAY.tp2, 'TP2', 'TP2');
       }
       if (isRunnerOnly) {
         if (trade.exitPrice != null && Number.isFinite(trade.exitPrice)) {
-          add(trade.exitPrice, '#3B82F6', 'TRAIL EXIT', 'RUNNER');
+          add(trade.exitPrice, OVERLAY.entry, 'TRAIL EXIT', 'RUNNER');
         }
       } else if (hitLine === 'RUNNER') {
         const runnerLeg = trade.positions.find(
           (p) => p.type === 'RUNNER' && p.exitReason === 'RUNNER_CLOSE',
         );
         if (runnerLeg?.exitPrice != null && Number.isFinite(runnerLeg.exitPrice)) {
-          add(runnerLeg.exitPrice, '#3B82F6', 'TRAIL EXIT', 'RUNNER');
+          add(runnerLeg.exitPrice, OVERLAY.entry, 'TRAIL EXIT', 'RUNNER');
         }
       }
-      add(trade.entryPrice, '#3B82F6', 'ENTRY', null);
+      add(trade.entryPrice, OVERLAY.entry, 'ENTRY', null);
     })();
   }, [ready, selectedTradeId, tradeById]);
 
@@ -477,8 +491,7 @@ export function BacktestAnnotatedChart({
       if (rafId != null) cancelAnimationFrame(rafId);
       try {
         chart.unsubscribeCrosshairMove(handler);
-      } catch {
-      }
+      } catch {}
       crosshairRef.current = null;
     };
   }, [ready, metaByTime]);
@@ -491,12 +504,11 @@ export function BacktestAnnotatedChart({
   );
 
   const hoveredTrade = hover ? tradeById.get(hover.tradeId) : null;
-  const selectedTrade = selectedTradeId ? tradeById.get(selectedTradeId) ?? null : null;
+  const selectedTrade = selectedTradeId ? (tradeById.get(selectedTradeId) ?? null) : null;
 
   const cursorOverMarker = hoveredTrade != null;
 
   return (
-
     /* eslint-disable jsx-a11y/no-noninteractive-element-interactions, jsx-a11y/no-noninteractive-tabindex */
     <div
       ref={containerRef}
@@ -508,14 +520,22 @@ export function BacktestAnnotatedChart({
       aria-label="Backtest annotated candlestick chart"
     >
       {/* Trade duration bands rendered on a transparent canvas overlay */}
-      <canvas ref={bandsCanvasRef} className="pointer-events-none absolute left-0 top-0" aria-hidden="true" />
+      <canvas
+        ref={bandsCanvasRef}
+        className="pointer-events-none absolute left-0 top-0"
+        aria-hidden="true"
+      />
       {hoveredTrade && hover && <TradeMarkerTooltip trade={hoveredTrade} x={hover.x} y={hover.y} />}
       {selectedTrade && (
         <TradeDetailCard trade={selectedTrade} onClose={() => onTradeSelect(null)} />
       )}
       {!selectedTrade && trades.length > 0 && <ClickAnyMarkerHint />}
       {/* Cluster count badges for candles with multiple overlapping markers */}
-      <div ref={clusterBadgesRef} className="pointer-events-none absolute inset-0" aria-hidden="true" />
+      <div
+        ref={clusterBadgesRef}
+        className="pointer-events-none absolute inset-0"
+        aria-hidden="true"
+      />
       {ready && <ExportChartButton chartRef={chartRef} />}
     </div>
     /* eslint-enable jsx-a11y/no-noninteractive-element-interactions, jsx-a11y/no-noninteractive-tabindex */
@@ -542,8 +562,7 @@ function ClickAnyMarkerHint() {
     setDismissed(true);
     try {
       window.localStorage.setItem(HINT_DISMISS_KEY, '1');
-    } catch {
-    }
+    } catch {}
   };
 
   return (
@@ -578,8 +597,7 @@ function ExportChartButton({ chartRef }: { chartRef: { current: IChartApi | null
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-    } catch {
-    }
+    } catch {}
   }, [chartRef]);
 
   return (
@@ -616,8 +634,7 @@ function TradeMarkerTooltip({ trade, x, y }: { trade: BacktestTrade; x: number; 
         <span
           className="rounded-sm px-1.5 py-0.5 text-[10px] font-semibold tracking-wider"
           style={{
-            background:
-              trade.direction === 'LONG' ? 'var(--tint-profit)' : 'var(--tint-loss)',
+            background: trade.direction === 'LONG' ? 'var(--tint-profit)' : 'var(--tint-loss)',
             color: trade.direction === 'LONG' ? 'var(--color-profit)' : 'var(--color-loss)',
           }}
         >
@@ -729,16 +746,13 @@ function TradeDetailCard({ trade, onClose }: { trade: BacktestTrade; onClose: ()
           value={trade.exitTime != null ? formatDate(trade.exitTime) : '— still open'}
           muted
         />
-        {duration != null && (
-          <DetailRow label="Held" value={formatDuration(duration)} muted />
-        )}
+        {duration != null && <DetailRow label="Held" value={formatDuration(duration)} muted />}
       </div>
 
       {}
       {(() => {
         const isRunnerOnly =
-          trade.positions.length > 0 &&
-          trade.positions.every((p) => p.type === 'RUNNER');
+          trade.positions.length > 0 && trade.positions.every((p) => p.type === 'RUNNER');
         return (
           <div className="space-y-1 border-b border-[var(--border-subtle)] px-3 py-2 font-mono text-[11px] tabular-nums">
             <DetailRow label="Entry @" value={formatPrice(trade.entryPrice)} />
@@ -758,9 +772,7 @@ function TradeDetailCard({ trade, onClose }: { trade: BacktestTrade; onClose: ()
             {isRunnerOnly ? (
               <DetailRow
                 label="Trailing exit"
-                value={
-                  trade.exitPrice != null ? formatPrice(trade.exitPrice) : '— in flight'
-                }
+                value={trade.exitPrice != null ? formatPrice(trade.exitPrice) : '— in flight'}
                 dotColor="var(--color-info)"
               />
             ) : (
@@ -819,7 +831,9 @@ function TradeDetailCard({ trade, onClose }: { trade: BacktestTrade; onClose: ()
                   />
                   <span className="font-semibold text-[var(--text-primary)]">{p.type}</span>
                 </span>
-                <span className="text-[var(--text-muted)]">{legSummary(p.exitReason, p.exitPrice)}</span>
+                <span className="text-[var(--text-muted)]">
+                  {legSummary(p.exitReason, p.exitPrice)}
+                </span>
               </li>
             ))}
           </ul>
@@ -859,7 +873,10 @@ function DetailRow({
   );
 }
 
-function legSummary(reason: PositionExitReason | null | undefined, exitPrice: number | null): string {
+function legSummary(
+  reason: PositionExitReason | null | undefined,
+  exitPrice: number | null,
+): string {
   if (!reason) return 'open';
   const priceTail = exitPrice != null ? ` @ ${formatPrice(exitPrice)}` : '';
   switch (reason) {

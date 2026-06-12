@@ -22,7 +22,7 @@ const JOB_KEY = 'historical:job';
 const JOBS_KEY = 'historical:jobs';
 
 /** Poll active jobs at this cadence — fast enough to feel live, light on Postgres. */
-const ACTIVE_JOB_POLL_MS = 1500;
+const ACTIVE_JOB_POLL_MS = 3000;
 
 interface CoverageQueryArgs {
   symbol: string;

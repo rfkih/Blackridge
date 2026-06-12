@@ -432,8 +432,12 @@ function MinNotionalWarningPanel({
   message?: string;
 }) {
   const isRefused = kind === 'apply-refused';
-  const borderColor = isRefused ? 'rgba(239,68,68,0.45)' : 'rgba(245,158,11,0.35)';
-  const bgColor = isRefused ? 'rgba(239,68,68,0.08)' : 'rgba(245,158,11,0.08)';
+  const borderColor = isRefused
+    ? 'color-mix(in oklab, var(--color-loss) 45%, transparent)'
+    : 'color-mix(in oklab, var(--color-warning) 35%, transparent)';
+  const bgColor = isRefused
+    ? 'color-mix(in oklab, var(--color-loss) 8%, transparent)'
+    : 'color-mix(in oklab, var(--color-warning) 8%, transparent)';
   const tintColor = isRefused ? 'var(--color-loss)' : 'var(--color-warning)';
 
   return (

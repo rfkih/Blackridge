@@ -18,10 +18,13 @@ export function StrategyRankingTable() {
 
   return (
     <div className="br-card" style={{ padding: 24 }}>
-      <div className="mb-4 flex items-center justify-between gap-3 flex-wrap">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <Trophy size={16} style={{ color: 'var(--color-profit)' }} />
-          <h3 className="font-display" style={{ fontSize: 16, fontWeight: 700, margin: 0, color: 'var(--text-primary)' }}>
+          <h3
+            className="font-display"
+            style={{ fontSize: 16, fontWeight: 700, margin: 0, color: 'var(--text-primary)' }}
+          >
             Strategy ranking
           </h3>
           {data && (
@@ -72,7 +75,7 @@ export function StrategyRankingTable() {
         <div style={{ overflowX: 'auto' }}>
           {/* header */}
           <div
-            className="grid text-[10px] font-semibold uppercase tracking-[0.08em] mb-1 px-3"
+            className="mb-1 grid px-3 text-[10px] font-semibold uppercase tracking-[0.08em]"
             style={{
               gridTemplateColumns: '32px 1fr 80px 52px 96px 84px 80px 72px 60px 24px',
               color: 'var(--text-muted)',
@@ -118,7 +121,14 @@ function RankingRow({
   onToggle: () => void;
 }) {
   const ret = row.annualizedReturnPct;
-  const retColor = ret == null ? 'var(--text-muted)' : ret >= 10 ? 'var(--color-profit)' : ret >= 0 ? 'var(--text-primary)' : 'var(--color-loss)';
+  const retColor =
+    ret == null
+      ? 'var(--text-muted)'
+      : ret >= 10
+        ? 'var(--color-profit)'
+        : ret >= 0
+          ? 'var(--text-primary)'
+          : 'var(--color-loss)';
 
   return (
     <>
@@ -144,7 +154,10 @@ function RankingRow({
 
         {/* identity */}
         <div style={{ minWidth: 0 }}>
-          <div className="text-[13px] font-semibold truncate" style={{ color: 'var(--text-primary)' }}>
+          <div
+            className="truncate text-[13px] font-semibold"
+            style={{ color: 'var(--text-primary)' }}
+          >
             {row.strategyCode}
           </div>
           <div className="text-[11px]" style={{ color: 'var(--text-muted)' }}>
@@ -206,12 +219,17 @@ function ParamsPanel({ row }: { row: StrategyRankRow }) {
       className="mx-2 mb-2 rounded-lg px-4 py-3"
       style={{ background: 'var(--bg-subtle)', border: '1px solid var(--border-subtle)' }}
     >
-      <div className="mb-2 text-[10px] font-semibold uppercase tracking-[0.1em]" style={{ color: 'var(--text-muted)' }}>
+      <div
+        className="mb-2 text-[10px] font-semibold uppercase tracking-[0.1em]"
+        style={{ color: 'var(--text-muted)' }}
+      >
         Parameters — {row.strategyCode} ({row.symbol} {row.intervalName})
       </div>
 
       {entries.length === 0 ? (
-        <span className="text-[12px]" style={{ color: 'var(--text-muted)' }}>No params snapshot available for this run.</span>
+        <span className="text-[12px]" style={{ color: 'var(--text-muted)' }}>
+          No params snapshot available for this run.
+        </span>
       ) : (
         <div
           className="grid gap-x-6 gap-y-1"
@@ -219,10 +237,16 @@ function ParamsPanel({ row }: { row: StrategyRankRow }) {
         >
           {entries.map(([k, v]) => (
             <div key={k} className="flex items-baseline justify-between gap-2">
-              <span className="text-[11px] font-mono" style={{ color: 'var(--text-muted)', flexShrink: 0 }}>
+              <span
+                className="font-mono text-[11px]"
+                style={{ color: 'var(--text-muted)', flexShrink: 0 }}
+              >
                 {k}
               </span>
-              <span className="num text-[12px] font-semibold truncate" style={{ color: 'var(--text-primary)' }}>
+              <span
+                className="num truncate text-[12px] font-semibold"
+                style={{ color: 'var(--text-primary)' }}
+              >
                 {String(v)}
               </span>
             </div>
@@ -234,13 +258,38 @@ function ParamsPanel({ row }: { row: StrategyRankRow }) {
         className="mt-3 flex flex-wrap gap-4 pt-3 text-[11px]"
         style={{ borderTop: '1px solid var(--border-subtle)', color: 'var(--text-muted)' }}
       >
-        <span>DSR <span className="num font-semibold" style={{ color: 'var(--text-primary)' }}>{row.dsr != null ? row.dsr.toFixed(3) : '—'}</span></span>
-        <span>PSR <span className="num font-semibold" style={{ color: 'var(--text-primary)' }}>{row.psr != null ? row.psr.toFixed(3) : '—'}</span></span>
-        <span>Window <span className="num font-semibold" style={{ color: 'var(--text-primary)' }}>{row.windowDays}d</span></span>
-        <span>Capital <span className="num font-semibold" style={{ color: 'var(--text-primary)' }}>
-          {row.initialCapital != null ? `$${row.initialCapital.toLocaleString()}` : '—'}
-        </span></span>
-        <span style={{ color: row.statisticalVerdict === 'SIGNIFICANT_EDGE' ? 'var(--color-profit)' : 'var(--text-muted)' }}>
+        <span>
+          DSR{' '}
+          <span className="num font-semibold" style={{ color: 'var(--text-primary)' }}>
+            {row.dsr != null ? row.dsr.toFixed(3) : '—'}
+          </span>
+        </span>
+        <span>
+          PSR{' '}
+          <span className="num font-semibold" style={{ color: 'var(--text-primary)' }}>
+            {row.psr != null ? row.psr.toFixed(3) : '—'}
+          </span>
+        </span>
+        <span>
+          Window{' '}
+          <span className="num font-semibold" style={{ color: 'var(--text-primary)' }}>
+            {row.windowDays}d
+          </span>
+        </span>
+        <span>
+          Capital{' '}
+          <span className="num font-semibold" style={{ color: 'var(--text-primary)' }}>
+            {row.initialCapital != null ? `$${row.initialCapital.toLocaleString()}` : '—'}
+          </span>
+        </span>
+        <span
+          style={{
+            color:
+              row.statisticalVerdict === 'SIGNIFICANT_EDGE'
+                ? 'var(--color-profit)'
+                : 'var(--text-muted)',
+          }}
+        >
           {row.statisticalVerdict ?? 'NOT_TESTED'}
         </span>
       </div>
@@ -251,9 +300,21 @@ function ParamsPanel({ row }: { row: StrategyRankRow }) {
 function VerdictPill({ verdict }: { verdict: StrategyRankRow['verdict'] }) {
   const cfg = {
     PASS: { bg: 'rgba(34,197,94,0.15)', color: 'var(--color-profit)', label: 'PASS' },
-    ITERATE: { bg: 'rgba(250,204,21,0.15)', color: '#facc15', label: 'ITER' },
-    DISCARD: { bg: 'rgba(239,68,68,0.12)', color: 'var(--color-loss)', label: 'DISC' },
-    FAILED: { bg: 'rgba(239,68,68,0.12)', color: 'var(--color-loss)', label: 'FAIL' },
+    ITERATE: {
+      bg: 'color-mix(in oklab, var(--color-warning) 15%, transparent)',
+      color: 'var(--color-warning)',
+      label: 'ITER',
+    },
+    DISCARD: {
+      bg: 'color-mix(in oklab, var(--color-loss) 12%, transparent)',
+      color: 'var(--color-loss)',
+      label: 'DISC',
+    },
+    FAILED: {
+      bg: 'color-mix(in oklab, var(--color-loss) 12%, transparent)',
+      color: 'var(--color-loss)',
+      label: 'FAIL',
+    },
   }[verdict] ?? { bg: 'rgba(255,255,255,0.08)', color: 'var(--text-muted)', label: verdict };
 
   return (

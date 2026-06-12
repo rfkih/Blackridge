@@ -12,7 +12,7 @@ import {
 
 const JVMS: Jvm[] = ['trading', 'research'];
 
-const TELEMETRY_POLL_MS = 5_000;
+const TELEMETRY_POLL_MS = 15_000;
 const HEALTH_POLL_MS = 30_000;
 /** Number of frames to keep in the rolling sparkline buffer. 60 × 5s = 5 min. */
 const FRAME_BUFFER_SIZE = 60;

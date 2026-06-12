@@ -80,8 +80,12 @@ export function ApprovalsTable({ onAttachEvidence, onRevoke }: ApprovalsTablePro
             <option value="stale">stale</option>
             {showRevoked && <option value="revoked">revoked</option>}
           </select>
-          <label className="inline-flex items-center gap-1.5 text-[11px] text-text-secondary">
+          <label
+            htmlFor="approvals-show-revoked"
+            className="inline-flex items-center gap-1.5 text-[11px] text-text-secondary"
+          >
             <input
+              id="approvals-show-revoked"
               type="checkbox"
               checked={showRevoked}
               onChange={(e) => setShowRevoked(e.target.checked)}
@@ -182,14 +186,12 @@ function ApprovalRow({
         <div className="flex flex-col">
           <span>{row.createdBy ?? '—'}</span>
           {row.createdTime && (
-            <span className="text-[9px]">
-              {format(new Date(row.createdTime), 'yyyy-MM-dd')}
-            </span>
+            <span className="text-[9px]">{format(new Date(row.createdTime), 'yyyy-MM-dd')}</span>
           )}
         </div>
       </td>
       <td className="whitespace-nowrap px-4 py-3 text-right">
-        <div className="flex items-center justify-end gap-1 opacity-0 transition-opacity duration-fast group-hover:opacity-100">
+        <div className="flex items-center justify-end gap-1 opacity-0 transition-opacity duration-fast focus-within:opacity-100 group-hover:opacity-100">
           {row.status === 'grandfathered' && (
             <button
               type="button"

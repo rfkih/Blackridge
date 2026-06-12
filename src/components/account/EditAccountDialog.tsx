@@ -31,9 +31,7 @@ interface EditAccountDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
-const EXCHANGE_OPTIONS = [
-  { value: 'BNC', label: 'Binance Spot' },
-];
+const EXCHANGE_OPTIONS = [{ value: 'BNC', label: 'Binance Spot' }];
 
 const USERNAME_PATTERN = /^[A-Za-z0-9 _-]+$/;
 
@@ -114,6 +112,9 @@ export function EditAccountDialog({ account, open, onOpenChange }: EditAccountDi
           </DialogDescription>
         </DialogHeader>
 
+        {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions -- delegated
+            Enter-to-submit listener for bubbled key events from the focusable inputs below;
+            the wrapper itself is never a focus target (repo convention: no <form> elements). */}
         <div
           className="grid grid-cols-2 gap-4"
           onKeyDown={(e) => {
@@ -169,8 +170,8 @@ export function EditAccountDialog({ account, open, onOpenChange }: EditAccountDi
               role="alert"
               className="col-span-2 flex items-start gap-2 rounded-sm border px-3 py-2 text-xs"
               style={{
-                borderColor: 'rgba(255,77,106,0.4)',
-                backgroundColor: 'rgba(255,77,106,0.08)',
+                borderColor: 'color-mix(in oklab, var(--color-loss) 40%, transparent)',
+                backgroundColor: 'color-mix(in oklab, var(--color-loss) 8%, transparent)',
                 color: 'var(--color-loss)',
               }}
             >
@@ -188,12 +189,7 @@ export function EditAccountDialog({ account, open, onOpenChange }: EditAccountDi
             >
               Cancel
             </Button>
-            <Button
-              type="button"
-              onClick={handleSubmit}
-              disabled={!canSubmit}
-              className="gap-2"
-            >
+            <Button type="button" onClick={handleSubmit} disabled={!canSubmit} className="gap-2">
               {mutation.isPending ? (
                 <>
                   <Loader2 size={14} className="animate-spin" /> Saving

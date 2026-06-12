@@ -35,11 +35,24 @@ export default function DashboardPage() {
   const { scopedAccountId, isAll, activeAccount, accountsByType, setSelection } =
     useActiveAccount();
   const { user } = useAuth();
-  const { data: strategies = [] } = useStrategies();
-  const { data: openTrades = [] } = useOpenTrades(scopedAccountId);
-  const { data: pnlSummary } = usePnlSummary('today');
-  const { data: portfolio } = usePortfolio();
+  const strategiesQuery = useStrategies();
+  const openTradesQuery = useOpenTrades(scopedAccountId);
+  const pnlSummaryQuery = usePnlSummary('today');
+  const portfolioQuery = usePortfolio();
+  const strategies = strategiesQuery.data ?? [];
+  const openTrades = openTradesQuery.data ?? [];
+  const pnlSummary = pnlSummaryQuery.data;
+  const portfolio = portfolioQuery.data;
   const equityCurve = useEquityCurve();
+
+  // Surface partial failures: without this, a failed query silently renders
+  // $0 balance / 0 positions and the user can't tell broken from empty.
+  const failedSections = [
+    [portfolioQuery, 'balance'] as const,
+    [pnlSummaryQuery, "today's P&L"] as const,
+    [openTradesQuery, 'open positions'] as const,
+    [strategiesQuery, 'strategies'] as const,
+  ].filter(([q]) => q.isError);
 
   useLivePnl(scopedAccountId);
   useSyncOpenPositions(openTrades);
@@ -84,14 +97,38 @@ export default function DashboardPage() {
       <KillSwitchBanner />
 
       {}
+      {failedSections.length > 0 && (
+        <div
+          role="alert"
+          className="flex flex-wrap items-center justify-between gap-3 rounded-xl border px-4 py-2.5 text-[13px]"
+          style={{
+            borderColor: 'var(--color-warning)',
+            background: 'var(--tint-warning)',
+            color: 'var(--text-primary)',
+          }}
+        >
+          <span>
+            Couldn&apos;t load {failedSections.map(([, label]) => label).join(', ')} — the figures
+            below may be incomplete.
+          </span>
+          <button
+            type="button"
+            onClick={() => failedSections.forEach(([q]) => q.refetch())}
+            className="rounded-lg border border-bd-subtle bg-bg-surface px-3 py-1 text-[12px] font-semibold text-text-secondary transition-colors hover:bg-bg-hover hover:text-text-primary"
+          >
+            Retry
+          </button>
+        </div>
+      )}
+
+      {}
       <OnboardingPanel />
 
       {}
       <section
         className="dashboard-hero-row grid gap-4"
         style={{
-          gridTemplateColumns:
-            'minmax(0, 1.4fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr)',
+          gridTemplateColumns: 'minmax(0, 1.4fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr)',
         }}
       >
         <CompactBalanceCard
@@ -258,10 +295,10 @@ function AllViewHedgingSection({
 }
 
 function formatAbsCurrency(n: number): string {
-  return (
-    '$' +
-    Math.abs(n).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-  );
+  return `$${Math.abs(n).toLocaleString(undefined, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
 }
 
 function PromoTileColumn() {
@@ -397,14 +434,21 @@ interface EquityPanelProps {
   setPeriod: ReturnType<typeof useEquityCurve>['setPeriod'];
 }
 
-function EquityPanel({ balance, changeToday, changePct, points, period, setPeriod }: EquityPanelProps) {
+function EquityPanel({
+  balance,
+  changeToday,
+  changePct,
+  points,
+  period,
+  setPeriod,
+}: EquityPanelProps) {
   const formatCurrency = useCurrencyFormatter();
   const chartData = useMemo(() => points.map((p) => p.equity), [points]);
   const isUp = changeToday >= 0;
 
   return (
     <div className="br-card" style={{ padding: 24, display: 'flex', flexDirection: 'column' }}>
-      <div className="mb-4 flex items-start justify-between gap-4 flex-wrap">
+      <div className="mb-4 flex flex-wrap items-start justify-between gap-4">
         <div>
           <div
             className="text-[12px] font-semibold uppercase tracking-[0.08em]"
@@ -466,11 +510,17 @@ function EquityPanel({ balance, changeToday, changePct, points, period, setPerio
         </div>
       </div>
 
-      <div style={{ flex: 1, minHeight: 220 }}>
-        <MiniEquityChart
-          data={chartData.length ? chartData : fallbackCurve()}
-          height={220}
-        />
+      <div style={{ flex: 1, minHeight: 220, position: 'relative' }}>
+        <MiniEquityChart data={chartData.length ? chartData : fallbackCurve()} height={220} />
+        {chartData.length === 0 && (
+          // The fallback curve is synthetic — say so, or users read it as real equity.
+          <span
+            className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full border border-bd-subtle px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.08em]"
+            style={{ background: 'var(--bg-elevated)', color: 'var(--text-muted)' }}
+          >
+            Sample preview — no equity history yet
+          </span>
+        )}
       </div>
     </div>
   );
@@ -539,7 +589,7 @@ function WatchlistPanel() {
         }}
       >
         <Zap size={24} style={{ color: 'var(--text-muted)', opacity: 0.4 }} />
-        <div className="text-center px-4">
+        <div className="px-4 text-center">
           <div className="text-[13px] font-medium" style={{ color: 'var(--text-secondary)' }}>
             Live market data coming soon
           </div>
@@ -962,7 +1012,6 @@ function PositionRow({ trade, isLast }: { trade: LivePosition; isLast?: boolean 
   return (
     <Link
       href={`/trades/${trade.tradeId}`}
-
       className="position-row"
       style={{
         display: 'grid',

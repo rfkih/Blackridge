@@ -50,9 +50,13 @@ function StreamingBanner() {
     <div
       className="flex items-start gap-2 rounded-md border px-4 py-3 text-sm"
       style={{
-        background: isOffline ? 'rgba(239,68,68,0.08)' : 'rgba(250,204,21,0.08)',
-        borderColor: isOffline ? 'rgba(239,68,68,0.3)' : 'rgba(250,204,21,0.3)',
-        color: isOffline ? 'var(--color-loss)' : '#facc15',
+        background: isOffline
+          ? 'color-mix(in oklab, var(--color-loss) 8%, transparent)'
+          : 'color-mix(in oklab, var(--color-warning) 8%, transparent)',
+        borderColor: isOffline
+          ? 'color-mix(in oklab, var(--color-loss) 30%, transparent)'
+          : 'color-mix(in oklab, var(--color-warning) 30%, transparent)',
+        color: isOffline ? 'var(--color-loss)' : 'var(--color-warning)',
       }}
     >
       <AlertTriangle size={14} className="mt-0.5 shrink-0" />
@@ -141,53 +145,58 @@ export function SignalsTable() {
               {data!.signals.map((s) => {
                 const isFail = s.gauntletVerdict === 'FAIL';
                 return (
-                <TableRow
-                  key={s.signalId}
-                  className="hover:bg-zinc-900/40"
-                  style={isFail ? { opacity: 0.45 } : undefined}
-                >
-                  <TableCell>
-                    <Link
-                      href={`/ml/signals/${s.signalId}`}
-                      className="font-medium text-zinc-100 hover:underline"
-                    >
-                      {s.signalName}
-                    </Link>
-                    {isFail && (
-                      <span className="ml-2 rounded px-1 py-0.5 text-[9px] font-bold uppercase tracking-wider"
-                        style={{ background: 'rgba(239,68,68,0.12)', color: 'var(--color-loss)' }}>
-                        FAIL
-                      </span>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <SignalStatusPill status={s.status} />
-                  </TableCell>
-                  <TableCell className="text-sm text-zinc-300">
-                    {s.symbol ?? '—'} <span className="text-zinc-500">·</span>{' '}
-                    {s.intervalName ?? '—'}
-                  </TableCell>
-                  <TableCell className="text-sm">
-                    {s.boundStrategyCodes.length === 0 ? (
-                      <span className="text-zinc-500">none</span>
-                    ) : (
-                      <span className="font-mono text-zinc-300">
-                        {s.boundStrategyCodes.join(', ')}
-                      </span>
-                    )}
-                  </TableCell>
-                  <TableCell className="text-sm">
-                    <Link
-                      href={`/ml/models/${s.modelId}`}
-                      className="text-zinc-400 hover:text-zinc-200 hover:underline"
-                    >
-                      {s.modelSpecName}
-                    </Link>
-                  </TableCell>
-                  <TableCell className="text-right text-xs text-zinc-400">
-                    {fmtRelative(s.createdAt)}
-                  </TableCell>
-                </TableRow>
+                  <TableRow
+                    key={s.signalId}
+                    className="hover:bg-zinc-900/40"
+                    style={isFail ? { opacity: 0.45 } : undefined}
+                  >
+                    <TableCell>
+                      <Link
+                        href={`/ml/signals/${s.signalId}`}
+                        className="font-medium text-zinc-100 hover:underline"
+                      >
+                        {s.signalName}
+                      </Link>
+                      {isFail && (
+                        <span
+                          className="ml-2 rounded px-1 py-0.5 text-[9px] font-bold uppercase tracking-wider"
+                          style={{
+                            background: 'color-mix(in oklab, var(--color-loss) 12%, transparent)',
+                            color: 'var(--color-loss)',
+                          }}
+                        >
+                          FAIL
+                        </span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <SignalStatusPill status={s.status} />
+                    </TableCell>
+                    <TableCell className="text-sm text-zinc-300">
+                      {s.symbol ?? '—'} <span className="text-zinc-500">·</span>{' '}
+                      {s.intervalName ?? '—'}
+                    </TableCell>
+                    <TableCell className="text-sm">
+                      {s.boundStrategyCodes.length === 0 ? (
+                        <span className="text-zinc-500">none</span>
+                      ) : (
+                        <span className="font-mono text-zinc-300">
+                          {s.boundStrategyCodes.join(', ')}
+                        </span>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-sm">
+                      <Link
+                        href={`/ml/models/${s.modelId}`}
+                        className="text-zinc-400 hover:text-zinc-200 hover:underline"
+                      >
+                        {s.modelSpecName}
+                      </Link>
+                    </TableCell>
+                    <TableCell className="text-right text-xs text-zinc-400">
+                      {fmtRelative(s.createdAt)}
+                    </TableCell>
+                  </TableRow>
                 );
               })}
             </TableBody>

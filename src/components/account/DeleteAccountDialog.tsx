@@ -72,7 +72,7 @@ export function DeleteAccountDialog({ account, open, onOpenChange }: DeleteAccou
               aria-hidden="true"
               className="flex h-7 w-7 items-center justify-center rounded-sm"
               style={{
-                background: 'rgba(255,77,106,0.15)',
+                background: 'color-mix(in oklab, var(--color-loss) 15%, transparent)',
                 color: 'var(--color-loss)',
               }}
             >
@@ -118,8 +118,8 @@ export function DeleteAccountDialog({ account, open, onOpenChange }: DeleteAccou
             role="alert"
             className="flex items-start gap-2 rounded-sm border px-3 py-2 text-xs"
             style={{
-              borderColor: 'rgba(255,77,106,0.4)',
-              backgroundColor: 'rgba(255,77,106,0.08)',
+              borderColor: 'color-mix(in oklab, var(--color-loss) 40%, transparent)',
+              backgroundColor: 'color-mix(in oklab, var(--color-loss) 8%, transparent)',
               color: 'var(--color-loss)',
             }}
           >

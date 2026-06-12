@@ -266,8 +266,8 @@ export function NewAccountDialog({ open, onOpenChange }: NewAccountDialogProps) 
               role="alert"
               className="col-span-2 flex items-start gap-2 rounded-sm border px-3 py-2 text-xs"
               style={{
-                borderColor: 'rgba(229,72,77,0.4)',
-                backgroundColor: 'rgba(229,72,77,0.08)',
+                borderColor: 'color-mix(in oklab, var(--color-loss) 40%, transparent)',
+                backgroundColor: 'color-mix(in oklab, var(--color-loss) 8%, transparent)',
                 color: 'var(--color-loss)',
               }}
             >
@@ -312,7 +312,7 @@ function SafetyBanner() {
   return (
     <div
       className="flex items-start gap-2.5 rounded-md border border-bd-subtle bg-bg-base p-3"
-      style={{ borderColor: 'rgba(59,130,246,0.35)' }}
+      style={{ borderColor: 'color-mix(in oklab, var(--color-info) 35%, transparent)' }}
     >
       <Info
         size={14}

@@ -16,12 +16,14 @@ import {
 } from '@tanstack/react-table';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import {
+  AlertTriangle,
   ArrowUpDown,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
   ChevronUp,
   Columns3,
+  RotateCcw,
   Search,
 } from 'lucide-react';
 import {
@@ -44,6 +46,15 @@ export interface DataTableProps<TData> {
   columns: ColumnDef<TData, unknown>[];
   data: TData[];
   isLoading?: boolean;
+  /**
+   * Query failed — renders an error row with a retry affordance instead of a
+   * misleading "No results" empty state. Pass `query.isError` (and `onRetry:
+   * query.refetch`).
+   */
+  isError?: boolean;
+  errorTitle?: string;
+  errorDescription?: string;
+  onRetry?: () => void;
   onRowClick?: (row: TData) => void;
   /** Stable row id → highlight this row (e.g. selected trade detail). */
   selectedRowId?: string;
@@ -83,6 +94,10 @@ export function DataTable<TData>({
   columns,
   data,
   isLoading,
+  isError,
+  errorTitle = 'Could not load data',
+  errorDescription = 'The request failed. Check your connection and try again.',
+  onRetry,
   onRowClick,
   selectedRowId,
   getRowId,
@@ -236,15 +251,34 @@ export function DataTable<TData>({
                 {hg.headers.map((header) => {
                   const canSort = header.column.getCanSort();
                   const sorted = header.column.getIsSorted();
+                  const toggleSort = canSort ? header.column.getToggleSortingHandler() : undefined;
                   return (
                     <th
                       key={header.id}
+                      aria-sort={
+                        sorted === 'asc'
+                          ? 'ascending'
+                          : sorted === 'desc'
+                            ? 'descending'
+                            : undefined
+                      }
+                      tabIndex={canSort ? 0 : undefined}
                       className={cn(
                         'label-caps whitespace-nowrap px-3 py-2.5 align-middle',
                         canSort &&
-                          'cursor-pointer select-none transition-colors hover:text-text-secondary',
+                          'cursor-pointer select-none transition-colors hover:text-text-secondary focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--accent-primary)]',
                       )}
-                      onClick={canSort ? header.column.getToggleSortingHandler() : undefined}
+                      onClick={toggleSort}
+                      onKeyDown={
+                        toggleSort
+                          ? (e) => {
+                              if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault();
+                                toggleSort(e);
+                              }
+                            }
+                          : undefined
+                      }
                       style={{ width: header.getSize() === 150 ? undefined : header.getSize() }}
                     >
                       {header.isPlaceholder ? null : (
@@ -268,7 +302,9 @@ export function DataTable<TData>({
 
           <tbody>
             {isLoading ? (
-              Array.from({ length: 5 }).map((_, i) => (
+              // Mirror the expected row count (capped) so the table doesn't
+              // collapse to 5 rows then jump to a full page on load.
+              Array.from({ length: Math.min(pageSize, 12) }).map((_, i) => (
                 <tr key={i} className="border-b border-bd-subtle last:border-b-0">
                   {Array.from({ length: Math.max(visibleColumnCount, 1) }).map((_, j) => (
                     <td key={j} className="px-3 py-3">
@@ -277,6 +313,28 @@ export function DataTable<TData>({
                   ))}
                 </tr>
               ))
+            ) : isError ? (
+              <tr>
+                <td colSpan={Math.max(visibleColumnCount, 1)} className="px-3 py-12">
+                  <EmptyState
+                    icon={AlertTriangle}
+                    title={errorTitle}
+                    description={errorDescription}
+                    action={
+                      onRetry ? (
+                        <button
+                          type="button"
+                          onClick={onRetry}
+                          className="inline-flex h-8 items-center gap-1.5 rounded-xl border border-bd-subtle bg-bg-surface px-3 text-[12px] text-text-secondary transition-colors hover:border-bd hover:bg-bg-hover hover:text-text-primary"
+                        >
+                          <RotateCcw size={12} strokeWidth={1.75} />
+                          Retry
+                        </button>
+                      ) : undefined
+                    }
+                  />
+                </td>
+              </tr>
             ) : rows.length === 0 ? (
               <tr>
                 <td colSpan={Math.max(visibleColumnCount, 1)} className="px-3 py-12">
@@ -325,6 +383,13 @@ export function DataTable<TData>({
       </div>
 
       {}
+      {!hidePagination && isLoading && (
+        // Footer placeholder keeps the layout height stable while loading.
+        <div className="flex h-8 items-center justify-between px-1">
+          <Skeleton className="h-3 w-28" />
+          <Skeleton className="h-3 w-40" />
+        </div>
+      )}
       {!hidePagination && !isLoading && rows.length > 0 && (
         <div className="flex flex-wrap items-center justify-between gap-3 px-1">
           <div className="text-[11px] text-text-muted">
@@ -386,10 +451,23 @@ function BodyRow<TData>({ row, isSelected, onRowClick }: BodyRowProps<TData>) {
   return (
     <tr
       onClick={handleClick}
+      // Keyboard parity for clickable rows: focusable + Enter/Space activate.
+      tabIndex={handleClick ? 0 : undefined}
+      onKeyDown={
+        handleClick
+          ? (e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                handleClick();
+              }
+            }
+          : undefined
+      }
       className={cn(
         'border-b border-bd-subtle transition-colors last:border-b-0',
 
-        onRowClick && 'cursor-pointer hover:bg-bg-hover',
+        onRowClick &&
+          'cursor-pointer hover:bg-bg-hover focus-visible:bg-bg-hover focus-visible:outline-none',
         isSelected && 'bg-bg-hover',
       )}
       style={isSelected ? { boxShadow: 'inset 2px 0 0 0 var(--accent-primary)' } : undefined}
