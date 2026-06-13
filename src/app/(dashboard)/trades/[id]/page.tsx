@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import {
   ArrowLeft,
@@ -26,6 +26,9 @@ import { formatDate, formatDuration } from '@/lib/formatters';
 import { computeTradeRisk, SINGLE_TRADE_RISK_WARN_PCT } from '@/lib/risk';
 import { toast } from '@/hooks/useToast';
 import { normalizeError } from '@/lib/api/client';
+import { TradeHistoryChart } from '@/components/trades/TradeHistoryChart';
+import { defaultIntervalForSpan } from '@/lib/charts/defaultInterval';
+import type { ChartInterval } from '@/types/market';
 import type { LivePosition, TradePosition, TradeStatus, Trades } from '@/types/trading';
 
 const LEG_ORDER: Record<TradePosition['type'], number> = {
@@ -174,6 +177,8 @@ export default function TradeDetailPage({ params }: { params: { id: string } }) 
         </SummaryCell>
       </section>
 
+      <TradeDetailChartSection trade={trade} />
+
       {}
       <section className="grid grid-cols-2 gap-4 sm:grid-cols-4">
         <MetaTile label="Duration" icon={Clock}>
@@ -234,6 +239,40 @@ export default function TradeDetailPage({ params }: { params: { id: string } }) 
 
       <TradeAttributionPanel tradeId={params.id} />
     </div>
+  );
+}
+
+/**
+ * Candlestick chart for this single trade — its entry/exit BUY/SELL markers and
+ * SL/TP lines drawn on real price candles. The interval is seeded from the
+ * trade's holding span (a multi-week 1d-strategy trade opens on the 1d chart;
+ * an intraday trade on 15m/1h) and overridable via the interval tabs. Lives in
+ * its own child so its interval state can be initialised once the trade is
+ * loaded without affecting the parent's hook order.
+ */
+function TradeDetailChartSection({ trade }: { trade: Trades }) {
+  const span = (trade.exitTime ?? Date.now()) - trade.entryTime;
+  const [interval, setChartInterval] = useState<ChartInterval>(() => defaultIntervalForSpan(span));
+  const tradesArr = useMemo(() => [trade], [trade]);
+
+  return (
+    <section className="flex flex-col gap-3">
+      <div>
+        <p className="label-caps">Price action</p>
+        <h2 className="mt-1 font-display text-[18px] font-semibold tracking-tighter text-text-primary">
+          Trade on chart
+        </h2>
+      </div>
+      <TradeHistoryChart
+        symbol={trade.symbol}
+        trades={tradesArr}
+        interval={interval}
+        onIntervalChange={setChartInterval}
+        selectedTradeId={trade.id}
+        height={420}
+        storageKey="blackheart:trade-detail-indicators"
+      />
+    </section>
   );
 }
 

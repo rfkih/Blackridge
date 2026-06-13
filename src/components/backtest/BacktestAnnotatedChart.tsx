@@ -64,6 +64,9 @@ interface BacktestAnnotatedChartProps {
   /** ~150 candles BEFORE the window, used only to seed the EMA-100 so it covers the whole window. */
   emaWarmupCandles?: CandleData[];
   showIndicators?: ChartIndicators;
+  /** Exit-marker labeling: `'reason'` (default, backtest result page) or
+   *  `'action'` (live-trades chart — labels closes BUY/SELL). */
+  exitLabelMode?: 'reason' | 'action';
 }
 
 const MARKER_HIT_RADIUS_PX = 16;
@@ -84,6 +87,7 @@ export function BacktestAnnotatedChart({
   features,
   emaWarmupCandles,
   showIndicators,
+  exitLabelMode = 'reason',
 }: BacktestAnnotatedChartProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
@@ -104,7 +108,7 @@ export function BacktestAnnotatedChart({
   const [hover, setHover] = useState<HoverState | null>(null);
 
   const { markers, metaByTime } = useMemo(() => {
-    const built = buildTradeMarkers(trades);
+    const built = buildTradeMarkers(trades, { exitLabelMode });
     const candleTimes = candles.map((c) => c.time);
     const snap = makeCandleTimeSnapper(candleTimes);
 
@@ -121,7 +125,7 @@ export function BacktestAnnotatedChart({
       else map.set(snapped, [entry]);
     }
     return { markers: snappedMarkers, metaByTime: map };
-  }, [trades, candles]);
+  }, [trades, candles, exitLabelMode]);
 
   // Keep overlay context in sync so recomputeOverlays reads fresh data without deps.
   overlayCtxRef.current = { trades, metaByTime };
@@ -890,6 +894,8 @@ function legSummary(
       return `manual${priceTail}`;
     case 'BACKTEST_END':
       return `bt-end${priceTail}`;
+    case 'EMABAND_EXIT':
+      return `signal exit${priceTail}`;
     default:
       return `${reason}${priceTail}`;
   }
@@ -903,6 +909,8 @@ function legDotColor(reason: PositionExitReason | null | undefined): string {
       return 'var(--color-info)';
     case 'SL_HIT':
       return 'var(--color-loss)';
+    case 'EMABAND_EXIT':
+      return 'var(--color-info)';
     case 'MANUAL_CLOSE':
     case 'BACKTEST_END':
       return 'var(--color-warning)';

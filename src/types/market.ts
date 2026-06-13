@@ -70,8 +70,9 @@ export interface SymbolSlippageStats {
   trustworthy: boolean;
 }
 
-/** Chart interval picker values for the market page. */
-export type ChartInterval = '5m' | '15m' | '1h' | '4h';
+/** Chart interval picker values. The market viewer uses 5m–4h; the live-trades
+ *  chart additionally offers 1d for daily strategies (DCB / EMA_BAND / VRP). */
+export type ChartInterval = '5m' | '15m' | '1h' | '4h' | '1d';
 
 /** Active-state flags for every supported chart indicator. */
 export interface ChartIndicators {

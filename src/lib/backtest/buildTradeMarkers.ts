@@ -69,6 +69,19 @@ export interface TradeMarkerSet {
   meta: MarkerMeta[];
 }
 
+export interface BuildTradeMarkersOptions {
+  /**
+   * How exit-leg markers are labeled:
+   *  - `'reason'` (default): by exit reason — TP / T1 / T2 / SL / R / M / E.
+   *    Used by the backtest result chart.
+   *  - `'action'`: by the executed close side — `SELL` when closing a long,
+   *    `BUY` when closing a short — so the live-trades chart annotates the real
+   *    buy/sell action. Marker color still conveys the outcome (TP green, SL
+   *    red, …) via `LEG_MARKER_CONFIG`.
+   */
+  exitLabelMode?: 'reason' | 'action';
+}
+
 /**
  * Convert BacktestTrade[] → SeriesMarker[] for TV Lightweight Charts.
  *
@@ -80,7 +93,11 @@ export interface TradeMarkerSet {
  * Returns markers + a parallel meta array; meta lets callers disambiguate
  * overlapping markers on the same candle by price.
  */
-export function buildTradeMarkers(trades: BacktestTrade[]): TradeMarkerSet {
+export function buildTradeMarkers(
+  trades: BacktestTrade[],
+  opts: BuildTradeMarkersOptions = {},
+): TradeMarkerSet {
+  const exitLabelMode = opts.exitLabelMode ?? 'reason';
   const out: Array<{ marker: SeriesMarker<Time>; meta: MarkerMeta }> = [];
 
   for (const trade of trades) {
@@ -111,13 +128,16 @@ export function buildTradeMarkers(trades: BacktestTrade[]): TradeMarkerSet {
       const exitSec = Math.floor(pos.exitTime / 1000);
       const position = pos.exitReason === 'SL_HIT' ? oppositeOfEntry(isLong) : exitPosition(isLong);
       const price = legExitPrice(trade, pos);
+      // 'action' mode labels the close by executed side (real buy/sell);
+      // 'reason' keeps the backtest's reason code. Color is unchanged either way.
+      const text = exitLabelMode === 'action' ? (isLong ? 'SELL' : 'BUY') : cfg.label;
       out.push({
         marker: {
           time: exitSec as Time,
           position,
           color: cfg.color,
           shape: 'circle',
-          text: cfg.label,
+          text,
           id: trade.id,
         },
         meta: {
