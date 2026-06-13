@@ -6,11 +6,13 @@ import { EmptyState } from '@/components/shared/EmptyState';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PortfolioRebalanceSection } from '@/components/admin/portfolio-rebalance/PortfolioRebalanceSection';
 import { usePortfolio } from '@/hooks/usePortfolio';
-import { usePnlSummary } from '@/hooks/useTrades';
+import { usePnlSummary, useOpenTrades } from '@/hooks/useTrades';
 import { useActiveAccount } from '@/hooks/useAccounts';
 import { useCurrencyFormatter } from '@/hooks/useCurrency';
 import { useIsAdmin } from '@/hooks/useIsAdmin';
+import { usePositionStore } from '@/store/positionStore';
 import { useAccountView } from '@/lib/accountType/registry';
+import { aggregateTradeRisk, computeTradeRisk, AGGREGATE_RISK_WARN_PCT } from '@/lib/risk';
 import type { PortfolioAsset } from '@/types/portfolio';
 
 /** Stablecoin tickers treated as "cash" for allocation framing. Single source
@@ -34,6 +36,17 @@ export default function PortfolioPage() {
   const totalUsdt = data?.totalUsdt ?? 0;
   const availableUsdt = data?.availableUsdt ?? 0;
   const lockedUsdt = data?.lockedUsdt ?? 0;
+
+  // Open-trade stop-loss exposure across the active account. markMap feeds live
+  // prices; signal-exit trades contribute notional but no $-at-risk.
+  const { data: openTrades = [] } = useOpenTrades();
+  const markMap = usePositionStore((s) => s.markMap);
+  const openTradeRisk = useMemo(() => {
+    const perTrade = openTrades.map((p) =>
+      computeTradeRisk(p, markMap[p.tradeId] ?? p.markPrice ?? null, availableUsdt),
+    );
+    return aggregateTradeRisk(perTrade, availableUsdt);
+  }, [openTrades, markMap, availableUsdt]);
 
   const rows = useMemo<EnrichedAsset[]>(() => {
     const assets = data?.assets ?? [];
@@ -211,7 +224,14 @@ export default function PortfolioPage() {
         }}
       >
         <AllocationCard slices={allocation} isLoading={isLoading} isHedging={isHedgingAccount} />
-        <RiskCard totalUsdt={totalUsdt} rows={rows} lockedUsdt={lockedUsdt} isHedging={isHedgingAccount} />
+        <RiskCard
+          totalUsdt={totalUsdt}
+          rows={rows}
+          lockedUsdt={lockedUsdt}
+          isHedging={isHedgingAccount}
+          openTradeRisk={openTradeRisk}
+          formatCurrency={formatCurrency}
+        />
         {!isHedgingAccount && <PerformanceCard />}
       </section>
 
@@ -450,11 +470,15 @@ function RiskCard({
   rows,
   lockedUsdt,
   isHedging = false,
+  openTradeRisk,
+  formatCurrency,
 }: {
   totalUsdt: number;
   rows: EnrichedAsset[];
   lockedUsdt: number;
   isHedging?: boolean;
+  openTradeRisk: ReturnType<typeof aggregateTradeRisk>;
+  formatCurrency: (amount: number, opts?: { withSign?: boolean }) => string;
 }) {
   const topPosition = rows[0];
   const concentrationPct = topPosition && totalUsdt > 0 ? topPosition.portfolioPct : 0;
@@ -463,10 +487,7 @@ function RiskCard({
     totalUsdt > 0
       ? Math.max(
           0,
-          100 -
-            rows
-              .filter((r) => !isStable(r.asset))
-              .reduce((acc, r) => acc + r.portfolioPct, 0),
+          100 - rows.filter((r) => !isStable(r.asset)).reduce((acc, r) => acc + r.portfolioPct, 0),
         )
       : 0;
 
@@ -575,6 +596,52 @@ function RiskCard({
             </div>
           </div>
         ))}
+
+        {}
+        <OpenTradeRiskRow risk={openTradeRisk} formatCurrency={formatCurrency} />
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Live stop-loss exposure across all open trades — total $-at-risk and its % of
+ * account cash. Amber when the aggregate crosses the over-exposure line.
+ * Signal-exit trades (no fixed stop) contribute no $-at-risk, so this can read
+ * "$0.00" while trades are open — that is correct, not a bug.
+ */
+function OpenTradeRiskRow({
+  risk,
+  formatCurrency,
+}: {
+  risk: ReturnType<typeof aggregateTradeRisk>;
+  formatCurrency: (amount: number, opts?: { withSign?: boolean }) => string;
+}) {
+  const warn = risk.pctAtRisk != null && risk.pctAtRisk >= AGGREGATE_RISK_WARN_PCT;
+  const color = warn ? 'var(--mm-warn)' : 'var(--mm-ink-0)';
+  return (
+    <div style={{ borderTop: '1px solid var(--mm-hair)', paddingTop: 14 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12 }}>
+        <span style={{ color: 'var(--mm-ink-2)' }}>
+          Open-trade risk
+          <span style={{ color: 'var(--mm-ink-3)', marginLeft: 6 }}>
+            {risk.n} trade{risk.n === 1 ? '' : 's'}
+          </span>
+        </span>
+        <span
+          style={{
+            fontFamily: 'var(--font-num)',
+            fontVariantNumeric: 'tabular-nums',
+            color,
+          }}
+        >
+          {formatCurrency(risk.totalAtRisk)}
+          {risk.pctAtRisk != null && (
+            <span style={{ color: warn ? 'var(--mm-warn)' : 'var(--mm-ink-2)', marginLeft: 6 }}>
+              ({risk.pctAtRisk.toFixed(1)}%)
+            </span>
+          )}
+        </span>
       </div>
     </div>
   );

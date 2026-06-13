@@ -86,6 +86,15 @@ export interface LivePosition {
   unrealizedPnl: number;
   unrealizedPnlPct: number;
   openedAt: EpochMs;
+  /**
+   * Protective stop for this trade, in quote price. Null when the strategy
+   * exits on signal (VRP, EMA_BAND) rather than a fixed stop — those carry no
+   * stop-loss-based dollar-at-risk. Also null on the LIST endpoint until the
+   * backend populates it there (today it is only filled on the per-trade
+   * detail response — see the report flag), so consumers MUST treat null as
+   * "no stop-risk number to show", never as zero. {@link computeTradeRisk}.
+   */
+  stopLossPrice: number | null;
 }
 
 export interface PnlUpdate {
