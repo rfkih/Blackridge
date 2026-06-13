@@ -1,15 +1,17 @@
 'use client';
 
 /* eslint-disable react/no-unstable-nested-components */
-import { Suspense, useCallback, useMemo, useState } from 'react';
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { format, subDays } from 'date-fns';
 import { type ColumnDef } from '@tanstack/react-table';
 import {
   ArrowDownRight,
   ArrowUpRight,
+  ChevronDown,
   ChevronRight,
   Download,
+  LineChart,
   ListFilter,
   Plus,
   Receipt,
@@ -30,6 +32,7 @@ import { useActiveAccount } from '@/hooks/useAccounts';
 import { useAccountView } from '@/lib/accountType/registry';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ExecutionHistoryTab } from '@/components/trades/execution/ExecutionHistoryTab';
+import { TradeHistoryChart } from '@/components/trades/TradeHistoryChart';
 import { RebalanceHistory } from '@/components/hedging/RebalanceHistory';
 import { usePositionStore } from '@/store/positionStore';
 import { useLivePnl, useSyncOpenPositions } from '@/hooks/useLivePnl';
@@ -43,6 +46,9 @@ import {
   SINGLE_TRADE_RISK_WARN_PCT,
 } from '@/lib/risk';
 import { cn } from '@/lib/utils';
+import { DEFAULT_SYMBOL, isSupportedSymbol } from '@/lib/symbols';
+import { defaultIntervalForSpan } from '@/lib/charts/defaultInterval';
+import type { ChartInterval } from '@/types/market';
 import type { LivePosition, TradeStatus, Trades } from '@/types/trading';
 
 type StatusFilter = TradeStatus | 'ALL';
@@ -495,6 +501,9 @@ function TradesPageContent() {
       <JournalStatsStrip statsFilters={statsFilters} pageTrades={tradesQuery.data?.content ?? []} />
 
       {}
+      <TradesListChart trades={rows} filterSymbol={filters.symbol} />
+
+      {}
       {isOpenView && (
         <OpenTradeRiskSummary
           trades={tradesQuery.data?.content ?? []}
@@ -737,6 +746,120 @@ function TradesPageContent() {
         </div>
       )}
     </div>
+  );
+}
+
+/**
+ * Candlestick panel for the journal — overlays the loaded trades for one symbol
+ * on real candles (BUY/SELL action markers, SL/TP lines, duration bands),
+ * reusing the same chart as the backtest result page. Single-symbol by nature:
+ * defaults to the active symbol filter, else the most-traded loaded symbol, and
+ * exposes a symbol picker + interval tabs (incl. 1d for daily strategies).
+ * Clicking a marker opens the chart's own trade-detail card; the journal table
+ * is unchanged (row click still opens the trade's detail page).
+ */
+function TradesListChart({ trades, filterSymbol }: { trades: Trades[]; filterSymbol: string }) {
+  const [open, setOpen] = useState(true);
+  const userPickedSymbol = useRef(false);
+  const userPickedInterval = useRef(false);
+
+  const initialSymbol = useMemo(() => {
+    const f = filterSymbol.trim().toUpperCase();
+    return f && isSupportedSymbol(f) ? f : DEFAULT_SYMBOL;
+  }, [filterSymbol]);
+
+  const [symbol, setSymbol] = useState<string>(initialSymbol);
+  const [interval, setIntervalState] = useState<ChartInterval>('1h');
+  const [selectedTradeId, setSelectedTradeId] = useState<string | null>(null);
+
+  // If the user hasn't manually picked and the current symbol has no loaded
+  // trades, switch to the most-traded loaded symbol so the chart isn't empty
+  // by default. UI-state sync (not data fetching) — an effect is appropriate.
+  useEffect(() => {
+    if (userPickedSymbol.current || trades.length === 0) return;
+    const counts = new Map<string, number>();
+    for (const t of trades) counts.set(t.symbol, (counts.get(t.symbol) ?? 0) + 1);
+    if ((counts.get(symbol) ?? 0) > 0) return;
+    let best = symbol;
+    let bestN = 0;
+    counts.forEach((n, s) => {
+      if (n > bestN) {
+        bestN = n;
+        best = s;
+      }
+    });
+    if (best !== symbol) setSymbol(best);
+  }, [trades, symbol]);
+
+  const symbolTrades = useMemo(() => trades.filter((t) => t.symbol === symbol), [trades, symbol]);
+
+  // Seed the interval from the visible symbol's trade span (like the detail
+  // page) so a daily-strategy book opens on a coarse interval rather than 1h.
+  // Skipped once the user picks an interval explicitly.
+  useEffect(() => {
+    if (userPickedInterval.current || symbolTrades.length === 0) return;
+    const now = Date.now();
+    let minEntry = Infinity;
+    let maxExit = -Infinity;
+    for (const t of symbolTrades) {
+      if (!Number.isFinite(t.entryTime) || t.entryTime <= 0) continue;
+      minEntry = Math.min(minEntry, t.entryTime);
+      maxExit = Math.max(maxExit, t.exitTime ?? now);
+    }
+    if (!Number.isFinite(minEntry)) return;
+    const next = defaultIntervalForSpan(Math.max(maxExit - minEntry, 0));
+    setIntervalState((cur) => (cur === next ? cur : next));
+  }, [symbolTrades]);
+
+  const handleSymbol = useCallback((s: string) => {
+    userPickedSymbol.current = true;
+    setSelectedTradeId(null);
+    setSymbol(s.toUpperCase());
+  }, []);
+
+  const handleInterval = useCallback((iv: ChartInterval) => {
+    userPickedInterval.current = true;
+    setIntervalState(iv);
+  }, []);
+
+  return (
+    <section className="overflow-hidden rounded-xl border border-bd-subtle bg-bg-surface">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
+        className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left"
+      >
+        <span className="inline-flex items-center gap-2">
+          <LineChart size={13} strokeWidth={1.75} className="text-text-muted" />
+          <span className="mm-kicker">PRICE CHART</span>
+          <span className="font-mono text-[12px] text-text-secondary">
+            {symbol.replace(/USDT$/, '')} · {symbolTrades.length} trade
+            {symbolTrades.length === 1 ? '' : 's'}
+          </span>
+        </span>
+        <ChevronDown
+          size={14}
+          strokeWidth={1.75}
+          className="text-text-muted transition-transform"
+          style={{ transform: open ? 'none' : 'rotate(-90deg)' }}
+        />
+      </button>
+      {open && (
+        <div className="border-t border-bd-subtle">
+          <TradeHistoryChart
+            bare
+            symbol={symbol}
+            trades={symbolTrades}
+            interval={interval}
+            onIntervalChange={handleInterval}
+            onSymbolChange={handleSymbol}
+            selectedTradeId={selectedTradeId}
+            onTradeSelect={setSelectedTradeId}
+          />
+        </div>
+      )}
+    </section>
   );
 }
 

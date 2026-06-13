@@ -83,6 +83,10 @@ const EXIT_REASONS: PositionExitReason[] = [
   'RUNNER_CLOSE',
   'MANUAL_CLOSE',
   'BACKTEST_END',
+  // Signal-exit strategies (EMA_BAND) close via this reason. Without it the
+  // mapper dropped the leg's reason to null, which hid the close marker on the
+  // trade-history chart (entry showed, exit did not).
+  'EMABAND_EXIT',
 ];
 function narrowExitReason(v: string | null | undefined): PositionExitReason | null {
   if (!v) return null;

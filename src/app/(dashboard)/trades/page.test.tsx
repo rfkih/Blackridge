@@ -27,6 +27,13 @@ vi.mock('@/components/hedging/RebalanceHistory', () => ({
   ),
 }));
 
+// --- stub the journal chart (pulls live candle queries + a TV/canvas chart) ---
+vi.mock('@/components/trades/TradeHistoryChart', () => ({
+  TradeHistoryChart: ({ symbol }: { symbol: string }) => (
+    <div data-testid="trade-history-chart">chart:{symbol}</div>
+  ),
+}));
+
 // --- neutralize the trading path's data hooks ---
 vi.mock('@/hooks/useTrades', () => ({
   useTradesList: () => ({ data: { content: [], total: 0 }, isLoading: false }),
