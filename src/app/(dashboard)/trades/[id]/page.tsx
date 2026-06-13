@@ -20,11 +20,13 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useCloseTrade, useTrade, useTradeAttribution } from '@/hooks/useTrades';
 import { usePositionStore } from '@/store/positionStore';
 import { useLivePnl } from '@/hooks/useLivePnl';
+import { usePortfolio } from '@/hooks/usePortfolio';
 import { useCurrencyFormatter } from '@/hooks/useCurrency';
 import { formatDate, formatDuration } from '@/lib/formatters';
+import { computeTradeRisk, SINGLE_TRADE_RISK_WARN_PCT } from '@/lib/risk';
 import { toast } from '@/hooks/useToast';
 import { normalizeError } from '@/lib/api/client';
-import type { TradePosition, TradeStatus, Trades } from '@/types/trading';
+import type { LivePosition, TradePosition, TradeStatus, Trades } from '@/types/trading';
 
 const LEG_ORDER: Record<TradePosition['type'], number> = {
   SINGLE: 0,
@@ -39,6 +41,8 @@ export default function TradeDetailPage({ params }: { params: { id: string } }) 
 
   useLivePnl(tradeQuery.data?.accountId);
   const livePnl = usePositionStore((s) => s.pnlMap[params.id]);
+  const liveMark = usePositionStore((s) => s.markMap[params.id]);
+  const { data: portfolio } = usePortfolio(tradeQuery.data?.accountId);
 
   const positions = useMemo(() => {
     const pos = tradeQuery.data?.positions ?? [];
@@ -67,6 +71,29 @@ export default function TradeDetailPage({ params }: { params: { id: string } }) 
   const isOpen = trade.status !== 'CLOSED';
   const unrealized = isOpen ? (livePnl ?? trade.unrealizedPnl) : 0;
   const netPnl = trade.realizedPnl - trade.feeUsdt + (isOpen ? unrealized : 0);
+
+  // Live $-at-risk for an open trade: |price − stop| × qty, vs account cash.
+  // The detail endpoint surfaces a real stop (positions included), so a true
+  // signal-exit trade (VRP / EMA_BAND) reads as such here.
+  const riskPosition: LivePosition = {
+    tradeId: trade.id,
+    accountId: trade.accountId,
+    accountStrategyId: trade.accountStrategyId,
+    symbol: trade.symbol,
+    direction: trade.direction,
+    quantity: trade.quantity,
+    entryPrice: trade.entryPrice,
+    markPrice: trade.markPrice ?? null,
+    unrealizedPnl: trade.unrealizedPnl ?? 0,
+    unrealizedPnlPct: trade.unrealizedPnlPct ?? 0,
+    openedAt: trade.entryTime,
+    stopLossPrice: trade.stopLossPrice > 0 ? trade.stopLossPrice : null,
+  };
+  const risk = computeTradeRisk(
+    riskPosition,
+    liveMark ?? trade.markPrice ?? null,
+    portfolio?.availableUsdt ?? 0,
+  );
 
   return (
     <div className="flex flex-col gap-5">
@@ -108,6 +135,7 @@ export default function TradeDetailPage({ params }: { params: { id: string } }) 
                   </span>
                 )}
               </div>
+              <RiskStat risk={risk} />
               <CloseTradeButton trade={trade} />
             </div>
           ) : (
@@ -196,7 +224,6 @@ export default function TradeDetailPage({ params }: { params: { id: string } }) 
                   position={p}
                   direction={trade.direction}
                   isOpen={legOpen}
-
                   liveUnrealizedPnl={legOpen ? (livePnl ?? trade.unrealizedPnl) : null}
                 />
               );
@@ -524,6 +551,47 @@ function SummaryCell({ label, children }: { label: string; children: React.React
     <div className="flex flex-col gap-1 bg-bg-surface px-4 py-3">
       <span className="label-caps">{label}</span>
       <div className="font-mono">{children}</div>
+    </div>
+  );
+}
+
+/**
+ * "$ at risk" header tile — stop-loss dollar exposure for the open trade, with
+ * the % of account beneath it (amber when over the single-trade warn line). A
+ * signal-exit trade (VRP / EMA_BAND — no fixed stop) shows the explanatory
+ * sub-text instead of a fabricated number.
+ */
+function RiskStat({ risk }: { risk: ReturnType<typeof computeTradeRisk> }) {
+  const formatCurrency = useCurrencyFormatter();
+  if (risk.isSignalExit || risk.dollarAtRisk == null) {
+    return (
+      <div className="flex max-w-[160px] flex-col items-end">
+        <span className="label-caps">$ at risk</span>
+        <span className="font-mono text-[22px] leading-none text-text-secondary">—</span>
+        <span className="mt-1 text-right font-mono text-[11px] text-text-muted">
+          signal exit — no fixed stop
+        </span>
+      </div>
+    );
+  }
+  const warn = risk.pctAtRisk != null && risk.pctAtRisk >= SINGLE_TRADE_RISK_WARN_PCT;
+  return (
+    <div className="flex flex-col items-end">
+      <span className="label-caps">$ at risk</span>
+      <span
+        className="num text-[22px] tabular-nums leading-none"
+        style={{ color: warn ? 'var(--color-warning)' : 'var(--text-primary)' }}
+      >
+        {formatCurrency(risk.dollarAtRisk)}
+      </span>
+      {risk.pctAtRisk != null && (
+        <span
+          className="font-mono text-[11px]"
+          style={{ color: warn ? 'var(--color-warning)' : 'var(--text-muted)' }}
+        >
+          {risk.pctAtRisk.toFixed(2)}% of account
+        </span>
+      )}
     </div>
   );
 }

@@ -33,10 +33,17 @@ import { ExecutionHistoryTab } from '@/components/trades/execution/ExecutionHist
 import { RebalanceHistory } from '@/components/hedging/RebalanceHistory';
 import { usePositionStore } from '@/store/positionStore';
 import { useLivePnl, useSyncOpenPositions } from '@/hooks/useLivePnl';
+import { usePortfolio } from '@/hooks/usePortfolio';
 import { useCurrencyFormatter } from '@/hooks/useCurrency';
 import { formatDate, formatDuration } from '@/lib/formatters';
+import {
+  aggregateTradeRisk,
+  computeTradeRisk,
+  AGGREGATE_RISK_WARN_PCT,
+  SINGLE_TRADE_RISK_WARN_PCT,
+} from '@/lib/risk';
 import { cn } from '@/lib/utils';
-import type { TradeStatus, Trades } from '@/types/trading';
+import type { LivePosition, TradeStatus, Trades } from '@/types/trading';
 
 type StatusFilter = TradeStatus | 'ALL';
 const STATUSES: StatusFilter[] = ['ALL', 'OPEN', 'PARTIALLY_CLOSED', 'CLOSED'];
@@ -89,6 +96,26 @@ function downloadTradesCsv(trades: Trades[]) {
   a.download = `trades_${new Date().toISOString().slice(0, 10)}.csv`;
   a.click();
   URL.revokeObjectURL(url);
+}
+
+/** Project a journal `Trades` row onto the LivePosition shape the risk helper
+ *  consumes. `stopLossPrice` is collapsed to null when non-positive (no stop),
+ *  matching `tradeToLivePosition` so signal-exit trades read as such. */
+function tradeToRiskPosition(t: Trades): LivePosition {
+  return {
+    tradeId: t.id,
+    accountId: t.accountId,
+    accountStrategyId: t.accountStrategyId,
+    symbol: t.symbol,
+    direction: t.direction,
+    quantity: t.quantity,
+    entryPrice: t.entryPrice,
+    markPrice: t.markPrice ?? null,
+    unrealizedPnl: t.unrealizedPnl ?? 0,
+    unrealizedPnlPct: t.unrealizedPnlPct ?? 0,
+    openedAt: t.entryTime,
+    stopLossPrice: t.stopLossPrice > 0 ? t.stopLossPrice : null,
+  };
 }
 
 interface Filters {
@@ -218,6 +245,12 @@ function TradesPageContent() {
   const { scopedAccountId } = useActiveAccount();
   useLivePnl(scopedAccountId);
 
+  // Account cash is the "% of account" denominator for risk figures. Scoped to
+  // the active account like the rest of the page.
+  const { data: portfolio } = usePortfolio();
+  const availableUsdt = portfolio?.availableUsdt ?? 0;
+  const isOpenView = filters.status === 'OPEN';
+
   const tradesQuery = useTradesList({
     status: filters.status,
     strategyCode: filters.strategyCode || undefined,
@@ -254,25 +287,7 @@ function TradesPageContent() {
     () => (tradesQuery.data?.content ?? []).filter((t) => t.status === 'OPEN'),
     [tradesQuery.data?.content],
   );
-  useSyncOpenPositions(
-    useMemo(
-      () =>
-        openSlice.map((t) => ({
-          tradeId: t.id,
-          accountId: t.accountId,
-          accountStrategyId: t.accountStrategyId,
-          symbol: t.symbol,
-          direction: t.direction,
-          quantity: t.quantity,
-          entryPrice: t.entryPrice,
-          markPrice: t.markPrice ?? null,
-          unrealizedPnl: t.unrealizedPnl,
-          unrealizedPnlPct: t.unrealizedPnlPct ?? 0,
-          openedAt: t.entryTime,
-        })),
-      [openSlice],
-    ),
-  );
+  useSyncOpenPositions(useMemo(() => openSlice.map(tradeToRiskPosition), [openSlice]));
 
   const [filtersOpen, setFiltersOpen] = useState(false);
 
@@ -345,6 +360,18 @@ function TradesPageContent() {
         cell: ({ row }) => <LivePnlOrRealizedCell trade={row.original} />,
       },
       {
+        id: 'notional',
+        header: 'Notional',
+        accessorFn: (t) => t.quantity * (t.markPrice ?? t.entryPrice),
+        cell: ({ row }) => <NotionalCell trade={row.original} />,
+      },
+      {
+        id: 'risk',
+        header: 'Risk',
+        enableSorting: false,
+        cell: ({ row }) => <RiskCell trade={row.original} availableUsdt={availableUsdt} />,
+      },
+      {
         id: 'duration',
         header: 'Duration',
         accessorFn: (t) => (t.exitTime ?? Date.now()) - t.entryTime,
@@ -381,7 +408,7 @@ function TradesPageContent() {
         ),
       },
     ],
-    [filters.page, filters.size],
+    [filters.page, filters.size, availableUsdt],
   );
 
   const rows = tradesQuery.data?.content ?? [];
@@ -466,6 +493,14 @@ function TradesPageContent() {
 
       {}
       <JournalStatsStrip statsFilters={statsFilters} pageTrades={tradesQuery.data?.content ?? []} />
+
+      {}
+      {isOpenView && (
+        <OpenTradeRiskSummary
+          trades={tradesQuery.data?.content ?? []}
+          availableUsdt={availableUsdt}
+        />
+      )}
 
       {}
       <section className="mm-card" style={{ padding: '12px 16px' }}>
@@ -764,6 +799,132 @@ function LivePnlOrRealizedCell({ trade }: { trade: Trades }) {
     return <PnlCell value={value} />;
   }
   return <PnlCell value={trade.realizedPnl} noFlash />;
+}
+
+/** Live mark price for a row: WS markMap first, then the REST snapshot. Used by
+ *  the Notional + Risk cells so the figures track the same price the P&L does. */
+function useRowMarkPrice(trade: Trades): number | null {
+  const liveMark = usePositionStore((s) => s.markMap[trade.id]);
+  return liveMark ?? trade.markPrice ?? null;
+}
+
+/** Capital deployed = qty × live price (mark, else entry). */
+function NotionalCell({ trade }: { trade: Trades }) {
+  const formatCurrency = useCurrencyFormatter();
+  const mark = useRowMarkPrice(trade);
+  const { notional } = computeTradeRisk(tradeToRiskPosition(trade), mark, 0);
+  return (
+    <span className="font-mono text-[13px] tabular-nums text-text-primary">
+      {formatCurrency(notional)}
+    </span>
+  );
+}
+
+/** Stop-loss dollar exposure + % of account. Signal-exit trades (no fixed stop)
+ *  show a muted "signal exit" label instead of a fabricated number. */
+function RiskCell({ trade, availableUsdt }: { trade: Trades; availableUsdt: number }) {
+  const formatCurrency = useCurrencyFormatter();
+  const mark = useRowMarkPrice(trade);
+  const { dollarAtRisk, pctAtRisk, isSignalExit } = computeTradeRisk(
+    tradeToRiskPosition(trade),
+    mark,
+    availableUsdt,
+  );
+
+  if (isSignalExit || dollarAtRisk == null) {
+    return (
+      <span
+        className="font-mono text-[11px] italic text-text-muted"
+        title="No fixed stop — exits on strategy signal"
+      >
+        signal exit
+      </span>
+    );
+  }
+
+  const warn = pctAtRisk != null && pctAtRisk >= SINGLE_TRADE_RISK_WARN_PCT;
+  return (
+    <span className="inline-flex flex-col leading-tight">
+      <span className="font-mono text-[13px] tabular-nums text-text-primary">
+        {formatCurrency(dollarAtRisk)}
+      </span>
+      {pctAtRisk != null && (
+        <span
+          className="font-mono text-[10px] tabular-nums"
+          style={{ color: warn ? 'var(--color-warning)' : 'var(--text-muted)' }}
+        >
+          {pctAtRisk.toFixed(2)}% of acct
+        </span>
+      )}
+    </span>
+  );
+}
+
+/** "Deployed $X · At risk $Y (Z% of account) across N open trades" — the live
+ *  risk roll-up shown above the journal table, OPEN view only. Subscribes to
+ *  the live mark map so totals track WS prices. */
+function OpenTradeRiskSummary({
+  trades,
+  availableUsdt,
+}: {
+  trades: Trades[];
+  availableUsdt: number;
+}) {
+  const formatCurrency = useCurrencyFormatter();
+  const markMap = usePositionStore((s) => s.markMap);
+
+  const open = useMemo(() => trades.filter((t) => t.status === 'OPEN'), [trades]);
+  const agg = useMemo(() => {
+    const perTrade = open.map((t) =>
+      computeTradeRisk(tradeToRiskPosition(t), markMap[t.id] ?? t.markPrice ?? null, availableUsdt),
+    );
+    return aggregateTradeRisk(perTrade, availableUsdt);
+  }, [open, markMap, availableUsdt]);
+
+  if (agg.n === 0) return null;
+
+  const warn = agg.pctAtRisk != null && agg.pctAtRisk >= AGGREGATE_RISK_WARN_PCT;
+
+  return (
+    <section
+      className="mm-card"
+      style={{
+        padding: '14px 18px',
+        display: 'flex',
+        flexWrap: 'wrap',
+        alignItems: 'baseline',
+        gap: 10,
+        rowGap: 4,
+      }}
+    >
+      <span className="mm-kicker" style={{ marginRight: 4 }}>
+        LIVE RISK
+      </span>
+      <span style={{ fontSize: 13, color: 'var(--mm-ink-1)' }}>
+        Deployed{' '}
+        <strong className="font-mono tabular-nums" style={{ color: 'var(--mm-ink-0)' }}>
+          {formatCurrency(agg.totalNotional)}
+        </strong>{' '}
+        · At risk{' '}
+        <strong
+          className="font-mono tabular-nums"
+          style={{ color: warn ? 'var(--color-warning)' : 'var(--mm-ink-0)' }}
+        >
+          {formatCurrency(agg.totalAtRisk)}
+        </strong>
+        {agg.pctAtRisk != null && (
+          <span
+            className="font-mono tabular-nums"
+            style={{ color: warn ? 'var(--color-warning)' : 'var(--mm-ink-2)' }}
+          >
+            {' '}
+            ({agg.pctAtRisk.toFixed(2)}% of account)
+          </span>
+        )}{' '}
+        across {agg.n} open trade{agg.n === 1 ? '' : 's'}
+      </span>
+    </section>
+  );
 }
 
 interface JournalStats {

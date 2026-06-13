@@ -33,6 +33,9 @@ vi.mock('@/hooks/useTrades', () => ({
   useTradeStats: () => ({ data: undefined }),
 }));
 vi.mock('@/hooks/useStrategies', () => ({ useStrategies: () => ({ data: [] }) }));
+vi.mock('@/hooks/usePortfolio', () => ({
+  usePortfolio: () => ({ data: { availableUsdt: 1000 } }),
+}));
 vi.mock('@/hooks/useLivePnl', () => ({
   useLivePnl: () => undefined,
   useSyncOpenPositions: () => undefined,

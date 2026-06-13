@@ -149,6 +149,10 @@ function tradeToLivePosition(t: Trades): LivePosition {
     unrealizedPnl: t.unrealizedPnl ?? 0,
     unrealizedPnlPct: t.unrealizedPnlPct ?? 0,
     openedAt: t.entryTime,
+    // `Trades.stopLossPrice` comes through `toNum`, so a missing/zero stop is
+    // 0, not null. Collapse non-positive to null here so downstream risk math
+    // reads it as "no fixed stop" (signal-exit), never as a $0 stop price.
+    stopLossPrice: t.stopLossPrice > 0 ? t.stopLossPrice : null,
   };
 }
 
