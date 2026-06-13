@@ -330,9 +330,27 @@
       color var(--dur-theme) var(--ease-out-quart);
   }
 
+  /* Text selection — a high-contrast highlight that stays readable on the dark
+     theme (the default). Uses explicit colours, NOT the deliberately
+     near-invisible --accent-subtle, and NOT var() (some engines drop custom
+     properties inside ::selection, which left the UA's dark default text on a
+     dark background — the bug this fixes). Firefox needs the -moz- variant as
+     its own rule (a grouped selector with an unknown pseudo is dropped whole). */
   ::selection {
-    background-color: var(--accent-subtle);
-    color: var(--text-primary);
+    background-color: rgba(59, 130, 246, 0.45);
+    color: #ffffff;
+  }
+  ::-moz-selection {
+    background-color: rgba(59, 130, 246, 0.45);
+    color: #ffffff;
+  }
+  [data-theme='light'] ::selection {
+    background-color: rgba(59, 130, 246, 0.28);
+    color: #0e1116;
+  }
+  [data-theme='light'] ::-moz-selection {
+    background-color: rgba(59, 130, 246, 0.28);
+    color: #0e1116;
   }
 
   :focus-visible {
