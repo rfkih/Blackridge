@@ -79,6 +79,19 @@ describe('AllocationStatCards', () => {
     expect(dd).toHaveTextContent('—');
   });
 
+  it('shows accrued Simple-Earn interest as its own stat', () => {
+    useAllocation.mockReturnValue(mkAllocation({ earnUsdt: 50 }));
+    useEquityCurve.mockReturnValue({ stats: null });
+    useEarnPosition.mockReturnValue({
+      data: { asset: 'USDT', amountUsdt: 50, accruedYieldUsdt: 2.5, enabled: true },
+    });
+
+    render(<AllocationStatCards accountId="a1" />);
+    const interest = screen.getByTestId('stat-interestEarned');
+    expect(interest).toHaveTextContent('Interest earned');
+    expect(interest).toHaveTextContent('$2.50');
+  });
+
   it('omits btcStack and sharpe cards (require data the app does not expose)', () => {
     useAllocation.mockReturnValue(mkAllocation());
     useEquityCurve.mockReturnValue({ stats: { maxDrawdown: -5 } });
