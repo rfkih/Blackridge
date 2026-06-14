@@ -15,11 +15,6 @@ export async function listMlSchedules(): Promise<MlIngestSchedule[]> {
   return data;
 }
 
-export async function getMlSchedule(id: number): Promise<MlIngestSchedule> {
-  const { data } = await apiClient.get<MlIngestSchedule>(`${BASE}/schedules/${id}`);
-  return data;
-}
-
 export async function updateMlSchedule(
   id: number,
   req: UpdateMlScheduleRequest,
@@ -43,9 +38,4 @@ export async function triggerMlBackfill(
 ): Promise<HistoricalBackfillJob> {
   const { data } = await apiClient.post<HistoricalBackfillJob>(`${BASE}/backfill`, req);
   return data;
-}
-
-export async function listKnownMlSources(): Promise<string[]> {
-  const { data } = await apiClient.get<{ sources: string[] }>(`${BASE}/sources`);
-  return data.sources;
 }
