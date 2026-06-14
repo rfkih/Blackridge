@@ -1,6 +1,6 @@
 'use client';
 
-import { Bitcoin, Wallet, TrendingDown, PiggyBank } from 'lucide-react';
+import { Bitcoin, Wallet, TrendingDown, PiggyBank, Coins } from 'lucide-react';
 import { useAllocation } from '@/hooks/useAllocation';
 import { useEquityCurve } from '@/hooks/useEquityCurve';
 import { useEarnPosition } from '@/hooks/useEarnPosition';
@@ -93,12 +93,15 @@ export function AllocationStatCards({ accountId }: AllocationStatCardsProps) {
   const earn = useEarnPosition(accountId);
   const formatCurrency = useCurrencyFormatter();
   const earnEnabled = earn.data?.enabled ?? false;
+  const interestEarned = earn.data?.accruedYieldUsdt ?? 0;
 
   const earnValue =
     earnUsdt > 0 ? formatCurrency(earnUsdt) : earnEnabled ? formatCurrency(0) : 'Off';
+  const interestValue =
+    interestEarned > 0 ? formatCurrency(interestEarned) : earnEnabled ? formatCurrency(0) : 'Off';
 
   return (
-    <section className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+    <section className="grid grid-cols-2 gap-4 lg:grid-cols-5">
       <Stat
         testId="btcWeight"
         label="BTC weight"
@@ -119,6 +122,14 @@ export function AllocationStatCards({ accountId }: AllocationStatCardsProps) {
         tooltip="Idle USDT parked in Binance Flexible Simple Earn, earning yield. Redeemed automatically before the strategy buys BTC."
         tone={earnUsdt > 0 ? 'profit' : 'neutral'}
         icon={<PiggyBank size={16} strokeWidth={2} />}
+      />
+      <Stat
+        testId="interestEarned"
+        label="Interest earned"
+        value={interestValue}
+        tooltip="Interest accrued so far on USDT parked in Binance Simple Earn. Unrealized — now added to your equity curve continuously as it accrues, not only when the cash is redeemed."
+        tone={interestEarned > 0 ? 'profit' : 'neutral'}
+        icon={<Coins size={16} strokeWidth={2} />}
       />
       <Stat
         testId="maxDrawdown"
