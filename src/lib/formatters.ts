@@ -48,8 +48,3 @@ export function formatRMultiple(n: number | null | undefined): string {
   const sign = n >= 0 ? '+' : '';
   return `${sign}${n.toFixed(2)}R`;
 }
-
-export function formatAge(openedAtMs: number | null | undefined): string {
-  if (openedAtMs == null || !Number.isFinite(openedAtMs)) return '—';
-  return formatDistanceStrict(new Date(openedAtMs), new Date(), { addSuffix: false });
-}

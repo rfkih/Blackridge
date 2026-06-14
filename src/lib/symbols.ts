@@ -44,20 +44,6 @@ export type SupportedSymbol = (typeof SUPPORTED_SYMBOLS)[number];
  */
 export const DEFAULT_SYMBOL: SupportedSymbol = SUPPORTED_SYMBOLS[0];
 
-/**
- * Comma-separated example list used in form placeholders.
- * Renders as e.g. `"BTCUSDT, ETHUSDT"`. Truncates at 3 entries to keep
- * placeholder lines readable when the supported-symbols list grows.
- */
-export const SYMBOL_EXAMPLES: string = SUPPORTED_SYMBOLS.slice(0, 3).join(', ');
-
-/**
- * Pre-built `e.g. {symbols}` string for `<input placeholder>`. Saves
- * call sites from concatenating themselves and keeps the example phrasing
- * uniform across the codebase.
- */
-export const SYMBOL_PLACEHOLDER: string = `e.g. ${SYMBOL_EXAMPLES}`;
-
 /** Runtime predicate for narrowing strings to `SupportedSymbol`. */
 export function isSupportedSymbol(s: string): s is SupportedSymbol {
     return (SUPPORTED_SYMBOLS as readonly string[]).includes(s);
@@ -84,15 +70,6 @@ export function isSupportedSymbol(s: string): s is SupportedSymbol {
 interface ApprovalLike {
     symbol: string;
     strategyCode: string;
-}
-
-/**
- * Returns the validated strategy codes for a symbol. Unknown symbols return
- * an empty list (fail-closed: no rows can be created on a symbol the
- * approval table has no entries for).
- */
-export function getSupportedStrategies(symbol: string, approvals: readonly ApprovalLike[]): string[] {
-    return approvals.filter((a) => a.symbol === symbol).map((a) => a.strategyCode);
 }
 
 /** True when at least one validated strategy exists for the symbol. */
