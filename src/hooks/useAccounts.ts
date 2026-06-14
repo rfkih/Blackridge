@@ -4,10 +4,8 @@ import { useEffect, useMemo } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   createAccount,
-  deleteAccount,
   getMyAccounts,
   rotateAccountCredentials,
-  updateAccount,
   updateAccountRiskConfig,
   updateAccountEarnConfig,
   previewAccountTypeSwitch,
@@ -15,7 +13,6 @@ import {
   type CreateAccountPayload,
   type RiskConfigPayload,
   type RotateAccountCredentialsPayload,
-  type UpdateAccountPayload,
 } from '@/lib/api/accounts';
 import { QUERY_STALE_TIMES } from '@/lib/constants';
 import { useAccountStore } from '@/store/accountStore';
@@ -177,48 +174,6 @@ export function useUpdateAccountEarnConfig() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['accounts'] });
       queryClient.invalidateQueries({ queryKey: ['earn-position'] });
-    },
-  });
-}
-
-/**
- * Rename and/or change the exchange of an account the user owns. Used by
- * EditAccountDialog. Mutation result is the refreshed AccountSummary so
- * downstream consumers get the new label/exchange without an extra round-trip.
- */
-export function useUpdateAccount() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: ({ accountId, payload }: { accountId: string; payload: UpdateAccountPayload }) =>
-      updateAccount(accountId, payload),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['accounts'] });
-    },
-  });
-}
-
-/**
- * Soft-delete an account the user owns. Used by DeleteAccountDialog. Backend
- * rejects when open trades reference the account; the rejection flows through
- * normalizeError into the dialog's inline alert.
- *
- * <p>If the user happens to be sitting on the deleted account in the
- * persisted selection, reset the selection so the rest of the dashboard
- * doesn't try to scope queries to a row that was just removed.
- */
-export function useDeleteAccount() {
-  const queryClient = useQueryClient();
-  const selection = useAccountStore((s) => s.selection);
-  const setSelection = useAccountStore((s) => s.setSelection);
-
-  return useMutation({
-    mutationFn: (accountId: string) => deleteAccount(accountId),
-    onSuccess: (_data, accountId) => {
-      queryClient.invalidateQueries({ queryKey: ['accounts'] });
-
-      if (selection === accountId) {
-        setSelection('all');
-      }
     },
   });
 }

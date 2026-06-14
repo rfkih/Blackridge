@@ -15,19 +15,6 @@ export const TV = {
   NEUTRAL: '#8C95A2',
 } as const;
 
-export const INDICATOR_COLORS = {
-  ema20: '#3B82F6',
-  ema50: '#F5A623',
-  ema200: '#A855F7',
-  bb: '#8C95A2',
-  kc: '#0A7E3F',
-  rsi: '#EC4899',
-  macdLine: '#3B82F6',
-  macdSignal: '#F5A623',
-  macdUp: 'rgba(22,179,100, 0.75)',
-  macdDown: 'rgba(229,72,77, 0.7)',
-} as const;
-
 export const REFETCH_INTERVALS: Record<string, number> = {
   '1m': 15_000,
   '5m': 60_000,

@@ -131,11 +131,6 @@ export async function computeAssetRebalancePlan(
   return mapPlan(data);
 }
 
-export async function fetchRebalanceById(rebalanceId: string): Promise<AssetRebalanceHistoryView> {
-  const { data } = await apiClient.get<any>(`/api/v1/portfolio/assets/rebalance/${rebalanceId}`);
-  return mapHistoryView(data);
-}
-
 export async function executeRebalance(rebalanceId: string): Promise<AssetRebalanceHistoryView> {
   const { data } = await apiClient.post<any>(`/api/v1/portfolio/assets/rebalance/${rebalanceId}/execute`);
   return mapHistoryView(data);

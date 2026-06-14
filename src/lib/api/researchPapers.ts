@@ -67,18 +67,6 @@ export async function generatePaper(
   return data;
 }
 
-/** Relative path for download anchors. Same-origin so the JWT cookie is
- *  attached and the Next.js rewrite forwards to the trading JVM, which
- *  proxies through to the orchestrator. Absolute URLs would skip the
- *  rewrite and trip SameSite=Lax cookie dropping on cross-origin GETs. */
-export function paperLatexHref(paperId: string): string {
-  return `${BASE}/${paperId}/export/latex`;
-}
-
-export function paperPdfHref(paperId: string): string {
-  return `${BASE}/${paperId}/export/pdf`;
-}
-
 /** Fetch a paper export as a Blob via the auth-aware Axios client. Used
  *  when the endpoint can return a non-2xx (e.g. PDF when pdflatex isn't
  *  installed → 503 JSON envelope). A plain `<a download>` would save the

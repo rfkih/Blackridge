@@ -125,38 +125,6 @@ export async function updateAccountEarnConfig(
   return mapAccount(data);
 }
 
-/**
- * Partial update for an account's label and/or exchange. Both fields are
- * optional — null means "leave unchanged" on the backend. Credentials rotate
- * through {@link rotateAccountCredentials}, never here.
- */
-export interface UpdateAccountPayload {
-  /** New label (2–50 chars; letters/digits/spaces/_/- only). */
-  username?: string;
-  /** Three-letter exchange code; backend stores uppercase. */
-  exchange?: string;
-}
-
-export async function updateAccount(
-  accountId: string,
-  payload: UpdateAccountPayload,
-): Promise<AccountSummary> {
-  const { data } = await apiClient.patch<BackendAccountSummary>(
-    `/api/v1/accounts/${accountId}`,
-    payload,
-  );
-  return mapAccount(data);
-}
-
-/**
- * Soft-delete the account. Backend rejects (4xx) when any OPEN /
- * PARTIALLY_CLOSED trades reference it; historical rows continue to resolve
- * the account by id.
- */
-export async function deleteAccount(accountId: string): Promise<void> {
-  await apiClient.delete(`/api/v1/accounts/${accountId}`);
-}
-
 // ---- Account-type switch (TRADING <-> HEDGING) ----
 
 export interface SwitchStrategyImpact {
