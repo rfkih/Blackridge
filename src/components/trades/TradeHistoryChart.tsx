@@ -196,8 +196,11 @@ function computeWindow(
   const span = maxExit - minEntry;
   const pad = Math.max(span * 0.15, MIN_CONTEXT_BARS * stepMs);
 
-  const toMs = maxExit + pad;
-  let fromMs = minEntry - pad;
+  // Round to integer epoch-ms: span*0.15 is fractional, and the candle API
+  // rejects non-integer timestamps ("Unsupported date format: …503.2"). Floor
+  // the start / ceil the end so the window still fully covers the trades.
+  const toMs = Math.ceil(maxExit + pad);
+  let fromMs = Math.floor(minEntry - pad);
 
   const maxSpanMs = MAX_BARS * stepMs;
   if (toMs - fromMs > maxSpanMs) fromMs = toMs - maxSpanMs;

@@ -74,8 +74,10 @@ export async function fetchCandles(
 export async function fetchCandlesRange(
   symbol: string, interval: string, fromMs: number, toMs: number,
 ): Promise<CandleData[]> {
+  // Coerce to integer epoch-ms — the backend's date parser rejects fractional
+  // timestamps (callers compute windows with non-integer padding).
   const { data } = await apiClient.get<BackendCandle[]>('/api/v1/market', {
-    params: { symbol, interval, from: fromMs, to: toMs },
+    params: { symbol, interval, from: Math.floor(fromMs), to: Math.ceil(toMs) },
   });
   return data.map(mapCandle).filter((c) => Number.isFinite(c.time)).sort((a, b) => a.time - b.time);
 }
@@ -96,7 +98,7 @@ export async function fetchIndicatorsRange(
   symbol: string, interval: string, fromMs: number, toMs: number,
 ): Promise<IndicatorData[]> {
   const { data } = await apiClient.get<BackendIndicator[]>('/api/v1/market/indicators', {
-    params: { symbol, interval, from: fromMs, to: toMs },
+    params: { symbol, interval, from: Math.floor(fromMs), to: Math.ceil(toMs) },
   });
   return data.map(mapIndicator).filter((d) => Number.isFinite(d.time)).sort((a, b) => a.time - b.time);
 }
