@@ -12,10 +12,10 @@ import {
   YAxis,
 } from 'recharts';
 import {
-  AXIS_TICK,
   CHART_COLORS,
   type ChartTooltipItem,
 } from '@/lib/charts/rechartsTheme';
+import { useChartTheme } from '@/lib/charts/useChartTheme';
 import type { TradePoint } from '@/types/papers';
 
 interface PaperTradeHistogramProps {
@@ -42,6 +42,7 @@ const TradeTooltip = ({
   active?: boolean;
   payload?: ChartTooltipItem<TradeDatum>[];
 }) => {
+  const { CHART_COLORS: THEME } = useChartTheme();
   if (!active || !payload?.length) return null;
   const d = payload[0]?.payload;
   if (!d) return null;
@@ -49,9 +50,9 @@ const TradeTooltip = ({
   return (
     <div
       className="rounded-md border px-3 py-2 text-left"
-      style={{ background: CHART_COLORS.surface, borderColor: CHART_COLORS.axis, minWidth: 150 }}
+      style={{ background: THEME.surface, borderColor: THEME.axis, minWidth: 150 }}
     >
-      <p className="mb-1 font-mono text-[10px]" style={{ color: CHART_COLORS.neutral }}>
+      <p className="mb-1 font-mono text-[10px]" style={{ color: THEME.neutral }}>
         Trade #{d.n} · {d.side}
       </p>
       <p
@@ -60,7 +61,7 @@ const TradeTooltip = ({
       >
         {up ? '+' : ''}{d.pnl_pct.toFixed(3)}%
       </p>
-      <p className="mt-0.5 font-mono text-[10px]" style={{ color: CHART_COLORS.neutral }}>
+      <p className="mt-0.5 font-mono text-[10px]" style={{ color: THEME.neutral }}>
         {fmtDate(d.entry)}{d.exit ? ` → ${fmtDate(d.exit)}` : ' → open'}
       </p>
     </div>
@@ -68,6 +69,7 @@ const TradeTooltip = ({
 };
 
 export function PaperTradeHistogram({ trades, height = 200 }: PaperTradeHistogramProps) {
+  const { CHART_COLORS: THEME, AXIS_TICK } = useChartTheme();
   const data = useMemo<TradeDatum[]>(() => {
     return trades
       .filter((t) => t.pnl_pct != null && t.exit_time != null)
@@ -126,7 +128,7 @@ export function PaperTradeHistogram({ trades, height = 200 }: PaperTradeHistogra
             cursor={{ fill: 'rgba(59,130,246,0.06)' }}
             content={<TradeTooltip />}
           />
-          <ReferenceLine y={0} stroke={CHART_COLORS.neutralDim} strokeDasharray="3 3" />
+          <ReferenceLine y={0} stroke={THEME.neutralDim} strokeDasharray="3 3" />
           <Bar dataKey="pnl_pct" isAnimationActive={data.length < 300} maxBarSize={6}>
             {data.map((d, i) => (
               <Cell

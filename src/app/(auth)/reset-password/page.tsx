@@ -27,7 +27,7 @@ const FIELD_LABEL_STYLE: React.CSSProperties = {
   display: 'block',
   fontSize: 11,
   fontWeight: 600,
-  color: 'var(--mm-ink-1, #384151)',
+  color: 'var(--text-secondary, #384151)',
   marginBottom: 6,
   textTransform: 'uppercase',
   letterSpacing: '0.04em',
@@ -36,13 +36,13 @@ const FIELD_LABEL_STYLE: React.CSSProperties = {
 const FIELD_INPUT_STYLE: React.CSSProperties = {
   width: '100%',
   padding: '12px 14px',
-  border: '1px solid var(--mm-hair-2, rgba(14,17,22,0.1))',
+  border: '1px solid var(--border-default, rgba(14,17,22,0.1))',
   borderRadius: 10,
   fontSize: 14,
   fontFamily: 'inherit',
   boxSizing: 'border-box',
-  background: '#FFFFFF',
-  color: 'var(--mm-ink-0, #0E1116)',
+  background: 'var(--bg-elevated, #FFFFFF)',
+  color: 'var(--text-primary, #0E1116)',
   outline: 'none',
 };
 
@@ -92,7 +92,7 @@ function ResetPasswordContent() {
             letterSpacing: '-0.025em',
             lineHeight: 1.1,
             margin: '0 0 6px',
-            color: 'var(--mm-ink-0, #0E1116)',
+            color: 'var(--text-primary, #0E1116)',
           }}
         >
           Choose a new password
@@ -100,7 +100,7 @@ function ResetPasswordContent() {
         <p
           style={{
             fontSize: 14,
-            color: 'var(--mm-ink-1, #384151)',
+            color: 'var(--text-secondary, #384151)',
             margin: '0 0 24px',
             lineHeight: 1.5,
           }}
@@ -143,7 +143,7 @@ function ResetPasswordContent() {
                   style={{
                     fontSize: 14,
                     fontWeight: 700,
-                    color: 'var(--mm-ink-0, #0E1116)',
+                    color: 'var(--text-primary, #0E1116)',
                   }}
                 >
                   Password updated
@@ -151,7 +151,7 @@ function ResetPasswordContent() {
                 <div
                   style={{
                     fontSize: 12,
-                    color: 'var(--mm-ink-1, #384151)',
+                    color: 'var(--text-secondary, #384151)',
                     marginTop: 2,
                   }}
                 >
@@ -160,7 +160,7 @@ function ResetPasswordContent() {
               </div>
             </div>
 
-            <p style={{ fontSize: 12, color: 'var(--mm-ink-1, #384151)', lineHeight: 1.5 }}>
+            <p style={{ fontSize: 12, color: 'var(--text-secondary, #384151)', lineHeight: 1.5 }}>
               The reset link is now spent and cannot be reused.
             </p>
 
@@ -170,7 +170,7 @@ function ResetPasswordContent() {
                 marginTop: 16,
                 width: '100%',
                 padding: '14px',
-                background: 'var(--mm-ink-0, #0E1116)',
+                background: 'var(--text-primary, #0E1116)',
                 color: '#FFFFFF',
                 borderRadius: 12,
                 fontSize: 14,
@@ -251,7 +251,7 @@ function ResetPasswordContent() {
                     fontSize: 12,
                     background: 'transparent',
                     border: 'none',
-                    color: 'var(--mm-ink-2, #6B7280)',
+                    color: 'var(--text-muted, #6B7280)',
                     cursor: 'pointer',
                     display: 'inline-flex',
                     alignItems: 'center',
@@ -313,7 +313,7 @@ function ResetPasswordContent() {
               style={{
                 width: '100%',
                 padding: '14px',
-                background: 'var(--mm-ink-0, #0E1116)',
+                background: 'var(--text-primary, #0E1116)',
                 color: '#FFFFFF',
                 border: 'none',
                 borderRadius: 12,
@@ -346,7 +346,7 @@ function ResetPasswordContent() {
                 gap: 6,
                 fontSize: 12,
                 fontWeight: 600,
-                color: 'var(--mm-ink-2, #6B7280)',
+                color: 'var(--text-muted, #6B7280)',
                 textDecoration: 'none',
               }}
             >

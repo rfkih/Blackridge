@@ -3,7 +3,8 @@
 import { useMemo } from 'react';
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { formatDate } from '@/lib/formatters';
-import { AXIS_TICK, CHART_COLORS, type ChartTooltipItem } from '@/lib/charts/rechartsTheme';
+import { type ChartTooltipItem } from '@/lib/charts/rechartsTheme';
+import { useChartTheme } from '@/lib/charts/useChartTheme';
 import type { BuyHoldComparison } from '@/lib/buyHold';
 import { PanelEmptyState, PanelShell } from './PanelShell';
 
@@ -74,6 +75,7 @@ export function DrawdownVsBuyHoldPanel({
   buyHoldSeries,
   verdict,
 }: DrawdownVsBuyHoldPanelProps) {
+  const { CHART_COLORS, AXIS_TICK } = useChartTheme();
   const data = useMemo<MergedPoint[]>(() => {
     if (!strategySeries || !buyHoldSeries) return [];
     if (strategySeries.length === 0 || buyHoldSeries.length === 0) return [];

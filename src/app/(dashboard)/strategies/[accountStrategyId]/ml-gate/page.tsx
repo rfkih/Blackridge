@@ -55,7 +55,7 @@ export default function StrategyMlGatePage() {
 
   if (isError || !strategy) {
     return (
-      <div className="rounded-md border border-rose-500/30 bg-rose-500/5 p-4 text-sm text-rose-200">
+      <div className="rounded-md border border-loss bg-tint-loss p-4 text-sm text-loss">
         Failed to load strategy.{' '}
         <Link href="/strategies" className="underline">
           Back
@@ -69,13 +69,13 @@ export default function StrategyMlGatePage() {
       <header className="space-y-2">
         <Link
           href={`/strategies/${strategy.accountStrategyId}`}
-          className="inline-flex items-center gap-1 text-xs text-zinc-500 hover:text-zinc-300"
+          className="inline-flex items-center gap-1 text-xs text-text-muted hover:text-text-secondary"
         >
           <ArrowLeft className="h-3 w-3" /> Strategy detail
         </Link>
-        <h1 className="text-2xl font-semibold text-zinc-100">
+        <h1 className="text-2xl font-semibold text-text-primary">
           {strategy.strategyCode}
-          <span className="ml-2 text-base font-normal text-zinc-500">
+          <span className="ml-2 text-base font-normal text-text-muted">
             {strategy.symbol} · {strategy.intervalName}
           </span>
         </h1>

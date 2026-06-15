@@ -121,7 +121,7 @@ function StrategyBadge({ code }: { code: string }) {
       style={{
         background: 'var(--accent-glow)',
         color: 'var(--accent-primary)',
-        border: '1px solid rgba(255,255,255,0.08)',
+        border: '1px solid var(--border-subtle)',
       }}
     >
       {code}
@@ -174,7 +174,7 @@ function ActivityItem({
       {!isLast && (
         <div
           className="absolute left-[9px] top-5 w-px"
-          style={{ height: 'calc(100% + 4px)', background: 'rgba(255,255,255,0.07)' }}
+          style={{ height: 'calc(100% + 4px)', background: 'var(--border-subtle)' }}
         />
       )}
 
@@ -182,7 +182,7 @@ function ActivityItem({
       <div className="relative mt-1 shrink-0">
         <div
           className="flex h-5 w-5 items-center justify-center rounded-full"
-          style={{ background: style.dot, boxShadow: `0 0 0 3px rgba(255,255,255,0.06)` }}
+          style={{ background: style.dot, boxShadow: `0 0 0 3px var(--bg-base)` }}
         >
           {isGoal && <Star size={9} fill="currentColor" className="text-white" />}
         </div>

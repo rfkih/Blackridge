@@ -14,6 +14,7 @@ import {
 import { useCurrencyFormatter } from '@/hooks/useCurrency';
 import { formatDate } from '@/lib/formatters';
 import type { ChartTooltipItem } from '@/lib/charts/rechartsTheme';
+import { useChartTheme } from '@/lib/charts/useChartTheme';
 
 export interface EquityCurvePoint {
   ts: number;
@@ -54,6 +55,7 @@ export function EquityCurve({
   compareSeries,
   overlaySeries,
 }: EquityCurveProps) {
+  const { CHART_COLORS } = useChartTheme();
   const capital = initialCapital ?? points[0]?.equity ?? 0;
   const overlays = useMemo(() => overlaySeries ?? [], [overlaySeries]);
   const data = useMemo<EquityRow[]>(() => {
@@ -176,7 +178,7 @@ export function EquityCurve({
             const d = new Date(v);
             return `${d.getMonth() + 1}/${d.getDate()}`;
           }}
-          tick={{ fill: '#4A5160', fontSize: 10, fontFamily: 'IBM Plex Mono, ui-monospace, monospace' }}
+          tick={{ fill: CHART_COLORS.neutral, fontSize: 10, fontFamily: 'IBM Plex Mono, ui-monospace, monospace' }}
           axisLine={false}
           tickLine={false}
           interval="preserveStartEnd"
@@ -187,13 +189,13 @@ export function EquityCurve({
           tickFormatter={(v: number) =>
             v >= 1_000 ? `$${(v / 1_000).toFixed(1)}K` : `$${v.toFixed(0)}`
           }
-          tick={{ fill: '#4A5160', fontSize: 10, fontFamily: 'IBM Plex Mono, ui-monospace, monospace' }}
+          tick={{ fill: CHART_COLORS.neutral, fontSize: 10, fontFamily: 'IBM Plex Mono, ui-monospace, monospace' }}
           axisLine={false}
           tickLine={false}
           width={56}
         />
         <Tooltip content={<EquityTooltip />} />
-        <ReferenceLine y={capital} stroke="#2A2F3A" strokeDasharray="3 3" />
+        <ReferenceLine y={capital} stroke={CHART_COLORS.axis} strokeDasharray="3 3" />
         {compareSeries && (
           <Line
             type="monotone"

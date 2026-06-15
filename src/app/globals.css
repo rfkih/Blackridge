@@ -125,6 +125,16 @@
   --tint-info: rgba(59, 130, 246, 0.14);
   --tint-bot: rgba(168, 85, 247, 0.16);
 
+  /* Monthly-returns heatmap ramp (dark): deeper saturated fills + light ink so
+     the grid reads as part of the dark dashboard, not a pale light island. */
+  --heat-pos-1: #123b2c;
+  --heat-pos-2: #15613f;
+  --heat-pos-3: #1c7a4e;
+  --heat-neg-1: #3b2023;
+  --heat-neg-2: #6e2629;
+  --heat-neg-3: #8e2f33;
+  --heat-fg: #f2f5f8;
+
   /* Flash for PnlCell tick animation */
   --flash-profit: rgba(22, 179, 100, 0.28);
   --flash-loss: rgba(229, 72, 77, 0.22);
@@ -233,6 +243,15 @@
   --tint-warning: rgba(245, 166, 35, 0.14);
   --tint-info: rgba(59, 130, 246, 0.1);
   --tint-bot: rgba(124, 58, 237, 0.1);
+
+  /* Monthly-returns heatmap ramp (light): the original pastels + dark ink. */
+  --heat-pos-1: #c8eed5;
+  --heat-pos-2: #86e0aa;
+  --heat-pos-3: #5fcb8b;
+  --heat-neg-1: #fceaeb;
+  --heat-neg-2: #f8b5b7;
+  --heat-neg-3: #f08688;
+  --heat-fg: rgba(0, 0, 0, 0.82);
 
   --flash-profit: rgba(22, 179, 100, 0.22);
   --flash-loss: rgba(229, 72, 77, 0.16);

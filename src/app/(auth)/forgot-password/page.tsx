@@ -20,7 +20,7 @@ const FIELD_LABEL_STYLE: React.CSSProperties = {
   display: 'block',
   fontSize: 11,
   fontWeight: 600,
-  color: 'var(--mm-ink-1, #384151)',
+  color: 'var(--text-secondary)',
   marginBottom: 6,
   textTransform: 'uppercase',
   letterSpacing: '0.04em',
@@ -29,13 +29,13 @@ const FIELD_LABEL_STYLE: React.CSSProperties = {
 const FIELD_INPUT_STYLE: React.CSSProperties = {
   width: '100%',
   padding: '12px 14px',
-  border: '1px solid var(--mm-hair-2, rgba(14,17,22,0.1))',
+  border: '1px solid var(--border-default)',
   borderRadius: 10,
   fontSize: 14,
   fontFamily: 'inherit',
   boxSizing: 'border-box',
-  background: '#FFFFFF',
-  color: 'var(--mm-ink-0, #0E1116)',
+  background: 'var(--bg-elevated)',
+  color: 'var(--text-primary)',
   outline: 'none',
 };
 
@@ -77,7 +77,7 @@ export default function ForgotPasswordPage() {
             letterSpacing: '-0.025em',
             lineHeight: 1.1,
             margin: '0 0 6px',
-            color: 'var(--mm-ink-0, #0E1116)',
+            color: 'var(--text-primary)',
           }}
         >
           Reset your password
@@ -85,7 +85,7 @@ export default function ForgotPasswordPage() {
         <p
           style={{
             fontSize: 14,
-            color: 'var(--mm-ink-1, #384151)',
+            color: 'var(--text-secondary)',
             margin: '0 0 24px',
             lineHeight: 1.5,
           }}
@@ -128,7 +128,7 @@ export default function ForgotPasswordPage() {
                   style={{
                     fontSize: 14,
                     fontWeight: 700,
-                    color: 'var(--mm-ink-0, #0E1116)',
+                    color: 'var(--text-primary)',
                   }}
                 >
                   Check your email
@@ -136,7 +136,7 @@ export default function ForgotPasswordPage() {
                 <div
                   style={{
                     fontSize: 12,
-                    color: 'var(--mm-ink-1, #384151)',
+                    color: 'var(--text-secondary)',
                     marginTop: 2,
                   }}
                 >
@@ -145,7 +145,7 @@ export default function ForgotPasswordPage() {
               </div>
             </div>
 
-            <p style={{ fontSize: 12, color: 'var(--mm-ink-1, #384151)', lineHeight: 1.5 }}>
+            <p style={{ fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
               If an account exists with that address, we&apos;ve issued reset instructions. The link
               expires in 30 minutes; only the most recent request remains valid.
             </p>
@@ -153,7 +153,7 @@ export default function ForgotPasswordPage() {
               style={{
                 marginTop: 12,
                 fontSize: 11,
-                color: 'var(--mm-ink-2, #6B7280)',
+                color: 'var(--text-muted)',
                 lineHeight: 1.5,
               }}
             >
@@ -232,7 +232,7 @@ export default function ForgotPasswordPage() {
               style={{
                 width: '100%',
                 padding: '14px',
-                background: 'var(--mm-ink-0, #0E1116)',
+                background: 'var(--text-primary)',
                 color: '#FFFFFF',
                 border: 'none',
                 borderRadius: 12,
@@ -265,7 +265,7 @@ export default function ForgotPasswordPage() {
                 gap: 6,
                 fontSize: 12,
                 fontWeight: 600,
-                color: 'var(--mm-ink-2, #6B7280)',
+                color: 'var(--text-muted)',
                 textDecoration: 'none',
               }}
             >

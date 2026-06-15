@@ -612,7 +612,7 @@ function StuckTradeRow({ anomaly }: { anomaly: TradeAnomaly }) {
           </span>
           <span
             className="rounded-sm px-1.5 py-0.5 font-mono text-[9px] font-semibold uppercase tracking-wider"
-            style={{ background: 'rgba(0,0,0,0.25)', color: toneColor('warning') }}
+            style={{ background: 'var(--bg-elevated)', color: toneColor('warning') }}
           >
             {anomaly.status}
           </span>
@@ -2312,7 +2312,7 @@ function VerdictPill({ tone, label }: { tone: Tone; label: string }) {
   return (
     <span
       className="inline-flex items-center rounded-sm px-1.5 py-0.5 font-mono text-[9px] font-semibold uppercase tracking-wider"
-      style={{ background: 'rgba(0,0,0,0.25)', color: toneColor(tone) }}
+      style={{ background: 'var(--bg-elevated)', color: toneColor(tone) }}
     >
       {label}
     </span>
@@ -3313,7 +3313,7 @@ function StateBadge({ state }: { state: PromotionState | 'INACTIVE' }) {
   return (
     <span
       className="rounded-sm px-1.5 py-0.5 font-mono text-[9px] font-semibold uppercase tracking-wider"
-      style={{ background: 'rgba(0,0,0,0.25)', color: toneColor(tone) }}
+      style={{ background: 'var(--bg-elevated)', color: toneColor(tone) }}
     >
       {state}
     </span>

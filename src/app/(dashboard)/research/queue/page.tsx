@@ -374,7 +374,7 @@ function StatusBadge({ status, verdict }: { status: string; verdict: string | nu
   return (
     <span
       className="rounded-sm px-1.5 py-0.5 font-mono text-[9px] font-semibold uppercase tracking-wider"
-      style={{ background: 'rgba(0,0,0,0.25)', color: toneColor(tone) }}
+      style={{ background: 'var(--bg-elevated)', color: toneColor(tone) }}
     >
       {label}
     </span>

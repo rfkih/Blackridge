@@ -181,7 +181,7 @@ export default function PaperPage({ params }: { params: { id: string } }) {
                 <span
                   className="rounded-sm px-1.5 py-0.5 font-mono text-[9px] font-semibold uppercase tracking-wider"
                   style={{
-                    background: 'rgba(0,0,0,0.3)',
+                    background: 'var(--bg-elevated)',
                     color: toneColor(statusTone(paper.paper_status)),
                   }}
                 >
@@ -191,7 +191,7 @@ export default function PaperPage({ params }: { params: { id: string } }) {
                   <span
                     className="rounded-sm px-1.5 py-0.5 font-mono text-[9px] font-semibold uppercase tracking-wider"
                     style={{
-                      background: 'rgba(0,0,0,0.3)',
+                      background: 'var(--bg-elevated)',
                       color: toneColor(verdictTone(meta.final_verdict)),
                     }}
                   >

@@ -12,12 +12,8 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
-import {
-  AXIS_TICK,
-  CHART_COLORS,
-  TOOLTIP_CONTENT_STYLE,
-  type ChartTooltipItem,
-} from '@/lib/charts/rechartsTheme';
+import { type ChartTooltipItem } from '@/lib/charts/rechartsTheme';
+import { useChartTheme } from '@/lib/charts/useChartTheme';
 import { useCurrencyFormatter } from '@/hooks/useCurrency';
 import type { MonteCarloResult } from '@/types/montecarlo';
 
@@ -41,6 +37,7 @@ interface ChartRow {
  */
 export function MonteCarloChart({ result, height = 320 }: MonteCarloChartProps) {
   const formatCurrency = useCurrencyFormatter();
+  const { CHART_COLORS, AXIS_TICK, TOOLTIP_CONTENT_STYLE } = useChartTheme();
 
   const MonteCarloTooltip = ({
     active,

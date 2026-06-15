@@ -9,7 +9,7 @@ import type {
   MouseEventParams,
   Time,
 } from 'lightweight-charts';
-import { TV } from '@/lib/charts/chartTheme';
+import { useChartTheme } from '@/lib/charts/useChartTheme';
 import {
   buildTradeMarkers,
   deriveTradeOutcome,
@@ -98,11 +98,18 @@ export function BacktestAnnotatedChart({
     LineSeries: unknown;
     HistogramSeries: unknown;
     LineStyle: { Dashed: number; Solid: number };
+    ColorType: { Solid: unknown };
   } | null>(null);
   const indicatorStateRef = useRef<IndicatorSeriesState>({});
   const bandsCanvasRef = useRef<HTMLCanvasElement>(null);
   const clusterBadgesRef = useRef<HTMLDivElement>(null);
   const overlayCtxRef = useRef({ trades, metaByTime: new Map<number, MarkerMeta[]>() });
+
+  // Theme-aware chart colors; themeRef tracks the latest so the async build
+  // effect reads the resolved theme (not the dark fallback) at creation time.
+  const { TV } = useChartTheme();
+  const themeRef = useRef(TV);
+  themeRef.current = TV;
 
   const [ready, setReady] = useState(false);
   const [hover, setHover] = useState<HoverState | null>(null);
@@ -219,26 +226,28 @@ export function BacktestAnnotatedChart({
       if (cancelled || !containerRef.current) return;
       tvRef.current = tv;
 
+      // Read the latest resolved theme at build time (post async import).
+      const c = themeRef.current;
       const chart = tv.createChart(containerRef.current, {
         height,
         layout: {
-          background: { type: tv.ColorType.Solid, color: TV.BG },
-          textColor: TV.TEXT,
+          background: { type: tv.ColorType.Solid, color: c.BG },
+          textColor: c.TEXT,
           fontFamily: "'IBM Plex Mono', ui-monospace, monospace",
           fontSize: 11,
         },
         grid: {
-          vertLines: { color: TV.GRID },
-          horzLines: { color: TV.GRID },
+          vertLines: { color: c.GRID },
+          horzLines: { color: c.GRID },
         },
         crosshair: {
           mode: tv.CrosshairMode.Normal,
-          vertLine: { color: TV.CROSSHAIR, labelBackgroundColor: TV.LABEL_BG },
-          horzLine: { color: TV.CROSSHAIR, labelBackgroundColor: TV.LABEL_BG },
+          vertLine: { color: c.CROSSHAIR, labelBackgroundColor: c.LABEL_BG },
+          horzLine: { color: c.CROSSHAIR, labelBackgroundColor: c.LABEL_BG },
         },
-        rightPriceScale: { borderColor: TV.BORDER },
+        rightPriceScale: { borderColor: c.BORDER },
         timeScale: {
-          borderColor: TV.BORDER,
+          borderColor: c.BORDER,
           timeVisible: true,
           secondsVisible: false,
         },
@@ -246,12 +255,12 @@ export function BacktestAnnotatedChart({
       chartRef.current = chart;
 
       const series = chart.addSeries(tv.CandlestickSeries, {
-        upColor: TV.PROFIT,
-        downColor: TV.LOSS,
-        borderUpColor: TV.PROFIT,
-        borderDownColor: TV.LOSS,
-        wickUpColor: TV.PROFIT,
-        wickDownColor: TV.LOSS,
+        upColor: c.PROFIT,
+        downColor: c.LOSS,
+        borderUpColor: c.PROFIT,
+        borderDownColor: c.LOSS,
+        wickUpColor: c.PROFIT,
+        wickDownColor: c.LOSS,
       });
       seriesRef.current = series;
 
@@ -308,7 +317,36 @@ export function BacktestAnnotatedChart({
       indicatorStateRef.current = {};
       setReady(false);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [height]);
+
+  // Re-apply chrome + candle colors when the theme flips, without rebuilding.
+  useEffect(() => {
+    const chart = chartRef.current;
+    const tv = tvRef.current;
+    if (!chart || !tv) return;
+    chart.applyOptions({
+      layout: {
+        background: { type: tv.ColorType.Solid as never, color: TV.BG },
+        textColor: TV.TEXT,
+      },
+      grid: { vertLines: { color: TV.GRID }, horzLines: { color: TV.GRID } },
+      crosshair: {
+        vertLine: { color: TV.CROSSHAIR, labelBackgroundColor: TV.LABEL_BG },
+        horzLine: { color: TV.CROSSHAIR, labelBackgroundColor: TV.LABEL_BG },
+      },
+      rightPriceScale: { borderColor: TV.BORDER },
+      timeScale: { borderColor: TV.BORDER },
+    });
+    seriesRef.current?.applyOptions({
+      upColor: TV.PROFIT,
+      downColor: TV.LOSS,
+      borderUpColor: TV.PROFIT,
+      borderDownColor: TV.LOSS,
+      wickUpColor: TV.PROFIT,
+      wickDownColor: TV.LOSS,
+    });
+  }, [TV]);
 
   const augmentedFeatures = useFeaturesWithComputedEma(
     candles,

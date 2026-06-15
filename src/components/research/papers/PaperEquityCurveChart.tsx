@@ -13,11 +13,8 @@ import {
   YAxis,
 } from 'recharts';
 import { Layers, TrendingUp } from 'lucide-react';
-import {
-  AXIS_TICK,
-  CHART_COLORS,
-  type ChartTooltipItem,
-} from '@/lib/charts/rechartsTheme';
+import { type ChartTooltipItem } from '@/lib/charts/rechartsTheme';
+import { useChartTheme } from '@/lib/charts/useChartTheme';
 import type { EquityPoint } from '@/types/papers';
 
 interface PaperEquityCurveChartProps {
@@ -165,6 +162,7 @@ const EqTooltip = ({
   active?: boolean;
   payload?: ChartTooltipItem<TooltipPayload>[];
 }) => {
+  const { CHART_COLORS } = useChartTheme();
   if (!active || !payload?.length) return null;
   const d = payload[0]?.payload;
   if (!d) return null;
@@ -228,6 +226,7 @@ function TogglePill({
   onClick: () => void;
   activeColor: string;
 }) {
+  const { CHART_COLORS } = useChartTheme();
   return (
     <button
       type="button"
@@ -238,7 +237,7 @@ function TogglePill({
         fontWeight: 600,
         letterSpacing: '0.04em',
         background: active ? `${activeColor}1e` : 'transparent',
-        border: `1px solid ${active ? `${activeColor}4d` : 'rgba(255,255,255,0.08)'}`,
+        border: `1px solid ${active ? `${activeColor}4d` : 'var(--border-subtle)'}`,
         color: disabled ? CHART_COLORS.axis : active ? activeColor : CHART_COLORS.neutral,
         cursor: disabled ? 'not-allowed' : 'pointer',
         opacity: disabled ? 0.4 : 1,
@@ -261,6 +260,7 @@ export function PaperEquityCurveChart({
   height = 240,
   gradientId = 'a',
 }: PaperEquityCurveChartProps) {
+  const { CHART_COLORS, AXIS_TICK } = useChartTheme();
   const [showZones, setShowZones] = useState(false);
   const [showRegime, setShowRegime] = useState(false);
 

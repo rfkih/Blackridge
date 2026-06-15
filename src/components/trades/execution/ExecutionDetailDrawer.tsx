@@ -104,10 +104,10 @@ export function ExecutionDetailDrawer({
           style={{
             flexShrink: 0,
             padding: '14px 16px',
-            borderBottom: `1px solid ${failed ? '#2a1d22' : '#1b2a1f'}`,
+            borderBottom: `1px solid ${failed ? 'color-mix(in oklab, var(--color-loss) 30%, transparent)' : 'color-mix(in oklab, var(--color-profit) 30%, transparent)'}`,
             background: failed
               ? 'linear-gradient(180deg, color-mix(in oklab, var(--color-loss) 14%, transparent), color-mix(in oklab, var(--color-loss) 3%, transparent))'
-              : 'linear-gradient(180deg, rgba(34,197,94,0.12), rgba(34,197,94,0.02))',
+              : 'linear-gradient(180deg, color-mix(in oklab, var(--color-profit) 14%, transparent), color-mix(in oklab, var(--color-profit) 3%, transparent))',
           }}
         >
           <div className="flex items-start justify-between">
@@ -165,7 +165,7 @@ export function ExecutionDetailDrawer({
                 gap: 5,
                 marginTop: 10,
                 background: 'color-mix(in oklab, var(--color-loss) 16%, transparent)',
-                color: '#fca5a5',
+                color: 'var(--color-loss)',
                 border: '1px solid color-mix(in oklab, var(--color-loss) 30%, transparent)',
                 borderRadius: 999,
                 padding: '2px 10px',
@@ -217,14 +217,14 @@ export function ExecutionDetailDrawer({
               </div>
               <div
                 style={{
-                  background: '#0a0c10',
-                  border: '1px solid #2a1d22',
+                  background: 'var(--bg-base)',
+                  border: '1px solid color-mix(in oklab, var(--color-loss) 30%, transparent)',
                   borderRadius: 8,
                   padding: '10px 12px',
                   fontFamily: 'var(--font-mono, ui-monospace)',
                   fontSize: 11.5,
                   lineHeight: 1.5,
-                  color: '#e5a3a3',
+                  color: 'var(--color-loss)',
                   whiteSpace: 'pre-wrap',
                   wordBreak: 'break-word',
                 }}

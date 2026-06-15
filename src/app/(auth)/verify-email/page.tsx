@@ -72,7 +72,7 @@ function VerifyEmailContent() {
             letterSpacing: '-0.025em',
             lineHeight: 1.1,
             margin: '0 0 6px',
-            color: 'var(--mm-ink-0, #0E1116)',
+            color: 'var(--text-primary, #0E1116)',
           }}
         >
           Verify your email
@@ -80,7 +80,7 @@ function VerifyEmailContent() {
         <p
           style={{
             fontSize: 14,
-            color: 'var(--mm-ink-1, #384151)',
+            color: 'var(--text-secondary, #384151)',
             margin: '0 0 24px',
             lineHeight: 1.5,
           }}
@@ -96,9 +96,9 @@ function VerifyEmailContent() {
               gap: 10,
               padding: '14px 16px',
               borderRadius: 12,
-              background: 'var(--mm-bg-2, #F7FAF8)',
-              border: '1px solid var(--mm-hair-2, rgba(14,17,22,0.1))',
-              color: 'var(--mm-ink-1, #384151)',
+              background: 'var(--bg-surface, #F7FAF8)',
+              border: '1px solid var(--border-default, rgba(14,17,22,0.1))',
+              color: 'var(--text-secondary, #384151)',
               fontSize: 13,
             }}
           >
@@ -141,7 +141,7 @@ function VerifyEmailContent() {
                   style={{
                     fontSize: 14,
                     fontWeight: 700,
-                    color: 'var(--mm-ink-0, #0E1116)',
+                    color: 'var(--text-primary, #0E1116)',
                   }}
                 >
                   Email verified
@@ -149,7 +149,7 @@ function VerifyEmailContent() {
                 <div
                   style={{
                     fontSize: 12,
-                    color: 'var(--mm-ink-1, #384151)',
+                    color: 'var(--text-secondary, #384151)',
                     marginTop: 2,
                   }}
                 >
@@ -163,7 +163,7 @@ function VerifyEmailContent() {
               style={{
                 width: '100%',
                 padding: '14px',
-                background: 'var(--mm-ink-0, #0E1116)',
+                background: 'var(--text-primary, #0E1116)',
                 color: '#FFFFFF',
                 borderRadius: 12,
                 fontSize: 14,
@@ -222,7 +222,7 @@ function VerifyEmailContent() {
                 <div
                   style={{
                     fontSize: 12,
-                    color: 'var(--mm-ink-1, #384151)',
+                    color: 'var(--text-secondary, #384151)',
                     marginTop: 2,
                   }}
                 >
@@ -234,7 +234,7 @@ function VerifyEmailContent() {
             <p
               style={{
                 fontSize: 11,
-                color: 'var(--mm-ink-2, #6B7280)',
+                color: 'var(--text-muted, #6B7280)',
                 lineHeight: 1.5,
                 marginBottom: 16,
               }}
@@ -249,8 +249,8 @@ function VerifyEmailContent() {
                 width: '100%',
                 padding: '14px',
                 background: 'transparent',
-                color: 'var(--mm-ink-0, #0E1116)',
-                border: '1px solid var(--mm-hair-2, rgba(14,17,22,0.1))',
+                color: 'var(--text-primary, #0E1116)',
+                border: '1px solid var(--border-default, rgba(14,17,22,0.1))',
                 borderRadius: 12,
                 fontSize: 14,
                 fontWeight: 600,

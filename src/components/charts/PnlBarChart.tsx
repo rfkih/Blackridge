@@ -12,12 +12,8 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
-import {
-  AXIS_TICK,
-  CHART_COLORS,
-  TOOLTIP_CONTENT_STYLE,
-  type ChartTooltipItem,
-} from '@/lib/charts/rechartsTheme';
+import { type ChartTooltipItem } from '@/lib/charts/rechartsTheme';
+import { useChartTheme } from '@/lib/charts/useChartTheme';
 import { useCurrencyFormatter } from '@/hooks/useCurrency';
 import type { DailyPnl } from '@/types/pnl';
 
@@ -27,6 +23,7 @@ interface PnlBarChartProps {
 }
 
 export function PnlBarChart({ data, height = 260 }: PnlBarChartProps) {
+  const { CHART_COLORS, AXIS_TICK, TOOLTIP_CONTENT_STYLE } = useChartTheme();
   const memoData = useMemo(() => data, [data]);
   const formatCurrency = useCurrencyFormatter();
   const PnlBarTooltip = ({

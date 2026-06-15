@@ -11,7 +11,8 @@ import {
   YAxis,
 } from 'recharts';
 import { formatDate } from '@/lib/formatters';
-import { AXIS_TICK, CHART_COLORS, type ChartTooltipItem } from '@/lib/charts/rechartsTheme';
+import { type ChartTooltipItem } from '@/lib/charts/rechartsTheme';
+import { useChartTheme } from '@/lib/charts/useChartTheme';
 import { PanelEmptyState, PanelShell } from './PanelShell';
 
 /** BTC brand accent — the one deliberate non-token color, shared with
@@ -64,6 +65,7 @@ function StackTooltip({
  * state. It never invents a series.
  */
 export function BtcStackPanel({ series }: BtcStackPanelProps) {
+  const { CHART_COLORS, AXIS_TICK } = useChartTheme();
   const data = useMemo(() => series ?? [], [series]);
   const latest = data.length ? data[data.length - 1].stackMultiple : null;
 

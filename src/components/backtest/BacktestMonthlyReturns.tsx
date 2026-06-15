@@ -293,17 +293,17 @@ function cellStyle(pct: number | null): { bg: string; fg: string; text: string }
     return { bg: 'var(--mm-surface-3)', fg: 'var(--mm-ink-3)', text: '·' };
   }
 
-  const a = Math.abs(pct);
+  // Theme-aware ramp: --heat-* tokens flip per [data-theme] (light = the
+  // original pastels + dark ink; dark = deeper saturated fills + light ink) so
+  // the heatmap never renders a pale light island on the dark dashboard.
   let bg: string;
-  let fg = 'rgba(0,0,0,0.78)';
-  if (pct >= 8) bg = '#5FCB8B';
-  else if (pct >= 3) bg = '#86E0AA';
-  else if (pct > 0) bg = '#C8EED5';
-  else if (pct === 0) bg = 'var(--mm-surface-3)';
-  else if (pct >= -3) bg = '#FCEAEB';
-  else if (pct >= -6) bg = '#F8B5B7';
-  else bg = '#F08688';
+  if (pct >= 8) bg = 'var(--heat-pos-3)';
+  else if (pct >= 3) bg = 'var(--heat-pos-2)';
+  else if (pct > 0) bg = 'var(--heat-pos-1)';
+  else if (pct === 0) return { bg: 'var(--mm-surface-3)', fg: 'var(--mm-ink-2)', text: '0.00' };
+  else if (pct >= -3) bg = 'var(--heat-neg-1)';
+  else if (pct >= -6) bg = 'var(--heat-neg-2)';
+  else bg = 'var(--heat-neg-3)';
 
-  if (a > 6) fg = 'rgba(0,0,0,0.85)';
-  return { bg, fg, text: `${pct > 0 ? '+' : ''}${pct.toFixed(2)}` };
+  return { bg, fg: 'var(--heat-fg)', text: `${pct > 0 ? '+' : ''}${pct.toFixed(2)}` };
 }

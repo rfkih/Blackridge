@@ -109,9 +109,9 @@ export function MlGateTab({
 
   return (
     <div className="space-y-6">
-      <div className="rounded-md border border-zinc-800 bg-zinc-950/40 p-6">
-        <h2 className="text-lg font-medium text-zinc-100">ML regime gate</h2>
-        <p className="mt-1 text-sm text-zinc-500">
+      <div className="rounded-md border border-bd-subtle bg-bg-surface p-6">
+        <h2 className="text-lg font-medium text-text-primary">ML regime gate</h2>
+        <p className="mt-1 text-sm text-text-muted">
           When enabled, the strategy consults this signal on every entry attempt. Shadow mode logs
           the gate&apos;s verdict to <code className="text-xs">ml_shadow_log</code> without blocking
           the trade — flip to <span className="font-medium">On</span> only after paired-delta
@@ -131,8 +131,8 @@ export function MlGateTab({
                   }
                   className={`rounded-md border px-4 py-1.5 text-sm capitalize transition ${
                     mode === m
-                      ? 'border-zinc-100 bg-zinc-100 text-zinc-900'
-                      : 'border-zinc-700 bg-zinc-900 text-zinc-300 hover:border-zinc-500'
+                      ? 'border-text-primary bg-text-primary text-bg-base'
+                      : 'border-bd bg-bg-surface text-text-secondary hover:border-bd'
                   }`}
                 >
                   {m === 'off' ? 'Off' : m === 'shadow' ? 'Shadow' : 'On'}
@@ -147,7 +147,7 @@ export function MlGateTab({
               {signalsLoading ? (
                 <Skeleton className="mt-2 h-9 w-full max-w-md" />
               ) : compatible.length === 0 ? (
-                <p className="mt-2 text-sm text-zinc-500">
+                <p className="mt-2 text-sm text-text-muted">
                   No compatible signals for {symbol}/{intervalName}.{' '}
                   <Link href="/ml/signals" className="underline">
                     Browse all signals →
@@ -176,7 +176,7 @@ export function MlGateTab({
                 </Select>
               )}
               {form.formState.errors.signalName && (
-                <p className="mt-1 text-xs text-rose-400">
+                <p className="mt-1 text-xs text-loss">
                   {form.formState.errors.signalName.message}
                 </p>
               )}
@@ -207,9 +207,9 @@ export function MlGateTab({
         </div>
       </div>
 
-      <div className="rounded-md border border-dashed border-zinc-800 bg-zinc-950/20 p-6 opacity-60">
-        <h3 className="text-sm font-medium text-zinc-300">Paired backtest preview</h3>
-        <p className="mt-1 text-xs text-zinc-500">
+      <div className="rounded-md border border-dashed border-bd-subtle bg-bg-surface p-6 opacity-60">
+        <h3 className="text-sm font-medium text-text-secondary">Paired backtest preview</h3>
+        <p className="mt-1 text-xs text-text-muted">
           Coming in Phase 2 — run a paired backtest with vs without this gate and see the delta
           before applying live.
         </p>
@@ -238,16 +238,16 @@ export function MlGateTab({
 
 function SignalGlance({ signal }: { signal: SignalRow }) {
   return (
-    <div className="rounded-md border border-zinc-800 bg-zinc-900/40 p-4">
+    <div className="rounded-md border border-bd-subtle bg-bg-elevated p-4">
       <div className="flex items-center justify-between">
-        <p className="text-sm font-medium text-zinc-200">{signal.signalName}</p>
+        <p className="text-sm font-medium text-text-primary">{signal.signalName}</p>
         <SignalStatusPill status={signal.status} />
       </div>
-      <p className="mt-1 text-xs text-zinc-500">{signal.modelSpecName}</p>
+      <p className="mt-1 text-xs text-text-muted">{signal.modelSpecName}</p>
       <p className="mt-2 text-xs">
         <Link
           href={`/ml/signals/${signal.signalId}`}
-          className="inline-flex items-center gap-1 text-zinc-400 hover:text-zinc-200"
+          className="inline-flex items-center gap-1 text-text-secondary hover:text-text-primary"
         >
           View signal detail <ExternalLink className="h-3 w-3" />
         </Link>
@@ -325,7 +325,7 @@ function ApplyMlGateConfirmDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-3 rounded-md border border-zinc-800 bg-zinc-950/50 p-3 text-sm">
+        <div className="space-y-3 rounded-md border border-bd-subtle bg-bg-surface p-3 text-sm">
           <DiffRow
             label="Mode"
             from={fmtMode(before.gateEnabled, before.shadowMode)}
@@ -351,7 +351,7 @@ function ApplyMlGateConfirmDialog({
         )}
 
         {error && (
-          <p className="rounded-md border border-rose-500/30 bg-rose-500/5 p-2 text-xs text-rose-300">
+          <p className="rounded-md border border-loss bg-tint-loss p-2 text-xs text-loss">
             {error}
           </p>
         )}
@@ -381,10 +381,10 @@ function DiffRow({ label, from, to }: { label: string; from: string; to: string 
   const changed = from !== to;
   return (
     <div className="flex items-center gap-3">
-      <span className="w-16 text-xs uppercase tracking-wider text-zinc-500">{label}</span>
-      <span className="font-mono text-zinc-400 line-through">{from}</span>
-      <span className="text-zinc-600">→</span>
-      <span className={`font-mono ${changed ? 'text-emerald-300' : 'text-zinc-400'}`}>{to}</span>
+      <span className="w-16 text-xs uppercase tracking-wider text-text-muted">{label}</span>
+      <span className="font-mono text-text-secondary line-through">{from}</span>
+      <span className="text-text-muted">→</span>
+      <span className={`font-mono ${changed ? 'text-profit' : 'text-text-secondary'}`}>{to}</span>
     </div>
   );
 }

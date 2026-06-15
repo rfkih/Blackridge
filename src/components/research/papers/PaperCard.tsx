@@ -43,7 +43,7 @@ export function PaperCard({ paper }: PaperCardProps) {
         <div className="flex shrink-0 items-center gap-2">
           <span
             className="rounded-sm px-1.5 py-0.5 font-mono text-[9px] font-semibold uppercase tracking-wider"
-            style={{ background: 'rgba(0,0,0,0.25)', color: toneColor(statusTone(paper.paper_status)) }}
+            style={{ background: 'var(--bg-elevated)', color: toneColor(statusTone(paper.paper_status)) }}
           >
             {paper.paper_status === 'WORKING_PAPER' ? 'Working' : 'Finalized'}
           </span>
@@ -95,7 +95,7 @@ export function PaperCard({ paper }: PaperCardProps) {
             <span
               className="rounded-sm px-1.5 py-0.5 font-mono text-[9px] font-semibold uppercase tracking-wider"
               style={{
-                background: 'rgba(0,0,0,0.25)',
+                background: 'var(--bg-elevated)',
                 color: toneColor(verdictTone(paper.final_verdict)),
               }}
             >
