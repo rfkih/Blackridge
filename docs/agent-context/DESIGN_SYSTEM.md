@@ -26,10 +26,11 @@ Bloomberg Terminal meets modern fintech. Intentionally dark, data-dense, never c
   --text-muted:#4A5160;   --text-inverse:#0A0B0D;
   /* Brand */
   --accent-primary:#4E9EFF; --accent-glow:rgba(78,158,255,0.15);
-  /* Type */
-  --font-display:'DM Mono',monospace;
-  --font-body:'Inter',sans-serif;
-  --font-mono:'JetBrains Mono',monospace;
+  /* Type — IBM Plex (institutional grotesque + matching mono). Loaded via
+     next/font as --font-plex-sans / --font-plex-mono; these tokens chain to them. */
+  --font-display:var(--font-plex-sans),system-ui,sans-serif;
+  --font-body:var(--font-plex-sans),system-ui,sans-serif;
+  --font-mono:var(--font-plex-mono),ui-monospace,monospace;
   /* Radius */
   --radius-sm:4px; --radius-md:8px; --radius-lg:12px;
   /* Shadows */
@@ -43,12 +44,12 @@ Bloomberg Terminal meets modern fintech. Intentionally dark, data-dense, never c
 
 | Token | Font | Size | Weight | Use |
 |---|---|---|---|---|
-| `display-xl` | DM Mono | 2.5rem | 600 | Hero numbers (total P&L) |
-| `display-lg` | DM Mono | 1.75rem | 500 | Panel headers |
-| `heading` | Inter | 1rem | 600 | Section headers |
-| `body` | Inter | 0.875rem | 400 | Default body |
-| `caption` | Inter | 0.75rem | 400 | Labels, metadata |
-| `mono` | JetBrains Mono | 0.875rem | 400 | Prices, qty, logs |
+| `display-xl` | IBM Plex Sans | 2.5rem | 700 | Hero numbers (total P&L) |
+| `display-lg` | IBM Plex Sans | 1.75rem | 600 | Panel headers |
+| `heading` | IBM Plex Sans | 1rem | 600 | Section headers |
+| `body` | IBM Plex Sans | 0.875rem | 400 | Default body |
+| `caption` | IBM Plex Sans | 0.75rem | 400 | Labels, metadata |
+| `mono` | IBM Plex Mono | 0.875rem | 400 | Prices, qty, logs |
 
 ## Application Structure
 

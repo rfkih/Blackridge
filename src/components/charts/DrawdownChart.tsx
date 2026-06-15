@@ -80,7 +80,7 @@ export function DrawdownChart({ points, height = 220 }: DrawdownChartProps) {
             const d = new Date(v);
             return `${d.getMonth() + 1}/${d.getDate()}`;
           }}
-          tick={{ fill: '#4A5160', fontSize: 10, fontFamily: 'JetBrains Mono, monospace' }}
+          tick={{ fill: '#4A5160', fontSize: 10, fontFamily: 'IBM Plex Mono, ui-monospace, monospace' }}
           axisLine={false}
           tickLine={false}
           interval="preserveStartEnd"
@@ -89,7 +89,7 @@ export function DrawdownChart({ points, height = 220 }: DrawdownChartProps) {
         <YAxis
           domain={[minY, 0]}
           tickFormatter={(v: number) => `${v.toFixed(0)}%`}
-          tick={{ fill: '#4A5160', fontSize: 10, fontFamily: 'JetBrains Mono, monospace' }}
+          tick={{ fill: '#4A5160', fontSize: 10, fontFamily: 'IBM Plex Mono, ui-monospace, monospace' }}
           axisLine={false}
           tickLine={false}
           width={40}

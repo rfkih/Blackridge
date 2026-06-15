@@ -1,22 +1,26 @@
 import type { Metadata } from 'next';
-import { Plus_Jakarta_Sans, JetBrains_Mono } from 'next/font/google';
+import { IBM_Plex_Sans, IBM_Plex_Mono } from 'next/font/google';
 import { Providers } from './providers';
 import { ThemeScript } from '@/components/theme/ThemeScript';
 import { ThemeProvider } from '@/components/theme/ThemeProvider';
 import { PaletteProvider } from '@/components/theme/PaletteProvider';
 import './globals.css';
 
-const jakarta = Plus_Jakarta_Sans({
+// IBM Plex Sans — neutral institutional grotesque (display + body). Engineering
+// pedigree, not the geometric-humanist "AI startup" look. Max weight is 700;
+// any `font-extrabold` (800) callsites fall back to 700, which reads cleaner.
+const plexSans = IBM_Plex_Sans({
   subsets: ['latin'],
   display: 'swap',
-  variable: '--font-jakarta',
-  weight: ['400', '500', '600', '700', '800'],
+  variable: '--font-plex-sans',
+  weight: ['400', '500', '600', '700'],
 });
 
-const jetbrainsMono = JetBrains_Mono({
+// IBM Plex Mono — every numeric cell / price / log. True trading-terminal mono.
+const plexMono = IBM_Plex_Mono({
   subsets: ['latin'],
   display: 'swap',
-  variable: '--font-jetbrains-mono',
+  variable: '--font-plex-mono',
   weight: ['400', '500', '600', '700'],
 });
 
@@ -38,7 +42,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${jakarta.variable} ${jetbrainsMono.variable}`}
+      className={`${plexSans.variable} ${plexMono.variable}`}
       suppressHydrationWarning
     >
       <head>

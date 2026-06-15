@@ -22,7 +22,7 @@ export const CHART_COLORS = {
 export const AXIS_TICK = {
   fill: CHART_COLORS.neutral,
   fontSize: 11,
-  fontFamily: 'JetBrains Mono, monospace',
+  fontFamily: 'IBM Plex Mono, ui-monospace, monospace',
 } as const;
 
 export const TOOLTIP_CONTENT_STYLE = {

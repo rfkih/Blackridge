@@ -2,7 +2,7 @@
    Machiavelli Technology — Algo / automated crypto trading
    Tokens for [data-theme="dark"] (default) and [data-theme="light"]
    Fonts are loaded via next/font in app/layout.tsx and exposed as
-   CSS vars: --font-jakarta, --font-jetbrains-mono
+   CSS vars: --font-plex-sans, --font-plex-mono
    ───────────────────────────────────────────────────────────────────── */
 
 @tailwind base;
@@ -20,16 +20,17 @@
   --radius-pill: 9999px;
   --radius: var(--radius-md); /* shadcn default */
 
-  /* Typography families — next/font provides --font-jakarta and
-     --font-jetbrains-mono. Plus Jakarta Sans is geometric humanist; same
-     family powers display + body so the marketing chrome and the dashboard
-     read as one product. JetBrains Mono on every numeric cell. */
-  --font-display: var(--font-jakarta), system-ui, -apple-system, Segoe UI, sans-serif;
-  --font-body: var(--font-jakarta), system-ui, -apple-system, Segoe UI, sans-serif;
-  --font-mono: var(--font-jetbrains-mono), ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  /* Typography families — next/font provides --font-plex-sans and
+     --font-plex-mono. IBM Plex Sans is a neutral institutional grotesque with
+     engineering pedigree (the anti-"AI startup" face); the same family powers
+     display + body so the marketing chrome and the dashboard read as one
+     product. IBM Plex Mono on every numeric cell for a trading-terminal feel. */
+  --font-display: var(--font-plex-sans), system-ui, -apple-system, Segoe UI, sans-serif;
+  --font-body: var(--font-plex-sans), system-ui, -apple-system, Segoe UI, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   /* Numeric hero face — kept as a distinct token so any callsite can opt
      into a heavier display weight for big numerals. */
-  --font-num: var(--font-jakarta), system-ui, sans-serif;
+  --font-num: var(--font-plex-sans), system-ui, sans-serif;
 
   /* Motion */
   --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
@@ -549,7 +550,7 @@ pre {
 }
 
 /* ─────────────────────────────────────────────────────────────────────
-   Machiavelli — emerald accent + Plus Jakarta Sans display/body.
+   Machiavelli — emerald accent + IBM Plex Sans display/body.
    The `mm-*` utility namespace persists from the prior MONO-MINT pass
    so the app's existing components still pick up the right tokens; the
    variable values are retuned to the Machiavelli palette + typography.
@@ -563,10 +564,10 @@ pre {
    the rest of the app runs in light mode. */
 .mm {
   /* Type — single sans for display + body, mono for numerics */
-  --mm-display: var(--font-jakarta), system-ui, sans-serif;
-  --mm-sans: var(--font-jakarta), system-ui, sans-serif;
-  --mm-num: var(--font-jakarta), system-ui, sans-serif;
-  --mm-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
+  --mm-display: var(--font-plex-sans), system-ui, sans-serif;
+  --mm-sans: var(--font-plex-sans), system-ui, sans-serif;
+  --mm-num: var(--font-plex-sans), system-ui, sans-serif;
+  --mm-mono: var(--font-plex-mono), ui-monospace, monospace;
 
   /* Dark neutral scale (default values; overridden below for light) */
   --mm-bg: #0e1116;
