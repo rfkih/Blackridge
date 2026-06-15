@@ -83,11 +83,13 @@ const config: Config = {
         warning: 'var(--color-warning)',
         info: 'var(--color-info)',
         neutral: 'var(--color-neutral)',
+        bot: 'var(--color-bot)',
         tint: {
           profit: 'var(--tint-profit)',
           loss: 'var(--tint-loss)',
           warning: 'var(--tint-warning)',
           info: 'var(--tint-info)',
+          bot: 'var(--tint-bot)',
         },
         text: {
           primary: 'var(--text-primary)',

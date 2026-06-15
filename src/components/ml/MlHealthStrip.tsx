@@ -25,7 +25,7 @@ export function MlHealthStrip({ className }: { className?: string }) {
   if (isLoading) {
     return (
       <section className={cn('space-y-2', className)} aria-busy>
-        <h2 className="flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-zinc-500">
+        <h2 className="flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-text-muted">
           <Activity className="h-3.5 w-3.5" /> ML signals
         </h2>
         <Skeleton className="h-12 w-full rounded-md" />
@@ -36,7 +36,7 @@ export function MlHealthStrip({ className }: { className?: string }) {
   if (isError) {
     return (
       <section className={cn('space-y-2', className)}>
-        <h2 className="flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-zinc-500">
+        <h2 className="flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-text-muted">
           <Activity className="h-3.5 w-3.5" /> ML signals
         </h2>
         <button
@@ -44,13 +44,13 @@ export function MlHealthStrip({ className }: { className?: string }) {
           onClick={() => {
             void refetch();
           }}
-          className="flex w-full items-center justify-between rounded-md border border-rose-500/30 bg-rose-500/5 px-3 py-2 text-sm text-rose-300 hover:bg-rose-500/10"
+          className="flex w-full items-center justify-between rounded-md border border-loss bg-tint-loss px-3 py-2 text-sm text-loss hover:bg-tint-loss"
         >
           <span className="flex items-center gap-2">
             <AlertTriangle className="h-4 w-4" />
             ML monitor unreachable
           </span>
-          <span className="text-xs text-rose-200/80">retry</span>
+          <span className="text-xs text-loss">retry</span>
         </button>
       </section>
     );
@@ -60,12 +60,12 @@ export function MlHealthStrip({ className }: { className?: string }) {
   if (rows.length === 0) {
     return (
       <section className={cn('space-y-2', className)}>
-        <h2 className="flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-zinc-500">
+        <h2 className="flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-text-muted">
           <Activity className="h-3.5 w-3.5" /> ML signals
         </h2>
-        <div className="rounded-md border border-dashed border-zinc-800 px-3 py-2 text-sm text-zinc-500">
+        <div className="rounded-md border border-dashed border-bd-subtle px-3 py-2 text-sm text-text-muted">
           No ML signals wired to any live gate yet.{' '}
-          <Link href="/ml/monitor" className="text-zinc-400 underline hover:text-zinc-200">
+          <Link href="/ml/monitor" className="text-text-secondary underline hover:text-text-primary">
             Open ML monitor →
           </Link>
         </div>
@@ -84,13 +84,13 @@ export function MlHealthStrip({ className }: { className?: string }) {
 
   return (
     <section className={cn('space-y-2', className)} aria-label="ML signal health">
-      <h2 className="flex items-center justify-between text-xs font-medium uppercase tracking-wider text-zinc-500">
+      <h2 className="flex items-center justify-between text-xs font-medium uppercase tracking-wider text-text-muted">
         <span className="flex items-center gap-2">
           <Activity className="h-3.5 w-3.5" /> ML signals
         </span>
         <Link
           href="/ml/monitor"
-          className="font-normal normal-case text-zinc-500 hover:text-zinc-300"
+          className="font-normal normal-case text-text-muted hover:text-text-primary"
         >
           View all →
         </Link>
@@ -102,7 +102,7 @@ export function MlHealthStrip({ className }: { className?: string }) {
         {overflow > 0 && (
           <Link
             href="/ml/monitor"
-            className="block rounded-md border border-zinc-800 px-3 py-1.5 text-center text-xs text-zinc-500 hover:bg-zinc-900/40 hover:text-zinc-300"
+            className="block rounded-md border border-bd-subtle px-3 py-1.5 text-center text-xs text-text-muted hover:bg-bg-hover hover:text-text-primary"
           >
             + {overflow} more
           </Link>

@@ -32,9 +32,9 @@ function fmtTs(ts: string): string {
 }
 
 const SOURCE_STYLES: Record<SignalSource, string> = {
-  stream: 'text-emerald-300',
-  catchup_scan: 'text-sky-300',
-  historical_replay: 'text-zinc-400',
+  stream: 'text-profit',
+  catchup_scan: 'text-info',
+  historical_replay: 'text-text-secondary',
 };
 
 export function SignalFiringsTable({ signalId }: { signalId: string }) {
@@ -53,7 +53,7 @@ export function SignalFiringsTable({ signalId }: { signalId: string }) {
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <h3 className="text-xs font-medium uppercase tracking-wider text-zinc-500">
+        <h3 className="text-xs font-medium uppercase tracking-wider text-text-muted">
           Recent firings ({total})
         </h3>
         <Select
@@ -78,11 +78,11 @@ export function SignalFiringsTable({ signalId }: { signalId: string }) {
       {isLoading ? (
         <Skeleton className="h-40 w-full" />
       ) : (data?.firings.length ?? 0) === 0 ? (
-        <div className="rounded-md border border-dashed border-zinc-800 px-4 py-8 text-center text-sm text-zinc-500">
+        <div className="rounded-md border border-dashed border-bd-subtle px-4 py-8 text-center text-sm text-text-muted">
           No firings.
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-md border border-zinc-800">
+        <div className="overflow-x-auto rounded-md border border-bd-subtle">
           <Table>
             <TableHeader>
               <TableRow>
@@ -96,18 +96,18 @@ export function SignalFiringsTable({ signalId }: { signalId: string }) {
             </TableHeader>
             <TableBody>
               {data!.firings.map((f) => (
-                <TableRow key={`${f.ts}-${f.symbol}`} className="hover:bg-zinc-900/40">
-                  <TableCell className="font-mono text-xs tabular-nums text-zinc-300">
+                <TableRow key={`${f.ts}-${f.symbol}`} className="hover:bg-bg-hover">
+                  <TableCell className="font-mono text-xs tabular-nums text-text-secondary">
                     {fmtTs(f.ts)}
                   </TableCell>
-                  <TableCell className="font-mono text-xs tabular-nums text-zinc-400">
+                  <TableCell className="font-mono text-xs tabular-nums text-text-secondary">
                     {fmtTs(f.producedAt)}
                   </TableCell>
-                  <TableCell className="font-mono text-xs text-zinc-300">{f.symbol}</TableCell>
-                  <TableCell className="text-right font-mono tabular-nums text-zinc-100">
+                  <TableCell className="font-mono text-xs text-text-secondary">{f.symbol}</TableCell>
+                  <TableCell className="text-right font-mono tabular-nums text-text-primary">
                     {f.value.toFixed(4)}
                   </TableCell>
-                  <TableCell className="text-right font-mono tabular-nums text-zinc-400">
+                  <TableCell className="text-right font-mono tabular-nums text-text-secondary">
                     {f.confidence === null ? '—' : f.confidence.toFixed(4)}
                   </TableCell>
                   <TableCell className={`text-xs ${SOURCE_STYLES[f.source]}`}>{f.source}</TableCell>
@@ -119,12 +119,12 @@ export function SignalFiringsTable({ signalId }: { signalId: string }) {
       )}
 
       {lastPage > 0 && (
-        <div className="flex items-center justify-between text-sm text-zinc-400">
+        <div className="flex items-center justify-between text-sm text-text-secondary">
           <button
             type="button"
             disabled={page === 0}
             onClick={() => setPage(Math.max(0, page - 1))}
-            className="rounded-md border border-zinc-800 px-3 py-1 hover:bg-zinc-900 disabled:opacity-40"
+            className="rounded-md border border-bd-subtle px-3 py-1 hover:bg-bg-hover disabled:opacity-40"
           >
             ← Prev
           </button>
@@ -135,7 +135,7 @@ export function SignalFiringsTable({ signalId }: { signalId: string }) {
             type="button"
             disabled={page >= lastPage}
             onClick={() => setPage(Math.min(lastPage, page + 1))}
-            className="rounded-md border border-zinc-800 px-3 py-1 hover:bg-zinc-900 disabled:opacity-40"
+            className="rounded-md border border-bd-subtle px-3 py-1 hover:bg-bg-hover disabled:opacity-40"
           >
             Next →
           </button>

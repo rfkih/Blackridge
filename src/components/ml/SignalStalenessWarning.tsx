@@ -22,18 +22,18 @@ export function SignalStalenessWarning({ health }: { health: SignalHealth }) {
 
   if (isFailOpen) {
     return (
-      <div className="flex items-start gap-3 rounded-md border border-rose-500/50 bg-rose-500/10 p-4">
-        <XCircle className="mt-0.5 h-5 w-5 shrink-0 text-rose-400" />
+      <div className="flex items-start gap-3 rounded-md border border-loss bg-tint-loss p-4">
+        <XCircle className="mt-0.5 h-5 w-5 shrink-0 text-loss" />
         <div className="space-y-1">
-          <p className="text-sm font-semibold text-rose-300">
+          <p className="text-sm font-semibold text-loss">
             ML gate is failing open — trades running ungated
           </p>
-          <p className="text-xs text-rose-400/80">
+          <p className="text-xs text-loss">
             Signal last written <span className="font-mono font-medium">{fmtAge(age)}</span> ago,
             past the {fmtAge(STALE_SECONDS)} fail-open threshold. The ML regime gate is
             no longer filtering entries — the strategy is trading without ML oversight.
           </p>
-          <p className="text-xs text-rose-400/80">
+          <p className="text-xs text-loss">
             Fix: check the inference streaming worker{' '}
             <span className="font-mono">GET :8000/streaming/status</span> and the bar event
             consumer <span className="font-mono">docker logs blackheart-ingest</span>.
@@ -44,13 +44,13 @@ export function SignalStalenessWarning({ health }: { health: SignalHealth }) {
   }
 
   return (
-    <div className="flex items-start gap-3 rounded-md border border-amber-500/50 bg-amber-500/10 p-4">
-      <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-400" />
+    <div className="flex items-start gap-3 rounded-md border border-warning bg-tint-warning p-4">
+      <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-warning" />
       <div className="space-y-1">
-        <p className="text-sm font-semibold text-amber-300">
+        <p className="text-sm font-semibold text-warning">
           Signal is late — ML gate will fail open in ~{fmtAge(STALE_SECONDS - age)}
         </p>
-        <p className="text-xs text-amber-400/80">
+        <p className="text-xs text-warning">
           Signal last written <span className="font-mono font-medium">{fmtAge(age)}</span> ago.
           The gate fails open (trades run ungated) after {fmtAge(STALE_SECONDS)}. Inference
           pipeline needs attention before that window closes.

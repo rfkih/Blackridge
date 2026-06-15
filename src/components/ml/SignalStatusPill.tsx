@@ -2,9 +2,9 @@ import { cn } from '@/lib/utils';
 import type { SignalStatus } from '@/types/ml';
 
 const STATUS_STYLES: Record<SignalStatus, string> = {
-  active: 'bg-emerald-500/15 text-emerald-300 ring-1 ring-emerald-500/30',
-  shadow: 'bg-amber-500/15 text-amber-300 ring-1 ring-amber-500/30',
-  retired: 'bg-zinc-600/20 text-zinc-400 ring-1 ring-zinc-600/30',
+  active: 'bg-tint-profit text-profit ring-1 ring-profit',
+  shadow: 'bg-tint-warning text-warning ring-1 ring-warning',
+  retired: 'bg-bg-overlay text-text-secondary ring-1 ring-bd',
 };
 
 const STATUS_LABELS: Record<SignalStatus, string> = {
@@ -32,9 +32,9 @@ export function SignalStatusPill({
         aria-hidden
         className={cn(
           'h-1.5 w-1.5 rounded-full',
-          status === 'active' && 'bg-emerald-400',
-          status === 'shadow' && 'bg-amber-400',
-          status === 'retired' && 'bg-zinc-500',
+          status === 'active' && 'bg-profit',
+          status === 'shadow' && 'bg-warning',
+          status === 'retired' && 'bg-neutral',
         )}
       />
       {STATUS_LABELS[status]}

@@ -16,13 +16,13 @@ export function CoverageBar({ ratio, className }: { ratio: number | null; classN
     return (
       <span
         aria-label="coverage unknown"
-        className={cn('inline-flex h-2 w-24 rounded bg-zinc-700/30', className)}
+        className={cn('inline-flex h-2 w-24 rounded bg-bd', className)}
       />
     );
   }
   const filled = Math.round(Math.max(0, Math.min(1, ratio)) * SEGMENTS);
   const fillColour =
-    ratio >= 0.9 ? 'bg-emerald-400/80' : ratio >= 0.5 ? 'bg-amber-400/80' : 'bg-rose-400/80';
+    ratio >= 0.9 ? 'bg-profit' : ratio >= 0.5 ? 'bg-warning' : 'bg-loss';
   return (
     <span
       aria-label={`coverage ${(ratio * 100).toFixed(0)}%`}
@@ -31,7 +31,7 @@ export function CoverageBar({ ratio, className }: { ratio: number | null; classN
       {Array.from({ length: SEGMENTS }, (_, i) => (
         <span
           key={i}
-          className={cn('w-3 rounded-sm', i < filled ? fillColour : 'bg-zinc-700/40')}
+          className={cn('w-3 rounded-sm', i < filled ? fillColour : 'bg-bd')}
         />
       ))}
     </span>

@@ -15,13 +15,13 @@ export function MlMonitorAlertRibbon({ rows }: { rows: MlMonitorRow[] }) {
   const overflow = reds.length - visible.length;
 
   return (
-    <div className="flex items-start gap-3 rounded-md border border-rose-500/30 bg-rose-500/5 px-4 py-3">
-      <AlertTriangle className="mt-0.5 h-4 w-4 flex-shrink-0 text-rose-300" />
+    <div className="flex items-start gap-3 rounded-md border border-loss bg-tint-loss px-4 py-3">
+      <AlertTriangle className="mt-0.5 h-4 w-4 flex-shrink-0 text-loss" />
       <div className="flex-1 space-y-1">
-        <p className="text-sm font-medium text-rose-200">
+        <p className="text-sm font-medium text-loss">
           {reds.length} signal{reds.length === 1 ? '' : 's'} in red.
         </p>
-        <p className="text-xs text-rose-200/80">
+        <p className="text-xs text-loss">
           {visible.map((r, i) => (
             <span key={r.signalId}>
               <Link
@@ -30,11 +30,11 @@ export function MlMonitorAlertRibbon({ rows }: { rows: MlMonitorRow[] }) {
               >
                 {r.signalName}
               </Link>
-              <span className="text-rose-200/60"> ({r.healthReason ?? 'unknown'})</span>
+              <span className="text-loss"> ({r.healthReason ?? 'unknown'})</span>
               {i < visible.length - 1 && '; '}
             </span>
           ))}
-          {overflow > 0 && <span className="text-rose-200/60"> + {overflow} more</span>}
+          {overflow > 0 && <span className="text-loss"> + {overflow} more</span>}
         </p>
       </div>
     </div>

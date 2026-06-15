@@ -71,7 +71,7 @@ export default function ModelDetailPage() {
 
   if (isError || !data) {
     return (
-      <div className="rounded-md border border-rose-500/30 bg-rose-500/5 p-4 text-sm text-rose-200">
+      <div className="rounded-md border border-loss bg-tint-loss p-4 text-sm text-loss">
         Failed to load model.{' '}
         <Link href="/ml/models" className="underline">
           Back to list
@@ -96,19 +96,19 @@ export default function ModelDetailPage() {
       <header className="space-y-3">
         <Link
           href="/ml/models"
-          className="inline-flex items-center gap-1 text-xs text-zinc-500 hover:text-zinc-300"
+          className="inline-flex items-center gap-1 text-xs text-text-muted hover:text-text-primary"
         >
           <ArrowLeft className="h-3 w-3" /> All models
         </Link>
         <div className="flex flex-wrap items-center gap-3">
-          <h1 className="text-2xl font-semibold text-zinc-100">
+          <h1 className="text-2xl font-semibold text-text-primary">
             {data.family}/{data.purpose}
           </h1>
-          <span className="rounded-full bg-zinc-700/30 px-2 py-0.5 text-xs text-zinc-300">
+          <span className="rounded-full bg-bd px-2 py-0.5 text-xs text-text-secondary">
             v{data.version} · {data.status.replace(/_/g, ' ')}
           </span>
         </div>
-        <p className="text-xs text-zinc-500">
+        <p className="text-xs text-text-muted">
           {data.symbol ?? '—'} · {data.interval ?? '—'}
           {data.horizonBars && ` · ${data.horizonBars} bar horizon`}
         </p>
@@ -118,18 +118,18 @@ export default function ModelDetailPage() {
         <InfoCard label="Artifact">
           {data.artifactSha256 ? (
             <div className="space-y-1">
-              <code className="block break-all font-mono text-xs text-zinc-300">
+              <code className="block break-all font-mono text-xs text-text-secondary">
                 {data.artifactSha256}
               </code>
               <button
                 type="button"
                 onClick={copySha}
-                className="inline-flex items-center gap-1 text-xs text-zinc-500 hover:text-zinc-300"
+                className="inline-flex items-center gap-1 text-xs text-text-muted hover:text-text-primary"
               >
                 <Copy className="h-3 w-3" /> {copied ? 'Copied' : 'Copy sha256'}
               </button>
               {data.artifactSizeBytes !== null && (
-                <p className="mt-1 text-xs text-zinc-500">
+                <p className="mt-1 text-xs text-text-muted">
                   Size:{' '}
                   <span className="font-mono tabular-nums">
                     {(data.artifactSizeBytes / 1024).toFixed(1)} KB
@@ -138,7 +138,7 @@ export default function ModelDetailPage() {
               )}
             </div>
           ) : (
-            <p className="text-sm text-zinc-500">No artifact registered.</p>
+            <p className="text-sm text-text-muted">No artifact registered.</p>
           )}
         </InfoCard>
 
@@ -158,11 +158,11 @@ export default function ModelDetailPage() {
       </section>
 
       {data.metrics && Object.keys(data.metrics).length > 0 && (
-        <section className="rounded-md border border-zinc-800 bg-zinc-950/40 p-4">
-          <h3 className="mb-3 text-xs font-medium uppercase tracking-wider text-zinc-500">
+        <section className="rounded-md border border-bd-subtle bg-bg-elevated p-4">
+          <h3 className="mb-3 text-xs font-medium uppercase tracking-wider text-text-muted">
             Metrics
           </h3>
-          <pre className="overflow-x-auto rounded bg-zinc-900/60 p-3 text-xs text-zinc-300">
+          <pre className="overflow-x-auto rounded bg-bg-hover p-3 text-xs text-text-secondary">
             {JSON.stringify(data.metrics, null, 2)}
           </pre>
         </section>
@@ -181,8 +181,8 @@ function InfoCard({
   className?: string;
 }) {
   return (
-    <div className={cn('rounded-md border border-zinc-800 bg-zinc-950/40 p-4', className)}>
-      <p className="text-xs font-medium uppercase tracking-wider text-zinc-500">{label}</p>
+    <div className={cn('rounded-md border border-bd-subtle bg-bg-elevated p-4', className)}>
+      <p className="text-xs font-medium uppercase tracking-wider text-text-muted">{label}</p>
       <div className="mt-2">{children}</div>
     </div>
   );
@@ -191,8 +191,8 @@ function InfoCard({
 function Row({ k, v }: { k: string; v: string }) {
   return (
     <div className="flex justify-between gap-4">
-      <dt className="text-zinc-500">{k}</dt>
-      <dd className="font-mono tabular-nums text-zinc-300">{v}</dd>
+      <dt className="text-text-muted">{k}</dt>
+      <dd className="font-mono tabular-nums text-text-secondary">{v}</dd>
     </div>
   );
 }

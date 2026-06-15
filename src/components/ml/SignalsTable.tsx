@@ -84,7 +84,7 @@ export function SignalsTable() {
       <StreamingBanner />
       <div className="flex flex-wrap items-center gap-3">
         <div className="relative">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-zinc-500" />
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-text-muted" />
           <Input
             value={searchInput}
             onChange={(e: ChangeEvent<HTMLInputElement>) => setSearchInput(e.target.value)}
@@ -109,7 +109,7 @@ export function SignalsTable() {
             <SelectItem value="retired">Retired</SelectItem>
           </SelectContent>
         </Select>
-        <span className="ml-auto text-xs text-zinc-500">
+        <span className="ml-auto text-xs text-text-muted">
           {total} signal{total === 1 ? '' : 's'}
         </span>
       </div>
@@ -121,15 +121,15 @@ export function SignalsTable() {
           <Skeleton className="h-10 w-full" />
         </div>
       ) : isError ? (
-        <div className="rounded-md border border-rose-500/30 bg-rose-500/5 p-4 text-sm text-rose-200">
+        <div className="rounded-md border border-loss bg-tint-loss p-4 text-sm text-loss">
           Failed to load signals.
         </div>
       ) : (data?.signals.length ?? 0) === 0 ? (
-        <div className="rounded-md border border-dashed border-zinc-800 px-4 py-8 text-center text-sm text-zinc-500">
+        <div className="rounded-md border border-dashed border-bd-subtle px-4 py-8 text-center text-sm text-text-muted">
           No signals match.
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-md border border-zinc-800">
+        <div className="overflow-x-auto rounded-md border border-bd-subtle">
           <Table>
             <TableHeader>
               <TableRow>
@@ -147,13 +147,13 @@ export function SignalsTable() {
                 return (
                   <TableRow
                     key={s.signalId}
-                    className="hover:bg-zinc-900/40"
+                    className="hover:bg-bg-hover"
                     style={isFail ? { opacity: 0.45 } : undefined}
                   >
                     <TableCell>
                       <Link
                         href={`/ml/signals/${s.signalId}`}
-                        className="font-medium text-zinc-100 hover:underline"
+                        className="font-medium text-text-primary hover:underline"
                       >
                         {s.signalName}
                       </Link>
@@ -172,15 +172,15 @@ export function SignalsTable() {
                     <TableCell>
                       <SignalStatusPill status={s.status} />
                     </TableCell>
-                    <TableCell className="text-sm text-zinc-300">
-                      {s.symbol ?? '—'} <span className="text-zinc-500">·</span>{' '}
+                    <TableCell className="text-sm text-text-secondary">
+                      {s.symbol ?? '—'} <span className="text-text-muted">·</span>{' '}
                       {s.intervalName ?? '—'}
                     </TableCell>
                     <TableCell className="text-sm">
                       {s.boundStrategyCodes.length === 0 ? (
-                        <span className="text-zinc-500">none</span>
+                        <span className="text-text-muted">none</span>
                       ) : (
-                        <span className="font-mono text-zinc-300">
+                        <span className="font-mono text-text-secondary">
                           {s.boundStrategyCodes.join(', ')}
                         </span>
                       )}
@@ -188,12 +188,12 @@ export function SignalsTable() {
                     <TableCell className="text-sm">
                       <Link
                         href={`/ml/models/${s.modelId}`}
-                        className="text-zinc-400 hover:text-zinc-200 hover:underline"
+                        className="text-text-secondary hover:text-text-primary hover:underline"
                       >
                         {s.modelSpecName}
                       </Link>
                     </TableCell>
-                    <TableCell className="text-right text-xs text-zinc-400">
+                    <TableCell className="text-right text-xs text-text-secondary">
                       {fmtRelative(s.createdAt)}
                     </TableCell>
                   </TableRow>
@@ -205,12 +205,12 @@ export function SignalsTable() {
       )}
 
       {lastPage > 0 && (
-        <div className="flex items-center justify-between text-sm text-zinc-400">
+        <div className="flex items-center justify-between text-sm text-text-secondary">
           <button
             type="button"
             disabled={page === 0}
             onClick={() => setPage(Math.max(0, page - 1))}
-            className="rounded-md border border-zinc-800 px-3 py-1 hover:bg-zinc-900 disabled:opacity-40"
+            className="rounded-md border border-bd-subtle px-3 py-1 hover:bg-bg-hover disabled:opacity-40"
           >
             ← Prev
           </button>
@@ -221,7 +221,7 @@ export function SignalsTable() {
             type="button"
             disabled={page >= lastPage}
             onClick={() => setPage(Math.min(lastPage, page + 1))}
-            className="rounded-md border border-zinc-800 px-3 py-1 hover:bg-zinc-900 disabled:opacity-40"
+            className="rounded-md border border-bd-subtle px-3 py-1 hover:bg-bg-hover disabled:opacity-40"
           >
             Next →
           </button>

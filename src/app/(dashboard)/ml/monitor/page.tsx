@@ -8,8 +8,8 @@ export default function MlMonitorPage() {
   return (
     <div className="space-y-4">
       <header>
-        <h1 className="text-2xl font-semibold text-zinc-100">ML monitor</h1>
-        <p className="mt-1 text-sm text-zinc-500">
+        <h1 className="text-2xl font-semibold text-text-primary">ML monitor</h1>
+        <p className="mt-1 text-sm text-text-muted">
           Cross-signal health rollup. One row per non-retired signal bound to a live gate. Red rows
           alert at the top.
         </p>

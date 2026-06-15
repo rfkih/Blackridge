@@ -2,9 +2,9 @@ import { cn } from '@/lib/utils';
 import type { HealthVerdict } from '@/types/ml';
 
 const DOT_STYLES: Record<HealthVerdict, string> = {
-  green: 'bg-emerald-400 ring-emerald-500/40',
-  amber: 'bg-amber-400 ring-amber-500/40',
-  red: 'bg-rose-400 ring-rose-500/40',
+  green: 'bg-profit ring-profit',
+  amber: 'bg-warning ring-warning',
+  red: 'bg-loss ring-loss',
 };
 
 const LABEL: Record<HealthVerdict, string> = {

@@ -26,15 +26,15 @@ import { cn } from '@/lib/utils';
 const PAGE_SIZE = 50;
 
 const STATUS_STYLES: Record<string, string> = {
-  trained: 'bg-emerald-500/15 text-emerald-300',
-  live: 'bg-emerald-500/15 text-emerald-300',
-  shadow: 'bg-amber-500/15 text-amber-300',
-  staged: 'bg-sky-500/15 text-sky-300',
-  cooling_down: 'bg-zinc-500/15 text-zinc-300',
-  training: 'bg-blue-500/15 text-blue-300',
-  awaiting_operator_review: 'bg-violet-500/15 text-violet-300',
-  retired: 'bg-zinc-700/20 text-zinc-400',
-  rejected_by_operator: 'bg-rose-500/15 text-rose-300',
+  trained: 'bg-tint-profit text-profit',
+  live: 'bg-tint-profit text-profit',
+  shadow: 'bg-tint-warning text-warning',
+  staged: 'bg-tint-info text-info',
+  cooling_down: 'bg-bg-overlay text-text-secondary',
+  training: 'bg-tint-info text-info',
+  awaiting_operator_review: 'bg-tint-bot text-bot',
+  retired: 'bg-bd text-text-secondary',
+  rejected_by_operator: 'bg-tint-loss text-loss',
 };
 
 function fmtRelative(ts: string): string {
@@ -84,7 +84,7 @@ export function ModelsTable() {
             <SelectItem value="rejected_by_operator">Rejected</SelectItem>
           </SelectContent>
         </Select>
-        <span className="ml-auto text-xs text-zinc-500">
+        <span className="ml-auto text-xs text-text-muted">
           {total} model{total === 1 ? '' : 's'}
         </span>
       </div>
@@ -92,15 +92,15 @@ export function ModelsTable() {
       {isLoading ? (
         <Skeleton className="h-40 w-full" />
       ) : isError ? (
-        <div className="rounded-md border border-rose-500/30 bg-rose-500/5 p-4 text-sm text-rose-200">
+        <div className="rounded-md border border-loss bg-tint-loss p-4 text-sm text-loss">
           Failed to load models.
         </div>
       ) : (data?.models.length ?? 0) === 0 ? (
-        <div className="rounded-md border border-dashed border-zinc-800 px-4 py-8 text-center text-sm text-zinc-500">
+        <div className="rounded-md border border-dashed border-bd-subtle px-4 py-8 text-center text-sm text-text-muted">
           No models. Train one via the research loop.
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-md border border-zinc-800">
+        <div className="overflow-x-auto rounded-md border border-bd-subtle">
           <Table>
             <TableHeader>
               <TableRow>
@@ -114,11 +114,11 @@ export function ModelsTable() {
             </TableHeader>
             <TableBody>
               {data!.models.map((m) => (
-                <TableRow key={m.id} className="hover:bg-zinc-900/40">
+                <TableRow key={m.id} className="hover:bg-bg-hover">
                   <TableCell>
                     <Link
                       href={`/ml/models/${m.id}`}
-                      className="font-medium text-zinc-100 hover:underline"
+                      className="font-medium text-text-primary hover:underline"
                     >
                       {m.family}/{m.purpose}
                     </Link>
@@ -127,20 +127,20 @@ export function ModelsTable() {
                     <span
                       className={cn(
                         'inline-block rounded-full px-2 py-0.5 text-xs',
-                        STATUS_STYLES[m.status] ?? 'bg-zinc-700/30 text-zinc-300',
+                        STATUS_STYLES[m.status] ?? 'bg-bd text-text-secondary',
                       )}
                     >
                       {(m.status as ModelStatus).replace(/_/g, ' ')}
                     </span>
                   </TableCell>
-                  <TableCell className="text-sm text-zinc-300">
-                    {m.symbol ?? '—'} <span className="text-zinc-500">·</span> {m.interval ?? '—'}
+                  <TableCell className="text-sm text-text-secondary">
+                    {m.symbol ?? '—'} <span className="text-text-muted">·</span> {m.interval ?? '—'}
                   </TableCell>
                   <TableCell className="text-right font-mono tabular-nums">v{m.version}</TableCell>
-                  <TableCell className="font-mono text-xs text-zinc-500">
+                  <TableCell className="font-mono text-xs text-text-muted">
                     {m.artifactSha256 ? `${m.artifactSha256.slice(0, 12)}…` : '—'}
                   </TableCell>
-                  <TableCell className="text-right text-xs text-zinc-400">
+                  <TableCell className="text-right text-xs text-text-secondary">
                     {fmtRelative(m.createdTime)}
                   </TableCell>
                 </TableRow>
@@ -151,12 +151,12 @@ export function ModelsTable() {
       )}
 
       {lastPage > 0 && (
-        <div className="flex items-center justify-between text-sm text-zinc-400">
+        <div className="flex items-center justify-between text-sm text-text-secondary">
           <button
             type="button"
             disabled={page === 0}
             onClick={() => setPage(Math.max(0, page - 1))}
-            className="rounded-md border border-zinc-800 px-3 py-1 hover:bg-zinc-900 disabled:opacity-40"
+            className="rounded-md border border-bd-subtle px-3 py-1 hover:bg-bg-hover disabled:opacity-40"
           >
             ← Prev
           </button>
@@ -167,7 +167,7 @@ export function ModelsTable() {
             type="button"
             disabled={page >= lastPage}
             onClick={() => setPage(Math.min(lastPage, page + 1))}
-            className="rounded-md border border-zinc-800 px-3 py-1 hover:bg-zinc-900 disabled:opacity-40"
+            className="rounded-md border border-bd-subtle px-3 py-1 hover:bg-bg-hover disabled:opacity-40"
           >
             Next →
           </button>
