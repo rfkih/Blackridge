@@ -1,7 +1,16 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { AlertTriangle, CheckCircle2, Play, RefreshCw, Rocket, Save, Wallet, XCircle } from 'lucide-react';
+import {
+  AlertTriangle,
+  CheckCircle2,
+  Play,
+  RefreshCw,
+  Rocket,
+  Save,
+  Wallet,
+  XCircle,
+} from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useActiveAccount } from '@/hooks/useAccounts';
 import { usePortfolio } from '@/hooks/usePortfolio';
@@ -14,6 +23,7 @@ import {
   useUpsertAssetTargets,
 } from '@/hooks/useAssetAllocation';
 import { useCurrencyFormatter } from '@/hooks/useCurrency';
+import { RebalanceControls } from '@/components/portfolio/assets/RebalanceControls';
 import type {
   AssetDriftItem,
   AssetRebalanceHistoryView,
@@ -57,9 +67,12 @@ export default function AssetAllocationPage() {
 
   return (
     <div className="space-y-6">
-      <Header
-        loading={portfolio.isFetching}
-        onRefresh={() => portfolio.refetch()}
+      <Header loading={portfolio.isFetching} onRefresh={() => portfolio.refetch()} />
+
+      <RebalanceControls
+        accountId={accountId}
+        policy={policyQ.data}
+        currentAssets={portfolio.data?.assets ?? []}
       />
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
@@ -71,11 +84,9 @@ export default function AssetAllocationPage() {
         <TargetsEditor
           accountId={accountId}
           targets={targetsQ.data ?? []}
-          heldAssets={
-            (portfolio.data?.assets ?? [])
-              .filter((a) => a.usdtValue > 0)
-              .map((a) => a.asset.toUpperCase())
-          }
+          heldAssets={(portfolio.data?.assets ?? [])
+            .filter((a) => a.usdtValue > 0)
+            .map((a) => a.asset.toUpperCase())}
           loading={targetsQ.isLoading}
           saving={upsertTargets.isPending}
           onSave={async (items) => {
@@ -123,8 +134,8 @@ function Header({ loading, onRefresh }: { loading: boolean; onRefresh: () => voi
           Asset Allocation
         </h1>
         <p className="mt-1 text-[12px] text-text-secondary">
-          Layer-2 portfolio targets — what fraction of base inventory sits in each asset.
-          Plans are generated on demand; execution is currently manual.
+          Layer-2 portfolio targets — what fraction of base inventory sits in each asset. Plans are
+          generated on demand; execution is currently manual.
         </p>
       </div>
       <button
@@ -259,9 +270,7 @@ interface TargetRow {
  * account's currently-held assets is the dropdown's actual option set so any
  * coin you already hold can be targeted even if it's not in this list.
  */
-const COMMON_ASSETS = [
-  'USDT', 'USDC', 'BTC', 'ETH', 'BNB', 'SOL', 'XRP', 'ADA', 'DOGE',
-];
+const COMMON_ASSETS = ['USDT', 'USDC', 'BTC', 'ETH', 'BNB', 'SOL', 'XRP', 'ADA', 'DOGE'];
 
 function TargetsEditor({
   accountId,
@@ -297,10 +306,7 @@ function TargetsEditor({
     }
   }, [targets, touched]);
 
-  const sum = useMemo(
-    () => rows.reduce((s, r) => s + (parseFloat(r.targetPct) || 0), 0),
-    [rows],
-  );
+  const sum = useMemo(() => rows.reduce((s, r) => s + (parseFloat(r.targetPct) || 0), 0), [rows]);
   const sumOk = Math.abs(sum - 100) < 0.011;
 
   // Dropdown option set: curated common assets ∪ assets currently held.
@@ -352,7 +358,9 @@ function TargetsEditor({
     <section className="rounded-xl border border-bd-subtle bg-bg-surface p-4 shadow-panel">
       <div className="mb-3 flex items-center gap-2">
         <h2 className="font-display text-[14px] font-semibold text-text-primary">Targets</h2>
-        <span className="font-mono text-[10px] uppercase tracking-wider text-text-muted">account {accountId.slice(0, 8)}</span>
+        <span className="font-mono text-[10px] uppercase tracking-wider text-text-muted">
+          account {accountId.slice(0, 8)}
+        </span>
         <span
           className="ml-auto rounded-full px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wider"
           style={{
@@ -376,55 +384,62 @@ function TargetsEditor({
             </div>
             {rows.map((r, i) => {
               const takenElsewhere = new Set(
-                rows.filter((_, idx) => idx !== i).map((x) => x.asset).filter(Boolean),
+                rows
+                  .filter((_, idx) => idx !== i)
+                  .map((x) => x.asset)
+                  .filter(Boolean),
               );
               return (
-              <div key={i} className="grid grid-cols-[1fr_90px_90px_30px] items-center gap-2">
-                <select
-                  className="rounded border border-bd-subtle bg-bg-base px-2 py-1 text-[12px] uppercase text-text-primary focus:border-bd-focus focus:outline-none"
-                  value={r.asset}
-                  onChange={(e) => update(i, { asset: e.target.value })}
-                >
-                  {!r.asset && <option value="" disabled>Select asset</option>}
-                  {/* If the current row's value isn't in the curated/held set (legacy row),
+                <div key={i} className="grid grid-cols-[1fr_90px_90px_30px] items-center gap-2">
+                  <select
+                    className="focus:border-bd-focus rounded border border-bd-subtle bg-bg-base px-2 py-1 text-[12px] uppercase text-text-primary focus:outline-none"
+                    value={r.asset}
+                    onChange={(e) => update(i, { asset: e.target.value })}
+                  >
+                    {!r.asset && (
+                      <option value="" disabled>
+                        Select asset
+                      </option>
+                    )}
+                    {/* If the current row's value isn't in the curated/held set (legacy row),
                       keep it selectable so we don't silently drop it on first edit. */}
-                  {r.asset && !allAssetOptions.includes(r.asset) && (
-                    <option value={r.asset}>{r.asset}</option>
-                  )}
-                  {allAssetOptions.map((a) => (
-                    <option key={a} value={a} disabled={takenElsewhere.has(a)}>
-                      {a}
-                      {takenElsewhere.has(a) ? ' (used)' : ''}
-                    </option>
-                  ))}
-                </select>
-                <input
-                  type="number"
-                  className="rounded border border-bd-subtle bg-bg-base px-2 py-1 text-right font-mono text-[12px] tabular-nums text-text-primary focus:border-bd-focus focus:outline-none"
-                  value={r.targetPct}
-                  onChange={(e) => update(i, { targetPct: e.target.value })}
-                  step="0.1"
-                  min="0"
-                  max="100"
-                />
-                <input
-                  type="number"
-                  className="rounded border border-bd-subtle bg-bg-base px-2 py-1 text-right font-mono text-[12px] tabular-nums text-text-primary focus:border-bd-focus focus:outline-none"
-                  value={r.minBandPp}
-                  onChange={(e) => update(i, { minBandPp: e.target.value })}
-                  step="0.5"
-                  min="0.0001"
-                  max="50"
-                />
-                <button
-                  type="button"
-                  onClick={() => removeRow(i)}
-                  className="text-text-muted hover:text-text-primary"
-                  aria-label="Remove row"
-                >
-                  ×
-                </button>
-              </div>
+                    {r.asset && !allAssetOptions.includes(r.asset) && (
+                      <option value={r.asset}>{r.asset}</option>
+                    )}
+                    {allAssetOptions.map((a) => (
+                      <option key={a} value={a} disabled={takenElsewhere.has(a)}>
+                        {a}
+                        {takenElsewhere.has(a) ? ' (used)' : ''}
+                      </option>
+                    ))}
+                  </select>
+                  <input
+                    type="number"
+                    className="focus:border-bd-focus rounded border border-bd-subtle bg-bg-base px-2 py-1 text-right font-mono text-[12px] tabular-nums text-text-primary focus:outline-none"
+                    value={r.targetPct}
+                    onChange={(e) => update(i, { targetPct: e.target.value })}
+                    step="0.1"
+                    min="0"
+                    max="100"
+                  />
+                  <input
+                    type="number"
+                    className="focus:border-bd-focus rounded border border-bd-subtle bg-bg-base px-2 py-1 text-right font-mono text-[12px] tabular-nums text-text-primary focus:outline-none"
+                    value={r.minBandPp}
+                    onChange={(e) => update(i, { minBandPp: e.target.value })}
+                    step="0.5"
+                    min="0.0001"
+                    max="50"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removeRow(i)}
+                    className="text-text-muted hover:text-text-primary"
+                    aria-label="Remove row"
+                  >
+                    ×
+                  </button>
+                </div>
               );
             })}
           </div>
@@ -449,9 +464,7 @@ function TargetsEditor({
               <Save size={12} /> Save targets
             </button>
           </div>
-          {saveError && (
-            <p className="mt-2 text-[11px] text-[var(--color-loss)]">{saveError}</p>
-          )}
+          {saveError && <p className="mt-2 text-[11px] text-[var(--color-loss)]">{saveError}</p>}
           {!sumOk && (
             <p className="mt-2 text-[11px] text-text-muted">
               Sum of target percentages must be exactly 100. Adjust any row to balance.
@@ -506,7 +519,9 @@ function PolicyEditor({
   return (
     <section className="rounded-xl border border-bd-subtle bg-bg-surface p-4 shadow-panel">
       <div className="mb-3 flex items-center gap-2">
-        <h2 className="font-display text-[14px] font-semibold text-text-primary">Rebalance policy</h2>
+        <h2 className="font-display text-[14px] font-semibold text-text-primary">
+          Rebalance policy
+        </h2>
         {!policy?.persisted && (
           <span className="rounded-full bg-bg-elevated px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-text-muted">
             Defaults — not yet saved
@@ -514,23 +529,77 @@ function PolicyEditor({
         )}
       </div>
       <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-        <PolicyField label="Calendar floor (days)" hint="Minimum days between successive rebalances.">
-          <input type="number" min="1" className={INPUT_CLS} value={form.calendarMinDays ?? ''} onChange={setNum('calendarMinDays')} />
+        <PolicyField
+          label="Calendar floor (days)"
+          hint="Minimum days between successive rebalances."
+        >
+          <input
+            type="number"
+            min="1"
+            className={INPUT_CLS}
+            value={form.calendarMinDays ?? ''}
+            onChange={setNum('calendarMinDays')}
+          />
         </PolicyField>
-        <PolicyField label="USDT reserve floor (%)" hint="Plan never reduces USDT below this share of NAV.">
-          <input type="number" min="0" max="100" step="0.5" className={INPUT_CLS} value={form.usdtReserveFloorPct ?? ''} onChange={setNum('usdtReserveFloorPct')} />
+        <PolicyField
+          label="USDT reserve floor (%)"
+          hint="Plan never reduces USDT below this share of NAV."
+        >
+          <input
+            type="number"
+            min="0"
+            max="100"
+            step="0.5"
+            className={INPUT_CLS}
+            value={form.usdtReserveFloorPct ?? ''}
+            onChange={setNum('usdtReserveFloorPct')}
+          />
         </PolicyField>
-        <PolicyField label="Slippage assumed (bps)" hint="Per-leg slippage estimate fed into cost calc.">
-          <input type="number" min="0" step="0.5" className={INPUT_CLS} value={form.slippageBpsAssumed ?? ''} onChange={setNum('slippageBpsAssumed')} />
+        <PolicyField
+          label="Slippage assumed (bps)"
+          hint="Per-leg slippage estimate fed into cost calc."
+        >
+          <input
+            type="number"
+            min="0"
+            step="0.5"
+            className={INPUT_CLS}
+            value={form.slippageBpsAssumed ?? ''}
+            onChange={setNum('slippageBpsAssumed')}
+          />
         </PolicyField>
         <PolicyField label="Fee assumed (bps)" hint="Per-leg exchange fee estimate.">
-          <input type="number" min="0" step="0.5" className={INPUT_CLS} value={form.feeBpsAssumed ?? ''} onChange={setNum('feeBpsAssumed')} />
+          <input
+            type="number"
+            min="0"
+            step="0.5"
+            className={INPUT_CLS}
+            value={form.feeBpsAssumed ?? ''}
+            onChange={setNum('feeBpsAssumed')}
+          />
         </PolicyField>
-        <PolicyField label="Max per execute (USDT)" hint="Sum of |leg notional| must be ≤ this for Execute to proceed. Safety cap.">
-          <input type="number" min="0.0001" step="10" className={INPUT_CLS} value={form.maxPerExecuteUsdt ?? ''} onChange={setNum('maxPerExecuteUsdt')} />
+        <PolicyField
+          label="Max per execute (USDT)"
+          hint="Sum of |leg notional| must be ≤ this for Execute to proceed. Safety cap."
+        >
+          <input
+            type="number"
+            min="0.0001"
+            step="10"
+            className={INPUT_CLS}
+            value={form.maxPerExecuteUsdt ?? ''}
+            onChange={setNum('maxPerExecuteUsdt')}
+          />
         </PolicyField>
-        <PolicyField label="Require manual approval" hint="When true, plans persist as PROPOSED and need an operator to execute.">
-          <input type="checkbox" checked={!!form.requireManualApproval} onChange={setBool('requireManualApproval')} />
+        <PolicyField
+          label="Require manual approval"
+          hint="When true, plans persist as PROPOSED and need an operator to execute."
+        >
+          <input
+            type="checkbox"
+            checked={!!form.requireManualApproval}
+            onChange={setBool('requireManualApproval')}
+          />
         </PolicyField>
         <PolicyField label="Enabled" hint="When false, plan generation returns SKIP_DISABLED.">
           <input type="checkbox" checked={!!form.enabled} onChange={setBool('enabled')} />
@@ -568,7 +637,9 @@ function PolicyField({
 }) {
   return (
     <label className="flex flex-col gap-1">
-      <span className="font-mono text-[10px] uppercase tracking-wider text-text-muted">{label}</span>
+      <span className="font-mono text-[10px] uppercase tracking-wider text-text-muted">
+        {label}
+      </span>
       {children}
       <span className="text-[10px] text-text-muted">{hint}</span>
     </label>
@@ -614,10 +685,13 @@ function PlanSection({
     <section className="rounded-xl border border-bd-subtle bg-bg-surface p-4 shadow-panel">
       <div className="mb-3 flex items-center justify-between gap-3">
         <div>
-          <h2 className="font-display text-[14px] font-semibold text-text-primary">Rebalance plan</h2>
+          <h2 className="font-display text-[14px] font-semibold text-text-primary">
+            Rebalance plan
+          </h2>
           <p className="text-[11px] text-text-muted">
-            Drift vs targets, trade legs, cost estimate. Persisted plans can be executed via the button on the right —
-            trades submit through Binance, capped at the policy&apos;s max-per-execute USDT.
+            Drift vs targets, trade legs, cost estimate. Persisted plans can be executed via the
+            button on the right — trades submit through Binance, capped at the policy&apos;s
+            max-per-execute USDT.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -668,7 +742,9 @@ function PlanSection({
         <PlanView plan={plan} formatCurrency={formatCurrency} />
       ) : (
         <p className="text-[12px] text-text-muted">
-          {running ? 'Computing plan…' : 'No plan generated yet. Click Preview to see what would happen.'}
+          {running
+            ? 'Computing plan…'
+            : 'No plan generated yet. Click Preview to see what would happen.'}
         </p>
       )}
 
@@ -713,22 +789,29 @@ function ExecuteConfirmDialog({
       >
         <div className="mb-3 flex items-center gap-2">
           <Rocket size={16} className="text-[var(--color-loss)]" />
-          <h3 className="font-display text-[15px] font-semibold text-text-primary">Confirm execute</h3>
+          <h3 className="font-display text-[15px] font-semibold text-text-primary">
+            Confirm execute
+          </h3>
         </div>
         <p className="text-[12px] text-text-secondary">
-          You&apos;re about to submit <span className="font-semibold text-text-primary">{plan.tradePlan.length}</span>{' '}
-          trade{plan.tradePlan.length === 1 ? '' : 's'} for a total notional of{' '}
-          <span className="font-mono text-text-primary">{formatCurrency(totalNotional)}</span> on your live
-          Binance account. Trades fire immediately.
+          You&apos;re about to submit{' '}
+          <span className="font-semibold text-text-primary">{plan.tradePlan.length}</span> trade
+          {plan.tradePlan.length === 1 ? '' : 's'} for a total notional of{' '}
+          <span className="font-mono text-text-primary">{formatCurrency(totalNotional)}</span> on
+          your live Binance account. Trades fire immediately.
         </p>
         <ul className="my-3 space-y-1 rounded-md border border-bd-subtle bg-bg-base p-2 font-mono text-[11px]">
           {plan.tradePlan.map((l, i) => (
             <li key={i} className="flex items-center justify-between gap-3">
-              <span style={{ color: l.action === 'SELL' ? 'var(--color-loss)' : 'var(--color-profit)' }}>
+              <span
+                style={{ color: l.action === 'SELL' ? 'var(--color-loss)' : 'var(--color-profit)' }}
+              >
                 {l.action}
               </span>
               <span className="flex-1 text-text-primary">{l.asset}</span>
-              <span className="tabular-nums text-text-secondary">{formatCurrency(l.estQuoteQtyUsdt)}</span>
+              <span className="tabular-nums text-text-secondary">
+                {formatCurrency(l.estQuoteQtyUsdt)}
+              </span>
             </li>
           ))}
         </ul>
@@ -737,7 +820,7 @@ function ExecuteConfirmDialog({
         </label>
         <input
           type="text"
-          className="mt-1 w-full rounded border border-bd-subtle bg-bg-base px-2 py-1.5 font-mono text-[13px] uppercase tracking-wider text-text-primary focus:border-bd-focus focus:outline-none"
+          className="focus:border-bd-focus mt-1 w-full rounded border border-bd-subtle bg-bg-base px-2 py-1.5 font-mono text-[13px] uppercase tracking-wider text-text-primary focus:outline-none"
           value={typed}
           onChange={(e) => setTyped(e.target.value)}
           autoFocus
@@ -796,7 +879,9 @@ function ExecutionResultView({
         {sum && (
           <span className="text-text-secondary">
             {sum.succeeded}/{sum.totalLegs} legs · actual notional{' '}
-            <span className="font-mono text-text-primary">{formatCurrency(sum.actualNotionalUsdt)}</span>
+            <span className="font-mono text-text-primary">
+              {formatCurrency(sum.actualNotionalUsdt)}
+            </span>
           </span>
         )}
       </div>
@@ -826,18 +911,33 @@ function ExecutionLegTable({
       <table className="w-full font-mono text-[11px]">
         <thead>
           <tr className="bg-bg-elevated text-text-muted">
-            <th className="px-3 py-1.5 text-left font-mono text-[9px] uppercase tracking-wider">Action</th>
-            <th className="px-3 py-1.5 text-left font-mono text-[9px] uppercase tracking-wider">Asset</th>
-            <th className="px-3 py-1.5 text-right font-mono text-[9px] uppercase tracking-wider">Filled USDT</th>
-            <th className="px-3 py-1.5 text-right font-mono text-[9px] uppercase tracking-wider">Filled qty</th>
-            <th className="px-3 py-1.5 text-right font-mono text-[9px] uppercase tracking-wider">Avg price</th>
-            <th className="px-3 py-1.5 text-left font-mono text-[9px] uppercase tracking-wider">Status</th>
+            <th className="px-3 py-1.5 text-left font-mono text-[9px] uppercase tracking-wider">
+              Action
+            </th>
+            <th className="px-3 py-1.5 text-left font-mono text-[9px] uppercase tracking-wider">
+              Asset
+            </th>
+            <th className="px-3 py-1.5 text-right font-mono text-[9px] uppercase tracking-wider">
+              Filled USDT
+            </th>
+            <th className="px-3 py-1.5 text-right font-mono text-[9px] uppercase tracking-wider">
+              Filled qty
+            </th>
+            <th className="px-3 py-1.5 text-right font-mono text-[9px] uppercase tracking-wider">
+              Avg price
+            </th>
+            <th className="px-3 py-1.5 text-left font-mono text-[9px] uppercase tracking-wider">
+              Status
+            </th>
           </tr>
         </thead>
         <tbody>
           {legs.map((l, i) => (
             <tr key={i} className="border-bd-subtle/60 border-t">
-              <td className="px-3 py-1.5 font-semibold" style={{ color: l.action === 'SELL' ? 'var(--color-loss)' : 'var(--color-profit)' }}>
+              <td
+                className="px-3 py-1.5 font-semibold"
+                style={{ color: l.action === 'SELL' ? 'var(--color-loss)' : 'var(--color-profit)' }}
+              >
                 {l.action}
               </td>
               <td className="px-3 py-1.5 text-text-primary">{l.asset}</td>
@@ -887,17 +987,26 @@ function PlanView({
         <span className="text-text-muted">method {plan.method}</span>
         {plan.portfolioValueUsdt != null && (
           <span className="text-text-secondary">
-            NAV <span className="font-mono text-text-primary">{formatCurrency(plan.portfolioValueUsdt)}</span>
+            NAV{' '}
+            <span className="font-mono text-text-primary">
+              {formatCurrency(plan.portfolioValueUsdt)}
+            </span>
           </span>
         )}
         {plan.estimatedCostUsdt != null && plan.estimatedCostUsdt > 0 && (
           <span className="text-text-secondary">
-            est. cost <span className="font-mono text-text-primary">{formatCurrency(plan.estimatedCostUsdt)}</span>
+            est. cost{' '}
+            <span className="font-mono text-text-primary">
+              {formatCurrency(plan.estimatedCostUsdt)}
+            </span>
           </span>
         )}
         {plan.estimatedBenefitUsdt != null && plan.estimatedBenefitUsdt > 0 && (
           <span className="text-text-secondary">
-            notional <span className="font-mono text-text-primary">{formatCurrency(plan.estimatedBenefitUsdt)}</span>
+            notional{' '}
+            <span className="font-mono text-text-primary">
+              {formatCurrency(plan.estimatedBenefitUsdt)}
+            </span>
           </span>
         )}
       </div>
@@ -930,22 +1039,43 @@ function DriftTable({
       <table className="w-full font-mono text-[11px]">
         <thead>
           <tr className="bg-bg-elevated text-text-muted">
-            <th className="px-3 py-1.5 text-left font-mono text-[9px] uppercase tracking-wider">Asset</th>
-            <th className="px-3 py-1.5 text-right font-mono text-[9px] uppercase tracking-wider">Value</th>
-            <th className="px-3 py-1.5 text-right font-mono text-[9px] uppercase tracking-wider">Current</th>
-            <th className="px-3 py-1.5 text-right font-mono text-[9px] uppercase tracking-wider">Target</th>
-            <th className="px-3 py-1.5 text-right font-mono text-[9px] uppercase tracking-wider">Drift</th>
-            <th className="px-3 py-1.5 text-right font-mono text-[9px] uppercase tracking-wider">Band</th>
+            <th className="px-3 py-1.5 text-left font-mono text-[9px] uppercase tracking-wider">
+              Asset
+            </th>
+            <th className="px-3 py-1.5 text-right font-mono text-[9px] uppercase tracking-wider">
+              Value
+            </th>
+            <th className="px-3 py-1.5 text-right font-mono text-[9px] uppercase tracking-wider">
+              Current
+            </th>
+            <th className="px-3 py-1.5 text-right font-mono text-[9px] uppercase tracking-wider">
+              Target
+            </th>
+            <th className="px-3 py-1.5 text-right font-mono text-[9px] uppercase tracking-wider">
+              Drift
+            </th>
+            <th className="px-3 py-1.5 text-right font-mono text-[9px] uppercase tracking-wider">
+              Band
+            </th>
           </tr>
         </thead>
         <tbody>
           {items.map((d) => (
             <tr key={d.asset} className="border-bd-subtle/60 border-t">
               <td className="px-3 py-1.5 text-text-primary">{d.asset}</td>
-              <td className="px-3 py-1.5 text-right tabular-nums text-text-secondary">{formatCurrency(d.currentUsdtValue)}</td>
-              <td className="px-3 py-1.5 text-right tabular-nums text-text-primary">{d.currentPct.toFixed(2)}%</td>
-              <td className="px-3 py-1.5 text-right tabular-nums text-text-secondary">{d.targetPct.toFixed(2)}%</td>
-              <td className="px-3 py-1.5 text-right tabular-nums" style={{ color: driftColor(d.driftPp, d.withinBand) }}>
+              <td className="px-3 py-1.5 text-right tabular-nums text-text-secondary">
+                {formatCurrency(d.currentUsdtValue)}
+              </td>
+              <td className="px-3 py-1.5 text-right tabular-nums text-text-primary">
+                {d.currentPct.toFixed(2)}%
+              </td>
+              <td className="px-3 py-1.5 text-right tabular-nums text-text-secondary">
+                {d.targetPct.toFixed(2)}%
+              </td>
+              <td
+                className="px-3 py-1.5 text-right tabular-nums"
+                style={{ color: driftColor(d.driftPp, d.withinBand) }}
+              >
                 {d.driftPp > 0 ? '+' : ''}
                 {d.driftPp.toFixed(2)} pp
               </td>
@@ -972,22 +1102,39 @@ function TradeList({
       <table className="w-full font-mono text-[11px]">
         <thead>
           <tr className="bg-bg-elevated text-text-muted">
-            <th className="px-3 py-1.5 text-left font-mono text-[9px] uppercase tracking-wider">Action</th>
-            <th className="px-3 py-1.5 text-left font-mono text-[9px] uppercase tracking-wider">Asset</th>
-            <th className="px-3 py-1.5 text-right font-mono text-[9px] uppercase tracking-wider">USDT</th>
-            <th className="px-3 py-1.5 text-right font-mono text-[9px] uppercase tracking-wider">Base qty</th>
-            <th className="px-3 py-1.5 text-right font-mono text-[9px] uppercase tracking-wider">Ref price</th>
-            <th className="px-3 py-1.5 text-left font-mono text-[9px] uppercase tracking-wider">Reason</th>
+            <th className="px-3 py-1.5 text-left font-mono text-[9px] uppercase tracking-wider">
+              Action
+            </th>
+            <th className="px-3 py-1.5 text-left font-mono text-[9px] uppercase tracking-wider">
+              Asset
+            </th>
+            <th className="px-3 py-1.5 text-right font-mono text-[9px] uppercase tracking-wider">
+              USDT
+            </th>
+            <th className="px-3 py-1.5 text-right font-mono text-[9px] uppercase tracking-wider">
+              Base qty
+            </th>
+            <th className="px-3 py-1.5 text-right font-mono text-[9px] uppercase tracking-wider">
+              Ref price
+            </th>
+            <th className="px-3 py-1.5 text-left font-mono text-[9px] uppercase tracking-wider">
+              Reason
+            </th>
           </tr>
         </thead>
         <tbody>
           {legs.map((l, i) => (
             <tr key={`${l.asset}-${i}`} className="border-bd-subtle/60 border-t">
-              <td className="px-3 py-1.5 font-semibold" style={{ color: l.action === 'SELL' ? 'var(--color-loss)' : 'var(--color-profit)' }}>
+              <td
+                className="px-3 py-1.5 font-semibold"
+                style={{ color: l.action === 'SELL' ? 'var(--color-loss)' : 'var(--color-profit)' }}
+              >
                 {l.action}
               </td>
               <td className="px-3 py-1.5 text-text-primary">{l.asset}</td>
-              <td className="px-3 py-1.5 text-right tabular-nums text-text-primary">{formatCurrency(l.estQuoteQtyUsdt)}</td>
+              <td className="px-3 py-1.5 text-right tabular-nums text-text-primary">
+                {formatCurrency(l.estQuoteQtyUsdt)}
+              </td>
               <td className="px-3 py-1.5 text-right tabular-nums text-text-secondary">
                 {l.estBaseQty == null ? '—' : l.estBaseQty.toFixed(6)}
               </td>

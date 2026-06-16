@@ -46,7 +46,7 @@ function mapHistoryView(raw: any): AssetRebalanceHistoryView {
     method: raw.method,
     status: raw.status,
     triggeredBy: raw.triggeredBy,
-    estimatedCostUsdt:    raw.estimatedCostUsdt    == null ? null : toNum(raw.estimatedCostUsdt),
+    estimatedCostUsdt: raw.estimatedCostUsdt == null ? null : toNum(raw.estimatedCostUsdt),
     estimatedBenefitUsdt: raw.estimatedBenefitUsdt == null ? null : toNum(raw.estimatedBenefitUsdt),
     proposedAt: raw.proposedAt,
     executedAt: raw.executedAt ?? null,
@@ -122,16 +122,19 @@ export async function updateAssetPolicy(
 export async function computeAssetRebalancePlan(
   accountId: string,
   persist: boolean,
+  // Operator override: skip ONLY the calendar-floor cooldown (every other guard
+  // still applies). Wired to the admin-only "Override cooldown" action.
+  force = false,
 ): Promise<AssetRebalancePlan> {
-  const { data } = await apiClient.post<any>(
-    `/api/v1/portfolio/assets/rebalance/plan`,
-    null,
-    { params: { accountId, persist } },
-  );
+  const { data } = await apiClient.post<any>(`/api/v1/portfolio/assets/rebalance/plan`, null, {
+    params: { accountId, persist, force },
+  });
   return mapPlan(data);
 }
 
 export async function executeRebalance(rebalanceId: string): Promise<AssetRebalanceHistoryView> {
-  const { data } = await apiClient.post<any>(`/api/v1/portfolio/assets/rebalance/${rebalanceId}/execute`);
+  const { data } = await apiClient.post<any>(
+    `/api/v1/portfolio/assets/rebalance/${rebalanceId}/execute`,
+  );
   return mapHistoryView(data);
 }

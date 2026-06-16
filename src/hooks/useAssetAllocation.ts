@@ -19,7 +19,7 @@ import type {
 } from '@/types/assetAllocation';
 
 const QK_TARGETS = (accountId: string | undefined) => ['asset-allocation', 'targets', accountId];
-const QK_POLICY  = (accountId: string | undefined) => ['asset-allocation', 'policy', accountId];
+const QK_POLICY = (accountId: string | undefined) => ['asset-allocation', 'policy', accountId];
 
 export function useAssetTargets(accountId: string | undefined) {
   return useQuery<AssetAllocationTarget[]>({
@@ -65,8 +65,13 @@ export function useUpdateAssetPolicy() {
  * shape; `persist=true` also writes an audit row.
  */
 export function useComputeAssetRebalancePlan() {
-  return useMutation<AssetRebalancePlan, Error, { accountId: string; persist: boolean }>({
-    mutationFn: ({ accountId, persist }) => computeAssetRebalancePlan(accountId, persist),
+  return useMutation<
+    AssetRebalancePlan,
+    Error,
+    { accountId: string; persist: boolean; force?: boolean }
+  >({
+    mutationFn: ({ accountId, persist, force }) =>
+      computeAssetRebalancePlan(accountId, persist, force ?? false),
   });
 }
 
@@ -80,4 +85,3 @@ export function useExecuteRebalance() {
     mutationFn: ({ rebalanceId }) => executeRebalance(rebalanceId),
   });
 }
-
