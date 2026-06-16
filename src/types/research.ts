@@ -315,6 +315,100 @@ export interface AgentActivity {
   createdAt: string;
 }
 
+// ── Strategy Research Registry (admin) ──────────────────────────────────────
+// Curated, ranked roster of every researched strategy (most -> least promising)
+// joined to live metrics. Served by the orchestrator at
+// /api/v1/research-orch/strategy-registry (camelCase, NOT the JVM envelope).
+
+export type PromiseTier = 'TIER_A' | 'TIER_B' | 'TIER_C';
+
+export type RegistryVerdictTag =
+  | 'REAL_LEAD'
+  | 'REAL_UNCERTIFIABLE'
+  | 'BETA_NOT_ALPHA'
+  | 'DATA_GATED'
+  | 'PARKED'
+  | 'FALSIFIED'
+  | 'FALSIFIED_OOS'
+  | 'EXHAUSTED';
+
+export type RegistryLifecycleStatus = 'LIVE' | 'LEAD' | 'PARKED' | 'DATA_GATED' | 'FALSIFIED';
+
+/** How the live metrics were resolved, or null if the row has no orchestrator run. */
+export type RegistryResolvedFrom = 'pointer' | 'lookup' | null;
+
+/** Explicit evidence pointers (null on offline leads / unset rows). */
+export interface RegistryEvidence {
+  iterationId: string | null;
+  walkForwardId: string | null;
+  backtestRunId: string | null;
+  journalId: string | null;
+}
+
+/** Live metrics LEFT-JOINed onto the curated row; all null for offline leads. */
+export interface RegistryLiveMetrics {
+  dsr: number | null;
+  psr: number | null;
+  annualizedReturnPct: number | null;
+  sharpeAnnualized: number | null;
+  nTrades: number | null;
+  profitFactor: number | null;
+  statisticalVerdict: string | null;
+  walkForwardVerdict: string | null;
+  isLive: boolean;
+  resolvedFrom: RegistryResolvedFrom;
+  backtestRunId: string | null;
+}
+
+/** Server-computed flag when the curated narrative and a fresh DB number disagree. */
+export interface RegistryDivergence {
+  flag: boolean;
+  reason: string | null;
+}
+
+export interface ResearchRegistryEntry {
+  registryId: UUID;
+  slug: string;
+  rank: number | null;
+  promiseTier: PromiseTier;
+  displayName: string;
+  signalFamily: string | null;
+  strategyCode: string | null;
+  symbol: string | null;
+  intervalName: string | null;
+  verdictTag: RegistryVerdictTag;
+  lifecycleStatus: RegistryLifecycleStatus;
+  thesis: string;
+  detail: string | null;
+  memoryRef: string | null;
+  isOfflineLead: boolean;
+  archived: boolean;
+  /** TRUE = maintained by the research loop (not hand-curated). The auto-sync
+   *  only ever touches these; curated/seed rows are auto_managed=false. */
+  autoManaged: boolean;
+  evidence: RegistryEvidence;
+  live: RegistryLiveMetrics;
+  divergence: RegistryDivergence;
+  updatedTime: string | null;
+  updatedBy: string | null;
+}
+
+export interface RegistryListResponse {
+  items: ResearchRegistryEntry[];
+  total: number;
+  tierCounts: Record<PromiseTier, number>;
+  statusCounts: Record<RegistryLifecycleStatus, number>;
+}
+
+/** Filter shape for `listRegistry`. Empty/undefined values are dropped before send. */
+export interface RegistryFilters {
+  tier?: PromiseTier;
+  status?: RegistryLifecycleStatus;
+  family?: string;
+  search?: string;
+  includeArchived?: boolean;
+}
+
 /**
  * Rolled-up summary of one quant-researcher agent session. Counts are
  * pre-aggregated by the backend; never recompute them client-side.

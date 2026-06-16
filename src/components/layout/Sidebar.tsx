@@ -35,6 +35,7 @@ import {
   Target,
   FileText,
   Trophy,
+  Library,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { BlackridgeMark } from '@/components/brand/BlackridgeMark';
@@ -114,6 +115,7 @@ const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
     label: 'Data & Strategy',
     items: [
       { label: 'Catalogue', href: '/admin/strategies', icon: ShieldCheck },
+      { label: 'Research Registry', href: '/admin/research-strategies', icon: Library },
       { label: 'Historical Data', href: '/admin/historical', icon: Database },
       { label: 'ML Data Sources', href: '/admin/ml-ingest', icon: Brain },
       { label: 'Spec Trace', href: '/admin/spec-trace', icon: Binary },
