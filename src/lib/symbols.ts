@@ -9,15 +9,18 @@
  *
  * <h3>Why static and not fetched from the backend?</h3>
  *
- * The list changes rarely (months), is small (≤10 entries), and is needed
- * synchronously at component-render time. Fetching it via TanStack Query
- * adds a network round-trip on every page that picks a symbol, plus a
- * loading state, plus a fallback if the request fails. The static list
+ * The list is needed synchronously at component-render time. Fetching it via
+ * TanStack Query adds a network round-trip on every page that picks a symbol,
+ * plus a loading state, plus a fallback if the request fails. The static list
  * gives compile-time TypeScript checking (`SupportedSymbol` is a literal
- * union) and zero runtime cost. If the symbol roster ever grows beyond
- * ~10 or starts changing frequently, switch to a `GET /api/v1/symbols`
- * fetch and re-export the result through this same module — call sites
- * won't change.
+ * union) and zero runtime cost.
+ *
+ * <p>TODO (dynamic roster): the list now sits at 13 and grows as backfill
+ * lands more coins. Once the roster stabilizes, switch to a
+ * `GET /api/v1/symbols` fetch (distinct symbols with `market_data`) and
+ * re-export the result through this same module — call sites won't change,
+ * and the list stops needing a manual edit per coin. Searchable pickers
+ * ({@code Combobox}) already make a longer list usable.
  *
  * <h3>Coordination with the backend</h3>
  *
@@ -28,9 +31,22 @@
  * captured server-side but invisible in the UI. Keep them in sync.
  */
 export const SUPPORTED_SYMBOLS = [
+    // Majors first — keeps DEFAULT_SYMBOL = BTCUSDT and the familiar ordering.
     'BTCUSDT',
     'ETHUSDT',
     'SOLUSDT',
+    // Remaining coins with market_data, alphabetical. Some are live-streaming,
+    // others are still backfilling — both are valid for backtest/research.
+    'ADAUSDT',
+    'AVAXUSDT',
+    'BNBUSDT',
+    'DOGEUSDT',
+    'FETUSDT',
+    'LINKUSDT',
+    'NEARUSDT',
+    'XLMUSDT',
+    'XRPUSDT',
+    'ZECUSDT',
 ] as const;
 
 /** Compile-time union of supported symbols. */

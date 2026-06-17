@@ -7,6 +7,7 @@ import { z } from 'zod';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { DatePicker } from '@/components/ui/date-picker';
+import { Combobox } from '@/components/ui/combobox';
 import {
   Select,
   SelectContent,
@@ -552,18 +553,15 @@ const strategyOptionsByCode = useMemo(() => {
         <SectionHeader title="Market & Range" />
         <div className="grid grid-cols-1 gap-4 p-5 sm:grid-cols-2 lg:grid-cols-4">
           <Field label="Symbol" error={errors.symbol}>
-            <Select value={symbol} onValueChange={setSymbol}>
-              <SelectTrigger className="h-9 font-mono">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {SUPPORTED_SYMBOLS.map((s) => (
-                  <SelectItem key={s} value={s} className="font-mono">
-                    {s}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Combobox
+              value={symbol}
+              onChange={setSymbol}
+              options={SUPPORTED_SYMBOLS as readonly string[]}
+              ariaLabel="Symbol"
+              searchPlaceholder="Search symbol…"
+              fullWidth
+              triggerClassName="h-9 font-mono"
+            />
           </Field>
 
           <Field
