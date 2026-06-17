@@ -12,6 +12,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
+import { Combobox } from '@/components/ui/combobox';
 import {
   Select,
   SelectContent,
@@ -271,21 +272,15 @@ export function NewStrategyDialog({
             <Label className="text-xs uppercase tracking-wider text-[var(--text-muted)]">
               Symbol
             </Label>
-            <Select
+            <Combobox
               value={form.symbol}
-              onValueChange={(v) => setForm((s) => ({ ...s, symbol: v }))}
-            >
-              <SelectTrigger className="font-mono">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {SUPPORTED_SYMBOLS.map((s) => (
-                  <SelectItem key={s} value={s} className="font-mono">
-                    {s}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              onChange={(v) => setForm((s) => ({ ...s, symbol: v }))}
+              options={SUPPORTED_SYMBOLS as readonly string[]}
+              ariaLabel="Symbol"
+              searchPlaceholder="Search symbol…"
+              fullWidth
+              triggerClassName="font-mono"
+            />
           </div>
 
           <div className="flex flex-col gap-1.5">
