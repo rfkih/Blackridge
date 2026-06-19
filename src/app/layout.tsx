@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { headers } from 'next/headers';
 import { IBM_Plex_Sans, IBM_Plex_Mono } from 'next/font/google';
 import { Providers } from './providers';
 import { ThemeScript } from '@/components/theme/ThemeScript';
@@ -39,6 +40,10 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Per-request nonce from middleware; lets the inline ThemeScript run under the
+  // prod CSP (no 'unsafe-inline'). Reading headers() opts the tree into dynamic
+  // rendering — expected and required for nonce-based CSP in the App Router.
+  const nonce = headers().get('x-nonce') ?? undefined;
   return (
     <html
       lang="en"
@@ -46,7 +51,7 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <head>
-        <ThemeScript />
+        <ThemeScript nonce={nonce} />
       </head>
       <body className="antialiased">
         <ThemeProvider>

@@ -1,15 +1,14 @@
 /** @type {import('next').NextConfig} */
 
-// Parse API/WS origins from env so the CSP's connect-src allow-list matches
-// exactly where the app actually talks to. Fallbacks match lib/env.ts so dev
-// boots with sensible defaults.
+// The CSP (incl. its connect-src API/WS allow-list and a per-request script
+// nonce) is built in src/middleware.ts. Here we only keep a build-time guard
+// (see requireProdEnv below) so prod fails fast when those origins are missing.
 //
-// Production is strict: NEXT_PUBLIC_API_URL and NEXT_PUBLIC_WS_URL MUST be
-// set, otherwise the prod bundle would bake a localhost CSP that silently
-// blocks every API call. RESEARCH_URL stays optional in prod — when unset
-// we collapse to API_URL (single-JVM deploy, per CLAUDE.md). lib/env.ts
-// applies the same rule so the runtime URL and the CSP allow-list always
-// agree.
+// Production is strict: NEXT_PUBLIC_API_URL and NEXT_PUBLIC_WS_URL MUST be set,
+// otherwise middleware would bake a localhost connect-src and silently block
+// every API call. RESEARCH_URL stays optional in prod — when unset middleware
+// collapses it to API_URL (single-JVM deploy, per CLAUDE.md). lib/env.ts applies
+// the same rule so the runtime URL and the CSP allow-list always agree.
 const isProd = process.env.NODE_ENV === 'production';
 
 // Server-side only (no NEXT_PUBLIC prefix — never exposed to the browser).
@@ -37,47 +36,17 @@ function requireProdEnv(name, fallback) {
   }
   return fallback;
 }
-const API_URL = requireProdEnv('NEXT_PUBLIC_API_URL', 'http://localhost:8080');
-const WS_URL = requireProdEnv('NEXT_PUBLIC_WS_URL', 'ws://localhost:8080/ws');
-// In prod, missing RESEARCH_URL means single-JVM — collapse to API_URL.
-// In dev, fall back to the dual-JVM default so `pnpm dev` keeps working.
-const researchExplicit = process.env.NEXT_PUBLIC_RESEARCH_URL?.trim();
-const RESEARCH_URL = researchExplicit || (isProd ? API_URL : 'http://localhost:8081');
+// Content-Security-Policy is NOT set here. It moved to src/middleware.ts so it
+// can carry a per-request script nonce and drop 'unsafe-inline' from script-src
+// in production. These bare calls keep the build-time guard: a prod build still
+// fails fast if the browser-facing origins the CSP's connect-src depends on are
+// missing (otherwise middleware would silently bake a localhost allow-list and
+// block every API call in prod).
+requireProdEnv('NEXT_PUBLIC_API_URL', 'http://localhost:8080');
+requireProdEnv('NEXT_PUBLIC_WS_URL', 'ws://localhost:8080/ws');
 
-// SockJS upgrades via XHR first, then WS — allow both schemes.
-const wsHttpOrigin = WS_URL.replace(/^ws:/, 'http:').replace(/^wss:/, 'https:');
-
-// CSP directives.
-//
-// `unsafe-inline` on script-src stays until we refactor the inline ThemeScript
-// to a nonce. `unsafe-eval` is allowed ONLY in dev — Next's HMR pipeline uses
-// eval() for hot reloading, and blocking it silently breaks the whole page
-// bundle (button clicks do nothing, no visible error in the UI). Production
-// bundles don't use eval, so we strip it.
-//
-// frame-ancestors 'none' = clickjacking defence (replaces X-Frame-Options).
-const isDev = process.env.NODE_ENV !== 'production';
-const scriptSrc = isDev
-  ? "script-src 'self' 'unsafe-inline' 'unsafe-eval'"
-  : "script-src 'self' 'unsafe-inline'";
-
-const CSP = [
-  "default-src 'self'",
-  "base-uri 'self'",
-  "form-action 'self'",
-  "frame-ancestors 'none'",
-  "object-src 'none'",
-  "img-src 'self' data: blob:",
-  "font-src 'self' data:",
-  "style-src 'self' 'unsafe-inline'",
-  scriptSrc,
-  // Research JVM (Phase 1 decoupling) added to connect-src; deduped if equal to API_URL
-  // (single-JVM deploys collapse the two values).
-  `connect-src 'self' ${API_URL}${RESEARCH_URL !== API_URL ? ` ${RESEARCH_URL}` : ''} ${WS_URL} ${wsHttpOrigin}`,
-].join('; ');
-
+// frame-ancestors 'none' (clickjacking defence) now lives in the middleware CSP.
 const SECURITY_HEADERS = [
-  { key: 'Content-Security-Policy', value: CSP },
   { key: 'X-Frame-Options', value: 'DENY' },
   { key: 'X-Content-Type-Options', value: 'nosniff' },
   { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
