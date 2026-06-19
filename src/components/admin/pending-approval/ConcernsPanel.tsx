@@ -29,14 +29,14 @@ export function ConcernsPanel({ concerns, defaultOpen = false }: ConcernsPanelPr
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="flex w-full items-center gap-2 text-left text-[13px] font-semibold text-warning"
+        className="flex w-full items-center gap-2 text-left text-[14px] font-semibold text-warning"
       >
         {open ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
         <AlertTriangle className="h-3 w-3" />
         {concerns.length} {concerns.length === 1 ? 'concern' : 'concerns'}
       </button>
       {open && (
-        <ul className="mt-2 space-y-2 text-[12px]">
+        <ul className="mt-2 space-y-2 text-[14px]">
           {concerns.map((c, i) => (
             <li
               key={`${c.source}-${i}`}

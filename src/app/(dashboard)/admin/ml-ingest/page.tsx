@@ -395,7 +395,7 @@ function Stat({
     tone === 'warn' ? 'text-warning' : tone === 'muted' ? 'text-text-muted' : 'text-text-primary';
   return (
     <div>
-      <div className="text-[10px] uppercase tracking-wide text-text-muted">{label}</div>
+      <div className="text-[12px] uppercase tracking-wide text-text-muted">{label}</div>
       <div className={`${toneClass} truncate`}>{value}</div>
     </div>
   );

@@ -68,7 +68,7 @@ export default function ResearchQueuePage() {
         <h1 className="font-display text-[20px] font-semibold tracking-tight text-text-primary">
           Admin only
         </h1>
-        <p className="text-[13px] text-text-muted">
+        <p className="text-[14px] text-text-muted">
           The research queue drives token spend and JVM CPU on the research host. Sign in with an
           admin account to manage it.
         </p>
@@ -84,7 +84,7 @@ export default function ResearchQueuePage() {
           <h1 className="font-display text-[24px] font-semibold tracking-tighter text-text-primary">
             Research queue
           </h1>
-          <p className="mt-1 text-[12px] text-text-muted">
+          <p className="mt-1 text-[14px] text-text-muted">
             Schedule sweeps for the unattended-research orchestrator. Lower priority numbers run
             sooner.
           </p>
@@ -92,14 +92,14 @@ export default function ResearchQueuePage() {
         <div className="flex items-center gap-2">
           <Link
             href="/research"
-            className="inline-flex items-center gap-1.5 rounded-sm border border-bd-subtle bg-bg-surface px-3 py-2 text-[12px] font-semibold text-text-secondary transition-colors hover:bg-bg-hover"
+            className="inline-flex items-center gap-1.5 rounded-sm border border-bd-subtle bg-bg-surface px-3 py-2 text-[14px] font-semibold text-text-secondary transition-colors hover:bg-bg-hover"
           >
             Ops <ChevronRight size={12} />
           </Link>
           <button
             type="button"
             onClick={() => setCreating(true)}
-            className="hover:bg-[var(--accent-primary)]/90 inline-flex items-center gap-1.5 rounded-sm bg-[var(--accent-primary)] px-3 py-2 text-[12px] font-semibold text-white"
+            className="hover:bg-[var(--accent-primary)]/90 inline-flex items-center gap-1.5 rounded-sm bg-[var(--accent-primary)] px-3 py-2 text-[14px] font-semibold text-white"
           >
             <Plus size={12} /> Queue strategy
           </button>
@@ -114,7 +114,7 @@ export default function ResearchQueuePage() {
               key={t.key}
               type="button"
               onClick={() => setTab(t.key)}
-              className="rounded-sm border px-2.5 py-1 font-mono text-[11px] uppercase tracking-wider transition-colors"
+              className="rounded-sm border px-2.5 py-1 font-mono text-[13px] uppercase tracking-wider transition-colors"
               style={{
                 borderColor: selected ? 'var(--accent-primary)' : 'var(--border-subtle)',
                 background: selected ? 'rgba(59,130,246,0.12)' : 'transparent',
@@ -130,7 +130,7 @@ export default function ResearchQueuePage() {
       {isLoading ? (
         <Skeleton className="h-48 w-full" />
       ) : isError ? (
-        <div className="bg-bg-base/40 rounded-sm border border-bd-subtle p-8 text-center text-[12px] text-text-muted">
+        <div className="bg-bg-base/40 rounded-sm border border-bd-subtle p-8 text-center text-[14px] text-text-muted">
           Could not load queue. The research JVM may be down.
         </div>
       ) : rows.length === 0 ? (
@@ -147,7 +147,7 @@ export default function ResearchQueuePage() {
 function QueueTable({ rows }: { rows: ResearchQueueItem[] }) {
   return (
     <div className="overflow-hidden rounded-md border border-bd-subtle">
-      <table className="w-full min-w-[820px] text-[11px]">
+      <table className="w-full min-w-[820px] text-[13px]">
         <thead>
           <tr className="border-b border-bd-subtle bg-bg-base">
             <Th align="right">Pri</Th>
@@ -257,13 +257,13 @@ function QueueRow({ row }: { row: ResearchQueueItem }) {
               max={1000}
               value={draftPriority}
               onChange={(e) => setDraftPriority(Number(e.target.value))}
-              className="w-16 rounded-sm border border-bd-subtle bg-bg-base px-1.5 py-0.5 text-right font-mono text-[11px] text-text-primary"
+              className="w-16 rounded-sm border border-bd-subtle bg-bg-base px-1.5 py-0.5 text-right font-mono text-[13px] text-text-primary"
             />
             <button
               type="button"
               onClick={handleSavePriority}
               disabled={update.isPending}
-              className="border-bd-default rounded-sm border px-1.5 py-0.5 font-mono text-[10px] text-text-secondary hover:bg-bg-hover disabled:opacity-40"
+              className="border-bd-default rounded-sm border px-1.5 py-0.5 font-mono text-[12px] text-text-secondary hover:bg-bg-hover disabled:opacity-40"
             >
               {update.isPending ? <Loader2 size={10} className="animate-spin" /> : 'Save'}
             </button>
@@ -318,7 +318,7 @@ function QueueRow({ row }: { row: ResearchQueueItem }) {
             generatedPaperId ? (
               <Link
                 href={`/research/papers/${generatedPaperId}`}
-                className="inline-flex items-center gap-1 rounded-sm border border-bd-subtle bg-bg-surface px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-[var(--accent-primary)] hover:bg-bg-hover"
+                className="inline-flex items-center gap-1 rounded-sm border border-bd-subtle bg-bg-surface px-2 py-0.5 font-mono text-[12px] uppercase tracking-wider text-[var(--accent-primary)] hover:bg-bg-hover"
               >
                 <FileText size={10} /> View →
               </Link>
@@ -327,7 +327,7 @@ function QueueRow({ row }: { row: ResearchQueueItem }) {
                 type="button"
                 onClick={() => generatePaperMutation.mutate()}
                 disabled={generatePaperMutation.isPending}
-                className="border-bd-default inline-flex items-center gap-1 rounded-sm border bg-bg-surface px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-text-secondary hover:bg-bg-hover disabled:cursor-not-allowed disabled:opacity-40"
+                className="border-bd-default inline-flex items-center gap-1 rounded-sm border bg-bg-surface px-2 py-0.5 font-mono text-[12px] uppercase tracking-wider text-text-secondary hover:bg-bg-hover disabled:cursor-not-allowed disabled:opacity-40"
                 title="Generate or regenerate the research paper for this sweep"
               >
                 {generatePaperMutation.isPending ? (
@@ -342,7 +342,7 @@ function QueueRow({ row }: { row: ResearchQueueItem }) {
             type="button"
             onClick={handleCancel}
             disabled={cancel.isPending || isTerminal}
-            className="border-bd-default rounded-sm border bg-bg-surface px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-text-secondary hover:bg-bg-hover disabled:cursor-not-allowed disabled:opacity-40"
+            className="border-bd-default rounded-sm border bg-bg-surface px-2 py-0.5 font-mono text-[12px] uppercase tracking-wider text-text-secondary hover:bg-bg-hover disabled:cursor-not-allowed disabled:opacity-40"
             title={isTerminal ? 'Already terminal' : 'Soft-cancel — preserves audit trail'}
           >
             {cancel.isPending && cancel.variables === row.queueId ? (
@@ -373,7 +373,7 @@ function StatusBadge({ status, verdict }: { status: string; verdict: string | nu
   const label = status === 'COMPLETED' && verdict === 'CANCELLED' ? 'CANCELLED' : status;
   return (
     <span
-      className="rounded-sm px-1.5 py-0.5 font-mono text-[9px] font-semibold uppercase tracking-wider"
+      className="rounded-sm px-1.5 py-0.5 font-mono text-[12px] font-semibold uppercase tracking-wider"
       style={{ background: 'var(--bg-elevated)', color: toneColor(tone) }}
     >
       {label}
@@ -385,13 +385,13 @@ function EmptyState({ onCreate }: { onCreate: () => void }) {
   return (
     <div className="space-y-3 rounded-xl border border-bd-subtle bg-bg-surface p-10 text-center">
       <Inbox size={28} className="mx-auto text-text-muted" />
-      <p className="text-[13px] text-text-muted">
+      <p className="text-[14px] text-text-muted">
         No queue items in this view. Create one to schedule the next sweep.
       </p>
       <button
         type="button"
         onClick={onCreate}
-        className="hover:bg-[var(--accent-primary)]/90 inline-flex items-center gap-1.5 rounded-sm bg-[var(--accent-primary)] px-3 py-2 text-[12px] font-semibold text-white"
+        className="hover:bg-[var(--accent-primary)]/90 inline-flex items-center gap-1.5 rounded-sm bg-[var(--accent-primary)] px-3 py-2 text-[14px] font-semibold text-white"
       >
         <Plus size={12} /> Queue strategy
       </button>
@@ -481,14 +481,14 @@ function NewQueueItemDialog({ onClose }: { onClose: () => void }) {
               value={strategyCode}
               onChange={(e) => setStrategyCode(e.target.value)}
               placeholder="e.g. VCB"
-              className="w-full rounded-sm border border-bd-subtle bg-bg-base px-2.5 py-1.5 font-mono text-[12px] uppercase text-text-primary placeholder:text-text-muted focus:border-[var(--accent-primary)] focus:outline-none"
+              className="w-full rounded-sm border border-bd-subtle bg-bg-base px-2.5 py-1.5 font-mono text-[14px] uppercase text-text-primary placeholder:text-text-muted focus:border-[var(--accent-primary)] focus:outline-none"
             />
           </Field>
           <Field label="Interval">
             <select
               value={intervalName}
               onChange={(e) => setIntervalName(e.target.value)}
-              className="w-full rounded-sm border border-bd-subtle bg-bg-base px-2.5 py-1.5 font-mono text-[12px] text-text-primary focus:border-[var(--accent-primary)] focus:outline-none"
+              className="w-full rounded-sm border border-bd-subtle bg-bg-base px-2.5 py-1.5 font-mono text-[14px] text-text-primary focus:border-[var(--accent-primary)] focus:outline-none"
             >
               {INTERVAL_OPTIONS.map((opt) => (
                 <option key={opt} value={opt}>
@@ -501,7 +501,7 @@ function NewQueueItemDialog({ onClose }: { onClose: () => void }) {
             <select
               value={instrument}
               onChange={(e) => setInstrument(e.target.value)}
-              className="w-full rounded-sm border border-bd-subtle bg-bg-base px-2.5 py-1.5 font-mono text-[12px] uppercase text-text-primary focus:border-[var(--accent-primary)] focus:outline-none"
+              className="w-full rounded-sm border border-bd-subtle bg-bg-base px-2.5 py-1.5 font-mono text-[14px] uppercase text-text-primary focus:border-[var(--accent-primary)] focus:outline-none"
             >
               {SUPPORTED_SYMBOLS.map((s) => (
                 <option key={s} value={s}>
@@ -517,7 +517,7 @@ function NewQueueItemDialog({ onClose }: { onClose: () => void }) {
               max={64}
               value={iterBudget}
               onChange={(e) => setIterBudget(Number(e.target.value))}
-              className="w-full rounded-sm border border-bd-subtle bg-bg-base px-2.5 py-1.5 font-mono text-[12px] text-text-primary focus:border-[var(--accent-primary)] focus:outline-none"
+              className="w-full rounded-sm border border-bd-subtle bg-bg-base px-2.5 py-1.5 font-mono text-[14px] text-text-primary focus:border-[var(--accent-primary)] focus:outline-none"
             />
           </Field>
           <Field label="Priority (1..1000, lower = sooner)">
@@ -527,12 +527,12 @@ function NewQueueItemDialog({ onClose }: { onClose: () => void }) {
               max={1000}
               value={priority}
               onChange={(e) => setPriority(Number(e.target.value))}
-              className="w-full rounded-sm border border-bd-subtle bg-bg-base px-2.5 py-1.5 font-mono text-[12px] text-text-primary focus:border-[var(--accent-primary)] focus:outline-none"
+              className="w-full rounded-sm border border-bd-subtle bg-bg-base px-2.5 py-1.5 font-mono text-[14px] text-text-primary focus:border-[var(--accent-primary)] focus:outline-none"
             />
           </Field>
           <Field label="Gates">
             <div className="flex flex-col gap-1.5 pt-1">
-              <label className="flex cursor-pointer items-center gap-2 text-[12px] text-text-secondary">
+              <label className="flex cursor-pointer items-center gap-2 text-[14px] text-text-secondary">
                 <input
                   type="checkbox"
                   checked={earlyStopOnNoEdge}
@@ -540,7 +540,7 @@ function NewQueueItemDialog({ onClose }: { onClose: () => void }) {
                 />
                 Early-stop on NO_EDGE
               </label>
-              <label className="flex cursor-pointer items-center gap-2 text-[12px] text-text-secondary">
+              <label className="flex cursor-pointer items-center gap-2 text-[14px] text-text-secondary">
                 <input
                   type="checkbox"
                   checked={requireWalkForward}
@@ -557,7 +557,7 @@ function NewQueueItemDialog({ onClose }: { onClose: () => void }) {
             onChange={(e) => setHypothesis(e.target.value)}
             rows={2}
             placeholder="e.g. Loosening longRsiMin from 58 → 50..56 should rescue iter 33 boundary case"
-            className="w-full rounded-sm border border-bd-subtle bg-bg-base px-2.5 py-1.5 text-[12px] text-text-primary placeholder:text-text-muted focus:border-[var(--accent-primary)] focus:outline-none"
+            className="w-full rounded-sm border border-bd-subtle bg-bg-base px-2.5 py-1.5 text-[14px] text-text-primary placeholder:text-text-muted focus:border-[var(--accent-primary)] focus:outline-none"
           />
         </Field>
         <Field label="Sweep config (JSON)">
@@ -566,14 +566,14 @@ function NewQueueItemDialog({ onClose }: { onClose: () => void }) {
             onChange={(e) => setSweepConfigText(e.target.value)}
             rows={6}
             spellCheck={false}
-            className="w-full rounded-sm border border-bd-subtle bg-bg-base px-2.5 py-1.5 font-mono text-[11px] text-text-primary placeholder:text-text-muted focus:border-[var(--accent-primary)] focus:outline-none"
+            className="w-full rounded-sm border border-bd-subtle bg-bg-base px-2.5 py-1.5 font-mono text-[13px] text-text-primary placeholder:text-text-muted focus:border-[var(--accent-primary)] focus:outline-none"
           />
         </Field>
         <DialogFooter>
           <button
             type="button"
             onClick={onClose}
-            className="rounded-sm border border-bd-subtle bg-bg-surface px-3 py-1.5 text-[12px] text-text-secondary hover:bg-bg-hover"
+            className="rounded-sm border border-bd-subtle bg-bg-surface px-3 py-1.5 text-[14px] text-text-secondary hover:bg-bg-hover"
           >
             Cancel
           </button>
@@ -581,7 +581,7 @@ function NewQueueItemDialog({ onClose }: { onClose: () => void }) {
             type="button"
             onClick={submit}
             disabled={create.isPending}
-            className="hover:bg-[var(--accent-primary)]/90 inline-flex items-center gap-1.5 rounded-sm bg-[var(--accent-primary)] px-3 py-1.5 text-[12px] font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
+            className="hover:bg-[var(--accent-primary)]/90 inline-flex items-center gap-1.5 rounded-sm bg-[var(--accent-primary)] px-3 py-1.5 text-[14px] font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
           >
             {create.isPending && <Loader2 size={11} className="animate-spin" />}
             Queue
@@ -595,7 +595,7 @@ function NewQueueItemDialog({ onClose }: { onClose: () => void }) {
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <label className="mb-1.5 block text-[10px] font-semibold uppercase tracking-wider text-text-secondary">
+      <label className="mb-1.5 block text-[12px] font-semibold uppercase tracking-wider text-text-secondary">
         {label}
       </label>
       {children}
@@ -612,7 +612,7 @@ function Th({
 }) {
   return (
     <th
-      className="px-2.5 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-text-muted"
+      className="px-2.5 py-1.5 text-[12px] font-semibold uppercase tracking-wider text-text-muted"
       style={{ textAlign: align }}
     >
       {children}

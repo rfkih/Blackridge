@@ -83,7 +83,7 @@ export default function LeaderboardPage() {
         description="The best approved strategies ranked by risk-adjusted backtest performance. One-click deploy any of them onto your account — the winning parameters come along for the ride."
         actions={
           <div className="flex items-center gap-2">
-            <span className="font-mono text-[10px] uppercase tracking-wider text-[var(--text-muted)]">
+            <span className="font-mono text-[12px] uppercase tracking-wider text-[var(--text-muted)]">
               Show
             </span>
             <Select value={String(limit)} onValueChange={(v) => setLimit(Number(v))}>
@@ -102,7 +102,7 @@ export default function LeaderboardPage() {
         }
       />
 
-      <p className="-mt-2 text-[12px] text-[var(--text-muted)]">
+      <p className="-mt-2 text-[14px] text-[var(--text-muted)]">
         The funnel: <span className="text-[var(--text-secondary)]">Conviction</span> = deployable ·{' '}
         <span className="text-[var(--text-secondary)]">Backtest &amp; Papers</span> = candidates you
         can submit for approval.

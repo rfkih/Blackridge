@@ -171,23 +171,23 @@ const EqTooltip = ({
       className="rounded-md border px-3 py-2 text-left"
       style={{ background: CHART_COLORS.surface, borderColor: CHART_COLORS.axis, minWidth: 160 }}
     >
-      <p className="mb-1 font-mono text-[10px]" style={{ color: CHART_COLORS.neutral }}>
+      <p className="mb-1 font-mono text-[12px]" style={{ color: CHART_COLORS.neutral }}>
         {fmtDate(d.t)}
       </p>
       {d.is !== null && (
-        <p className="font-mono text-[12px] font-semibold tabular-nums" style={{ color: CHART_COLORS.profit }}>
+        <p className="font-mono text-[14px] font-semibold tabular-nums" style={{ color: CHART_COLORS.profit }}>
           IS: {d.is.toFixed(2)}{' '}
-          <span className="font-normal text-[10px]">({(d.is - 100).toFixed(2)}%)</span>
+          <span className="font-normal text-[12px]">({(d.is - 100).toFixed(2)}%)</span>
         </p>
       )}
       {d.wf !== null && (
-        <p className="font-mono text-[12px] font-semibold tabular-nums" style={{ color: CHART_COLORS.info }}>
+        <p className="font-mono text-[14px] font-semibold tabular-nums" style={{ color: CHART_COLORS.info }}>
           WF: {d.wf.toFixed(2)}{' '}
-          <span className="font-normal text-[10px]">({(d.wf - 100).toFixed(2)}%)</span>
+          <span className="font-normal text-[12px]">({(d.wf - 100).toFixed(2)}%)</span>
         </p>
       )}
       {d.regime && (
-        <p className="mt-0.5 font-mono text-[10px]" style={{ color: regimeSwatch(d.regime) }}>
+        <p className="mt-0.5 font-mono text-[12px]" style={{ color: regimeSwatch(d.regime) }}>
           {fmtRegime(d.regime)}
         </p>
       )}
@@ -233,7 +233,7 @@ function TogglePill({
       onClick={onClick}
       className="flex items-center gap-1 rounded px-2 py-0.5 transition-colors"
       style={{
-        fontSize: 10,
+        fontSize: 12,
         fontWeight: 600,
         letterSpacing: '0.04em',
         background: active ? `${activeColor}1e` : 'transparent',
@@ -319,7 +319,7 @@ export function PaperEquityCurveChart({
 
   if (!data.length) {
     return (
-      <div className="flex items-center justify-center text-[12px] text-text-muted" style={{ height }}>
+      <div className="flex items-center justify-center text-[14px] text-text-muted" style={{ height }}>
         No equity data available.
       </div>
     );
@@ -341,13 +341,13 @@ export function PaperEquityCurveChart({
             ? regimeLegendLabels.map((r) => (
                 <span key={r} className="flex items-center gap-1">
                   <span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: 2, background: regimeSwatch(r), flexShrink: 0 }} />
-                  <span className="font-mono text-[10px]" style={{ color: CHART_COLORS.neutral }}>{fmtRegime(r)}</span>
+                  <span className="font-mono text-[12px]" style={{ color: CHART_COLORS.neutral }}>{fmtRegime(r)}</span>
                 </span>
               ))
             : (Object.keys(ZONE_LEGEND) as ZoneType[]).map((type) => (
                 <span key={type} className="flex items-center gap-1">
                   <span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: 2, background: ZONE_LEGEND[type].swatch, flexShrink: 0 }} />
-                  <span className="font-mono text-[10px]" style={{ color: CHART_COLORS.neutral }}>{ZONE_LEGEND[type].label}</span>
+                  <span className="font-mono text-[12px]" style={{ color: CHART_COLORS.neutral }}>{ZONE_LEGEND[type].label}</span>
                 </span>
               ))
           }

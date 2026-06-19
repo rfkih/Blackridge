@@ -51,7 +51,7 @@ export function StrategyTopRunsDialog({
       <DialogContent className="max-w-2xl border-bd bg-bg-surface">
         <DialogHeader>
           <DialogTitle className="font-display text-[15px]">Top backtest results</DialogTitle>
-          <DialogDescription className="font-mono text-[12px]">
+          <DialogDescription className="font-mono text-[14px]">
             {strategy.strategyCode} · {strategy.symbol} · {strategy.interval}
           </DialogDescription>
         </DialogHeader>
@@ -60,21 +60,21 @@ export function StrategyTopRunsDialog({
           {isLoading && <LoadingRows />}
 
           {!isLoading && isError && (
-            <p className="py-6 text-center text-[12px] text-[var(--color-loss)]">
+            <p className="py-6 text-center text-[14px] text-[var(--color-loss)]">
               Could not load backtest history. Please try again.
             </p>
           )}
 
           {!isLoading && !isError && topRuns.length === 0 && (
             <div className="py-6 text-center">
-              <p className="text-[12px] text-text-secondary">
+              <p className="text-[14px] text-text-secondary">
                 No completed backtests covering 2+ years found for{' '}
                 <span className="font-mono text-text-primary">
                   {strategy.strategyCode} · {strategy.symbol} · {strategy.interval}
                 </span>
                 .
               </p>
-              <p className="mt-1 text-[11px] text-text-muted">
+              <p className="mt-1 text-[13px] text-text-muted">
                 Run a backtest with a start date of {cutoffLabel} or earlier to build the ranking.
               </p>
             </div>
@@ -88,7 +88,7 @@ export function StrategyTopRunsDialog({
                     <th
                       key={h}
                       className={cn(
-                        'pb-2 font-mono text-[10px] font-semibold uppercase tracking-wider text-text-muted',
+                        'pb-2 font-mono text-[12px] font-semibold uppercase tracking-wider text-text-muted',
                         h === 'ag90/yr' || h === 'Sharpe' || h === 'PF' || h === 'Max DD'
                           ? 'text-right'
                           : 'text-left',
@@ -177,24 +177,24 @@ function RunRow({
         className="cursor-pointer border-b border-[var(--border-subtle)]/50 transition-colors hover:bg-[var(--bg-hover)]"
         onClick={onToggle}
       >
-        <td className="py-3 pr-3 font-mono text-[11px] text-text-muted">#{rank}</td>
-        <td className="py-3 pr-4 font-mono text-[11px] text-text-secondary">{periodLabel}</td>
+        <td className="py-3 pr-3 font-mono text-[13px] text-text-muted">#{rank}</td>
+        <td className="py-3 pr-4 font-mono text-[13px] text-text-secondary">{periodLabel}</td>
         <td
-          className="py-3 pr-3 text-right font-mono text-[11px] font-semibold tabular-nums"
+          className="py-3 pr-3 text-right font-mono text-[13px] font-semibold tabular-nums"
           style={{ color: ag90Color }}
         >
           {ag90 !== null ? `${ag90 >= 0 ? '+' : ''}${ag90.toFixed(1)}%` : '—'}
         </td>
-        <td className="py-3 pr-3 text-right font-mono text-[11px] tabular-nums text-text-secondary">
+        <td className="py-3 pr-3 text-right font-mono text-[13px] tabular-nums text-text-secondary">
           {sharpe !== null ? sharpe.toFixed(2) : '—'}
         </td>
-        <td className="py-3 pr-3 text-right font-mono text-[11px] tabular-nums text-text-secondary">
+        <td className="py-3 pr-3 text-right font-mono text-[13px] tabular-nums text-text-secondary">
           {pf !== null ? pf.toFixed(2) : '—'}
         </td>
-        <td className="py-3 pr-3 text-right font-mono text-[11px] tabular-nums text-text-secondary">
+        <td className="py-3 pr-3 text-right font-mono text-[13px] tabular-nums text-text-secondary">
           {maxDD !== null ? `${maxDD.toFixed(0)}%` : '—'}
         </td>
-        <td className="py-3 pr-3 font-mono text-[11px] text-text-muted">
+        <td className="py-3 pr-3 font-mono text-[13px] text-text-muted">
           {overrideCount > 0
             ? `${overrideCount} override${overrideCount !== 1 ? 's' : ''}`
             : 'Defaults'}
@@ -218,7 +218,7 @@ function ParamDetail({ overrides }: { overrides: Record<string, unknown> }) {
   const entries = Object.entries(overrides);
   if (entries.length === 0) {
     return (
-      <div className="rounded-md bg-[var(--bg-base)] px-4 py-3 text-[11px] text-text-muted">
+      <div className="rounded-md bg-[var(--bg-base)] px-4 py-3 text-[13px] text-text-muted">
         Default parameters — no overrides applied.
       </div>
     );
@@ -228,8 +228,8 @@ function ParamDetail({ overrides }: { overrides: Record<string, unknown> }) {
       <div className="grid grid-cols-2 gap-x-8 gap-y-1.5">
         {entries.map(([key, value]) => (
           <div key={key} className="flex items-center justify-between gap-4">
-            <span className="font-mono text-[11px] text-text-muted">{key}</span>
-            <span className="font-mono text-[11px] tabular-nums text-text-primary">
+            <span className="font-mono text-[13px] text-text-muted">{key}</span>
+            <span className="font-mono text-[13px] tabular-nums text-text-primary">
               {String(value)}
             </span>
           </div>

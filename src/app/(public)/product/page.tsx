@@ -265,7 +265,7 @@ function AccountTypes() {
             <article key={a.tag}>
               <div
                 className="qp-disc-num"
-                style={{ fontSize: 12, letterSpacing: '0.06em', textTransform: 'uppercase' }}
+                style={{ fontSize: 14, letterSpacing: '0.06em', textTransform: 'uppercase' }}
               >
                 {a.tag}
               </div>
@@ -343,7 +343,7 @@ function Signals() {
               <div
                 style={{
                   fontFamily: 'var(--font-mono)',
-                  fontSize: 11,
+                  fontSize: 13,
                   letterSpacing: '0.06em',
                   textTransform: 'uppercase',
                   color: 'var(--qp-ink-muted)',
@@ -385,14 +385,14 @@ function StrategyLibrary() {
         <div className="qp-disc-grid">
           {STRATEGIES.map((s) => (
             <article key={s.code}>
-              <div className="qp-disc-num" style={{ fontFamily: 'var(--font-mono)', fontSize: 14 }}>
+              <div className="qp-disc-num" style={{ fontFamily: 'var(--font-mono)', fontSize: 15 }}>
                 {s.code}
               </div>
               <h3 style={{ fontSize: 18 }}>{s.name}</h3>
               <div
                 style={{
                   fontFamily: 'var(--font-mono)',
-                  fontSize: 11,
+                  fontSize: 13,
                   letterSpacing: '0.04em',
                   textTransform: 'uppercase',
                   color: 'var(--qp-ink-muted)',

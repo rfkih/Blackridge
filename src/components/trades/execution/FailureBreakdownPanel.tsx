@@ -30,7 +30,7 @@ interface Props {
 function Stat({ label, value, tone }: { label: string; value: string; tone?: string }) {
   return (
     <div className="mm-card" style={{ flex: 1, padding: '9px 12px' }}>
-      <div className="mm-kicker" style={{ fontSize: 10 }}>{label}</div>
+      <div className="mm-kicker" style={{ fontSize: 12 }}>{label}</div>
       <div className="font-num" style={{ fontSize: 18, color: tone ?? 'var(--mm-ink-1)' }}>{value}</div>
     </div>
   );
@@ -55,7 +55,7 @@ export function FailureBreakdownPanel({ summary, isLoading, activeCategory, onSe
       <div className="mm-card" style={{ padding: 12 }}>
         <div className="mm-kicker" style={{ marginBottom: 9 }}>Why trades failed · click to filter</div>
         {summary.byCategory.length === 0 ? (
-          <div style={{ color: 'var(--mm-ink-3)', fontSize: 13 }}>No failures in this range 🎉</div>
+          <div style={{ color: 'var(--mm-ink-3)', fontSize: 14 }}>No failures in this range 🎉</div>
         ) : (
           <div className="flex flex-col gap-2">
             {summary.byCategory.map((c) => {
@@ -69,7 +69,7 @@ export function FailureBreakdownPanel({ summary, isLoading, activeCategory, onSe
                   className="flex items-center gap-2 text-left"
                   style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: 0 }}
                 >
-                  <span style={{ width: 132, color: 'var(--mm-ink-1)', fontSize: 12 }}>
+                  <span style={{ width: 132, color: 'var(--mm-ink-1)', fontSize: 14 }}>
                     {CATEGORY_LABEL[c.category]}
                   </span>
                   <span style={{ flex: 1, height: 13, background: 'var(--mm-hair)', borderRadius: 3, position: 'relative' }}>
@@ -80,7 +80,7 @@ export function FailureBreakdownPanel({ summary, isLoading, activeCategory, onSe
                       outline: active ? '1.5px solid var(--mm-ink-2)' : 'none', outlineOffset: 1,
                     }} />
                   </span>
-                  <span className="font-num" style={{ width: 70, textAlign: 'right', color: 'var(--mm-ink-2)', fontSize: 12 }}>
+                  <span className="font-num" style={{ width: 70, textAlign: 'right', color: 'var(--mm-ink-2)', fontSize: 14 }}>
                     {c.count} · {Math.round(c.pct)}%
                   </span>
                 </button>

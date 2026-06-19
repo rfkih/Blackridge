@@ -50,7 +50,7 @@ function StackTooltip({
       className="rounded-md border border-[var(--border-default)] px-3 py-2 text-left"
       style={{ background: 'var(--bg-elevated)', minWidth: 140 }}
     >
-      <p className="mb-1 font-mono text-[10px] text-[var(--text-muted)]">{formatDate(d.time)}</p>
+      <p className="mb-1 font-mono text-[12px] text-[var(--text-muted)]">{formatDate(d.time)}</p>
       <p className="font-display text-sm font-semibold tabular-nums text-[var(--text-primary)]">
         {d.stackMultiple.toFixed(3)}×
       </p>

@@ -24,7 +24,7 @@ export const PriceCell = memo(function PriceCell({
   if (value == null || !Number.isFinite(value)) {
     return (
       <span
-        className={cn('font-mono text-[13px] tabular-nums text-[var(--text-muted)]', className)}
+        className={cn('font-mono text-[14px] tabular-nums text-[var(--text-muted)]', className)}
       >
         —
       </span>
@@ -32,7 +32,7 @@ export const PriceCell = memo(function PriceCell({
   }
   return (
     <span
-      className={cn('font-mono text-[13px] tabular-nums text-[var(--text-primary)]', className)}
+      className={cn('font-mono text-[14px] tabular-nums text-[var(--text-primary)]', className)}
     >
       {formatPrice(value, decimals)}
       {symbol && <span className="ml-1 text-[var(--text-muted)]">{symbol}</span>}

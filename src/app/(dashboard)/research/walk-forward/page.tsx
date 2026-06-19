@@ -74,7 +74,7 @@ export default function WalkForwardPage() {
           type="button"
           onClick={() => query.refetch()}
           className="mm-pill"
-          style={{ padding: '8px 12px', fontSize: 12 }}
+          style={{ padding: '8px 12px', fontSize: 14 }}
           aria-label="Refresh walk-forward runs"
         >
           <RefreshCcw size={13} strokeWidth={1.7} />
@@ -83,7 +83,7 @@ export default function WalkForwardPage() {
       </header>
 
       <div className="flex flex-wrap items-center gap-3 rounded-xl border border-bd-subtle bg-bg-surface px-3 py-2">
-        <span className="text-[11px] uppercase tracking-widest text-text-muted">Verdict</span>
+        <span className="text-[13px] uppercase tracking-widest text-text-muted">Verdict</span>
         {VERDICT_FILTERS.map((f) => {
           const active = verdict === f.value;
           return (
@@ -94,7 +94,7 @@ export default function WalkForwardPage() {
                 setVerdict(f.value);
                 setPage(0);
               }}
-              className="rounded-sm px-2 py-1 text-[12px] transition-colors"
+              className="rounded-sm px-2 py-1 text-[14px] transition-colors"
               style={{
                 background: active ? 'var(--bg-hover)' : 'transparent',
                 color: active ? 'var(--text-primary)' : 'var(--text-secondary)',
@@ -107,8 +107,8 @@ export default function WalkForwardPage() {
           );
         })}
         <span className="mx-2 h-4 w-px bg-bd-subtle" />
-        <label className="flex items-center gap-1.5 text-[12px] text-text-secondary">
-          <span className="text-[11px] uppercase tracking-widest text-text-muted">Strategy</span>
+        <label className="flex items-center gap-1.5 text-[14px] text-text-secondary">
+          <span className="text-[13px] uppercase tracking-widest text-text-muted">Strategy</span>
           <input
             type="text"
             value={strategyCode}
@@ -117,10 +117,10 @@ export default function WalkForwardPage() {
               setStrategyCode(e.target.value);
               setPage(0);
             }}
-            className="rounded-sm border border-bd-subtle bg-bg-base px-2 py-1 font-mono text-[12px] text-text-primary"
+            className="rounded-sm border border-bd-subtle bg-bg-base px-2 py-1 font-mono text-[14px] text-text-primary"
           />
         </label>
-        <span className="ml-auto font-mono text-[10px] uppercase tracking-widest text-text-muted">
+        <span className="ml-auto font-mono text-[12px] uppercase tracking-widest text-text-muted">
           {totalElements} {totalElements === 1 ? 'run' : 'runs'}
         </span>
       </div>
@@ -148,11 +148,11 @@ export default function WalkForwardPage() {
             onClick={() => setPage((p) => Math.max(0, p - 1))}
             disabled={page <= 0}
             className="mm-pill disabled:cursor-not-allowed disabled:opacity-50"
-            style={{ padding: '6px 10px', fontSize: 12 }}
+            style={{ padding: '6px 10px', fontSize: 14 }}
           >
             Prev
           </button>
-          <span className="font-mono text-[11px] text-text-muted">
+          <span className="font-mono text-[13px] text-text-muted">
             Page {page + 1} / {totalPages}
           </span>
           <button
@@ -160,14 +160,14 @@ export default function WalkForwardPage() {
             onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
             disabled={page >= totalPages - 1}
             className="mm-pill disabled:cursor-not-allowed disabled:opacity-50"
-            style={{ padding: '6px 10px', fontSize: 12 }}
+            style={{ padding: '6px 10px', fontSize: 14 }}
           >
             Next
           </button>
         </div>
       )}
 
-      <p className="text-[11px] text-text-muted">
+      <p className="text-[13px] text-text-muted">
         Triggering a new walk-forward from the dashboard is intentionally out of scope — runs take
         up to ~3h synchronous. Use <code className="font-mono">POST /walk-forward</code> on the
         orchestrator (see CLAUDE.md → Research operations) or wait for the autonomous loop.
@@ -207,7 +207,7 @@ function WalkForwardRow({ run }: { run: WalkForwardSummary }) {
           <Icon size={13} strokeWidth={1.75} />
         </span>
         <span
-          className="font-mono text-[11px] uppercase tracking-widest"
+          className="font-mono text-[13px] uppercase tracking-widest"
           style={{ color: meta.fg }}
         >
           {run.stabilityVerdict.replace(/_/g, ' ')}
@@ -215,14 +215,14 @@ function WalkForwardRow({ run }: { run: WalkForwardSummary }) {
         {run.stabilityVerdict === 'ROBUST' && (
           <ReadyToPromoteBadge strategyCode={run.strategyCode} />
         )}
-        <span className="font-mono text-[12px] text-text-primary">{run.strategyCode}</span>
-        <span className="font-mono text-[11px] text-text-secondary">
+        <span className="font-mono text-[14px] text-text-primary">{run.strategyCode}</span>
+        <span className="font-mono text-[13px] text-text-secondary">
           {run.instrument} · {run.intervalName}
         </span>
-        <span className="font-mono text-[10px] text-text-muted">
+        <span className="font-mono text-[12px] text-text-muted">
           {run.nFolds} folds · {run.trainMonths}m train / {run.testMonths}m test
         </span>
-        <span className="ml-auto font-mono text-[10px] text-text-muted">
+        <span className="ml-auto font-mono text-[12px] text-text-muted">
           {ts ? formatDate(ts) : '—'}
         </span>
       </div>
@@ -246,7 +246,7 @@ function WalkForwardRow({ run }: { run: WalkForwardSummary }) {
       </div>
 
       {run.motivatingIterationId && (
-        <div className="font-mono text-[10px] text-text-muted">
+        <div className="font-mono text-[12px] text-text-muted">
           motivating iter: {run.motivatingIterationId}
         </div>
       )}
@@ -259,7 +259,7 @@ function ReadyToPromoteBadge({ strategyCode }: { strategyCode: string }) {
     <Link
       href={`/research#promote-${encodeURIComponent(strategyCode)}`}
       title="Walk-forward ROBUST. Opens the /research promotion panel pre-targeted at this strategy."
-      className="inline-flex items-center gap-1 rounded-sm px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-widest transition-opacity hover:opacity-80"
+      className="inline-flex items-center gap-1 rounded-sm px-2 py-0.5 font-mono text-[12px] font-semibold uppercase tracking-widest transition-opacity hover:opacity-80"
       style={{ background: 'rgba(22,179,100,0.15)', color: 'var(--color-profit)' }}
     >
       <Sparkles size={10} strokeWidth={2} />
@@ -271,10 +271,10 @@ function ReadyToPromoteBadge({ strategyCode }: { strategyCode: string }) {
 function Metric({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex flex-col">
-      <span className="font-mono text-[9px] uppercase tracking-widest text-text-muted">
+      <span className="font-mono text-[12px] uppercase tracking-widest text-text-muted">
         {label}
       </span>
-      <span className="font-mono text-[12px] tabular-nums text-text-primary">{value}</span>
+      <span className="font-mono text-[14px] tabular-nums text-text-primary">{value}</span>
     </div>
   );
 }

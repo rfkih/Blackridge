@@ -147,7 +147,7 @@ export function OnboardingPanel() {
           </h2>
         </div>
         <div className="flex items-center gap-3">
-          <span className="font-mono text-[10px] uppercase tracking-widest text-text-muted">
+          <span className="font-mono text-[12px] uppercase tracking-widest text-text-muted">
             {completed}/{steps.length} complete
           </span>
           <button
@@ -222,20 +222,20 @@ function OnboardingStep({ step, isFocus }: { step: Step; isFocus: boolean }) {
 
       <div className="min-w-0 flex-1">
         <p
-          className={`text-[12px] font-semibold ${
+          className={`text-[14px] font-semibold ${
             step.done ? 'text-text-secondary line-through' : 'text-text-primary'
           }`}
         >
           {step.title}
         </p>
-        <p className="text-[11px] text-text-muted">{step.blurb}</p>
+        <p className="text-[13px] text-text-muted">{step.blurb}</p>
       </div>
 
       {!step.done && step.cta && !dim && (
         'href' in step.cta ? (
           <Link
             href={step.cta.href}
-            className={`inline-flex shrink-0 items-center gap-1 rounded-sm border px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.14em] transition-colors ${
+            className={`inline-flex shrink-0 items-center gap-1 rounded-sm border px-2.5 py-1 font-mono text-[12px] uppercase tracking-[0.14em] transition-colors ${
               isFocus
                 ? 'border-[var(--accent-primary)] bg-[var(--accent-primary)] text-[var(--text-inverse)] hover:opacity-90'
                 : 'border-bd-subtle bg-bg-base text-text-primary hover:bg-bg-hover'
@@ -248,7 +248,7 @@ function OnboardingStep({ step, isFocus }: { step: Step; isFocus: boolean }) {
           <button
             type="button"
             onClick={step.cta.onClick}
-            className={`inline-flex shrink-0 items-center gap-1 rounded-sm border px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.14em] transition-colors ${
+            className={`inline-flex shrink-0 items-center gap-1 rounded-sm border px-2.5 py-1 font-mono text-[12px] uppercase tracking-[0.14em] transition-colors ${
               isFocus
                 ? 'border-[var(--accent-primary)] bg-[var(--accent-primary)] text-[var(--text-inverse)] hover:opacity-90'
                 : 'border-bd-subtle bg-bg-base text-text-primary hover:bg-bg-hover'

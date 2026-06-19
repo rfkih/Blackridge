@@ -57,7 +57,7 @@ export function KillSwitchBanner() {
       </span>
       <div className="flex min-w-0 flex-1 flex-col">
         <span
-          className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em]"
+          className="font-mono text-[12px] font-semibold uppercase tracking-[0.14em]"
           style={{ color: 'var(--color-loss)' }}
         >
           Kill-switch tripped · {tripped.length}

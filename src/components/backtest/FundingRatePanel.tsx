@@ -34,14 +34,14 @@ export function FundingRatePanel({
   return (
     <section className="overflow-hidden rounded-xl border border-bd-subtle bg-bg-surface">
       <div className="flex items-center justify-between border-b border-bd-subtle px-4 py-3">
-        <h3 className="font-display text-[13px] font-semibold text-text-primary">
+        <h3 className="font-display text-[14px] font-semibold text-text-primary">
           Funding rate
-          <span className="ml-2 font-mono text-[11px] font-normal text-text-muted">
+          <span className="ml-2 font-mono text-[13px] font-normal text-text-muted">
             {symbol} · realized over run window
           </span>
         </h3>
         {configuredBpsPer8h != null && (
-          <span className="font-mono text-[10px] uppercase tracking-wider text-text-muted">
+          <span className="font-mono text-[12px] uppercase tracking-wider text-text-muted">
             run config:{' '}
             <span className="text-text-secondary">
               {configuredBpsPer8h.toFixed(2)} bps/8h
@@ -53,16 +53,16 @@ export function FundingRatePanel({
       {query.isLoading ? (
         <div className="flex items-center gap-2 px-4 py-6 text-text-secondary">
           <Loader2 size={14} className="animate-spin" />
-          <span className="text-[12px]">Loading funding history…</span>
+          <span className="text-[14px]">Loading funding history…</span>
         </div>
       ) : query.isError || !query.data ? (
-        <div className="px-4 py-6 text-[12px] text-text-secondary">
+        <div className="px-4 py-6 text-[14px] text-text-secondary">
           Could not load funding history.
         </div>
       ) : query.data.count === 0 ? (
-        <div className="px-4 py-6 text-[12px] text-text-secondary">
+        <div className="px-4 py-6 text-[14px] text-text-secondary">
           No funding events recorded for {symbol} in this window.
-          <div className="mt-1 text-[11px] text-text-muted">
+          <div className="mt-1 text-[13px] text-text-muted">
             Spot symbols and pre-Phase-4 history return empty here.
           </div>
         </div>
@@ -118,7 +118,7 @@ function FundingBody({ data }: { data: FundingRateSummary }) {
         />
       </div>
 
-      <div className="text-[11px] text-text-muted">
+      <div className="text-[13px] text-text-muted">
         Funding settles every 8h on Binance perpetuals. Longs pay shorts when
         the rate is positive; shorts pay longs when negative. Annualized figure
         is mean × 3 settlements/day × 365, informational only.
@@ -148,18 +148,18 @@ function Stat({
         : 'var(--text-primary)';
   return (
     <div className="flex flex-col gap-0.5">
-      <span className="font-mono text-[10px] uppercase tracking-widest text-text-muted">
+      <span className="font-mono text-[12px] uppercase tracking-widest text-text-muted">
         {label}
       </span>
       <span
-        className="inline-flex items-center gap-1 font-mono tabular-nums text-[13px]"
+        className="inline-flex items-center gap-1 font-mono tabular-nums text-[14px]"
         style={{ color }}
       >
         {icon}
         {value}
       </span>
       {sub && (
-        <span className="font-mono text-[10px] text-text-muted">{sub}</span>
+        <span className="font-mono text-[12px] text-text-muted">{sub}</span>
       )}
     </div>
   );

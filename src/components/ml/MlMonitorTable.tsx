@@ -139,7 +139,7 @@ export function MlMonitorTable() {
                   <div title="Latest signal bar (data recency)">{fmtRelative(r.lastFireTs)}</div>
                   {r.lastProducedAt && (
                     <div
-                      className="text-[10px] text-text-muted"
+                      className="text-[12px] text-text-muted"
                       title="When the inference worker last wrote this signal (pipeline liveness)"
                     >
                       written {fmtRelative(r.lastProducedAt)}

@@ -91,7 +91,7 @@ export function ParamField({
           readOnly={readOnly}
           name={name}
         />
-        <div className="flex items-center gap-2 font-mono text-[10px] text-[var(--text-muted)]">
+        <div className="flex items-center gap-2 font-mono text-[12px] text-[var(--text-muted)]">
           {savedDiffersFromDefault && (
             <span className="text-[var(--color-info)]">
               saved: {formatValue(effectiveSaved, meta)}
@@ -323,7 +323,7 @@ function NumberInput({
         disableDown={disableDown}
       />
       {meta.unit && (
-        <span className="w-10 text-left text-[10px] text-[var(--text-muted)]">{meta.unit}</span>
+        <span className="w-10 text-left text-[12px] text-[var(--text-muted)]">{meta.unit}</span>
       )}
     </div>
   );
@@ -385,7 +385,7 @@ function SliderWithNumber({
         )}
       />
       {meta.unit && (
-        <span className="w-6 text-left text-[10px] text-[var(--text-muted)]">{meta.unit}</span>
+        <span className="w-6 text-left text-[12px] text-[var(--text-muted)]">{meta.unit}</span>
       )}
     </div>
   );

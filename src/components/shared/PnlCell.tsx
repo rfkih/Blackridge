@@ -47,7 +47,7 @@ export const PnlCell = memo(function PnlCell({
   return (
     <span
       className={cn(
-        'num inline-block rounded-sm px-1 text-[13px]',
+        'num inline-block rounded-sm px-1 text-[14px]',
         flash === 'profit' && 'flash-profit',
         flash === 'loss' && 'flash-loss',
         className,

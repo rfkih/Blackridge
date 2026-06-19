@@ -193,7 +193,7 @@ export default function MonteCarloPage() {
                 background: 'var(--accent-subtle)',
                 color: 'var(--brand-500)',
                 padding: '3px 10px',
-                fontSize: 11,
+                fontSize: 13,
                 letterSpacing: '0.12em',
                 fontFamily: 'var(--font-mono)',
               }}
@@ -201,7 +201,7 @@ export default function MonteCarloPage() {
               {horizonForChip} TRADE HORIZON
             </span>
           </div>
-          <div style={{ color: 'var(--mm-ink-2)', fontSize: 13, marginTop: 4 }}>
+          <div style={{ color: 'var(--mm-ink-2)', fontSize: 14, marginTop: 4 }}>
             {result
               ? `Bootstrapped from ${result.tradesUsed} trades · ${formatMode(result.simulationMode)} · seed ${result.effectiveSeed}`
               : 'Bootstrap or shuffle trades from a completed backtest to project forward equity distributions.'}
@@ -271,7 +271,7 @@ export default function MonteCarloPage() {
             value={form.backtestRunId}
             onChange={(e) => updateField('backtestRunId', e.target.value)}
             className="mm-input"
-            style={{ padding: '9px 12px', fontSize: 13, cursor: 'pointer' }}
+            style={{ padding: '9px 12px', fontSize: 14, cursor: 'pointer' }}
           >
             <option value="" disabled>
               {runsQ.isLoading
@@ -296,7 +296,7 @@ export default function MonteCarloPage() {
               updateField('simulationMode', e.target.value as MonteCarloSimulationMode)
             }
             className="mm-input"
-            style={{ padding: '9px 12px', fontSize: 13, cursor: 'pointer' }}
+            style={{ padding: '9px 12px', fontSize: 14, cursor: 'pointer' }}
           >
             {SIM_MODES.map((m) => (
               <option key={m.value} value={m.value}>
@@ -366,7 +366,7 @@ export default function MonteCarloPage() {
               border: '1px solid rgba(255,122,122,0.4)',
               background: 'rgba(255,122,122,0.08)',
               color: 'var(--color-loss)',
-              fontSize: 12,
+              fontSize: 14,
             }}
           >
             <AlertCircle size={14} strokeWidth={1.75} /> {submitError}
@@ -411,7 +411,7 @@ function Results({ result }: { result: MonteCarloResult }) {
             style={{
               display: 'flex',
               gap: 14,
-              fontSize: 10,
+              fontSize: 12,
               color: 'var(--mm-ink-3)',
               letterSpacing: '0.1em',
               flexWrap: 'wrap',
@@ -504,7 +504,7 @@ function PercentileLedger({ result }: { result: MonteCarloResult }) {
             <span
               className="font-mono"
               style={{
-                fontSize: 10,
+                fontSize: 12,
                 letterSpacing: '0.1em',
                 color: 'var(--mm-ink-3)',
               }}
@@ -524,7 +524,7 @@ function PercentileLedger({ result }: { result: MonteCarloResult }) {
             <span
               style={{
                 fontFamily: 'var(--font-num)',
-                fontSize: 13,
+                fontSize: 14,
                 fontVariantNumeric: 'tabular-nums',
                 textAlign: 'right',
                 color:
@@ -608,7 +608,7 @@ function TerminalDistribution({ result }: { result: MonteCarloResult }) {
         style={{
           display: 'flex',
           justifyContent: 'space-between',
-          fontSize: 10,
+          fontSize: 12,
           color: 'var(--mm-ink-3)',
           letterSpacing: '0.1em',
           marginTop: 8,
@@ -651,7 +651,7 @@ function MiniStat({ label, value, color }: { label: string; value: string; color
     <div style={{ padding: '12px 14px', borderRadius: 10, background: 'var(--mm-surface-2)' }}>
       <div
         style={{
-          fontSize: 10,
+          fontSize: 12,
           color: 'var(--mm-ink-3)',
           textTransform: 'uppercase',
           letterSpacing: '0.1em',
@@ -799,9 +799,9 @@ function Field({
       <span className="mm-label">{label}</span>
       {children}
       {error ? (
-        <span style={{ fontSize: 11, color: 'var(--color-loss)' }}>{error}</span>
+        <span style={{ fontSize: 13, color: 'var(--color-loss)' }}>{error}</span>
       ) : hint ? (
-        <span style={{ fontSize: 11, color: 'var(--mm-ink-3)' }}>{hint}</span>
+        <span style={{ fontSize: 13, color: 'var(--mm-ink-3)' }}>{hint}</span>
       ) : null}
     </label>
   );
@@ -830,7 +830,7 @@ function MmNumber({
       min={min}
       max={max}
       className="mm-input"
-      style={{ padding: '9px 12px', fontSize: 13, fontFamily: 'var(--font-num)' }}
+      style={{ padding: '9px 12px', fontSize: 14, fontFamily: 'var(--font-num)' }}
     />
   );
 }
@@ -843,7 +843,7 @@ function RunningSkeleton() {
         <span
           className="font-mono"
           style={{
-            fontSize: 11,
+            fontSize: 13,
             letterSpacing: '0.12em',
             textTransform: 'uppercase',
             color: 'var(--mm-ink-2)',

@@ -55,17 +55,17 @@ export function IpWhitelistBanner() {
         aria-hidden="true"
       />
       <div className="flex min-w-0 flex-1 flex-col gap-1">
-        <p className="text-[12px] text-text-primary">
+        <p className="text-[14px] text-text-primary">
           <span className="font-semibold">Server IP changed.</span>{' '}
           Binance API keys whitelisted to the previous IP will reject orders.
           Update your whitelist to{' '}
-          <code className="rounded-sm bg-bg-base px-1.5 py-0.5 font-mono text-[11px] text-text-primary">
+          <code className="rounded-sm bg-bg-base px-1.5 py-0.5 font-mono text-[13px] text-text-primary">
             {data.currentIp}
           </code>
           {data.previousIp && (
             <>
               {' '}(was{' '}
-              <code className="rounded-sm bg-bg-base px-1.5 py-0.5 font-mono text-[11px] text-text-muted">
+              <code className="rounded-sm bg-bg-base px-1.5 py-0.5 font-mono text-[13px] text-text-muted">
                 {data.previousIp}
               </code>
               )
@@ -77,14 +77,14 @@ export function IpWhitelistBanner() {
           <button
             type="button"
             onClick={handleCopy}
-            className="inline-flex items-center gap-1 rounded-full border border-bd-subtle bg-bg-base px-2.5 py-1 text-[10px] text-text-primary transition-colors duration-fast hover:bg-bg-hover"
+            className="inline-flex items-center gap-1 rounded-full border border-bd-subtle bg-bg-base px-2.5 py-1 text-[12px] text-text-primary transition-colors duration-fast hover:bg-bg-hover"
           >
             <Copy size={10} strokeWidth={1.75} />
             Copy IP
           </button>
           <Link
             href="/settings"
-            className="inline-flex items-center rounded-full border border-bd-subtle bg-bg-base px-2.5 py-1 text-[10px] text-text-primary transition-colors duration-fast hover:bg-bg-hover"
+            className="inline-flex items-center rounded-full border border-bd-subtle bg-bg-base px-2.5 py-1 text-[12px] text-text-primary transition-colors duration-fast hover:bg-bg-hover"
           >
             Open broker settings
           </Link>

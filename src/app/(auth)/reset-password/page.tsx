@@ -25,7 +25,7 @@ type Values = z.infer<typeof schema>;
 
 const FIELD_LABEL_STYLE: React.CSSProperties = {
   display: 'block',
-  fontSize: 11,
+  fontSize: 13,
   fontWeight: 600,
   color: 'var(--text-secondary, #384151)',
   marginBottom: 6,
@@ -38,7 +38,7 @@ const FIELD_INPUT_STYLE: React.CSSProperties = {
   padding: '12px 14px',
   border: '1px solid var(--border-default, rgba(14,17,22,0.1))',
   borderRadius: 10,
-  fontSize: 14,
+  fontSize: 15,
   fontFamily: 'inherit',
   boxSizing: 'border-box',
   background: 'var(--bg-elevated, #FFFFFF)',
@@ -99,7 +99,7 @@ function ResetPasswordContent() {
         </h1>
         <p
           style={{
-            fontSize: 14,
+            fontSize: 15,
             color: 'var(--text-secondary, #384151)',
             margin: '0 0 24px',
             lineHeight: 1.5,
@@ -141,7 +141,7 @@ function ResetPasswordContent() {
                 <div
                   className="font-display"
                   style={{
-                    fontSize: 14,
+                    fontSize: 15,
                     fontWeight: 700,
                     color: 'var(--text-primary, #0E1116)',
                   }}
@@ -150,7 +150,7 @@ function ResetPasswordContent() {
                 </div>
                 <div
                   style={{
-                    fontSize: 12,
+                    fontSize: 14,
                     color: 'var(--text-secondary, #384151)',
                     marginTop: 2,
                   }}
@@ -160,7 +160,7 @@ function ResetPasswordContent() {
               </div>
             </div>
 
-            <p style={{ fontSize: 12, color: 'var(--text-secondary, #384151)', lineHeight: 1.5 }}>
+            <p style={{ fontSize: 14, color: 'var(--text-secondary, #384151)', lineHeight: 1.5 }}>
               The reset link is now spent and cannot be reused.
             </p>
 
@@ -173,7 +173,7 @@ function ResetPasswordContent() {
                 background: 'var(--text-primary, #0E1116)',
                 color: '#FFFFFF',
                 borderRadius: 12,
-                fontSize: 14,
+                fontSize: 15,
                 fontWeight: 700,
                 textDecoration: 'none',
                 display: 'inline-flex',
@@ -191,7 +191,7 @@ function ResetPasswordContent() {
               role="alert"
               style={{
                 padding: '12px 14px',
-                fontSize: 12,
+                fontSize: 14,
                 borderRadius: 10,
                 border: '1px solid rgba(229,72,77,0.4)',
                 background: 'rgba(229,72,77,0.08)',
@@ -248,7 +248,7 @@ function ResetPasswordContent() {
                     right: 12,
                     top: '50%',
                     transform: 'translateY(-50%)',
-                    fontSize: 12,
+                    fontSize: 14,
                     background: 'transparent',
                     border: 'none',
                     color: 'var(--text-muted, #6B7280)',
@@ -263,7 +263,7 @@ function ResetPasswordContent() {
                 </button>
               </div>
               {errors.newPassword && (
-                <p role="alert" style={{ marginTop: 6, fontSize: 11, color: 'var(--color-loss)' }}>
+                <p role="alert" style={{ marginTop: 6, fontSize: 13, color: 'var(--color-loss)' }}>
                   {errors.newPassword.message}
                 </p>
               )}
@@ -283,7 +283,7 @@ function ResetPasswordContent() {
                 style={FIELD_INPUT_STYLE}
               />
               {errors.confirmPassword && (
-                <p role="alert" style={{ marginTop: 6, fontSize: 11, color: 'var(--color-loss)' }}>
+                <p role="alert" style={{ marginTop: 6, fontSize: 13, color: 'var(--color-loss)' }}>
                   {errors.confirmPassword.message}
                 </p>
               )}
@@ -294,7 +294,7 @@ function ResetPasswordContent() {
                 role="alert"
                 style={{
                   padding: '10px 12px',
-                  fontSize: 12,
+                  fontSize: 14,
                   borderRadius: 10,
                   border: '1px solid rgba(229,72,77,0.4)',
                   background: 'rgba(229,72,77,0.08)',
@@ -317,7 +317,7 @@ function ResetPasswordContent() {
                 color: '#FFFFFF',
                 border: 'none',
                 borderRadius: 12,
-                fontSize: 14,
+                fontSize: 15,
                 fontWeight: 700,
                 cursor: isSubmitting ? 'not-allowed' : 'pointer',
                 fontFamily: 'inherit',
@@ -344,7 +344,7 @@ function ResetPasswordContent() {
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: 6,
-                fontSize: 12,
+                fontSize: 14,
                 fontWeight: 600,
                 color: 'var(--text-muted, #6B7280)',
                 textDecoration: 'none',

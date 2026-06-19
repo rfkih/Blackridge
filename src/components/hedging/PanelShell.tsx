@@ -16,13 +16,13 @@ export function PanelShell({ title, subtitle, headerRight, children }: PanelShel
       <div className="mb-4 flex items-start justify-between gap-4">
         <div>
           <div
-            className="text-[12px] font-semibold uppercase tracking-[0.08em]"
+            className="text-[14px] font-semibold uppercase tracking-[0.08em]"
             style={{ color: 'var(--text-muted)' }}
           >
             {title}
           </div>
           {subtitle && (
-            <div className="mt-1 text-[12px]" style={{ color: 'var(--text-muted)' }}>
+            <div className="mt-1 text-[14px]" style={{ color: 'var(--text-muted)' }}>
               {subtitle}
             </div>
           )}
@@ -44,7 +44,7 @@ export function PanelEmptyState({ message }: { message: string }) {
         border: '1px dashed var(--border-subtle)',
         borderRadius: 16,
         color: 'var(--text-muted)',
-        fontSize: 13,
+        fontSize: 14,
         minHeight: 180,
         display: 'grid',
         placeItems: 'center',

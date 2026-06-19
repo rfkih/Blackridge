@@ -87,16 +87,16 @@ export function PaperChapters({
     <div className="space-y-10">
       {paper.abstract && (
         <div id="abstract" className="rounded-sm border border-bd-subtle bg-bg-base p-4">
-          <p className="mb-2 font-mono text-[10px] font-semibold uppercase tracking-widest text-text-muted">
+          <p className="mb-2 font-mono text-[12px] font-semibold uppercase tracking-widest text-text-muted">
             Abstract
           </p>
-          <p className="text-[13px] italic leading-relaxed text-text-secondary">{paper.abstract}</p>
+          <p className="text-[14px] italic leading-relaxed text-text-secondary">{paper.abstract}</p>
           {meta.hypothesis && (
             <blockquote className="mt-3 border-l-2 border-bd-subtle pl-4">
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-text-muted">
+              <p className="text-[12px] font-semibold uppercase tracking-wider text-text-muted">
                 Hypothesis
               </p>
-              <p className="mt-1 text-[12px] italic leading-relaxed text-text-secondary">
+              <p className="mt-1 text-[14px] italic leading-relaxed text-text-secondary">
                 {meta.hypothesis}
               </p>
             </blockquote>
@@ -139,7 +139,7 @@ export function PaperChapters({
           </h2>
           <ol className="list-inside list-decimal space-y-2">
             {paper.citations.map((c) => (
-              <li key={c.key} className="text-[12px] leading-relaxed text-text-secondary">
+              <li key={c.key} className="text-[14px] leading-relaxed text-text-secondary">
                 {c.text}
               </li>
             ))}
@@ -162,7 +162,7 @@ function ChapterSection({ section }: { section: PaperSection }) {
         {section.chapter}. {section.title}
       </h2>
       {paragraphs.map((para, i) => (
-        <p key={i} className="text-[14px] leading-relaxed text-text-primary">
+        <p key={i} className="text-[15px] leading-relaxed text-text-primary">
           {para}
         </p>
       ))}
@@ -208,7 +208,7 @@ function ChartsBlock({
   return (
     <div className="mt-6 space-y-6">
       <div>
-        <p className="mb-1.5 text-center font-mono text-[11px] text-text-muted">
+        <p className="mb-1.5 text-center font-mono text-[13px] text-text-muted">
           {nextFig()} Normalised equity curve (base 100) · {meta.instrument} {meta.interval_name}
         </p>
         {chartLoading ? (
@@ -216,14 +216,14 @@ function ChartsBlock({
         ) : chartData?.equity_curve.length ? (
           <PaperEquityCurveChart curve={chartData.equity_curve} height={240} gradientId="ch-is" />
         ) : (
-          <div className="flex h-60 items-center justify-center text-[12px] text-text-muted">
+          <div className="flex h-60 items-center justify-center text-[14px] text-text-muted">
             {chartPlaceholder(false, chartError, !!chartData, 'No equity data.')}
           </div>
         )}
       </div>
 
       <div>
-        <p className="mb-1.5 text-center font-mono text-[11px] text-text-muted">
+        <p className="mb-1.5 text-center font-mono text-[13px] text-text-muted">
           {nextFig()} Monthly return heatmap (in-sample)
         </p>
         {chartLoading ? (
@@ -231,14 +231,14 @@ function ChartsBlock({
         ) : equityPoints.length >= 2 ? (
           <BacktestMonthlyReturns points={equityPoints} />
         ) : (
-          <div className="flex h-32 items-center justify-center text-[12px] text-text-muted">
+          <div className="flex h-32 items-center justify-center text-[14px] text-text-muted">
             {chartPlaceholder(false, chartError, !!chartData, 'Not enough data points.')}
           </div>
         )}
       </div>
 
       <div>
-        <p className="mb-1.5 text-center font-mono text-[11px] text-text-muted">
+        <p className="mb-1.5 text-center font-mono text-[13px] text-text-muted">
           {nextFig()} Per-trade P&amp;L (%) — chronological order
         </p>
         {chartLoading ? (
@@ -246,7 +246,7 @@ function ChartsBlock({
         ) : chartData?.trades.length ? (
           <PaperTradeHistogram trades={chartData.trades} height={200} />
         ) : (
-          <div className="flex h-48 items-center justify-center text-[12px] text-text-muted">
+          <div className="flex h-48 items-center justify-center text-[14px] text-text-muted">
             {chartPlaceholder(false, chartError, !!chartData, 'No trade data.')}
           </div>
         )}
@@ -256,7 +256,7 @@ function ChartsBlock({
         <Skeleton className="h-60 w-full" />
       ) : hasWf ? (
         <div>
-          <p className="mb-1.5 text-center font-mono text-[11px] text-text-muted">
+          <p className="mb-1.5 text-center font-mono text-[13px] text-text-muted">
             {nextFig()} In-sample equity (green) vs walk-forward out-of-sample (blue)
           </p>
           <PaperEquityCurveChart
@@ -303,7 +303,7 @@ function AdditionalInfo({
         onClick={() => setOpen((v) => !v)}
         className="flex w-full items-center justify-between rounded-sm border border-bd-subtle bg-bg-base px-4 py-3 text-left transition-colors hover:bg-bg-hover"
       >
-        <span className="font-mono text-[10px] font-semibold uppercase tracking-widest text-text-muted">
+        <span className="font-mono text-[12px] font-semibold uppercase tracking-widest text-text-muted">
           Additional Information
         </span>
         {open ? (
@@ -323,7 +323,7 @@ function AdditionalInfo({
             <AdditionalSection
               title={`Best Parameters · iteration #${best!.iteration_number ?? '—'}`}
             >
-              <table className="w-full text-[11px]">
+              <table className="w-full text-[13px]">
                 <tbody>
                   {Object.entries(best!.params).map(([k, v]) => (
                     <tr key={k} className="border-b border-bd-subtle last:border-0">
@@ -348,7 +348,7 @@ function AdditionalInfo({
             <AdditionalSection title="Robustness">
               {hasSlippage && (
                 <div className="mb-4">
-                  <p className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-text-muted">
+                  <p className="mb-1 text-[12px] font-semibold uppercase tracking-wider text-text-muted">
                     Slippage sensitivity
                   </p>
                   <ObjectTable data={paper.robustness.slippage_sensitivity} />
@@ -356,7 +356,7 @@ function AdditionalInfo({
               )}
               {hasRegime && (
                 <div>
-                  <p className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-text-muted">
+                  <p className="mb-1 text-[12px] font-semibold uppercase tracking-wider text-text-muted">
                     Regime breakdown
                   </p>
                   <ObjectTable data={paper.robustness.regime_breakdown} />
@@ -368,7 +368,7 @@ function AdditionalInfo({
           {(hasAuditNotes || hasJournal) && (
             <AdditionalSection title="Research Notes">
               {hasAuditNotes && (
-                <p className="whitespace-pre-line text-[12px] leading-relaxed text-text-secondary">
+                <p className="whitespace-pre-line text-[14px] leading-relaxed text-text-secondary">
                   {best!.quant_audit_notes}
                 </p>
               )}
@@ -376,14 +376,14 @@ function AdditionalInfo({
                 <div className="mt-3 space-y-3">
                   {paper.journal_entries.map((e) => (
                     <div key={e.journal_id} className="border-l-2 border-bd-subtle pl-3">
-                      <p className="text-[10px] font-semibold uppercase tracking-wider text-text-muted">
+                      <p className="text-[12px] font-semibold uppercase tracking-wider text-text-muted">
                         {e.entry_type}
                       </p>
                       {e.title && (
-                        <p className="text-[12px] font-semibold text-text-primary">{e.title}</p>
+                        <p className="text-[14px] font-semibold text-text-primary">{e.title}</p>
                       )}
                       {e.content && (
-                        <p className="mt-0.5 whitespace-pre-line text-[12px] leading-relaxed text-text-secondary">
+                        <p className="mt-0.5 whitespace-pre-line text-[14px] leading-relaxed text-text-secondary">
                           {e.content}
                         </p>
                       )}
@@ -402,7 +402,7 @@ function AdditionalInfo({
 function AdditionalSection({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div>
-      <p className="mb-2 font-mono text-[10px] font-semibold uppercase tracking-widest text-text-muted">
+      <p className="mb-2 font-mono text-[12px] font-semibold uppercase tracking-widest text-text-muted">
         {title}
       </p>
       {children}
@@ -453,13 +453,13 @@ function buildGateRows(gate: VerdictGate): GateRow[] {
 function GatesTable({ gate }: { gate: VerdictGate }) {
   const rows = buildGateRows(gate);
   return (
-    <table className="w-full text-[11px]">
+    <table className="w-full text-[13px]">
       <thead>
         <tr className="border-b border-bd-subtle">
           {['Gate', 'Value', 'Result'].map((h) => (
             <th
               key={h}
-              className="pb-1 text-left font-mono text-[10px] uppercase tracking-wider text-text-muted last:text-right"
+              className="pb-1 text-left font-mono text-[12px] uppercase tracking-wider text-text-muted last:text-right"
             >
               {h}
             </th>
@@ -496,13 +496,13 @@ function GatesTable({ gate }: { gate: VerdictGate }) {
 function TopIterTable({ rows }: { rows: TopIteration[] }) {
   return (
     <div className="overflow-x-auto">
-      <table className="w-full text-[11px]">
+      <table className="w-full text-[13px]">
         <thead>
           <tr className="border-b border-bd-subtle">
             {['#', 'CAGR', 'PF', 'DSR', 'DD', 'Trades', 'Verdict'].map((h) => (
               <th
                 key={h}
-                className="pb-1 text-right font-mono text-[10px] uppercase tracking-wider text-text-muted first:text-left"
+                className="pb-1 text-right font-mono text-[12px] uppercase tracking-wider text-text-muted first:text-left"
               >
                 {h}
               </th>
@@ -529,7 +529,7 @@ function TopIterTable({ rows }: { rows: TopIteration[] }) {
                 {r.trade_count ?? '—'}
               </td>
               <td
-                className="py-1 text-right font-mono text-[10px]"
+                className="py-1 text-right font-mono text-[12px]"
                 style={{
                   color: toneColor(
                     r.statistical_verdict === 'SIGNIFICANT_EDGE'
@@ -556,9 +556,9 @@ function TopIterTable({ rows }: { rows: TopIteration[] }) {
 
 function ObjectTable({ data }: { data: Record<string, unknown> }) {
   const entries = Object.entries(data);
-  if (!entries.length) return <p className="text-[11px] text-text-muted">No data.</p>;
+  if (!entries.length) return <p className="text-[13px] text-text-muted">No data.</p>;
   return (
-    <table className="w-full text-[11px]">
+    <table className="w-full text-[13px]">
       <tbody>
         {entries.map(([k, v]) => (
           <tr key={k} className="border-b border-bd-subtle last:border-0">

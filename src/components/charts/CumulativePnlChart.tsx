@@ -47,7 +47,7 @@ export function CumulativePnlChart({ data, height = 240 }: CumulativePnlChartPro
         className="rounded-md border border-[var(--border-default)] px-3 py-2 text-left"
         style={{ background: 'var(--bg-elevated)', minWidth: 160 }}
       >
-        <p className="mb-1 font-mono text-[10px] text-[var(--text-muted)]">{d.date}</p>
+        <p className="mb-1 font-mono text-[12px] text-[var(--text-muted)]">{d.date}</p>
         <p
           className="font-display text-sm font-semibold tabular-nums"
           style={{ color: cumUp ? CHART_COLORS.profit : CHART_COLORS.loss }}
@@ -55,7 +55,7 @@ export function CumulativePnlChart({ data, height = 240 }: CumulativePnlChartPro
           {formatCurrency(d.cumulative, { withSign: true })}
         </p>
         <p
-          className="mt-0.5 font-mono text-[11px] tabular-nums"
+          className="mt-0.5 font-mono text-[13px] tabular-nums"
           style={{ color: dayUp ? CHART_COLORS.profit : CHART_COLORS.loss }}
         >
           {formatCurrency(d.daily, { withSign: true })} today

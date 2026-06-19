@@ -78,7 +78,7 @@ export function SwitchToLiveDialog({
         <div className="space-y-1.5">
           <label
             htmlFor="live-confirm-input"
-            className="block font-mono text-[11px] font-semibold uppercase tracking-wider text-[var(--text-muted)]"
+            className="block font-mono text-[13px] font-semibold uppercase tracking-wider text-[var(--text-muted)]"
           >
             Type <span className="text-[var(--text-primary)]">LIVE</span> to confirm
           </label>

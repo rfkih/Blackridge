@@ -130,21 +130,21 @@ export const TradePositionRow = memo(function TradePositionRow({
 
       <div className="flex flex-col leading-tight">
         <div className="flex items-center gap-1.5">
-          <span className="font-mono text-[12px] font-semibold tracking-wider text-text-primary">
+          <span className="font-mono text-[14px] font-semibold tracking-wider text-text-primary">
             {meta.label}
           </span>
           {position.type === 'RUNNER' && (
             <TrendingUp size={10} strokeWidth={2} className="text-info" aria-label="Trailing" />
           )}
-          <span className="ml-1 text-[10px] uppercase tracking-wider text-text-muted">
+          <span className="ml-1 text-[12px] uppercase tracking-wider text-text-muted">
             {direction}
           </span>
         </div>
-        <span className="mt-0.5 text-[11px] text-text-muted">{meta.subtle}</span>
+        <span className="mt-0.5 text-[13px] text-text-muted">{meta.subtle}</span>
       </div>
 
       <span
-        className="inline-flex items-center gap-1 self-start justify-self-start rounded-sm px-1.5 py-0.5 text-[10px] font-semibold tracking-wider"
+        className="inline-flex items-center gap-1 self-start justify-self-start rounded-sm px-1.5 py-0.5 text-[12px] font-semibold tracking-wider"
         style={{
           backgroundColor: statusLabel === 'Open' ? 'var(--tint-info)' : 'var(--bg-elevated)',
           color: statusLabel === 'Open' ? 'var(--color-info)' : 'var(--text-secondary)',
@@ -166,7 +166,7 @@ export const TradePositionRow = memo(function TradePositionRow({
 
       <div className="flex flex-col leading-tight">
         <span className="label-caps mb-0.5">Qty</span>
-        <span className="font-mono text-[13px] tabular-nums text-text-primary">
+        <span className="font-mono text-[14px] tabular-nums text-text-primary">
           {formatPrice(position.quantity, 4)}
         </span>
       </div>
@@ -186,19 +186,19 @@ export const TradePositionRow = memo(function TradePositionRow({
         <span className="label-caps mb-0.5">Exit reason</span>
         {exitReasonLabel ? (
           <span
-            className="inline-flex w-fit items-center rounded-sm px-1.5 py-0.5 text-[10px] font-semibold tracking-wider"
+            className="inline-flex w-fit items-center rounded-sm px-1.5 py-0.5 text-[12px] font-semibold tracking-wider"
             style={{ backgroundColor: accentTint, color: accent }}
           >
             {exitReasonLabel}
           </span>
         ) : (
-          <span className="text-[12px] text-text-muted">—</span>
+          <span className="text-[14px] text-text-muted">—</span>
         )}
       </div>
 
       <div className="flex flex-col leading-tight">
         <span className="label-caps mb-0.5">Closed</span>
-        <span className="font-mono text-[11px] text-text-muted">
+        <span className="font-mono text-[13px] text-text-muted">
           {position.exitTime != null ? formatDate(position.exitTime) : '—'}
         </span>
       </div>

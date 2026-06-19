@@ -46,7 +46,7 @@ export function WsReconnectingBanner() {
         display: 'flex',
         alignItems: 'center',
         gap: 12,
-        fontSize: 12,
+        fontSize: 14,
         color: 'var(--mm-ink-1)',
       }}
     >
@@ -83,7 +83,7 @@ export function WsReconnectingBanner() {
           className="mm-pill"
           style={{
             padding: '6px 12px',
-            fontSize: 11,
+            fontSize: 13,
             color: tone,
             borderColor: border,
             background: 'transparent',

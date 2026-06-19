@@ -19,7 +19,7 @@ export function IndicatorBar({ indicators, onToggle }: IndicatorBarProps) {
             aria-pressed={active}
             onClick={() => onToggle(ind.key)}
             className={[
-              'rounded px-2 py-0.5 text-[11px] font-mono border transition-colors',
+              'rounded px-2 py-0.5 text-[13px] font-mono border transition-colors',
               active
                 ? 'border-transparent text-black'
                 : 'border-[var(--border-subtle)] text-[var(--text-muted)] hover:text-[var(--text)]',

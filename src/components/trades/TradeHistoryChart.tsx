@@ -132,7 +132,7 @@ export function TradeHistoryChart({
               intervals={TRADE_CHART_INTERVALS}
             />
           </div>
-          <span className="font-mono text-[10px] uppercase tracking-wider text-text-muted">
+          <span className="font-mono text-[12px] uppercase tracking-wider text-text-muted">
             {trades.length} trade{trades.length === 1 ? '' : 's'} · {symbol.replace(/USDT$/, '')}
           </span>
         </div>
@@ -213,10 +213,10 @@ function computeWindow(
 
 function EmptyChart({ symbol }: { symbol: string }) {
   return (
-    <div className="flex h-[280px] flex-col items-center justify-center gap-2 text-[12px] text-text-muted">
+    <div className="flex h-[280px] flex-col items-center justify-center gap-2 text-[14px] text-text-muted">
       <LineChart size={20} className="opacity-40" />
       <span>No trades on {symbol.replace(/USDT$/, '')} in this view.</span>
-      <span className="text-text-muted/70 text-[11px]">
+      <span className="text-text-muted/70 text-[13px]">
         Pick another symbol or widen the date range.
       </span>
     </div>
@@ -226,7 +226,7 @@ function EmptyChart({ symbol }: { symbol: string }) {
 function ChartError({ onRetry, height }: { onRetry: () => void; height: number }) {
   return (
     <div
-      className="flex flex-col items-center justify-center gap-3 text-[12px] text-text-muted"
+      className="flex flex-col items-center justify-center gap-3 text-[14px] text-text-muted"
       style={{ height }}
     >
       <AlertCircle size={20} />
@@ -234,7 +234,7 @@ function ChartError({ onRetry, height }: { onRetry: () => void; height: number }
       <button
         type="button"
         onClick={onRetry}
-        className="inline-flex items-center gap-1 rounded-sm border border-bd-subtle bg-bg-base px-3 py-1.5 text-[11px] text-text-primary hover:bg-bg-hover"
+        className="inline-flex items-center gap-1 rounded-sm border border-bd-subtle bg-bg-base px-3 py-1.5 text-[13px] text-text-primary hover:bg-bg-hover"
       >
         <RefreshCw size={11} /> Retry
       </button>

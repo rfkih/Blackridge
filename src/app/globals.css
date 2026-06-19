@@ -407,7 +407,7 @@ pre {
 /* Small uppercase label — the "BLOOMBERG" caption look */
 .label-caps {
   font-family: var(--font-body);
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 500;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -736,14 +736,14 @@ pre {
 }
 
 .mm-eyebrow {
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 500;
   color: var(--mm-ink-2);
   letter-spacing: -0.005em;
 }
 .mm-kicker {
   font-family: var(--mm-mono);
-  font-size: 10px;
+  font-size: 12px;
   letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--mm-ink-2);
@@ -755,7 +755,7 @@ pre {
   gap: 6px;
   padding: 6px 12px;
   border-radius: 999px;
-  font-size: 12px;
+  font-size: 14px;
   border: 1px solid var(--mm-hair-2);
   background: transparent;
   color: var(--mm-ink-1);
@@ -799,7 +799,7 @@ pre {
   gap: 6px;
   padding: 4px 10px;
   border-radius: 999px;
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 500;
 }
 
@@ -881,7 +881,7 @@ pre {
   gap: 14px;
   padding: 11px 16px;
   border-radius: 12px;
-  font-size: 13.5px;
+  font-size: 14px;
   color: var(--mm-ink-1);
   cursor: pointer;
   transition: background 120ms;
@@ -905,7 +905,7 @@ pre {
   border-radius: 12px;
   cursor: pointer;
   font-family: var(--mm-sans);
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 500;
   border: 1px solid var(--mm-hair-2);
   background: transparent;
@@ -950,7 +950,7 @@ pre {
 
 .mm-label {
   display: block;
-  font-size: 12px;
+  font-size: 14px;
   color: var(--mm-ink-2);
   margin-bottom: 6px;
   font-family: var(--mm-sans);
@@ -964,7 +964,7 @@ pre {
   background: var(--mm-surface-2);
   color: var(--mm-ink-0);
   font-family: var(--mm-sans);
-  font-size: 14px;
+  font-size: 15px;
   outline: none;
   transition:
     border-color 120ms,
@@ -993,7 +993,7 @@ pre {
 .mm-kicker {
   display: inline-block;
   font-family: var(--mm-mono);
-  font-size: 10px;
+  font-size: 12px;
   letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--mm-ink-2);
@@ -1020,7 +1020,7 @@ pre {
   padding: 4px 10px;
   border-radius: 8px;
   font-family: var(--mm-num);
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 600;
   white-space: nowrap;
 }
@@ -1236,7 +1236,7 @@ input[type='number'].no-native-spinners {
   padding: 10px 18px;
   border-radius: var(--br-radius-pill);
   font-weight: 600;
-  font-size: 14px;
+  font-size: 15px;
   border: 1px solid transparent;
   cursor: pointer;
   white-space: nowrap;
@@ -1286,7 +1286,7 @@ input[type='number'].no-native-spinners {
 }
 .br-btn-sm {
   padding: 6px 12px;
-  font-size: 13px;
+  font-size: 14px;
 }
 .br-btn-block {
   width: 100%;
@@ -1317,7 +1317,7 @@ input[type='number'].no-native-spinners {
   gap: 6px;
   padding: 4px 10px;
   border-radius: var(--br-radius-pill);
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 600;
   background: var(--bg-hover);
   color: var(--text-secondary);
@@ -1373,7 +1373,7 @@ input[type='number'].no-native-spinners {
 }
 .br-label {
   display: block;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
   color: var(--text-secondary);
   margin-bottom: 6px;
@@ -1460,7 +1460,7 @@ input[type='number'].no-native-spinners {
   display: inline-grid;
   place-items: center;
   font-weight: 700;
-  font-size: 13px;
+  font-size: 14px;
   font-family: var(--font-display);
   flex-shrink: 0;
 }
@@ -1774,7 +1774,7 @@ input[type='number'].no-native-spinners {
   align-items: center;
   gap: 12px;
   font-family: var(--font-mono);
-  font-size: 11.5px;
+  font-size: 13px;
   color: var(--qp-ink-muted);
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -1820,7 +1820,7 @@ input[type='number'].no-native-spinners {
   border: 0;
   padding: 11px 18px;
   font-family: inherit;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 600;
   border-radius: 4px;
   cursor: pointer;
@@ -1843,7 +1843,7 @@ input[type='number'].no-native-spinners {
   border: 0;
   padding: 0 0 2px;
   font-family: inherit;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 500;
   color: var(--qp-ink-soft);
   cursor: pointer;
@@ -1875,7 +1875,7 @@ input[type='number'].no-native-spinners {
 }
 .qp-fact-lbl {
   font-family: var(--font-mono);
-  font-size: 10.5px;
+  font-size: 12px;
   color: var(--qp-ink-muted);
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -1909,7 +1909,7 @@ input[type='number'].no-native-spinners {
 }
 .qp-fact-meta span {
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: 12px;
   color: var(--qp-ink-muted);
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -1917,7 +1917,7 @@ input[type='number'].no-native-spinners {
 }
 .qp-fact-meta strong {
   font-family: var(--font-mono);
-  font-size: 13px;
+  font-size: 14px;
   color: var(--qp-ink);
   font-weight: 600;
 }
@@ -1943,7 +1943,7 @@ input[type='number'].no-native-spinners {
 }
 .qp-fact-grid span {
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: 12px;
   color: var(--qp-ink-muted);
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -1962,7 +1962,7 @@ input[type='number'].no-native-spinners {
 .qp-fact-foot {
   padding: 12px 26px 16px;
   border-top: 1px solid var(--qp-hair);
-  font-size: 11px;
+  font-size: 13px;
   color: var(--qp-ink-muted);
   line-height: 1.5;
   font-family: var(--font-body);
@@ -1983,7 +1983,7 @@ input[type='number'].no-native-spinners {
 .qp-chart-axis {
   fill: var(--qp-chart-axis);
   font-family: var(--font-mono);
-  font-size: 9px;
+  font-size: 12px;
 }
 
 /* ── Venues band ───────────────────────────────────────────────────── */
@@ -2001,7 +2001,7 @@ input[type='number'].no-native-spinners {
 }
 .qp-venues-lbl {
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: 13px;
   color: var(--qp-ink-muted);
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -2023,7 +2023,7 @@ input[type='number'].no-native-spinners {
 }
 .qp-venues-aux {
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: 13px;
   color: var(--qp-ink-muted);
   letter-spacing: 0.04em;
 }
@@ -2066,7 +2066,7 @@ input[type='number'].no-native-spinners {
 }
 .qp-section-eye {
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -2097,7 +2097,7 @@ input[type='number'].no-native-spinners {
   background: var(--qp-elevated);
   border: 1px solid var(--qp-edge);
   font-family: var(--font-mono);
-  font-size: 12.5px;
+  font-size: 14px;
 }
 .qp-monthly-head,
 .qp-monthly-row {
@@ -2108,7 +2108,7 @@ input[type='number'].no-native-spinners {
 .qp-monthly-head {
   background: var(--qp-ink);
   color: var(--qp-paper);
-  font-size: 10.5px;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -2140,7 +2140,7 @@ input[type='number'].no-native-spinners {
   font-weight: 700;
   color: var(--qp-ink);
   font-family: var(--font-display);
-  font-size: 13.5px;
+  font-size: 14px;
   border-right: 1px solid var(--qp-hair);
   display: flex;
   align-items: center;
@@ -2170,7 +2170,7 @@ input[type='number'].no-native-spinners {
 .qp-monthly-row .cell.ytd {
   background: var(--qp-surface);
   font-weight: 700;
-  font-size: 13px;
+  font-size: 14px;
 }
 [data-theme='dark'] .qp-monthly-row .cell.ytd {
   background: rgba(255, 255, 255, 0.04);
@@ -2181,7 +2181,7 @@ input[type='number'].no-native-spinners {
 }
 .qp-monthly-foot {
   margin-top: 14px;
-  font-size: 12px;
+  font-size: 14px;
   color: var(--qp-ink-muted);
   font-family: var(--font-body);
 }
@@ -2220,7 +2220,7 @@ input[type='number'].no-native-spinners {
   color: var(--qp-ink);
 }
 .qp-disc-grid p {
-  font-size: 14.5px;
+  font-size: 15px;
   line-height: 1.6;
   color: var(--qp-ink-soft);
   margin: 0 0 28px;
@@ -2236,7 +2236,7 @@ input[type='number'].no-native-spinners {
 }
 .qp-disc-stat span {
   font-family: var(--font-mono);
-  font-size: 10.5px;
+  font-size: 12px;
   color: var(--qp-ink-muted);
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -2280,7 +2280,7 @@ input[type='number'].no-native-spinners {
 .qp-strat-card .code {
   font-family: var(--font-mono);
   font-weight: 700;
-  font-size: 11px;
+  font-size: 13px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--qp-ink-muted);
@@ -2308,7 +2308,7 @@ input[type='number'].no-native-spinners {
 }
 .qp-strat-card .meta span {
   font-family: var(--font-mono);
-  font-size: 9.5px;
+  font-size: 12px;
   color: var(--qp-ink-muted);
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -2316,12 +2316,12 @@ input[type='number'].no-native-spinners {
 }
 .qp-strat-card .meta strong {
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: 14px;
   color: var(--qp-ink);
   font-weight: 600;
 }
 .qp-strat-card .desc {
-  font-size: 13.5px;
+  font-size: 14px;
   line-height: 1.55;
   color: var(--qp-ink-soft);
   margin: 0;
@@ -2349,7 +2349,7 @@ input[type='number'].no-native-spinners {
 }
 .qp-strat-card .stats span {
   font-family: var(--font-mono);
-  font-size: 9.5px;
+  font-size: 12px;
   color: var(--qp-ink-muted);
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -2375,7 +2375,7 @@ input[type='number'].no-native-spinners {
   margin-top: 24px;
   padding-top: 18px;
   border-top: 1px solid var(--qp-hair);
-  font-size: 13px;
+  font-size: 14px;
   color: var(--qp-ink-muted);
   gap: 16px;
   flex-wrap: wrap;
@@ -2422,23 +2422,23 @@ input[type='number'].no-native-spinners {
   place-items: center;
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 14px;
+  font-size: 15px;
   letter-spacing: 0.04em;
 }
 .qp-letter-author strong {
   display: block;
-  font-size: 14px;
+  font-size: 15px;
   color: var(--qp-ink);
 }
 .qp-letter-author span {
   display: block;
-  font-size: 12px;
+  font-size: 14px;
   color: var(--qp-ink-muted);
   margin-top: 2px;
 }
 .qp-letter-date {
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: 13px;
   color: var(--qp-ink-muted);
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -2458,7 +2458,7 @@ input[type='number'].no-native-spinners {
   text-wrap: balance;
 }
 .qp-letter-link {
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 500;
   color: var(--qp-ink);
   cursor: pointer;
@@ -2485,7 +2485,7 @@ input[type='number'].no-native-spinners {
 }
 .qp-risk-grid .num {
   font-family: var(--font-mono);
-  font-size: 10.5px;
+  font-size: 12px;
   /* See `.qp-section.brand .qp-section-eye` — fixed light tone on the
      always-dark Risk band whether the rest of the app is light or dark. */
   color: rgba(255, 255, 255, 0.64);
@@ -2503,7 +2503,7 @@ input[type='number'].no-native-spinners {
   color: #fff;
 }
 .qp-risk-grid p {
-  font-size: 14.5px;
+  font-size: 15px;
   line-height: 1.6;
   color: rgba(255, 255, 255, 0.72);
   margin: 0;
@@ -2550,14 +2550,14 @@ input[type='number'].no-native-spinners {
 }
 .qp-contact-meta span {
   font-family: var(--font-mono);
-  font-size: 10.5px;
+  font-size: 12px;
   color: var(--qp-ink-muted);
   letter-spacing: 0.06em;
   text-transform: uppercase;
   font-weight: 600;
 }
 .qp-contact-meta strong {
-  font-size: 14px;
+  font-size: 15px;
   color: var(--qp-ink);
   font-weight: 600;
   line-height: 1.4;
@@ -2573,7 +2573,7 @@ input[type='number'].no-native-spinners {
   justify-content: center;
 }
 .qp-contact-note {
-  font-size: 11.5px;
+  font-size: 13px;
   color: var(--qp-ink-muted);
   line-height: 1.55;
 }
@@ -2734,7 +2734,7 @@ input[type='number'].no-native-spinners {
 }
 .qp-nav-links a {
   font-family: var(--font-mono);
-  font-size: 11.5px;
+  font-size: 13px;
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -2758,7 +2758,7 @@ input[type='number'].no-native-spinners {
   margin-left: auto;
 }
 .qp-nav-signin {
-  font-size: 13.5px;
+  font-size: 14px;
   font-weight: 500;
   color: var(--qp-ink-soft);
   text-decoration: none;
@@ -2802,7 +2802,7 @@ input[type='number'].no-native-spinners {
 }
 .qp-hero-stats span {
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.07em;
   text-transform: uppercase;
@@ -2831,7 +2831,7 @@ input[type='number'].no-native-spinners {
 }
 .qp-gates .num {
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 700;
   letter-spacing: 0.08em;
   color: var(--qp-ink-muted);
@@ -2846,7 +2846,7 @@ input[type='number'].no-native-spinners {
   color: var(--qp-ink);
 }
 .qp-gates p {
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1.55;
   color: var(--qp-ink-soft);
   margin: 0;
@@ -2877,7 +2877,7 @@ input[type='number'].no-native-spinners {
 }
 .qp-table th {
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -2891,7 +2891,7 @@ input[type='number'].no-native-spinners {
 .qp-table td {
   padding: 16px 18px;
   border-bottom: 1px solid var(--qp-hair);
-  font-size: 14px;
+  font-size: 15px;
   color: var(--qp-ink-soft);
   vertical-align: middle;
 }
@@ -2906,7 +2906,7 @@ input[type='number'].no-native-spinners {
 }
 .qp-table .code {
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 700;
   letter-spacing: 0.05em;
   color: var(--qp-ink);
@@ -2921,14 +2921,14 @@ input[type='number'].no-native-spinners {
 }
 .qp-table .sub {
   display: block;
-  font-size: 12.5px;
+  font-size: 14px;
   font-weight: 400;
   color: var(--qp-ink-muted);
   margin-top: 3px;
 }
 .qp-table .mono {
   font-family: var(--font-mono);
-  font-size: 12.5px;
+  font-size: 14px;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
   color: var(--qp-ink);
@@ -2947,7 +2947,7 @@ input[type='number'].no-native-spinners {
 .qp-status {
   display: inline-block;
   font-family: var(--font-mono);
-  font-size: 9.5px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -2971,7 +2971,7 @@ input[type='number'].no-native-spinners {
 }
 .qp-tabs button {
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -3010,7 +3010,7 @@ input[type='number'].no-native-spinners {
 }
 .qp-plan .tag {
   font-family: var(--font-mono);
-  font-size: 10.5px;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -3028,13 +3028,13 @@ input[type='number'].no-native-spinners {
 }
 .qp-plan .terms {
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: 13px;
   letter-spacing: 0.03em;
   color: var(--qp-ink-muted);
   margin-bottom: 26px;
 }
 .qp-plan p {
-  font-size: 14.5px;
+  font-size: 15px;
   line-height: 1.6;
   color: var(--qp-ink-soft);
   margin: 0 0 28px;
@@ -3067,13 +3067,13 @@ input[type='number'].no-native-spinners {
   align-items: baseline;
   padding: 16px 18px 16px 2px;
   border-bottom: 1px solid var(--qp-hair);
-  font-size: 14px;
+  font-size: 15px;
   line-height: 1.5;
   color: var(--qp-ink-soft);
 }
 .qp-list-ruled li .idx {
   font-family: var(--font-mono);
-  font-size: 10.5px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.06em;
   color: var(--qp-ink-muted);
@@ -3112,7 +3112,7 @@ input[type='number'].no-native-spinners {
 }
 .qp-faq summary .marker {
   font-family: var(--font-mono);
-  font-size: 14px;
+  font-size: 15px;
   color: var(--qp-ink-muted);
   flex-shrink: 0;
   transition: transform var(--dur-fast) var(--ease-out-quart);
@@ -3122,7 +3122,7 @@ input[type='number'].no-native-spinners {
 }
 .qp-faq .body {
   padding: 0 48px 22px 2px;
-  font-size: 14.5px;
+  font-size: 15px;
   line-height: 1.65;
   color: var(--qp-ink-soft);
   max-width: 680px;
@@ -3147,7 +3147,7 @@ input[type='number'].no-native-spinners {
 }
 .qp-docdex .idx {
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 700;
   letter-spacing: 0.06em;
   color: var(--qp-ink-muted);
@@ -3161,7 +3161,7 @@ input[type='number'].no-native-spinners {
   color: var(--qp-ink);
 }
 .qp-docdex p {
-  font-size: 14px;
+  font-size: 15px;
   line-height: 1.55;
   color: var(--qp-ink-soft);
   margin: 0;
@@ -3169,7 +3169,7 @@ input[type='number'].no-native-spinners {
 }
 .qp-docdex .go {
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: 14px;
   color: var(--qp-ink-muted);
 }
 .qp-docdex a:hover .go {
@@ -3214,7 +3214,7 @@ input[type='number'].no-native-spinners {
 .qp-cta .note {
   margin-top: 16px;
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: 13px;
   letter-spacing: 0.04em;
   color: var(--qp-ink-muted);
 }
@@ -3240,7 +3240,7 @@ input[type='number'].no-native-spinners {
   color: #fff;
 }
 .qp-footer-brand p {
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1.6;
   color: rgba(255, 255, 255, 0.62);
   max-width: 280px;
@@ -3248,7 +3248,7 @@ input[type='number'].no-native-spinners {
 }
 .qp-footer-col h5 {
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -3264,7 +3264,7 @@ input[type='number'].no-native-spinners {
   gap: 11px;
 }
 .qp-footer-col a {
-  font-size: 13.5px;
+  font-size: 14px;
   color: rgba(255, 255, 255, 0.72);
   text-decoration: none;
 }
@@ -3273,7 +3273,7 @@ input[type='number'].no-native-spinners {
 }
 .qp-footer-disclosures {
   padding: 32px 0 0;
-  font-size: 11.5px;
+  font-size: 13px;
   line-height: 1.7;
   color: rgba(255, 255, 255, 0.55);
   max-width: 880px;
@@ -3291,7 +3291,7 @@ input[type='number'].no-native-spinners {
   padding-top: 22px;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
   font-family: var(--font-mono);
-  font-size: 10.5px;
+  font-size: 12px;
   letter-spacing: 0.04em;
   color: rgba(255, 255, 255, 0.55);
 }
@@ -3309,7 +3309,7 @@ input[type='number'].no-native-spinners {
   border: 1px solid var(--qp-ink);
   padding: 10px 17px;
   font-family: inherit;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 600;
   border-radius: 4px;
   cursor: pointer;
@@ -3331,7 +3331,7 @@ input[type='number'].no-native-spinners {
 }
 .qp-foot-note {
   margin-top: 18px;
-  font-size: 12px;
+  font-size: 14px;
   line-height: 1.6;
   color: var(--qp-ink-muted);
 }

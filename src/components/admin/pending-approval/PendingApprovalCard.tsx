@@ -54,7 +54,7 @@ function GateCheckCell({ label, check }: { label: string; check: GateCheck }) {
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-1 rounded-sm px-1.5 py-0.5 font-mono text-[10px] font-semibold',
+        'inline-flex items-center gap-1 rounded-sm px-1.5 py-0.5 font-mono text-[12px] font-semibold',
         check.passed
           ? 'bg-[var(--tint-profit)] text-[var(--color-profit)]'
           : 'bg-[var(--tint-loss)] text-[var(--color-loss)]',
@@ -150,7 +150,7 @@ export function PendingApprovalCard({ row, onDialogOpenChange }: PendingApproval
             {/* Verdict badge */}
             <span
               className={cn(
-                'inline-flex items-center gap-1.5 rounded px-2 py-1 text-[12px] font-bold uppercase tracking-wide',
+                'inline-flex items-center gap-1.5 rounded px-2 py-1 text-[14px] font-bold uppercase tracking-wide',
                 isPromote
                   ? 'bg-[var(--color-profit)] text-[var(--bg-base)]'
                   : 'bg-[var(--color-warning)] text-[var(--bg-base)]',
@@ -165,17 +165,17 @@ export function PendingApprovalCard({ row, onDialogOpenChange }: PendingApproval
             </span>
 
             {/* Identity */}
-            <span className="font-mono text-[12px] font-semibold text-text-primary">
+            <span className="font-mono text-[14px] font-semibold text-text-primary">
               {row.symbol}
             </span>
-            <span className="text-[12px] text-text-muted">·</span>
-            <span className="font-mono text-[12px] text-text-primary">{row.strategyCode}</span>
-            <span className="text-[12px] text-text-muted">·</span>
-            <span className="font-mono text-[12px] text-text-secondary">{row.interval}</span>
+            <span className="text-[14px] text-text-muted">·</span>
+            <span className="font-mono text-[14px] text-text-primary">{row.strategyCode}</span>
+            <span className="text-[14px] text-text-muted">·</span>
+            <span className="font-mono text-[14px] text-text-secondary">{row.interval}</span>
           </div>
 
           <div className="flex shrink-0 flex-wrap items-center gap-2">
-            <span className="font-mono text-[11px] text-text-muted">
+            <span className="font-mono text-[13px] text-text-muted">
               {formatCreatedTime(row.createdTime)}
               {row.createdBy && <span className="text-text-tertiary ml-1">by {row.createdBy}</span>}
             </span>
@@ -183,7 +183,7 @@ export function PendingApprovalCard({ row, onDialogOpenChange }: PendingApproval
               href={`/backtest/${row.backtestRunId}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 text-[11px] text-text-secondary hover:text-text-primary"
+              className="inline-flex items-center gap-1 text-[13px] text-text-secondary hover:text-text-primary"
               title="Open the cited backtest run"
               aria-label={`View backtest ${row.backtestRunId.slice(0, 8)}`}
             >
@@ -195,33 +195,33 @@ export function PendingApprovalCard({ row, onDialogOpenChange }: PendingApproval
 
         <div className="flex flex-col gap-4 p-4">
           {/* Evidence summary row */}
-          <div className="flex flex-wrap items-center gap-4 text-[12px]">
+          <div className="flex flex-wrap items-center gap-4 text-[14px]">
             <div className="flex flex-col gap-0.5">
-              <span className="text-[10px] text-text-muted">ag90</span>
+              <span className="text-[12px] text-text-muted">ag90</span>
               <span className="font-mono tabular-nums text-text-primary">
                 {formatPct(row.evidenceSummary.ag90)}
               </span>
             </div>
             <div className="flex flex-col gap-0.5">
-              <span className="text-[10px] text-text-muted">dsr</span>
+              <span className="text-[12px] text-text-muted">dsr</span>
               <span className="font-mono tabular-nums text-text-primary">
                 {row.evidenceSummary.dsr.toFixed(4)}
               </span>
             </div>
             <div className="flex flex-col gap-0.5">
-              <span className="text-[10px] text-text-muted">n_trades</span>
+              <span className="text-[12px] text-text-muted">n_trades</span>
               <span className="font-mono tabular-nums text-text-primary">
                 {row.evidenceSummary.n_trades}
               </span>
             </div>
             <div className="flex flex-col gap-0.5">
-              <span className="text-[10px] text-text-muted">pf_lo</span>
+              <span className="text-[12px] text-text-muted">pf_lo</span>
               <span className="font-mono tabular-nums text-text-primary">
                 {row.evidenceSummary.pf_lo.toFixed(3)}
               </span>
             </div>
             <div className="flex flex-col gap-0.5">
-              <span className="text-[10px] text-text-muted">WF</span>
+              <span className="text-[12px] text-text-muted">WF</span>
               <span
                 className={cn(
                   'font-mono tabular-nums',
@@ -239,7 +239,7 @@ export function PendingApprovalCard({ row, onDialogOpenChange }: PendingApproval
 
           {/* Gate-checks row — failures pinned first for fast triage */}
           <div className="flex flex-wrap items-center gap-1.5">
-            <span className="text-[11px] text-text-muted">Gates:</span>
+            <span className="text-[13px] text-text-muted">Gates:</span>
             {(
               [
                 ['cagr', row.gateCheck.cagr],
@@ -259,7 +259,7 @@ export function PendingApprovalCard({ row, onDialogOpenChange }: PendingApproval
               "promote with caveats" and a missing concerns list should not
               make the verdict invisible. ConcernsPanel returns null on empty. */}
           {row.verdict === 'HOLD' && row.concerns.length === 0 && (
-            <div className="border-warning/30 bg-warning/5 rounded-lg border p-3 text-[12px] text-warning">
+            <div className="border-warning/30 bg-warning/5 rounded-lg border p-3 text-[14px] text-warning">
               <AlertTriangle className="inline h-3 w-3" /> HOLD verdict with no specific concerns
               recorded — curator soft-failed on V102 gate margin (see gate-check row above). Review
               the gap value before approving.
@@ -280,8 +280,8 @@ export function PendingApprovalCard({ row, onDialogOpenChange }: PendingApproval
 
           {/* Parameters (collapsed by default — operator clicks to expand) */}
           <details className="group">
-            <summary className="flex cursor-pointer list-none items-center gap-1 text-[12px] text-text-secondary hover:text-text-primary">
-              <span className="mr-0.5 font-mono text-[10px] transition-transform group-open:rotate-90">
+            <summary className="flex cursor-pointer list-none items-center gap-1 text-[14px] text-text-secondary hover:text-text-primary">
+              <span className="mr-0.5 font-mono text-[12px] transition-transform group-open:rotate-90">
                 ▶
               </span>
               Effective parameters ({Object.keys(row.effectiveParams).length})
@@ -346,7 +346,7 @@ export function PendingApprovalCard({ row, onDialogOpenChange }: PendingApproval
               type="button"
               onClick={() => setReplicateConfirmOpen(false)}
               disabled={replicate.isPending}
-              className="rounded-sm border border-bd-subtle bg-bg-surface px-3 py-1.5 text-[12px] text-text-secondary hover:bg-bg-hover disabled:opacity-50"
+              className="rounded-sm border border-bd-subtle bg-bg-surface px-3 py-1.5 text-[14px] text-text-secondary hover:bg-bg-hover disabled:opacity-50"
             >
               Cancel
             </button>
@@ -354,7 +354,7 @@ export function PendingApprovalCard({ row, onDialogOpenChange }: PendingApproval
               type="button"
               onClick={handleReplicate}
               disabled={replicate.isPending}
-              className="inline-flex items-center gap-1.5 rounded-sm bg-[var(--accent-primary)] px-3 py-1.5 text-[12px] font-semibold text-white hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+              className="inline-flex items-center gap-1.5 rounded-sm bg-[var(--accent-primary)] px-3 py-1.5 text-[14px] font-semibold text-white hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {replicate.isPending ? (
                 <RefreshCw className="h-3 w-3 animate-spin" />

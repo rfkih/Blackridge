@@ -89,13 +89,13 @@ export default function ResearchPapersPage() {
           <h1 className="font-display text-[24px] font-semibold tracking-tighter text-text-primary">
             Research library
           </h1>
-          <p className="mt-1 text-[12px] text-text-muted">
+          <p className="mt-1 text-[14px] text-text-muted">
             Auto-generated research papers for each completed strategy sweep.
           </p>
         </div>
         <Link
           href="/research"
-          className="inline-flex items-center gap-1.5 rounded-sm border border-bd-subtle bg-bg-surface px-3 py-2 text-[12px] font-semibold text-text-secondary transition-colors hover:bg-bg-hover"
+          className="inline-flex items-center gap-1.5 rounded-sm border border-bd-subtle bg-bg-surface px-3 py-2 text-[14px] font-semibold text-text-secondary transition-colors hover:bg-bg-hover"
         >
           Ops <ChevronRight size={12} />
         </Link>
@@ -116,7 +116,7 @@ export default function ResearchPapersPage() {
               aria-selected={selected}
               onClick={() => setKind(opt.value)}
               className={cn(
-                'rounded-[3px] px-4 py-1.5 text-[12px] font-semibold transition-colors focus:outline-none',
+                'rounded-[3px] px-4 py-1.5 text-[14px] font-semibold transition-colors focus:outline-none',
                 selected
                   ? 'bg-[var(--accent-primary)] text-[var(--text-inverse)]'
                   : 'text-text-secondary hover:text-text-primary',
@@ -132,7 +132,7 @@ export default function ResearchPapersPage() {
         <select
           value={sortIndex}
           onChange={(e) => setSortIndex(Number(e.target.value))}
-          className="rounded-sm border border-bd-subtle bg-bg-base px-2.5 py-1.5 font-mono text-[11px] text-text-primary focus:border-[var(--accent-primary)] focus:outline-none"
+          className="rounded-sm border border-bd-subtle bg-bg-base px-2.5 py-1.5 font-mono text-[13px] text-text-primary focus:border-[var(--accent-primary)] focus:outline-none"
         >
           {SORT_OPTIONS.map((opt, i) => (
             <option key={opt.label} value={i}>{opt.label}</option>
@@ -145,7 +145,7 @@ export default function ResearchPapersPage() {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value as PaperStatus | '')}
-            className="rounded-sm border border-bd-subtle bg-bg-base px-2.5 py-1.5 font-mono text-[11px] text-text-primary focus:border-[var(--accent-primary)] focus:outline-none"
+            className="rounded-sm border border-bd-subtle bg-bg-base px-2.5 py-1.5 font-mono text-[13px] text-text-primary focus:border-[var(--accent-primary)] focus:outline-none"
           >
             <option value="">All statuses</option>
             <option value="WORKING_PAPER">Working paper</option>
@@ -158,13 +158,13 @@ export default function ResearchPapersPage() {
           value={strategyCode}
           onChange={(e) => setStrategyCode(e.target.value)}
           placeholder="Strategy (e.g. TPR)"
-          className="w-36 rounded-sm border border-bd-subtle bg-bg-base px-2.5 py-1.5 font-mono text-[11px] uppercase text-text-primary placeholder:normal-case placeholder:text-text-muted focus:border-[var(--accent-primary)] focus:outline-none"
+          className="w-36 rounded-sm border border-bd-subtle bg-bg-base px-2.5 py-1.5 font-mono text-[13px] uppercase text-text-primary placeholder:normal-case placeholder:text-text-muted focus:border-[var(--accent-primary)] focus:outline-none"
         />
 
         <select
           value={instrument}
           onChange={(e) => setInstrument(e.target.value)}
-          className="rounded-sm border border-bd-subtle bg-bg-base px-2.5 py-1.5 font-mono text-[11px] text-text-primary focus:border-[var(--accent-primary)] focus:outline-none"
+          className="rounded-sm border border-bd-subtle bg-bg-base px-2.5 py-1.5 font-mono text-[13px] text-text-primary focus:border-[var(--accent-primary)] focus:outline-none"
         >
           <option value="">All symbols</option>
           {SUPPORTED_SYMBOLS.map((s) => (
@@ -177,7 +177,7 @@ export default function ResearchPapersPage() {
         <select
           value={intervalName}
           onChange={(e) => setIntervalName(e.target.value)}
-          className="rounded-sm border border-bd-subtle bg-bg-base px-2.5 py-1.5 font-mono text-[11px] text-text-primary focus:border-[var(--accent-primary)] focus:outline-none"
+          className="rounded-sm border border-bd-subtle bg-bg-base px-2.5 py-1.5 font-mono text-[13px] text-text-primary focus:border-[var(--accent-primary)] focus:outline-none"
         >
           <option value="">All intervals</option>
           {INTERVAL_OPTIONS.map((v) => (
@@ -191,7 +191,7 @@ export default function ResearchPapersPage() {
           <button
             type="button"
             onClick={clearFilters}
-            className="text-[11px] text-text-muted underline hover:text-text-primary"
+            className="text-[13px] text-text-muted underline hover:text-text-primary"
           >
             Clear
           </button>
@@ -205,7 +205,7 @@ export default function ResearchPapersPage() {
           ))}
         </div>
       ) : isError ? (
-        <div className="rounded-xl border border-bd-subtle bg-bg-surface p-8 text-center text-[12px] text-text-muted">
+        <div className="rounded-xl border border-bd-subtle bg-bg-surface p-8 text-center text-[14px] text-text-muted">
           Could not load papers. The research orchestrator may be down.
         </div>
       ) : papers.length === 0 ? (
@@ -224,7 +224,7 @@ export default function ResearchPapersPage() {
                 type="button"
                 onClick={() => fetchNextPage()}
                 disabled={isFetchingNextPage}
-                className="inline-flex items-center gap-1.5 rounded-sm border border-bd-subtle bg-bg-surface px-4 py-2 text-[12px] text-text-secondary hover:bg-bg-hover disabled:opacity-60"
+                className="inline-flex items-center gap-1.5 rounded-sm border border-bd-subtle bg-bg-surface px-4 py-2 text-[14px] text-text-secondary hover:bg-bg-hover disabled:opacity-60"
               >
                 {isFetchingNextPage && <Loader2 size={12} className="animate-spin" />}
                 Load more
@@ -241,7 +241,7 @@ function EmptyState({ hasFilters, kindLabel }: { hasFilters: boolean; kindLabel:
   return (
     <div className="space-y-3 rounded-xl border border-bd-subtle bg-bg-surface p-10 text-center">
       <BookOpen size={28} className="mx-auto text-text-muted" />
-      <p className="text-[13px] text-text-muted">
+      <p className="text-[14px] text-text-muted">
         {hasFilters
           ? `No ${kindLabel} papers match these filters.`
           : `No ${kindLabel} research papers yet. Papers are generated automatically when a sweep reaches COMPLETED or PARKED.`}

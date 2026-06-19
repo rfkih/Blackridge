@@ -36,7 +36,7 @@ export function RegenerateButton({ paperId, queueId, currentVersion }: Regenerat
   if (flash === 'ok') {
     return (
       <span
-        className="inline-flex items-center gap-1.5 rounded-sm border border-bd-subtle bg-bg-surface px-3 py-1.5 text-[12px] font-semibold"
+        className="inline-flex items-center gap-1.5 rounded-sm border border-bd-subtle bg-bg-surface px-3 py-1.5 text-[14px] font-semibold"
         style={{ color: toneColor('profit') }}
       >
         <CheckCircle2 size={12} />
@@ -48,7 +48,7 @@ export function RegenerateButton({ paperId, queueId, currentVersion }: Regenerat
   if (flash === 'err') {
     return (
       <span
-        className="inline-flex items-center gap-1.5 rounded-sm border border-bd-subtle bg-bg-surface px-3 py-1.5 text-[12px] font-semibold"
+        className="inline-flex items-center gap-1.5 rounded-sm border border-bd-subtle bg-bg-surface px-3 py-1.5 text-[14px] font-semibold"
         style={{ color: toneColor('loss') }}
       >
         <XCircle size={12} />
@@ -62,7 +62,7 @@ export function RegenerateButton({ paperId, queueId, currentVersion }: Regenerat
       type="button"
       onClick={() => mutate()}
       disabled={isPending}
-      className="inline-flex items-center gap-1.5 rounded-sm border border-bd-subtle bg-bg-surface px-3 py-1.5 text-[12px] font-semibold text-text-secondary transition-colors hover:bg-bg-hover disabled:opacity-60"
+      className="inline-flex items-center gap-1.5 rounded-sm border border-bd-subtle bg-bg-surface px-3 py-1.5 text-[14px] font-semibold text-text-secondary transition-colors hover:bg-bg-hover disabled:opacity-60"
     >
       <RefreshCw size={12} className={isPending ? 'animate-spin' : ''} />
       {isPending ? 'Regenerating…' : `Regenerate (v${currentVersion})`}

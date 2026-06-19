@@ -519,7 +519,7 @@ const strategyOptionsByCode = useMemo(() => {
         <div>
           <div
             style={{
-              fontSize: 11,
+              fontSize: 13,
               fontWeight: 600,
               letterSpacing: '0.12em',
               textTransform: 'uppercase',
@@ -542,7 +542,7 @@ const strategyOptionsByCode = useMemo(() => {
           >
             Configure run
           </h1>
-          <p style={{ marginTop: 6, fontSize: 14, color: 'var(--mm-ink-2)' }}>
+          <p style={{ marginTop: 6, fontSize: 15, color: 'var(--mm-ink-2)' }}>
             Step 1 of 2. Review parameters on the next screen before submitting.
           </p>
         </div>
@@ -616,12 +616,12 @@ const strategyOptionsByCode = useMemo(() => {
         />
 
         {definitionsLoading ? (
-          <div className="flex items-center gap-2 px-5 py-6 text-[12px] text-text-muted">
+          <div className="flex items-center gap-2 px-5 py-6 text-[14px] text-text-muted">
             <Loader2 size={12} strokeWidth={1.75} className="animate-spin" />
             Loading strategies…
           </div>
         ) : activeDefinitions.length === 0 ? (
-          <div className="flex items-start gap-2 px-5 py-6 text-[12px] text-text-secondary">
+          <div className="flex items-start gap-2 px-5 py-6 text-[14px] text-text-secondary">
             <AlertTriangle size={12} strokeWidth={1.75} className="mt-0.5 shrink-0 text-warning" />
             No active strategies in the catalogue. Register one in the strategy definitions admin
             page first.
@@ -650,7 +650,7 @@ const strategyOptionsByCode = useMemo(() => {
         {errors.strategyCodes && (
           <p
             data-form-error
-            className="border-t border-bd-subtle bg-tint-loss px-5 py-2 text-[11px] text-loss"
+            className="border-t border-bd-subtle bg-tint-loss px-5 py-2 text-[13px] text-loss"
           >
             {errors.strategyCodes}
           </p>
@@ -679,8 +679,8 @@ const strategyOptionsByCode = useMemo(() => {
                     className="mt-0.5"
                   />
                   <div className="min-w-0">
-                    <p className="text-[12px] font-semibold text-text-primary">Single timeframe</p>
-                    <p className="text-[11px] text-text-muted">
+                    <p className="text-[14px] font-semibold text-text-primary">Single timeframe</p>
+                    <p className="text-[13px] text-text-muted">
                       Every strategy runs on the primary interval below. Warns when a
                       strategy&apos;s registered interval differs.
                     </p>
@@ -703,8 +703,8 @@ const strategyOptionsByCode = useMemo(() => {
                     className="mt-0.5"
                   />
                   <div className="min-w-0">
-                    <p className="text-[12px] font-semibold text-text-primary">Multi-interval</p>
-                    <p className="text-[11px] text-text-muted">
+                    <p className="text-[14px] font-semibold text-text-primary">Multi-interval</p>
+                    <p className="text-[13px] text-text-muted">
                       Each strategy runs on its registered timeframe automatically. e.g. LSR @ 15m +
                       VCB @ 1h in one run.
                     </p>
@@ -733,7 +733,7 @@ const strategyOptionsByCode = useMemo(() => {
               })}
             </div>
             {errors.strategyAccountStrategyIds && (
-              <p data-form-error className="mt-3 text-[11px] text-loss">
+              <p data-form-error className="mt-3 text-[13px] text-loss">
                 {errors.strategyAccountStrategyIds}
               </p>
             )}
@@ -751,7 +751,7 @@ const strategyOptionsByCode = useMemo(() => {
                   onChange={(e) => setMaxConcurrentStrategies(e.target.value)}
                   className="num h-9"
                 />
-                <p className="mt-1 text-[10px] text-text-muted">
+                <p className="mt-1 text-[12px] text-text-muted">
                   Cap on simultaneous open trades across all strategies.
                 </p>
               </Field>
@@ -769,7 +769,7 @@ const strategyOptionsByCode = useMemo(() => {
                         key={code}
                         className="grid grid-cols-[5rem_auto_1fr_1fr_auto_5rem] items-center gap-2"
                       >
-                        <span className="truncate font-mono text-[11px] font-semibold text-text-primary">
+                        <span className="truncate font-mono text-[13px] font-semibold text-text-primary">
                           {code}
                         </span>
                         <DirectionSelect
@@ -803,7 +803,7 @@ const strategyOptionsByCode = useMemo(() => {
                             }))
                           }
                         >
-                          <SelectTrigger className="h-8 font-mono text-[11px]" aria-label={`${code} allocation`}>
+                          <SelectTrigger className="h-8 font-mono text-[13px]" aria-label={`${code} allocation`}>
                             <SelectValue placeholder="alloc %" />
                           </SelectTrigger>
                           <SelectContent>
@@ -824,7 +824,7 @@ const strategyOptionsByCode = useMemo(() => {
                             }))
                           }
                         >
-                          <SelectTrigger className="h-8 font-mono text-[11px]" aria-label={`${code} risk per trade`}>
+                          <SelectTrigger className="h-8 font-mono text-[13px]" aria-label={`${code} risk per trade`}>
                             <SelectValue placeholder="risk %" />
                           </SelectTrigger>
                           <SelectContent>
@@ -836,7 +836,7 @@ const strategyOptionsByCode = useMemo(() => {
                             ))}
                           </SelectContent>
                         </Select>
-                        <span className="text-[9px] uppercase tracking-wider text-text-muted">
+                        <span className="text-[12px] uppercase tracking-wider text-text-muted">
                           on
                         </span>
                         <Select
@@ -852,7 +852,7 @@ const strategyOptionsByCode = useMemo(() => {
                           }
                           disabled={evaluationMode === 'multi'}
                         >
-                          <SelectTrigger className="h-8 font-mono text-[11px]">
+                          <SelectTrigger className="h-8 font-mono text-[13px]">
                             <SelectValue placeholder={interval} />
                           </SelectTrigger>
                           <SelectContent>
@@ -870,7 +870,7 @@ const strategyOptionsByCode = useMemo(() => {
                     );
                   })}
                 </div>
-                <p className="mt-1 text-[10px] text-text-muted">
+                <p className="mt-1 text-[12px] text-text-muted">
                   Direction defaults to each strategy&apos;s live setting — select{' '}
                   <strong className="font-semibold text-text-secondary">Both</strong>,{' '}
                   <strong className="font-semibold text-profit">Long</strong>, or{' '}
@@ -887,7 +887,7 @@ const strategyOptionsByCode = useMemo(() => {
                   <button
                     type="button"
                     onClick={() => setShowGateOverrides((v) => !v)}
-                    className="inline-flex items-center gap-1.5 rounded-sm border border-bd-subtle bg-bg-base px-2.5 py-1 font-mono text-[10px] uppercase tracking-wider text-text-secondary transition-colors hover:border-text-muted hover:text-text-primary"
+                    className="inline-flex items-center gap-1.5 rounded-sm border border-bd-subtle bg-bg-base px-2.5 py-1 font-mono text-[12px] uppercase tracking-wider text-text-secondary transition-colors hover:border-text-muted hover:text-text-primary"
                     aria-expanded={showGateOverrides}
                   >
                     <ChevronDown
@@ -902,7 +902,7 @@ const strategyOptionsByCode = useMemo(() => {
                   </button>
                   {showGateOverrides && (
                     <div className="mt-3 rounded-sm border border-bd-subtle bg-bg-base p-3">
-                      <p className="mb-2 text-[10px] text-text-muted">
+                      <p className="mb-2 text-[12px] text-text-muted">
                         Each gate defaults to the strategy&apos;s persisted toggle. Pick{' '}
                         <strong className="font-semibold text-profit">On</strong> to force
                         the gate active for this run, or{' '}
@@ -910,7 +910,7 @@ const strategyOptionsByCode = useMemo(() => {
                         Same gate stack runs in live and backtest after V62.
                       </p>
                       <div className="grid grid-cols-1 gap-1.5">
-                        <div className="grid grid-cols-[5rem_repeat(4,_minmax(0,_1fr))] items-center gap-2 border-b border-bd-subtle pb-1 font-mono text-[9px] uppercase tracking-wider text-text-muted">
+                        <div className="grid grid-cols-[5rem_repeat(4,_minmax(0,_1fr))] items-center gap-2 border-b border-bd-subtle pb-1 font-mono text-[12px] uppercase tracking-wider text-text-muted">
                           <span></span>
                           <span>Kill-switch</span>
                           <span>Regime</span>
@@ -922,7 +922,7 @@ const strategyOptionsByCode = useMemo(() => {
                             key={code}
                             className="grid grid-cols-[5rem_repeat(4,_minmax(0,_1fr))] items-center gap-2"
                           >
-                            <span className="truncate font-mono text-[11px] font-semibold text-text-primary">
+                            <span className="truncate font-mono text-[13px] font-semibold text-text-primary">
                               {code}
                             </span>
                             <GateOverrideSelect
@@ -983,16 +983,16 @@ const strategyOptionsByCode = useMemo(() => {
 
                       {}
                       <div className="mt-3 border-t border-bd-subtle pt-3">
-                        <p className="mb-1 font-mono text-[9px] uppercase tracking-wider text-text-muted">
+                        <p className="mb-1 font-mono text-[12px] uppercase tracking-wider text-text-muted">
                           ML regime gate (V100)
                         </p>
-                        <p className="mb-2 text-[10px] text-text-muted">
+                        <p className="mb-2 text-[12px] text-text-muted">
                           Override the ML gate per strategy. Enables A/B paired backtests
                           without touching live settings. Gate fails-open on missing signal
                           data.
                         </p>
                         <div className="grid grid-cols-1 gap-1.5">
-                          <div className="grid grid-cols-[5rem_1fr_2fr_1fr] items-center gap-2 border-b border-bd-subtle pb-1 font-mono text-[9px] uppercase tracking-wider text-text-muted">
+                          <div className="grid grid-cols-[5rem_1fr_2fr_1fr] items-center gap-2 border-b border-bd-subtle pb-1 font-mono text-[12px] uppercase tracking-wider text-text-muted">
                             <span></span>
                             <span>Gate</span>
                             <span>Signal name</span>
@@ -1005,7 +1005,7 @@ const strategyOptionsByCode = useMemo(() => {
                                 key={code}
                                 className="grid grid-cols-[5rem_1fr_2fr_1fr] items-center gap-2"
                               >
-                                <span className="truncate font-mono text-[11px] font-semibold text-text-primary">
+                                <span className="truncate font-mono text-[13px] font-semibold text-text-primary">
                                   {code}
                                 </span>
                                 <GateOverrideSelect
@@ -1032,7 +1032,7 @@ const strategyOptionsByCode = useMemo(() => {
                                   disabled={gateEnabled !== true}
                                 >
                                   <SelectTrigger
-                                    className="h-7 font-mono text-[10px]"
+                                    className="h-7 font-mono text-[12px]"
                                     aria-label={`${code} ML signal name`}
                                   >
                                     <SelectValue placeholder="signal name" />
@@ -1070,7 +1070,7 @@ const strategyOptionsByCode = useMemo(() => {
                                   disabled={gateEnabled !== true}
                                 >
                                   <SelectTrigger
-                                    className="h-7 font-mono text-[10px]"
+                                    className="h-7 font-mono text-[12px]"
                                     aria-label={`${code} ML shadow mode`}
                                   >
                                     <SelectValue />
@@ -1099,7 +1099,7 @@ const strategyOptionsByCode = useMemo(() => {
                   strokeWidth={1.75}
                   className="mt-0.5 shrink-0 text-warning"
                 />
-                <p className="text-[11px] text-text-primary">
+                <p className="text-[13px] text-text-primary">
                   <span className="font-semibold">
                     Allocations sum to {allocationSumPct.toFixed(1)}%.
                   </span>{' '}
@@ -1117,13 +1117,13 @@ const strategyOptionsByCode = useMemo(() => {
                   className="mt-0.5 shrink-0 text-warning"
                 />
                 <div className="flex min-w-0 flex-1 flex-col gap-1">
-                  <p className="text-[11px] text-text-primary">
+                  <p className="text-[13px] text-text-primary">
                     <span className="font-semibold">Allocation below min-notional.</span> The
                     executor floors orders to{' '}
                     <span className="font-mono">{BACKTEST_MIN_NOTIONAL_USDT} USDT</span>, which
                     over-allocates these strategies vs your intended slice:
                   </p>
-                  <ul className="flex flex-col gap-0.5 text-[11px] text-text-primary">
+                  <ul className="flex flex-col gap-0.5 text-[13px] text-text-primary">
                     {tinyAllocationCodes.map((t) => (
                       <li key={t.code} className="flex flex-wrap items-center gap-2">
                         <span className="font-mono font-semibold">{t.code}</span>
@@ -1140,7 +1140,7 @@ const strategyOptionsByCode = useMemo(() => {
                       </li>
                     ))}
                   </ul>
-                  <p className="text-[10px] text-text-muted">
+                  <p className="text-[12px] text-text-muted">
                     Increase the allocation, or raise initial capital so each slice clears the
                     min-notional floor.
                   </p>
@@ -1156,12 +1156,12 @@ const strategyOptionsByCode = useMemo(() => {
                   className="mt-0.5 shrink-0 text-warning"
                 />
                 <div className="flex min-w-0 flex-1 flex-col gap-2">
-                  <p className="text-[11px] text-text-primary">
+                  <p className="text-[13px] text-text-primary">
                     <span className="font-semibold">Interval mismatch.</span> Strategy params are
                     calibrated for a specific timeframe; running on a different bar produces invalid
                     results.
                   </p>
-                  <ul className="flex flex-col gap-1.5 text-[11px] text-text-primary">
+                  <ul className="flex flex-col gap-1.5 text-[13px] text-text-primary">
                     {intervalMismatches.map((m) => (
                       <li key={m.code} className="flex flex-wrap items-center gap-2">
                         <span className="font-mono font-semibold">{m.code}</span>
@@ -1183,7 +1183,7 @@ const strategyOptionsByCode = useMemo(() => {
                               [m.code]: m.registered,
                             }))
                           }
-                          className="rounded-sm border border-bd-subtle bg-bg-base px-2 py-0.5 font-mono text-[10px] text-text-primary transition-colors duration-fast hover:bg-bg-hover"
+                          className="rounded-sm border border-bd-subtle bg-bg-base px-2 py-0.5 font-mono text-[12px] text-text-primary transition-colors duration-fast hover:bg-bg-hover"
                         >
                           Run {m.code} on {m.registered}
                         </button>
@@ -1194,7 +1194,7 @@ const strategyOptionsByCode = useMemo(() => {
                     <button
                       type="button"
                       onClick={() => setInterval(sharedRegisteredInterval)}
-                      className="self-start rounded-sm border border-bd-subtle bg-bg-base px-2 py-1 font-mono text-[10px] text-text-primary transition-colors duration-fast hover:bg-bg-hover"
+                      className="self-start rounded-sm border border-bd-subtle bg-bg-base px-2 py-1 font-mono text-[12px] text-text-primary transition-colors duration-fast hover:bg-bg-hover"
                     >
                       Or set the primary interval to {sharedRegisteredInterval}
                     </button>
@@ -1210,7 +1210,7 @@ const strategyOptionsByCode = useMemo(() => {
         <button
           type="button"
           onClick={() => router.push('/backtest')}
-          className="rounded-sm border border-bd-subtle bg-bg-base px-3 py-2 text-[12px] text-text-primary transition-colors duration-fast hover:bg-bg-hover"
+          className="rounded-sm border border-bd-subtle bg-bg-base px-3 py-2 text-[14px] text-text-primary transition-colors duration-fast hover:bg-bg-hover"
         >
           Cancel
         </button>
@@ -1218,7 +1218,7 @@ const strategyOptionsByCode = useMemo(() => {
           type="button"
           onClick={handleSubmit}
           className={cn(
-            'inline-flex items-center gap-1.5 rounded-sm bg-profit px-3 py-2 text-[12px] font-semibold text-text-inverse',
+            'inline-flex items-center gap-1.5 rounded-sm bg-profit px-3 py-2 text-[14px] font-semibold text-text-inverse',
             'transition-opacity duration-fast hover:opacity-90',
             'focus:outline-none focus-visible:ring-2 focus-visible:ring-ring',
           )}
@@ -1235,7 +1235,7 @@ function SectionHeader({ title, hint }: { title: string; hint?: string }) {
   return (
     <div className="flex items-center justify-between border-b border-bd-subtle px-5 py-3">
       <h2 className="label-caps">{title}</h2>
-      {hint && <span className="label-caps !text-[9px]">{hint}</span>}
+      {hint && <span className="label-caps !text-[12px]">{hint}</span>}
     </div>
   );
 }
@@ -1318,7 +1318,7 @@ function DirectionSelect({
               disabled={disabled}
               title={title}
               className={cn(
-                'h-7 px-2.5 text-[10px] font-semibold whitespace-nowrap transition-colors',
+                'h-7 px-2.5 text-[12px] font-semibold whitespace-nowrap transition-colors',
                 isActive
                   ? activeClass
                   : 'bg-bg-surface text-text-muted hover:bg-bg-elevated hover:text-text-secondary',
@@ -1332,7 +1332,7 @@ function DirectionSelect({
       </div>
       {differsFromLive && (
         <span
-          className="text-[9px] leading-none text-text-muted"
+          className="text-[12px] leading-none text-text-muted"
           title={`Strategy live config: ${liveMode}`}
         >
           ≠ live
@@ -1369,7 +1369,7 @@ function GateOverrideSelect({
         onChange(v === INHERIT_GATE ? undefined : v === 'true')
       }
     >
-      <SelectTrigger className="h-7 font-mono text-[10px]" aria-label={`${code} ${gate} gate override`}>
+      <SelectTrigger className="h-7 font-mono text-[12px]" aria-label={`${code} ${gate} gate override`}>
         <SelectValue />
       </SelectTrigger>
       <SelectContent>
@@ -1394,14 +1394,14 @@ function Field({
 }) {
   return (
     <div className="flex flex-col gap-1.5">
-      <Label className="label-caps !text-[9px]">{label}</Label>
+      <Label className="label-caps !text-[12px]">{label}</Label>
       {children}
       {error ? (
-        <p data-form-error className="text-[11px] text-loss">
+        <p data-form-error className="text-[13px] text-loss">
           {error}
         </p>
       ) : hint ? (
-        <p className="text-[11px] text-text-muted">{hint}</p>
+        <p className="text-[13px] text-text-muted">{hint}</p>
       ) : null}
     </div>
   );
@@ -1438,7 +1438,7 @@ function StrategyChip({
         disabled && 'cursor-not-allowed opacity-50 hover:border-bd-subtle hover:bg-bg-base',
       )}
     >
-      <span className="truncate font-mono text-[11px] font-semibold">{code}</span>
+      <span className="truncate font-mono text-[13px] font-semibold">{code}</span>
       <span
         aria-hidden="true"
         className={cn(
@@ -1477,7 +1477,7 @@ function AccountStrategyPicker({
 }) {
   if (loading) {
     return (
-      <div className="flex items-center gap-2 rounded-sm border border-bd-subtle bg-bg-base px-3 py-2 text-[11px] text-text-muted">
+      <div className="flex items-center gap-2 rounded-sm border border-bd-subtle bg-bg-base px-3 py-2 text-[13px] text-text-muted">
         <Loader2 size={11} strokeWidth={1.75} className="animate-spin" />
         Loading strategies…
       </div>
@@ -1489,8 +1489,8 @@ function AccountStrategyPicker({
       <div className="flex items-start gap-2 rounded-sm border border-bd-subtle bg-tint-warning px-3 py-2">
         <AlertTriangle size={12} strokeWidth={1.75} className="mt-0.5 shrink-0 text-warning" />
         <div className="flex flex-col gap-0.5">
-          <p className="font-mono text-[11px] font-semibold text-text-primary">{code}</p>
-          <p className="text-[11px] text-text-secondary">
+          <p className="font-mono text-[13px] font-semibold text-text-primary">{code}</p>
+          <p className="text-[13px] text-text-secondary">
             No account-strategy uses this code. Add one on the Strategies page first.
           </p>
         </div>
@@ -1501,17 +1501,17 @@ function AccountStrategyPicker({
   return (
     <div className="flex flex-col gap-1.5 rounded-sm border border-bd-subtle bg-bg-base px-3 py-2.5">
       <div className="flex items-center justify-between gap-2">
-        <span className="font-mono text-[11px] font-semibold text-text-primary">{code}</span>
+        <span className="font-mono text-[13px] font-semibold text-text-primary">{code}</span>
         <ChevronDown size={10} strokeWidth={1.75} className="text-text-muted" />
       </div>
       <Select value={value} onValueChange={onChange}>
-        <SelectTrigger className="h-8 text-[12px]">
+        <SelectTrigger className="h-8 text-[14px]">
           <SelectValue placeholder="Select account-strategy" />
         </SelectTrigger>
         <SelectContent>
           {candidates.map((c) => (
             <SelectItem key={c.id} value={c.id}>
-              <span className="flex items-center gap-2 text-[12px]">
+              <span className="flex items-center gap-2 text-[14px]">
                 <span className="font-mono font-semibold">{c.interval}</span>
                 <span className="font-mono text-text-muted">· {c.presetName}</span>
               </span>

@@ -225,7 +225,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             <div key={group.label}>
               <div
                 style={{
-                  fontSize: 10,
+                  fontSize: 12,
                   textTransform: 'uppercase',
                   letterSpacing: '0.12em',
                   color: '#8C95A2',
@@ -253,7 +253,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                         borderRadius: 10,
                         color: active ? '#F2F5F8' : '#C5CCD5',
                         background: active ? 'rgba(255,255,255,0.08)' : 'transparent',
-                        fontSize: 14,
+                        fontSize: 15,
                         fontWeight: active ? 600 : 500,
                         textDecoration: 'none',
                         transition: 'background var(--dur-fast), color var(--dur-fast)',
@@ -281,7 +281,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             <div>
               <div
                 style={{
-                  fontSize: 10,
+                  fontSize: 12,
                   textTransform: 'uppercase',
                   letterSpacing: '0.12em',
                   color: '#8C95A2',
@@ -306,7 +306,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                   color: '#C5CCD5',
                   background: 'transparent',
                   border: 0,
-                  fontSize: 14,
+                  fontSize: 15,
                   fontWeight: 500,
                   cursor: 'pointer',
                   fontFamily: 'inherit',
@@ -334,7 +334,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                   <div key={group.label}>
                     <div
                       style={{
-                        fontSize: 9,
+                        fontSize: 12,
                         textTransform: 'uppercase',
                         letterSpacing: '0.14em',
                         color: '#5C6470',
@@ -360,7 +360,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                             borderRadius: 8,
                             color: active ? '#F2F5F8' : '#A8B0BC',
                             background: active ? 'rgba(255,255,255,0.08)' : 'transparent',
-                            fontSize: 13,
+                            fontSize: 14,
                             fontWeight: active ? 600 : 400,
                             textDecoration: 'none',
                             transition: 'background 120ms, color 120ms',
@@ -421,7 +421,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
               display: 'grid',
               placeItems: 'center',
               fontWeight: 700,
-              fontSize: 13,
+              fontSize: 14,
               fontFamily: 'var(--font-display)',
               flexShrink: 0,
             }}
@@ -431,7 +431,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           <div style={{ flex: 1, minWidth: 0 }}>
             <div
               style={{
-                fontSize: 13,
+                fontSize: 14,
                 fontWeight: 600,
                 color: '#F2F5F8',
                 whiteSpace: 'nowrap',
@@ -441,7 +441,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             >
               {firstName}
             </div>
-            <div style={{ fontSize: 11, color: '#8C95A2' }}>
+            <div style={{ fontSize: 13, color: '#8C95A2' }}>
               {isAdmin ? 'Admin' : 'Live · Binance'}
             </div>
           </div>

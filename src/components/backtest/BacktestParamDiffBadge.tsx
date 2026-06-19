@@ -10,7 +10,7 @@ export function BacktestParamDiffBadge({ overrideCount, className }: BacktestPar
   return (
     <span
       className={cn(
-        'num inline-flex items-center gap-1 rounded-sm px-1.5 py-px text-[10px] font-semibold uppercase tracking-wider',
+        'num inline-flex items-center gap-1 rounded-sm px-1.5 py-px text-[12px] font-semibold uppercase tracking-wider',
         isDirty ? 'text-warning' : 'text-text-muted',
         className,
       )}

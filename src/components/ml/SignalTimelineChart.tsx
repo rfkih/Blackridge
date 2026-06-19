@@ -97,13 +97,13 @@ export function SignalTimelineChart({ signalId }: { signalId: string }) {
           <BarChart data={chartData} margin={{ top: 8, right: 8, left: -16, bottom: 0 }}>
             <XAxis
               dataKey="date"
-              tick={{ fill: c.tick, fontSize: 11 }}
+              tick={{ fill: c.tick, fontSize: 13 }}
               tickLine={{ stroke: c.line }}
               axisLine={{ stroke: c.line }}
               interval="preserveStartEnd"
             />
             <YAxis
-              tick={{ fill: c.tick, fontSize: 11 }}
+              tick={{ fill: c.tick, fontSize: 13 }}
               tickLine={{ stroke: c.line }}
               axisLine={{ stroke: c.line }}
               allowDecimals={false}

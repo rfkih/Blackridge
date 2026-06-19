@@ -55,7 +55,7 @@ function renderMetric(
   replicatedValue: number | undefined | null,
 ) {
   return (
-    <div className="flex items-baseline gap-1 text-[11px]">
+    <div className="flex items-baseline gap-1 text-[13px]">
       <span className="text-text-tertiary">{label}=</span>
       <span
         className={cn('font-mono tabular-nums', deviationClass(originalValue, replicatedValue))}
@@ -105,7 +105,7 @@ export function ReplicationsPanel({
 
   return (
     <div className="space-y-1.5">
-      <div className="text-[12px] font-semibold text-text-secondary">
+      <div className="text-[14px] font-semibold text-text-secondary">
         Backtest runs (cite one before Approve)
       </div>
       <ul className="space-y-1">
@@ -116,7 +116,7 @@ export function ReplicationsPanel({
             <li
               key={row.backtestRunId}
               className={cn(
-                'flex flex-wrap items-center gap-3 rounded border px-2 py-1.5 text-[12px]',
+                'flex flex-wrap items-center gap-3 rounded border px-2 py-1.5 text-[14px]',
                 isSelected ? 'border-accent bg-accent/5' : 'bg-bg-surface-2 border-bd-subtle',
                 !isCompleted && !row.isOriginal && 'opacity-70',
               )}
@@ -150,7 +150,7 @@ export function ReplicationsPanel({
                     color-code deviation. Operator who needs raw values can click "View backtest" on
                     the strategy-detail page once the V102 row is created. */}
                 {row.error && (
-                  <span className="text-danger text-[11px]" title={row.error}>
+                  <span className="text-danger text-[13px]" title={row.error}>
                     error
                   </span>
                 )}

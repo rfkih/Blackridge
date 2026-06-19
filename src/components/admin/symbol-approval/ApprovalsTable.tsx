@@ -52,15 +52,15 @@ export function ApprovalsTable({ onAttachEvidence, onRevoke }: ApprovalsTablePro
   return (
     <section className="overflow-hidden rounded-xl border border-bd-subtle bg-bg-surface">
       <div className="flex flex-wrap items-center gap-2 border-b border-bd-subtle px-4 py-3">
-        <h3 className="font-display text-[13px] font-semibold text-text-primary">
+        <h3 className="font-display text-[14px] font-semibold text-text-primary">
           Approvals
-          <span className="ml-2 font-mono text-[11px] text-text-muted">{rows.length}</span>
+          <span className="ml-2 font-mono text-[13px] text-text-muted">{rows.length}</span>
         </h3>
         <div className="ml-auto flex flex-wrap items-center gap-2">
           <select
             value={symbolFilter}
             onChange={(e) => setSymbolFilter(e.target.value)}
-            className="h-7 rounded-sm border border-bd-subtle bg-bg-base px-2 font-mono text-[11px] text-text-primary"
+            className="h-7 rounded-sm border border-bd-subtle bg-bg-base px-2 font-mono text-[13px] text-text-primary"
           >
             <option value="">All symbols</option>
             {symbols.map((s) => (
@@ -72,7 +72,7 @@ export function ApprovalsTable({ onAttachEvidence, onRevoke }: ApprovalsTablePro
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value as ApprovalStatus | '')}
-            className="h-7 rounded-sm border border-bd-subtle bg-bg-base px-2 font-mono text-[11px] text-text-primary"
+            className="h-7 rounded-sm border border-bd-subtle bg-bg-base px-2 font-mono text-[13px] text-text-primary"
           >
             <option value="">All statuses</option>
             <option value="approved">approved</option>
@@ -82,7 +82,7 @@ export function ApprovalsTable({ onAttachEvidence, onRevoke }: ApprovalsTablePro
           </select>
           <label
             htmlFor="approvals-show-revoked"
-            className="inline-flex items-center gap-1.5 text-[11px] text-text-secondary"
+            className="inline-flex items-center gap-1.5 text-[13px] text-text-secondary"
           >
             <input
               id="approvals-show-revoked"
@@ -112,7 +112,7 @@ export function ApprovalsTable({ onAttachEvidence, onRevoke }: ApprovalsTablePro
           <tbody>
             {rows.length === 0 ? (
               <tr>
-                <td colSpan={8} className="px-4 py-6 text-center text-[12px] text-text-muted">
+                <td colSpan={8} className="px-4 py-6 text-center text-[14px] text-text-muted">
                   No approvals match the current filters.
                 </td>
               </tr>
@@ -145,10 +145,10 @@ function ApprovalRow({
   const revoked = row.status === 'revoked';
   return (
     <tr className="group border-b border-bd-subtle last:border-b-0 hover:bg-bg-hover">
-      <td className="num whitespace-nowrap px-4 py-3 font-mono text-[12px] text-text-primary">
+      <td className="num whitespace-nowrap px-4 py-3 font-mono text-[14px] text-text-primary">
         {row.symbol}
       </td>
-      <td className="num whitespace-nowrap px-4 py-3 font-mono text-[12px] text-text-primary">
+      <td className="num whitespace-nowrap px-4 py-3 font-mono text-[14px] text-text-primary">
         {row.strategyCode}
       </td>
       <td className="whitespace-nowrap px-4 py-3">
@@ -161,13 +161,13 @@ function ApprovalRow({
           }
         />
       </td>
-      <td className="num whitespace-nowrap px-4 py-3 font-mono text-[11px] text-text-secondary">
+      <td className="num whitespace-nowrap px-4 py-3 font-mono text-[13px] text-text-secondary">
         {row.evidenceCagrPct != null ? `${row.evidenceCagrPct.toFixed(2)}%` : '—'}
       </td>
-      <td className="num whitespace-nowrap px-4 py-3 font-mono text-[11px] text-text-secondary">
+      <td className="num whitespace-nowrap px-4 py-3 font-mono text-[13px] text-text-secondary">
         {row.evidenceTrades ?? '—'}
       </td>
-      <td className="whitespace-nowrap px-4 py-3 font-mono text-[11px] text-text-secondary">
+      <td className="whitespace-nowrap px-4 py-3 font-mono text-[13px] text-text-secondary">
         {row.backtestRunId ? (
           <a
             href={`/backtest/${row.backtestRunId}`}
@@ -182,11 +182,11 @@ function ApprovalRow({
           <span className="text-text-muted">—</span>
         )}
       </td>
-      <td className="whitespace-nowrap px-4 py-3 font-mono text-[10px] text-text-muted">
+      <td className="whitespace-nowrap px-4 py-3 font-mono text-[12px] text-text-muted">
         <div className="flex flex-col">
           <span>{row.createdBy ?? '—'}</span>
           {row.createdTime && (
-            <span className="text-[9px]">{format(new Date(row.createdTime), 'yyyy-MM-dd')}</span>
+            <span className="text-[12px]">{format(new Date(row.createdTime), 'yyyy-MM-dd')}</span>
           )}
         </div>
       </td>
@@ -196,7 +196,7 @@ function ApprovalRow({
             <button
               type="button"
               onClick={() => onAttachEvidence(row)}
-              className="inline-flex items-center gap-1 rounded-sm border border-bd-subtle bg-bg-base px-2 py-1 text-[11px] text-text-primary transition-colors hover:bg-bg-hover"
+              className="inline-flex items-center gap-1 rounded-sm border border-bd-subtle bg-bg-base px-2 py-1 text-[13px] text-text-primary transition-colors hover:bg-bg-hover"
             >
               <RotateCcw size={11} /> Attach evidence
             </button>
@@ -205,7 +205,7 @@ function ApprovalRow({
             <button
               type="button"
               onClick={() => onRevoke(row)}
-              className="inline-flex items-center gap-1 rounded-sm border border-bd-subtle bg-bg-base px-2 py-1 text-[11px] text-[var(--color-loss)] transition-colors hover:bg-[rgba(229,72,77,0.12)]"
+              className="inline-flex items-center gap-1 rounded-sm border border-bd-subtle bg-bg-base px-2 py-1 text-[13px] text-[var(--color-loss)] transition-colors hover:bg-[rgba(229,72,77,0.12)]"
             >
               <X size={11} /> Revoke
             </button>

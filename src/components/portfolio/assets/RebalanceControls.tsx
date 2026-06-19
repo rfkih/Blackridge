@@ -49,10 +49,10 @@ export function RebalanceControls({
     <section className="rounded-xl border border-bd-subtle bg-bg-surface p-4 shadow-panel">
       <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
         <div className="mr-auto">
-          <h2 className="font-display text-[14px] font-semibold text-text-primary">
+          <h2 className="font-display text-[15px] font-semibold text-text-primary">
             Quick rebalance
           </h2>
-          <p className="text-[11px] text-text-muted">
+          <p className="text-[13px] text-text-muted">
             Preview and execute in one step — no manual generate/execute needed.
           </p>
         </div>
@@ -60,14 +60,14 @@ export function RebalanceControls({
         <button
           type="button"
           onClick={() => setOpen(true)}
-          className="inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-[12px] font-semibold"
+          className="inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-[14px] font-semibold"
           style={{ background: 'var(--color-loss)', color: 'var(--text-inverse)' }}
         >
           <Rocket size={12} /> Rebalance now
         </button>
 
         <div className="flex items-center gap-2">
-          <span className="font-mono text-[10px] uppercase tracking-wider text-text-muted">
+          <span className="font-mono text-[12px] uppercase tracking-wider text-text-muted">
             Target USDT %
           </span>
           <input
@@ -78,20 +78,20 @@ export function RebalanceControls({
             value={usdtPct}
             onChange={(e) => setUsdtPct(e.target.value)}
             aria-label="target-usdt-pct"
-            className="focus:border-bd-focus w-20 rounded border border-bd-subtle bg-bg-base px-2 py-1 text-right font-mono text-[12px] tabular-nums text-text-primary focus:outline-none"
+            className="focus:border-bd-focus w-20 rounded border border-bd-subtle bg-bg-base px-2 py-1 text-right font-mono text-[14px] tabular-nums text-text-primary focus:outline-none"
           />
           <button
             type="button"
             onClick={setAndRebalance}
             disabled={upsertTargets.isPending}
-            className="inline-flex items-center gap-1.5 rounded-full border border-bd-subtle bg-bg-base px-3 py-1.5 text-[12px] text-text-primary hover:bg-bg-hover disabled:opacity-60"
+            className="inline-flex items-center gap-1.5 rounded-full border border-bd-subtle bg-bg-base px-3 py-1.5 text-[14px] text-text-primary hover:bg-bg-hover disabled:opacity-60"
           >
             Set &amp; rebalance
           </button>
         </div>
       </div>
 
-      {presetError && <p className="mt-2 text-[11px] text-[var(--color-loss)]">{presetError}</p>}
+      {presetError && <p className="mt-2 text-[13px] text-[var(--color-loss)]">{presetError}</p>}
 
       <RebalanceNowDialog
         open={open}

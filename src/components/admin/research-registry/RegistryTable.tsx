@@ -19,7 +19,7 @@ function Badge({ style, title }: { style: BadgeStyle; title?: string }) {
   return (
     <span
       title={title}
-      className="inline-block whitespace-nowrap rounded-sm px-1.5 py-px font-mono text-[10px] uppercase tracking-widest"
+      className="inline-block whitespace-nowrap rounded-sm px-1.5 py-px font-mono text-[12px] uppercase tracking-widest"
       style={{ background: style.bg, color: style.fg }}
     >
       {style.label}
@@ -53,13 +53,13 @@ export function RegistryTable({ items, isAdmin, onSelect, onEdit, onArchive }: R
           <section key={tier}>
             <div className="mb-1.5 flex items-center gap-2">
               <Badge style={tierStyle(tier)} />
-              <h2 className="text-[12px] font-semibold uppercase tracking-widest text-text-secondary">
+              <h2 className="text-[14px] font-semibold uppercase tracking-widest text-text-secondary">
                 {TIER_LABEL[tier]}
               </h2>
-              <span className="font-mono text-[10px] text-text-muted">{byTier[tier].length}</span>
+              <span className="font-mono text-[12px] text-text-muted">{byTier[tier].length}</span>
             </div>
             <div className="overflow-x-auto rounded-xl border border-bd-subtle bg-bg-surface">
-              <table className="w-full border-collapse text-[12px]">
+              <table className="w-full border-collapse text-[14px]">
                 <thead>
                   <tr className="border-b border-bd-subtle text-left">
                     {['#', 'Strategy', 'Status', 'Verdict', 'DSR', 'Walk-forward', 'Ann %', 'Trades', '', isAdmin ? '' : null]
@@ -67,7 +67,7 @@ export function RegistryTable({ items, isAdmin, onSelect, onEdit, onArchive }: R
                       .map((h, i) => (
                         <th
                           key={i}
-                          className="px-3 py-2 text-[10px] font-medium uppercase tracking-widest text-text-muted"
+                          className="px-3 py-2 text-[12px] font-medium uppercase tracking-widest text-text-muted"
                         >
                           {h}
                         </th>
@@ -81,20 +81,20 @@ export function RegistryTable({ items, isAdmin, onSelect, onEdit, onArchive }: R
                       onClick={() => onSelect(e)}
                       className="group cursor-pointer border-b border-bd-subtle last:border-0 hover:bg-bg-hover"
                     >
-                      <td className="px-3 py-2.5 font-mono text-[11px] text-text-muted">
+                      <td className="px-3 py-2.5 font-mono text-[13px] text-text-muted">
                         {e.rank ?? '—'}
                       </td>
                       <td className="px-3 py-2.5">
                         <div className="flex items-center gap-2">
                           <span className="font-medium text-text-primary">{e.displayName}</span>
                           {e.signalFamily && (
-                            <span className="rounded-sm bg-bg-base px-1.5 py-px font-mono text-[9px] uppercase tracking-wider text-text-muted">
+                            <span className="rounded-sm bg-bg-base px-1.5 py-px font-mono text-[12px] uppercase tracking-wider text-text-muted">
                               {e.signalFamily}
                             </span>
                           )}
                           {e.isOfflineLead && (
                             <span
-                              className="rounded-sm px-1.5 py-px font-mono text-[9px] uppercase tracking-wider"
+                              className="rounded-sm px-1.5 py-px font-mono text-[12px] uppercase tracking-wider"
                               style={{ background: 'var(--bg-hover)', color: 'var(--text-muted)' }}
                               title="No orchestrator run — offline/curated only"
                             >
@@ -103,7 +103,7 @@ export function RegistryTable({ items, isAdmin, onSelect, onEdit, onArchive }: R
                           )}
                           {e.autoManaged && (
                             <span
-                              className="rounded-sm px-1.5 py-px font-mono text-[9px] uppercase tracking-wider"
+                              className="rounded-sm px-1.5 py-px font-mono text-[12px] uppercase tracking-wider"
                               style={{ background: 'var(--tint-info)', color: 'var(--color-info)' }}
                               title="Auto-tracked from the research loop (not hand-curated). Edit it to take ownership."
                             >
@@ -111,7 +111,7 @@ export function RegistryTable({ items, isAdmin, onSelect, onEdit, onArchive }: R
                             </span>
                           )}
                         </div>
-                        <div className="mt-0.5 font-mono text-[10px] text-text-muted">
+                        <div className="mt-0.5 font-mono text-[12px] text-text-muted">
                           {e.strategyCode ?? '—'}
                           {e.symbol ? ` · ${e.symbol}` : ''}
                           {e.intervalName ? ` · ${e.intervalName}` : ''}
@@ -126,7 +126,7 @@ export function RegistryTable({ items, isAdmin, onSelect, onEdit, onArchive }: R
                       <td className="px-3 py-2.5 font-mono tabular-nums text-text-secondary">
                         {fmtDsr(e.live.dsr)}
                       </td>
-                      <td className="px-3 py-2.5 font-mono text-[11px] text-text-secondary">
+                      <td className="px-3 py-2.5 font-mono text-[13px] text-text-secondary">
                         {shortWf(e.live.walkForwardVerdict)}
                       </td>
                       <td

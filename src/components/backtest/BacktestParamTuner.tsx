@@ -307,7 +307,7 @@ export function BacktestParamTuner() {
           <button
             type="button"
             onClick={handleBackToConfig}
-            className="mt-[3px] inline-flex items-center gap-1 rounded-sm border border-bd-subtle bg-bg-base px-2 py-1 text-[11px] text-text-secondary transition-colors duration-fast hover:bg-bg-hover hover:text-text-primary"
+            className="mt-[3px] inline-flex items-center gap-1 rounded-sm border border-bd-subtle bg-bg-base px-2 py-1 text-[13px] text-text-secondary transition-colors duration-fast hover:bg-bg-hover hover:text-text-primary"
           >
             <ArrowLeft size={12} strokeWidth={1.75} />
             Back to Config
@@ -336,7 +336,7 @@ export function BacktestParamTuner() {
               type="button"
               onClick={() => setActiveTab(code)}
               className={cn(
-                'group relative flex items-center gap-2 px-3 pb-2 pt-2 font-mono text-[12px] font-semibold transition-colors duration-fast',
+                'group relative flex items-center gap-2 px-3 pb-2 pt-2 font-mono text-[14px] font-semibold transition-colors duration-fast',
                 'focus:outline-none focus-visible:bg-bg-base',
                 isActive ? 'text-text-primary' : 'text-text-muted hover:text-text-secondary',
               )}
@@ -375,7 +375,7 @@ export function BacktestParamTuner() {
         {}
         <div className="px-4 py-4">
           {defaultsLoading ? (
-            <div className="flex items-center justify-center gap-2 py-10 text-[12px] text-text-muted">
+            <div className="flex items-center justify-center gap-2 py-10 text-[14px] text-text-muted">
               <Loader2 size={14} strokeWidth={1.75} className="animate-spin" />
               Loading defaults…
             </div>
@@ -415,13 +415,13 @@ export function BacktestParamTuner() {
           />
           <label
             htmlFor="useCalibratedSlippage"
-            className="flex flex-col gap-0.5 text-[12px] text-text-primary cursor-pointer"
+            className="flex flex-col gap-0.5 text-[14px] text-text-primary cursor-pointer"
           >
             <span className="inline-flex items-center gap-1.5 font-semibold">
               Use calibrated slippage
               <SlippageHelpHint />
             </span>
-            <span className="text-[11px] text-text-muted">
+            <span className="text-[13px] text-text-muted">
               {slippageStats == null
                 ? `No fill history for ${config?.symbol ?? ''} — falls back to platform default.`
                 : slippageStats.trustworthy
@@ -437,7 +437,7 @@ export function BacktestParamTuner() {
         {(hasQueued || isAtLimit) && (
           <div
             className={cn(
-              'flex items-center justify-between gap-3 rounded-sm border px-3 py-2 text-[11px]',
+              'flex items-center justify-between gap-3 rounded-sm border px-3 py-2 text-[13px]',
               isAtLimit
                 ? 'border-[rgba(245,158,11,0.3)] bg-tint-warning text-warning'
                 : 'border-bd-subtle bg-bg-base text-text-secondary',
@@ -463,14 +463,14 @@ export function BacktestParamTuner() {
           </div>
         )}
         <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2 text-[11px] text-text-muted">
+          <div className="flex items-center gap-2 text-[13px] text-text-muted">
             <span className="label-caps">Total</span>
             <span className="num text-text-primary">
               {totalOverrides} override{totalOverrides === 1 ? '' : 's'}
             </span>
             <span className="text-text-muted">across {strategyCodes.length} strategy</span>
             <span className="label-caps ml-4">Shortcut</span>
-            <kbd className="rounded-sm border border-bd-subtle bg-bg-base px-1.5 py-px font-mono text-[9px]">
+            <kbd className="rounded-sm border border-bd-subtle bg-bg-base px-1.5 py-px font-mono text-[12px]">
               ⌘/Ctrl + ↵
             </kbd>
           </div>
@@ -480,7 +480,7 @@ export function BacktestParamTuner() {
             onClick={handleRunClick}
             disabled={createMutation.isPending || defaultsLoading || isAtLimit || activeCountLoading}
             className={cn(
-              'inline-flex items-center gap-1.5 rounded-sm bg-profit px-4 py-2 text-[12px] font-semibold text-text-inverse',
+              'inline-flex items-center gap-1.5 rounded-sm bg-profit px-4 py-2 text-[14px] font-semibold text-text-inverse',
               'transition-opacity duration-fast hover:opacity-90',
               'focus:outline-none focus-visible:ring-2 focus-visible:ring-ring',
               'disabled:cursor-not-allowed disabled:opacity-50',
@@ -633,12 +633,12 @@ function SummaryCell({
     <div className="flex flex-col gap-1 bg-bg-surface px-4 py-3">
       <span className="label-caps">{label}</span>
       <span
-        className={cn('truncate text-[13px]', mono ? 'num font-semibold' : 'font-medium')}
+        className={cn('truncate text-[14px]', mono ? 'num font-semibold' : 'font-medium')}
         style={{ color: valueColor ?? 'var(--text-primary)' }}
       >
         {value}
       </span>
-      {sub && <span className="label-caps !text-[9px]">{sub}</span>}
+      {sub && <span className="label-caps !text-[12px]">{sub}</span>}
     </div>
   );
 }
@@ -734,8 +734,8 @@ function NoAccountStrategy({ code }: { code: string }) {
     <div className="flex items-start gap-3 rounded-sm border border-bd-subtle bg-tint-warning px-4 py-3">
       <AlertTriangle size={14} strokeWidth={1.75} className="mt-0.5 shrink-0 text-warning" />
       <div className="space-y-1">
-        <p className="font-mono text-[12px] font-semibold text-text-primary">{code}</p>
-        <p className="text-[12px] text-text-secondary">
+        <p className="font-mono text-[14px] font-semibold text-text-primary">{code}</p>
+        <p className="text-[14px] text-text-secondary">
           No account-strategy is assigned for this code. Go back to Step 1 and pick one, or add one
           on the Strategies page.
         </p>
@@ -746,7 +746,7 @@ function NoAccountStrategy({ code }: { code: string }) {
 
 function UntunableStrategy({ code }: { code: string }) {
   return (
-    <div className="rounded-sm border border-bd-subtle bg-bg-base px-4 py-4 text-[12px] text-text-secondary">
+    <div className="rounded-sm border border-bd-subtle bg-bg-base px-4 py-4 text-[14px] text-text-secondary">
       <p className="font-mono font-semibold text-text-primary">{code}</p>
       <p className="mt-1">
         This strategy has no tunable parameters in this UI. The backend will use its built-in
@@ -811,7 +811,7 @@ function SlippageHelpHint() {
           side="top"
           align="start"
           collisionPadding={8}
-          className="max-w-sm bg-bg-base text-[11px] leading-relaxed text-text-primary"
+          className="max-w-sm bg-bg-base text-[13px] leading-relaxed text-text-primary"
         >
           <p>
             Replaces the platform&apos;s default 0.05% slippage assumption

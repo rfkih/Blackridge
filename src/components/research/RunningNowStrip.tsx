@@ -96,7 +96,7 @@ export function RunningNowStrip() {
           ) : (
             <PlayCircle size={14} className="text-text-muted" />
           )}
-          <h2 className="font-display text-[14px] font-semibold tracking-tight">
+          <h2 className="font-display text-[15px] font-semibold tracking-tight">
             {mode === 'running'
               ? `Running now · ${ranked.length} active`
               : mode === 'paused'
@@ -106,14 +106,14 @@ export function RunningNowStrip() {
         </div>
         <Link
           href="/research/sweeps"
-          className="font-mono text-[10px] uppercase tracking-wider text-[var(--accent-primary)] hover:underline"
+          className="font-mono text-[12px] uppercase tracking-wider text-[var(--accent-primary)] hover:underline"
         >
           All sweeps →
         </Link>
       </div>
 
       {mode === 'paused' ? (
-        <div className="bg-bg-base/40 mt-3 rounded-sm border border-bd-subtle p-3 text-[12px] text-text-secondary">
+        <div className="bg-bg-base/40 mt-3 rounded-sm border border-bd-subtle p-3 text-[14px] text-text-secondary">
           Reason: {automation?.reason ?? 'no reason given'}.{' '}
           {automation?.updatedAt && (
             <span className="text-text-muted">
@@ -134,7 +134,7 @@ export function RunningNowStrip() {
                 href={`/research/sweeps/${sweep.sweepId}`}
                 className="block rounded-sm border border-bd-subtle bg-bg-base px-2.5 py-2 transition-colors hover:bg-bg-hover"
               >
-                <div className="flex items-center justify-between gap-3 text-[11px]">
+                <div className="flex items-center justify-between gap-3 text-[13px]">
                   <span className="truncate font-mono text-text-primary">
                     {sweep.spec.strategyCode} · {sweep.spec.asset} {sweep.spec.interval}
                   </span>
@@ -151,7 +151,7 @@ export function RunningNowStrip() {
                     }}
                   />
                 </div>
-                <div className="mt-1 flex items-center justify-between text-[10px] text-text-muted">
+                <div className="mt-1 flex items-center justify-between text-[12px] text-text-muted">
                   <span className="font-mono uppercase tracking-wider">{sweep.status}</span>
                   <span className="font-mono">
                     {startedAtMs != null
@@ -166,7 +166,7 @@ export function RunningNowStrip() {
             <li>
               <Link
                 href="/research/sweeps"
-                className="inline-flex items-center gap-1 font-mono text-[10px] uppercase tracking-wider text-[var(--accent-primary)] hover:underline"
+                className="inline-flex items-center gap-1 font-mono text-[12px] uppercase tracking-wider text-[var(--accent-primary)] hover:underline"
               >
                 +{overflow} more <ChevronRight size={11} />
               </Link>
@@ -174,7 +174,7 @@ export function RunningNowStrip() {
           )}
         </ul>
       ) : (
-        <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[12px] text-text-secondary">
+        <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[14px] text-text-secondary">
           {lastCompleted ? (
             <Link
               href={`/research/sweeps/${lastCompleted.sweepId}`}
@@ -194,7 +194,7 @@ export function RunningNowStrip() {
           ) : (
             <span className="text-text-muted">No sweeps yet.</span>
           )}
-          <span className="font-mono text-[11px] text-text-muted">
+          <span className="font-mono text-[13px] text-text-muted">
             {nextRunAtMs != null && nextRunAtMs > nowMs
               ? `Next tick in ${formatDistanceStrict(nowMs, nextRunAtMs)}`
               : tick?.scheduled

@@ -21,7 +21,7 @@ export const CHART_COLORS = {
 
 export const AXIS_TICK = {
   fill: CHART_COLORS.neutral,
-  fontSize: 11,
+  fontSize: 13,
   fontFamily: 'IBM Plex Mono, ui-monospace, monospace',
 } as const;
 
@@ -29,7 +29,7 @@ export const TOOLTIP_CONTENT_STYLE = {
   background: CHART_COLORS.surface,
   border: `1px solid ${CHART_COLORS.axis}`,
   color: CHART_COLORS.textPrimary,
-  fontSize: 12,
+  fontSize: 14,
   borderRadius: 6,
   padding: '8px 12px',
 } as const;

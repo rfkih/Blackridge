@@ -144,7 +144,7 @@ export default function ResearchStrategiesPage() {
           </p>
         </div>
         <div className="flex shrink-0 gap-2">
-          <button type="button" onClick={() => query.refetch()} className="mm-pill" style={{ padding: '8px 12px', fontSize: 12 }}>
+          <button type="button" onClick={() => query.refetch()} className="mm-pill" style={{ padding: '8px 12px', fontSize: 14 }}>
             {query.isFetching && !query.isLoading ? (
               <Loader2 size={13} strokeWidth={1.7} className="animate-spin" />
             ) : (
@@ -152,7 +152,7 @@ export default function ResearchStrategiesPage() {
             )}
             <span>Refresh</span>
           </button>
-          <button type="button" onClick={openCreate} className="mm-pill" style={{ padding: '8px 12px', fontSize: 12 }}>
+          <button type="button" onClick={openCreate} className="mm-pill" style={{ padding: '8px 12px', fontSize: 14 }}>
             <Plus size={13} strokeWidth={1.7} />
             <span>Add entry</span>
           </button>
@@ -162,14 +162,14 @@ export default function ResearchStrategiesPage() {
       {/* Stat tiles */}
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
         <div className="rounded-xl border border-bd-subtle bg-bg-surface px-3 py-2.5">
-          <div className="text-[10px] uppercase tracking-widest text-text-muted">Total</div>
+          <div className="text-[12px] uppercase tracking-widest text-text-muted">Total</div>
           <div className="mt-0.5 font-mono text-xl tabular-nums text-text-primary">
             {query.data?.total ?? '—'}
           </div>
         </div>
         {STAT_TILES.map((t) => (
           <div key={t.key} className="rounded-xl border border-bd-subtle bg-bg-surface px-3 py-2.5">
-            <div className="text-[10px] uppercase tracking-widest text-text-muted">{t.label}</div>
+            <div className="text-[12px] uppercase tracking-widest text-text-muted">{t.label}</div>
             <div className="mt-0.5 font-mono text-xl tabular-nums" style={{ color: t.color }}>
               {statusCounts?.[t.key] ?? '—'}
             </div>
@@ -180,19 +180,19 @@ export default function ResearchStrategiesPage() {
       {/* Filters */}
       <div className="flex flex-col gap-2 rounded-xl border border-bd-subtle bg-bg-surface px-3 py-2.5">
         <div className="flex flex-wrap items-center gap-2">
-          <span className="w-16 shrink-0 text-[11px] uppercase tracking-widest text-text-muted">Tier</span>
+          <span className="w-16 shrink-0 text-[13px] uppercase tracking-widest text-text-muted">Tier</span>
           {TIER_FILTERS.map((f) => (
             <FilterPill key={f.value} active={tier === f.value} label={f.label} onClick={() => { setTier(f.value); setPage(0); }} />
           ))}
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <span className="w-16 shrink-0 text-[11px] uppercase tracking-widest text-text-muted">Status</span>
+          <span className="w-16 shrink-0 text-[13px] uppercase tracking-widest text-text-muted">Status</span>
           {STATUS_FILTERS.map((f) => (
             <FilterPill key={f.value} active={status === f.value} label={f.label} onClick={() => { setStatus(f.value); setPage(0); }} />
           ))}
         </div>
         <div className="flex flex-wrap items-center gap-3">
-          <span className="w-16 shrink-0 text-[11px] uppercase tracking-widest text-text-muted">Search</span>
+          <span className="w-16 shrink-0 text-[13px] uppercase tracking-widest text-text-muted">Search</span>
           <div className="relative">
             <Search size={11} className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-text-muted" />
             <input
@@ -200,20 +200,20 @@ export default function ResearchStrategiesPage() {
               placeholder="name / code / thesis…"
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
-              className="h-7 w-64 rounded-sm border border-bd-subtle bg-bg-base pl-6 pr-2 font-mono text-[12px] text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-1 focus:ring-[var(--accent-primary)]"
+              className="h-7 w-64 rounded-sm border border-bd-subtle bg-bg-base pl-6 pr-2 font-mono text-[14px] text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-1 focus:ring-[var(--accent-primary)]"
             />
           </div>
           <select
             value={family}
             onChange={(e) => setFamily(e.target.value)}
-            className="h-7 rounded-sm border border-bd-subtle bg-bg-base px-2 font-mono text-[12px] text-text-primary"
+            className="h-7 rounded-sm border border-bd-subtle bg-bg-base px-2 font-mono text-[14px] text-text-primary"
           >
             <option value="ALL">All families</option>
             {families.map((f) => (
               <option key={f} value={f}>{f}</option>
             ))}
           </select>
-          <label className="flex cursor-pointer items-center gap-1.5 text-[12px] text-text-secondary">
+          <label className="flex cursor-pointer items-center gap-1.5 text-[14px] text-text-secondary">
             <input type="checkbox" checked={includeArchived} onChange={(e) => setIncludeArchived(e.target.checked)} />
             Show archived
           </label>
@@ -262,7 +262,7 @@ function FilterPill({ active, label, onClick }: { active: boolean; label: string
     <button
       type="button"
       onClick={onClick}
-      className="rounded-sm px-2 py-1 text-[12px] transition-colors"
+      className="rounded-sm px-2 py-1 text-[14px] transition-colors"
       style={{
         background: active ? 'var(--bg-hover)' : 'transparent',
         color: active ? 'var(--text-primary)' : 'var(--text-secondary)',

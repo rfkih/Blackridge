@@ -60,7 +60,7 @@ export function ExecutionHistoryTab({ accountId }: { accountId: string | undefin
       />
 
       {activeCategory && (
-        <div className="flex items-center gap-2 text-[12px]" style={{ color: 'var(--mm-ink-2)' }}>
+        <div className="flex items-center gap-2 text-[14px]" style={{ color: 'var(--mm-ink-2)' }}>
           <span>Filtered to <b>{activeCategory}</b></span>
           <button type="button" onClick={() => setActiveCategory(null)} className="mm-pill" style={{ padding: '2px 8px' }}>clear ✕</button>
         </div>
@@ -69,7 +69,7 @@ export function ExecutionHistoryTab({ accountId }: { accountId: string | undefin
       <ExecutionTable rows={rows} isLoading={listQuery.isLoading} onRowClick={setSelected} />
 
       {totalPages > 1 && (
-        <div className="flex items-center justify-center gap-3 text-[12px]" style={{ color: 'var(--mm-ink-2)' }}>
+        <div className="flex items-center justify-center gap-3 text-[14px]" style={{ color: 'var(--mm-ink-2)' }}>
           <button type="button" className="mm-pill" disabled={page === 0} onClick={() => setPage((p) => Math.max(0, p - 1))} style={{ padding: '3px 10px' }}>‹ Prev</button>
           <span>page {page + 1} of {totalPages}</span>
           <button type="button" className="mm-pill" disabled={page + 1 >= totalPages} onClick={() => setPage((p) => p + 1)} style={{ padding: '3px 10px' }}>Next ›</button>

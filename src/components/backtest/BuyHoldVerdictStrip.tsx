@@ -83,7 +83,7 @@ export function BuyHoldVerdictStrip({
   return (
     <div className="rounded-xl border border-bd-subtle bg-bg-surface p-4">
       <div className="mb-3 flex items-baseline justify-between">
-        <h4 className="font-display text-[13px] font-semibold text-text-primary">
+        <h4 className="font-display text-[14px] font-semibold text-text-primary">
           Strategy vs Buy-Hold{sym}
         </h4>
       </div>
@@ -101,7 +101,7 @@ export function BuyHoldVerdictStrip({
           color="var(--color-loss)"
         />
       </div>
-      <p className="mt-3 text-[12px] leading-relaxed text-text-secondary">{verdict}</p>
+      <p className="mt-3 text-[14px] leading-relaxed text-text-secondary">{verdict}</p>
     </div>
   );
 }
@@ -109,7 +109,7 @@ export function BuyHoldVerdictStrip({
 function Stat({ label, value, color }: { label: string; value: string; color: string }) {
   return (
     <div className="flex flex-col gap-1">
-      <span className="font-mono text-[9px] uppercase tracking-wider text-text-muted">{label}</span>
+      <span className="font-mono text-[12px] uppercase tracking-wider text-text-muted">{label}</span>
       <span className="font-mono text-[15px] font-semibold tabular-nums" style={{ color }}>
         {value}
       </span>

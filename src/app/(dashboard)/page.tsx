@@ -100,7 +100,7 @@ export default function DashboardPage() {
       {failedSections.length > 0 && (
         <div
           role="alert"
-          className="flex flex-wrap items-center justify-between gap-3 rounded-xl border px-4 py-2.5 text-[13px]"
+          className="flex flex-wrap items-center justify-between gap-3 rounded-xl border px-4 py-2.5 text-[14px]"
           style={{
             borderColor: 'var(--color-warning)',
             background: 'var(--tint-warning)',
@@ -114,7 +114,7 @@ export default function DashboardPage() {
           <button
             type="button"
             onClick={() => failedSections.forEach(([q]) => q.refetch())}
-            className="rounded-lg border border-bd-subtle bg-bg-surface px-3 py-1 text-[12px] font-semibold text-text-secondary transition-colors hover:bg-bg-hover hover:text-text-primary"
+            className="rounded-lg border border-bd-subtle bg-bg-surface px-3 py-1 text-[14px] font-semibold text-text-secondary transition-colors hover:bg-bg-hover hover:text-text-primary"
           >
             Retry
           </button>
@@ -241,7 +241,7 @@ function AllViewHedgingSection({
         >
           Hedging accounts
         </h3>
-        <span className="text-[12px]" style={{ color: 'var(--text-muted)' }}>
+        <span className="text-[14px]" style={{ color: 'var(--text-muted)' }}>
           {accounts.length} account{accounts.length === 1 ? '' : 's'} · spot allocation
         </span>
       </div>
@@ -267,7 +267,7 @@ function AllViewHedgingSection({
           >
             <div style={{ minWidth: 0 }}>
               <div
-                className="text-[14px] font-semibold"
+                className="text-[15px] font-semibold"
                 style={{
                   color: 'var(--text-primary)',
                   overflow: 'hidden',
@@ -282,7 +282,7 @@ function AllViewHedgingSection({
               </div>
             </div>
             <span
-              className="inline-flex items-center gap-1 text-[13px] font-semibold"
+              className="inline-flex items-center gap-1 text-[14px] font-semibold"
               style={{ color: 'var(--text-secondary)' }}
             >
               Open <ArrowRight size={14} />
@@ -351,7 +351,7 @@ function CompactBalanceCard({
       style={{ padding: '24px 28px', display: 'flex', flexDirection: 'column' }}
     >
       <div
-        className="text-[11px] font-semibold uppercase tracking-[0.1em]"
+        className="text-[13px] font-semibold uppercase tracking-[0.1em]"
         style={{ color: 'rgba(255,255,255,0.7)' }}
       >
         Total equity
@@ -373,7 +373,7 @@ function CompactBalanceCard({
       </div>
       <div className="mt-3 flex items-center gap-3">
         <span
-          className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[13px] font-semibold"
+          className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[14px] font-semibold"
           style={{ background: 'rgba(255,255,255,0.18)', color: '#fff' }}
         >
           <ArrowUpRight
@@ -385,7 +385,7 @@ function CompactBalanceCard({
           {formatCurrency(Math.abs(changeToday))} ({Math.abs(changePct).toFixed(2)}%) today
         </span>
         {scopeLabel && (
-          <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.7)' }}>{scopeLabel}</span>
+          <span style={{ fontSize: 14, color: 'rgba(255,255,255,0.7)' }}>{scopeLabel}</span>
         )}
       </div>
       <div
@@ -404,7 +404,7 @@ function BalanceMini({ label, value }: { label: string; value: string }) {
   return (
     <div>
       <div
-        className="text-[11px] font-semibold uppercase tracking-[0.08em]"
+        className="text-[13px] font-semibold uppercase tracking-[0.08em]"
         style={{ color: 'rgba(255,255,255,0.65)' }}
       >
         {label}
@@ -451,7 +451,7 @@ function EquityPanel({
       <div className="mb-4 flex flex-wrap items-start justify-between gap-4">
         <div>
           <div
-            className="text-[12px] font-semibold uppercase tracking-[0.08em]"
+            className="text-[14px] font-semibold uppercase tracking-[0.08em]"
             style={{ color: 'var(--text-muted)' }}
           >
             Account equity
@@ -469,7 +469,7 @@ function EquityPanel({
             {formatCurrency(balance)}
           </div>
           <div
-            className="num mt-0.5 text-[14px] font-semibold"
+            className="num mt-0.5 text-[15px] font-semibold"
             style={{ color: isUp ? 'var(--color-profit)' : 'var(--color-loss)' }}
           >
             {isUp ? '+' : '−'}
@@ -495,7 +495,7 @@ function EquityPanel({
                 key={value}
                 type="button"
                 onClick={() => setPeriod(value)}
-                className="rounded-lg px-3 py-1.5 text-[12px] font-semibold transition-colors"
+                className="rounded-lg px-3 py-1.5 text-[14px] font-semibold transition-colors"
                 style={{
                   background: active ? 'var(--bg-elevated)' : 'transparent',
                   color: active ? 'var(--text-primary)' : 'var(--text-muted)',
@@ -515,7 +515,7 @@ function EquityPanel({
         {chartData.length === 0 && (
           // The fallback curve is synthetic — say so, or users read it as real equity.
           <span
-            className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full border border-bd-subtle px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.08em]"
+            className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full border border-bd-subtle px-3 py-1 text-[13px] font-semibold uppercase tracking-[0.08em]"
             style={{ background: 'var(--bg-elevated)', color: 'var(--text-muted)' }}
           >
             Sample preview — no equity history yet
@@ -539,12 +539,12 @@ function DailyPnlPanel({ todayPnl }: { todayPnl: number }) {
           >
             Daily P&amp;L
           </h3>
-          <div className="mt-1 text-[12px]" style={{ color: 'var(--text-muted)' }}>
+          <div className="mt-1 text-[14px]" style={{ color: 'var(--text-muted)' }}>
             Realized + unrealized · today
           </div>
         </div>
         <div
-          className="num text-[14px] font-semibold"
+          className="num text-[15px] font-semibold"
           style={{ color: todayPnl >= 0 ? 'var(--color-profit)' : 'var(--color-loss)' }}
         >
           {todayPnl >= 0 ? '+ ' : '− '}
@@ -557,10 +557,10 @@ function DailyPnlPanel({ todayPnl }: { todayPnl: number }) {
       >
         <TrendingUp size={28} style={{ color: 'var(--text-muted)', opacity: 0.4 }} />
         <div className="text-center">
-          <div className="text-[13px] font-medium" style={{ color: 'var(--text-secondary)' }}>
+          <div className="text-[14px] font-medium" style={{ color: 'var(--text-secondary)' }}>
             Per-day breakdown coming soon
           </div>
-          <div className="mt-1 text-[11px]" style={{ color: 'var(--text-muted)' }}>
+          <div className="mt-1 text-[13px]" style={{ color: 'var(--text-muted)' }}>
             Daily P&L history will appear here once the endpoint is available
           </div>
         </div>
@@ -590,10 +590,10 @@ function WatchlistPanel() {
       >
         <Zap size={24} style={{ color: 'var(--text-muted)', opacity: 0.4 }} />
         <div className="px-4 text-center">
-          <div className="text-[13px] font-medium" style={{ color: 'var(--text-secondary)' }}>
+          <div className="text-[14px] font-medium" style={{ color: 'var(--text-secondary)' }}>
             Live market data coming soon
           </div>
-          <div className="mt-1 text-[11px]" style={{ color: 'var(--text-muted)' }}>
+          <div className="mt-1 text-[13px]" style={{ color: 'var(--text-muted)' }}>
             Real-time prices will appear here once the market data endpoint is wired up
           </div>
         </div>
@@ -620,7 +620,7 @@ function PromoTile({
   return (
     <Link href={href} className={`br-promo br-promo-shape ${toneClass}`}>
       <div>
-        <div className="text-[10px] font-bold uppercase tracking-[0.14em]" style={{ opacity: 0.8 }}>
+        <div className="text-[12px] font-bold uppercase tracking-[0.14em]" style={{ opacity: 0.8 }}>
           {eyebrow}
         </div>
         <h4
@@ -638,7 +638,7 @@ function PromoTile({
         </h4>
       </div>
       <div
-        className="inline-flex items-center gap-1.5 text-[13px] font-semibold"
+        className="inline-flex items-center gap-1.5 text-[14px] font-semibold"
         style={{ opacity: 0.95 }}
       >
         {cta} <ArrowRight size={14} />
@@ -715,10 +715,10 @@ function QuickAction({
         {icon}
       </div>
       <div style={{ minWidth: 0 }}>
-        <div className="text-[14px] font-semibold" style={{ color: 'var(--text-primary)' }}>
+        <div className="text-[15px] font-semibold" style={{ color: 'var(--text-primary)' }}>
           {title}
         </div>
-        <div className="text-[12px]" style={{ color: 'var(--text-muted)' }}>
+        <div className="text-[14px]" style={{ color: 'var(--text-muted)' }}>
           {sub}
         </div>
       </div>
@@ -771,7 +771,7 @@ function StatCard({ label, value, sub, tone = 'neutral', icon }: StatCardProps) 
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div
           style={{
-            fontSize: 11,
+            fontSize: 13,
             letterSpacing: '0.08em',
             textTransform: 'uppercase',
             fontWeight: 600,
@@ -812,7 +812,7 @@ function StatCard({ label, value, sub, tone = 'neutral', icon }: StatCardProps) 
         {value}
       </div>
       {sub && (
-        <div className="font-mono" style={{ fontSize: 12, color: 'var(--mm-ink-2)', marginTop: 2 }}>
+        <div className="font-mono" style={{ fontSize: 14, color: 'var(--mm-ink-2)', marginTop: 2 }}>
           {sub}
         </div>
       )}
@@ -925,7 +925,7 @@ function PositionsPanel({
           <div className="mm-display" style={{ fontSize: 26, color: 'var(--mm-ink-0)' }}>
             Your positions
           </div>
-          <div style={{ fontSize: 13, color: 'var(--mm-ink-2)', marginTop: 4 }}>
+          <div style={{ fontSize: 14, color: 'var(--mm-ink-2)', marginTop: 4 }}>
             {trades.length} open{' '}
             {trades.length > 0 && (
               <>
@@ -938,14 +938,14 @@ function PositionsPanel({
           <button
             type="button"
             className="mm-pill mm-pill-active"
-            style={{ padding: '5px 12px', fontSize: 11 }}
+            style={{ padding: '5px 12px', fontSize: 13 }}
           >
             All
           </button>
-          <button type="button" className="mm-pill" style={{ padding: '5px 12px', fontSize: 11 }}>
+          <button type="button" className="mm-pill" style={{ padding: '5px 12px', fontSize: 13 }}>
             Crypto
           </button>
-          <button type="button" className="mm-pill" style={{ padding: '5px 12px', fontSize: 11 }}>
+          <button type="button" className="mm-pill" style={{ padding: '5px 12px', fontSize: 13 }}>
             Bots
           </button>
         </div>
@@ -977,7 +977,7 @@ function EmptyPositions() {
       <div className="mm-display" style={{ fontSize: 20, color: 'var(--mm-ink-1)' }}>
         No open positions
       </div>
-      <p style={{ color: 'var(--mm-ink-2)', fontSize: 13, marginTop: 6 }}>
+      <p style={{ color: 'var(--mm-ink-2)', fontSize: 14, marginTop: 6 }}>
         Strategies will appear here when they open a trade.
       </p>
       <Link
@@ -1055,7 +1055,7 @@ function PositionRow({ trade, isLast }: { trade: LivePosition; isLast?: boolean 
         >
           {displaySym}
         </div>
-        <div style={{ fontSize: 12, color: 'var(--mm-ink-2)', marginTop: 2 }}>
+        <div style={{ fontSize: 14, color: 'var(--mm-ink-2)', marginTop: 2 }}>
           {trade.quantity.toLocaleString(undefined, { maximumFractionDigits: 4 })} {displaySym} ·{' '}
           {trade.direction}
         </div>
@@ -1065,13 +1065,13 @@ function PositionRow({ trade, isLast }: { trade: LivePosition; isLast?: boolean 
         <div className="mm-num" style={{ fontSize: 16, color: 'var(--mm-ink-0)' }}>
           {value != null ? formatCurrency(value) : '—'}
         </div>
-        <div style={{ fontSize: 11, color: 'var(--mm-ink-3)', marginTop: 2 }}>value</div>
+        <div style={{ fontSize: 13, color: 'var(--mm-ink-3)', marginTop: 2 }}>value</div>
       </div>
       <div style={{ textAlign: 'right' }}>
         <div className="mm-num" style={{ fontSize: 16, fontWeight: 500, color }}>
           {formatCurrency(pnl, { withSign: true })}
         </div>
-        <div style={{ fontSize: 12, marginTop: 2, color }}>
+        <div style={{ fontSize: 14, marginTop: 2, color }}>
           {isUp ? '▲' : '▼'} {Math.abs(pnlPct).toFixed(2)}%
         </div>
       </div>

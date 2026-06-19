@@ -14,7 +14,7 @@ export function KindBadge({
 
   return (
     <span
-      className="rounded-full px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-[0.1em]"
+      className="rounded-full px-2 py-0.5 font-mono text-[12px] font-semibold uppercase tracking-[0.1em]"
       style={{ color: 'var(--color-btc)', backgroundColor: 'var(--tint-btc)' }}
       title="Hedging strategy — spot BTC/USDT allocation tilt. Ranked by Calmar (return ÷ max drawdown)."
     >

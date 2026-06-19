@@ -183,7 +183,7 @@ export function NewAccountDialog({ open, onOpenChange }: NewAccountDialogProps) 
                 {EXCHANGE_OPTIONS.map((o) => (
                   <SelectItem key={o.value} value={o.value}>
                     {o.label}{' '}
-                    <span className="ml-1 font-mono text-[10px] text-[var(--text-muted)]">
+                    <span className="ml-1 font-mono text-[12px] text-[var(--text-muted)]">
                       {o.value}
                     </span>
                   </SelectItem>
@@ -199,7 +199,7 @@ export function NewAccountDialog({ open, onOpenChange }: NewAccountDialogProps) 
               onChange={(v) => setField('accountType', v)}
               disabled={mutation.isPending}
             />
-            <p className="text-[11px] text-text-muted">
+            <p className="text-[13px] text-text-muted">
               Account type is permanent — it can&apos;t be changed later.
             </p>
           </FieldRow>
@@ -254,7 +254,7 @@ export function NewAccountDialog({ open, onOpenChange }: NewAccountDialogProps) 
               className="mt-0.5 h-4 w-4 shrink-0 accent-[var(--color-profit)]"
               aria-label="I have disabled withdrawal permissions on this API key"
             />
-            <span className="text-[12px] leading-relaxed text-text-secondary">
+            <span className="text-[14px] leading-relaxed text-text-secondary">
               I confirm this API key has{' '}
               <span className="font-semibold text-text-primary">withdrawal disabled</span>. Only
               trading and read-only permissions should be enabled.
@@ -320,7 +320,7 @@ function SafetyBanner() {
         className="mt-0.5 shrink-0 text-[var(--color-info)]"
         aria-hidden="true"
       />
-      <div className="text-[11px] leading-relaxed text-text-secondary">
+      <div className="text-[13px] leading-relaxed text-text-secondary">
         <p className="font-semibold text-text-primary">How to generate a safe API key</p>
         <ol className="mt-1 list-decimal pl-4">
           <li>Sign in to Binance → API Management → Create API.</li>

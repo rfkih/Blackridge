@@ -156,24 +156,24 @@ export function BacktestParamPresetBar({
           <button
             type="button"
             className={cn(
-              'inline-flex h-7 items-center gap-1.5 rounded-sm border border-bd-subtle px-2 text-[11px]',
+              'inline-flex h-7 items-center gap-1.5 rounded-sm border border-bd-subtle px-2 text-[13px]',
               'bg-bg-base text-text-primary transition-colors duration-fast',
               'hover:border-bd hover:bg-bg-hover',
               'focus:outline-none focus-visible:ring-2 focus-visible:ring-ring',
             )}
           >
-            <span className="label-caps !text-[9px] !text-text-muted">Preset</span>
-            <span className="truncate font-mono text-[11px]">{activePresetName ?? 'Load…'}</span>
+            <span className="label-caps !text-[12px] !text-text-muted">Preset</span>
+            <span className="truncate font-mono text-[13px]">{activePresetName ?? 'Load…'}</span>
             <ChevronDown size={11} strokeWidth={1.75} className="opacity-60" />
           </button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start" className="min-w-[260px]">
-          <DropdownMenuLabel className="label-caps !text-[10px]">
+          <DropdownMenuLabel className="label-caps !text-[12px]">
             {strategyCode} presets
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
           {presets.length === 0 ? (
-            <div className="px-2 py-3 text-center font-mono text-[11px] text-text-muted">
+            <div className="px-2 py-3 text-center font-mono text-[13px] text-text-muted">
               No saved presets yet
             </div>
           ) : (
@@ -197,7 +197,7 @@ export function BacktestParamPresetBar({
             type="button"
             disabled={saveDisabled}
             className={cn(
-              'inline-flex h-7 items-center gap-1.5 rounded-sm border border-bd-subtle px-2 text-[11px]',
+              'inline-flex h-7 items-center gap-1.5 rounded-sm border border-bd-subtle px-2 text-[13px]',
               'bg-bg-base text-text-secondary transition-colors duration-fast',
               'hover:border-bd hover:bg-bg-hover hover:text-text-primary',
               'focus:outline-none focus-visible:ring-2 focus-visible:ring-ring',
@@ -212,13 +212,13 @@ export function BacktestParamPresetBar({
         <PopoverContent align="start" className="w-64 border-bd bg-bg-surface">
           <div className="space-y-3">
             <div className="space-y-1.5">
-              <Label className="label-caps !text-[9px]">Preset name</Label>
+              <Label className="label-caps !text-[12px]">Preset name</Label>
               <Input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder={`e.g. ${strategyCode}-tight-stops`}
                 autoFocus
-                className="h-8 text-[12px]"
+                className="h-8 text-[14px]"
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
                     e.preventDefault();
@@ -226,7 +226,7 @@ export function BacktestParamPresetBar({
                   }
                 }}
               />
-              <p className="label-caps !text-[9px]">
+              <p className="label-caps !text-[12px]">
                 {overrideCount} override{overrideCount === 1 ? '' : 's'} will be saved
               </p>
             </div>
@@ -234,7 +234,7 @@ export function BacktestParamPresetBar({
               <button
                 type="button"
                 onClick={() => setSaveOpen(false)}
-                className="rounded-sm border border-bd-subtle bg-bg-base px-2 py-1 text-[11px] text-text-secondary transition-colors duration-fast hover:bg-bg-hover"
+                className="rounded-sm border border-bd-subtle bg-bg-base px-2 py-1 text-[13px] text-text-secondary transition-colors duration-fast hover:bg-bg-hover"
               >
                 Cancel
               </button>
@@ -242,7 +242,7 @@ export function BacktestParamPresetBar({
                 type="button"
                 onClick={handleSave}
                 disabled={!name.trim()}
-                className="rounded-sm bg-profit px-2 py-1 text-[11px] font-semibold text-text-inverse transition-opacity duration-fast hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+                className="rounded-sm bg-profit px-2 py-1 text-[13px] font-semibold text-text-inverse transition-opacity duration-fast hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 Save
               </button>
@@ -258,7 +258,7 @@ export function BacktestParamPresetBar({
             type="button"
             disabled={libraryDisabled}
             className={cn(
-              'inline-flex h-7 items-center gap-1.5 rounded-sm border border-bd-subtle px-2 text-[11px]',
+              'inline-flex h-7 items-center gap-1.5 rounded-sm border border-bd-subtle px-2 text-[13px]',
               'bg-bg-base text-text-secondary transition-colors duration-fast',
               'hover:border-bd hover:bg-bg-hover hover:text-text-primary',
               'focus:outline-none focus-visible:ring-2 focus-visible:ring-ring',
@@ -279,14 +279,14 @@ export function BacktestParamPresetBar({
         <PopoverContent align="start" className="w-72 border-bd bg-bg-surface">
           <div className="space-y-3">
             <div className="space-y-1.5">
-              <Label className="label-caps !text-[9px]">Preset name</Label>
+              <Label className="label-caps !text-[12px]">Preset name</Label>
               <Input
                 value={libraryName}
                 onChange={(e) => setLibraryName(e.target.value)}
                 placeholder={`e.g. ${strategyCode}-tuned-2026-05`}
                 autoFocus
                 maxLength={120}
-                className="h-8 text-[12px]"
+                className="h-8 text-[14px]"
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
                     e.preventDefault();
@@ -294,7 +294,7 @@ export function BacktestParamPresetBar({
                   }
                 }}
               />
-              <p className="label-caps !text-[9px]">
+              <p className="label-caps !text-[12px]">
                 Saves {overrideCount} override{overrideCount === 1 ? '' : 's'} to the backend
                 strategy library. Will not auto-activate.
               </p>
@@ -304,7 +304,7 @@ export function BacktestParamPresetBar({
                 type="button"
                 onClick={() => setLibraryOpen(false)}
                 disabled={librarySaving}
-                className="rounded-sm border border-bd-subtle bg-bg-base px-2 py-1 text-[11px] text-text-secondary transition-colors duration-fast hover:bg-bg-hover disabled:opacity-60"
+                className="rounded-sm border border-bd-subtle bg-bg-base px-2 py-1 text-[13px] text-text-secondary transition-colors duration-fast hover:bg-bg-hover disabled:opacity-60"
               >
                 Cancel
               </button>
@@ -312,7 +312,7 @@ export function BacktestParamPresetBar({
                 type="button"
                 onClick={handleLibrarySave}
                 disabled={!libraryName.trim() || librarySaving}
-                className="inline-flex items-center gap-1.5 rounded-sm bg-profit px-2 py-1 text-[11px] font-semibold text-text-inverse transition-opacity duration-fast hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+                className="inline-flex items-center gap-1.5 rounded-sm bg-profit px-2 py-1 text-[13px] font-semibold text-text-inverse transition-opacity duration-fast hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {librarySaving && <Loader2 size={11} strokeWidth={2} className="animate-spin" />}
                 Save
@@ -328,7 +328,7 @@ export function BacktestParamPresetBar({
         disabled={overrideCount === 0}
         onClick={() => setResetOpen(true)}
         className={cn(
-          'inline-flex h-7 items-center gap-1.5 rounded-sm border border-bd-subtle px-2 text-[11px]',
+          'inline-flex h-7 items-center gap-1.5 rounded-sm border border-bd-subtle px-2 text-[13px]',
           'bg-bg-base text-text-secondary transition-colors duration-fast',
           'hover:border-bd hover:bg-bg-hover hover:text-loss',
           'focus:outline-none focus-visible:ring-2 focus-visible:ring-ring',
@@ -353,14 +353,14 @@ export function BacktestParamPresetBar({
             <button
               type="button"
               onClick={() => setResetOpen(false)}
-              className="rounded-sm border border-bd-subtle bg-bg-base px-3 py-1.5 text-[11px] text-text-primary transition-colors duration-fast hover:bg-bg-hover"
+              className="rounded-sm border border-bd-subtle bg-bg-base px-3 py-1.5 text-[13px] text-text-primary transition-colors duration-fast hover:bg-bg-hover"
             >
               Cancel
             </button>
             <button
               type="button"
               onClick={handleReset}
-              className="rounded-sm bg-loss px-3 py-1.5 text-[11px] font-semibold text-text-inverse transition-opacity duration-fast hover:opacity-90"
+              className="rounded-sm bg-loss px-3 py-1.5 text-[13px] font-semibold text-text-inverse transition-opacity duration-fast hover:opacity-90"
             >
               Reset to defaults
             </button>
@@ -405,8 +405,8 @@ function PresetRow({
         {isActive && <CheckIcon size={10} strokeWidth={2.5} />}
       </span>
       <div className="flex min-w-0 flex-1 flex-col">
-        <span className="truncate text-[12px] font-medium text-text-primary">{preset.name}</span>
-        <span className="truncate font-mono text-[9px] text-text-muted" title={absolute}>
+        <span className="truncate text-[14px] font-medium text-text-primary">{preset.name}</span>
+        <span className="truncate font-mono text-[12px] text-text-muted" title={absolute}>
           {relative} · {overrideCount} override{overrideCount === 1 ? '' : 's'}
         </span>
       </div>

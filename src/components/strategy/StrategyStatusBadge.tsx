@@ -42,7 +42,7 @@ export function StrategyStatusBadge({ status, size = 'sm', className }: Strategy
   const cfg = STATUS_CONFIG[status] ?? STATUS_CONFIG.STOPPED;
   const padY = size === 'sm' ? 'py-0.5' : 'py-1';
   const padX = size === 'sm' ? 'px-1.5' : 'px-2';
-  const textSize = size === 'sm' ? 'text-[10px]' : 'text-xs';
+  const textSize = size === 'sm' ? 'text-[12px]' : 'text-xs';
 
   return (
     <span

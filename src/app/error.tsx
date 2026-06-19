@@ -46,7 +46,7 @@ export default function RouteErrorBoundary({
           <p className="mt-3 font-mono text-xs text-text-muted">Next.js digest: {error.digest}</p>
         )}
         {isDev && error.stack && (
-          <pre className="mt-6 max-h-[min(420px,50vh)] overflow-auto rounded-sm border border-bd-subtle bg-bg-base p-4 font-mono text-[11px] leading-relaxed text-text-secondary">
+          <pre className="mt-6 max-h-[min(420px,50vh)] overflow-auto rounded-sm border border-bd-subtle bg-bg-base p-4 font-mono text-[13px] leading-relaxed text-text-secondary">
             {error.stack}
           </pre>
         )}

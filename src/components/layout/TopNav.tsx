@@ -68,7 +68,7 @@ export function TopNav({ onMenuClick, onCommandOpen }: TopNavProps) {
           background: 'var(--mm-surface)',
           border: '1px solid var(--mm-hair)',
           color: 'var(--mm-ink-2)',
-          fontSize: 14,
+          fontSize: 15,
           minWidth: 0,
         }}
         aria-label="Open command palette"
@@ -79,7 +79,7 @@ export function TopNav({ onMenuClick, onCommandOpen }: TopNavProps) {
           className="mm-mono"
           style={{
             marginLeft: 'auto',
-            fontSize: 11,
+            fontSize: 13,
             color: 'var(--mm-ink-3)',
             paddingLeft: 12,
           }}
@@ -91,7 +91,7 @@ export function TopNav({ onMenuClick, onCommandOpen }: TopNavProps) {
       {}
       <div
         className="mm-pill hidden sm:inline-flex"
-        style={{ padding: '9px 14px', fontSize: 12 }}
+        style={{ padding: '9px 14px', fontSize: 14 }}
         aria-live="polite"
         title={`WebSocket: ${wsMeta.label}`}
       >
@@ -114,7 +114,7 @@ export function TopNav({ onMenuClick, onCommandOpen }: TopNavProps) {
         type="button"
         onClick={() => setTheme(isLight ? 'dark' : 'light')}
         className="mm-pill"
-        style={{ padding: '9px 14px', fontSize: 13 }}
+        style={{ padding: '9px 14px', fontSize: 14 }}
         aria-label={isLight ? 'Switch to dark theme' : 'Switch to light theme'}
       >
         <span

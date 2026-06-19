@@ -171,13 +171,13 @@ export function RebalanceNowDialog({
           <h3 className="font-display text-[15px] font-semibold text-text-primary">
             Rebalance now
           </h3>
-          <span className="ml-auto font-mono text-[10px] uppercase tracking-wider text-text-muted">
+          <span className="ml-auto font-mono text-[12px] uppercase tracking-wider text-text-muted">
             {accountId.slice(0, 8)}
           </span>
         </div>
 
         {inlineError && (
-          <div className="mb-3 inline-flex w-full items-center gap-2 rounded-md border border-[rgba(229,72,77,0.4)] bg-[rgba(229,72,77,0.06)] px-3 py-2 text-[11px] text-[var(--color-loss)]">
+          <div className="mb-3 inline-flex w-full items-center gap-2 rounded-md border border-[rgba(229,72,77,0.4)] bg-[rgba(229,72,77,0.06)] px-3 py-2 text-[13px] text-[var(--color-loss)]">
             <AlertTriangle size={12} /> {inlineError}
           </div>
         )}
@@ -197,7 +197,7 @@ export function RebalanceNowDialog({
             onOverride={repreviewForced}
           />
         ) : !isProposed ? (
-          <div className="rounded-md border border-bd-subtle bg-bg-elevated px-3 py-3 text-[12px] text-text-secondary">
+          <div className="rounded-md border border-bd-subtle bg-bg-elevated px-3 py-3 text-[14px] text-text-secondary">
             {plan.skipReason ?? 'No asset drifted outside its band — nothing to rebalance.'}
           </div>
         ) : (
@@ -225,7 +225,7 @@ export function RebalanceNowDialog({
             type="button"
             onClick={close}
             disabled={busy}
-            className="rounded-full border border-bd-subtle bg-bg-base px-4 py-1.5 text-[12px] text-text-primary hover:bg-bg-hover disabled:opacity-60"
+            className="rounded-full border border-bd-subtle bg-bg-base px-4 py-1.5 text-[14px] text-text-primary hover:bg-bg-hover disabled:opacity-60"
           >
             {result ? 'Close' : 'Cancel'}
           </button>
@@ -237,7 +237,7 @@ export function RebalanceNowDialog({
 
 function Centered({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex items-center justify-center gap-2 rounded-md border border-bd-subtle bg-bg-elevated px-3 py-6 text-[12px] text-text-secondary">
+    <div className="flex items-center justify-center gap-2 rounded-md border border-bd-subtle bg-bg-elevated px-3 py-6 text-[14px] text-text-secondary">
       {children}
     </div>
   );
@@ -258,7 +258,7 @@ function CooldownPanel({
 }) {
   return (
     <div className="space-y-3">
-      <div className="inline-flex w-full items-start gap-2 rounded-md border border-[rgba(245,158,11,0.4)] bg-[rgba(245,158,11,0.06)] px-3 py-2 text-[11px] text-[var(--color-warning)]">
+      <div className="inline-flex w-full items-start gap-2 rounded-md border border-[rgba(245,158,11,0.4)] bg-[rgba(245,158,11,0.06)] px-3 py-2 text-[13px] text-[var(--color-warning)]">
         <Clock size={12} className="mt-0.5 shrink-0" />
         <div>
           <p className="font-semibold">Rebalance cooldown is active.</p>
@@ -279,14 +279,14 @@ function CooldownPanel({
           type="button"
           onClick={onOverride}
           disabled={busy}
-          className="inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-[12px] font-semibold disabled:opacity-60"
+          className="inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-[14px] font-semibold disabled:opacity-60"
           style={{ background: 'var(--color-warning)', color: 'var(--text-inverse)' }}
         >
           {busy && <Loader2 size={12} className="animate-spin" />} Override cooldown and rebalance
           now
         </button>
       ) : (
-        <p className="text-[11px] text-text-muted">
+        <p className="text-[13px] text-text-muted">
           Ask an admin to override the cooldown, or wait until the date above.
         </p>
       )}
@@ -329,7 +329,7 @@ function ReadyPanel({
 }) {
   return (
     <div className="space-y-3">
-      <p className="text-[12px] text-text-secondary">
+      <p className="text-[14px] text-text-secondary">
         About to submit{' '}
         <span className="font-semibold text-text-primary">{plan.tradePlan.length}</span> trade
         {plan.tradePlan.length === 1 ? '' : 's'} for a total notional of{' '}
@@ -348,7 +348,7 @@ function ReadyPanel({
         {forced && <span className="text-[var(--color-warning)]"> Cooldown overridden.</span>}
       </p>
 
-      <ul className="space-y-1 rounded-md border border-bd-subtle bg-bg-base p-2 font-mono text-[11px]">
+      <ul className="space-y-1 rounded-md border border-bd-subtle bg-bg-base p-2 font-mono text-[13px]">
         {plan.tradePlan.map((l, i) => (
           <li key={`${l.asset}-${i}`} className="flex items-center justify-between gap-3">
             <span
@@ -365,7 +365,7 @@ function ReadyPanel({
       </ul>
 
       {capExceeded && (
-        <div className="space-y-2 rounded-md border border-[rgba(245,158,11,0.4)] bg-[rgba(245,158,11,0.06)] px-3 py-2 text-[11px]">
+        <div className="space-y-2 rounded-md border border-[rgba(245,158,11,0.4)] bg-[rgba(245,158,11,0.06)] px-3 py-2 text-[13px]">
           <p className="text-[var(--color-warning)]">
             This plan trades <span className="font-mono">{formatCurrency(totalNotional)}</span>,
             above your per-execute cap of <span className="font-mono">{formatCurrency(cap)}</span>.
@@ -374,7 +374,7 @@ function ReadyPanel({
             type="button"
             onClick={onRaiseCap}
             disabled={raisingCap}
-            className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-semibold disabled:opacity-60"
+            className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[13px] font-semibold disabled:opacity-60"
             style={{ background: 'var(--color-warning)', color: 'var(--text-inverse)' }}
           >
             {raisingCap && <Loader2 size={11} className="animate-spin" />}
@@ -384,13 +384,13 @@ function ReadyPanel({
       )}
 
       <div className={capExceeded ? 'pointer-events-none opacity-50' : ''}>
-        <label className="block text-[11px] text-text-muted">
+        <label className="block text-[13px] text-text-muted">
           Type <span className="font-mono font-bold text-text-primary">EXECUTE</span> to confirm:
         </label>
         <input
           type="text"
           aria-label="confirm-execute"
-          className="focus:border-bd-focus mt-1 w-full rounded border border-bd-subtle bg-bg-base px-2 py-1.5 font-mono text-[13px] uppercase tracking-wider text-text-primary focus:outline-none"
+          className="focus:border-bd-focus mt-1 w-full rounded border border-bd-subtle bg-bg-base px-2 py-1.5 font-mono text-[14px] uppercase tracking-wider text-text-primary focus:outline-none"
           value={typed}
           onChange={(e) => setTyped(e.target.value)}
           disabled={capExceeded || busy}
@@ -400,7 +400,7 @@ function ReadyPanel({
             type="button"
             disabled={!armed}
             onClick={onSubmit}
-            className="inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-[12px] font-semibold disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-[14px] font-semibold disabled:cursor-not-allowed disabled:opacity-50"
             style={{ background: 'var(--color-loss)', color: 'var(--text-inverse)' }}
           >
             {executing && <Loader2 size={12} className="animate-spin" />}
@@ -423,7 +423,7 @@ function ResultPanel({
   const success = result.status === 'COMPLETED';
   return (
     <div className="space-y-3">
-      <div className="flex flex-wrap items-center gap-3 text-[12px]">
+      <div className="flex flex-wrap items-center gap-3 text-[14px]">
         {success ? (
           <span className="inline-flex items-center gap-1 text-[var(--color-profit)]">
             <CheckCircle2 size={14} /> Trades submitted
@@ -443,12 +443,12 @@ function ResultPanel({
         )}
       </div>
       {result.failedReason && (
-        <p className="rounded-md border border-[rgba(229,72,77,0.4)] bg-[rgba(229,72,77,0.06)] px-3 py-2 text-[11px] text-[var(--color-loss)]">
+        <p className="rounded-md border border-[rgba(229,72,77,0.4)] bg-[rgba(229,72,77,0.06)] px-3 py-2 text-[13px] text-[var(--color-loss)]">
           {result.failedReason}
         </p>
       )}
       {sum && sum.legs.length > 0 && (
-        <ul className="space-y-1 rounded-md border border-bd-subtle bg-bg-base p-2 font-mono text-[11px]">
+        <ul className="space-y-1 rounded-md border border-bd-subtle bg-bg-base p-2 font-mono text-[13px]">
           {sum.legs.map((l, i) => (
             <li key={`${l.asset}-${i}`} className="flex items-center justify-between gap-3">
               <span

@@ -29,7 +29,7 @@ export function VerdictBadge({
   return (
     <span
       className={cn(
-        'rounded-full px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-[0.1em]',
+        'rounded-full px-2 py-0.5 font-mono text-[12px] font-semibold uppercase tracking-[0.1em]',
         className,
       )}
       style={style}

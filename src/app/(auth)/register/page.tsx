@@ -66,7 +66,7 @@ function scorePassword(pw: string): Strength {
 // white text on white auth card when the .mm scope doesn't resolve in time.
 const FIELD_LABEL_STYLE: React.CSSProperties = {
   display: 'block',
-  fontSize: 11,
+  fontSize: 13,
   fontWeight: 600,
   color: 'var(--text-secondary, #384151)',
   marginBottom: 6,
@@ -79,7 +79,7 @@ const FIELD_INPUT_STYLE: React.CSSProperties = {
   padding: '12px 14px',
   border: '1px solid var(--border-default, rgba(14,17,22,0.1))',
   borderRadius: 10,
-  fontSize: 14,
+  fontSize: 15,
   fontFamily: 'inherit',
   boxSizing: 'border-box',
   background: 'var(--bg-elevated, #FFFFFF)',
@@ -92,7 +92,7 @@ const TOGGLE_BTN_STYLE: React.CSSProperties = {
   right: 12,
   top: '50%',
   transform: 'translateY(-50%)',
-  fontSize: 12,
+  fontSize: 14,
   background: 'transparent',
   border: 'none',
   color: 'var(--text-muted, #6B7280)',
@@ -194,7 +194,7 @@ function RegisterPageContent() {
               </h1>
               <p
                 style={{
-                  fontSize: 14,
+                  fontSize: 15,
                   color: 'var(--text-secondary, #384151)',
                   margin: '0 0 24px',
                   lineHeight: 1.5,
@@ -233,7 +233,7 @@ function RegisterPageContent() {
                     <p
                       id="firstName-error"
                       role="alert"
-                      style={{ marginTop: 4, fontSize: 11, color: 'var(--color-loss)' }}
+                      style={{ marginTop: 4, fontSize: 13, color: 'var(--color-loss)' }}
                     >
                       {errors.firstName}
                     </p>
@@ -278,7 +278,7 @@ function RegisterPageContent() {
                   <p
                     id="email-error"
                     role="alert"
-                    style={{ marginTop: 6, fontSize: 11, color: 'var(--color-loss)' }}
+                    style={{ marginTop: 6, fontSize: 13, color: 'var(--color-loss)' }}
                   >
                     {errors.email}
                   </p>
@@ -286,7 +286,7 @@ function RegisterPageContent() {
                   <div
                     style={{
                       marginTop: 6,
-                      fontSize: 11,
+                      fontSize: 13,
                       color: 'var(--text-muted, #6B7280)',
                       display: 'flex',
                       alignItems: 'center',
@@ -330,14 +330,14 @@ function RegisterPageContent() {
                   <p
                     id="password-error"
                     role="alert"
-                    style={{ marginTop: 4, fontSize: 11, color: 'var(--color-loss)' }}
+                    style={{ marginTop: 4, fontSize: 13, color: 'var(--color-loss)' }}
                   >
                     {errors.password}
                   </p>
                 ) : state.password.length > 0 ? (
                   <div
                     id="password-hint"
-                    style={{ fontSize: 11, color: 'var(--text-muted, #6B7280)', marginTop: 6 }}
+                    style={{ fontSize: 13, color: 'var(--text-muted, #6B7280)', marginTop: 6 }}
                   >
                     {strength.label} · {state.password.length} characters
                   </div>
@@ -376,7 +376,7 @@ function RegisterPageContent() {
                   <p
                     id="confirmPassword-error"
                     role="alert"
-                    style={{ marginTop: 4, fontSize: 11, color: 'var(--color-loss)' }}
+                    style={{ marginTop: 4, fontSize: 13, color: 'var(--color-loss)' }}
                   >
                     {errors.confirmPassword}
                   </p>
@@ -407,7 +407,7 @@ function RegisterPageContent() {
                   display: 'flex',
                   alignItems: 'flex-start',
                   gap: 10,
-                  fontSize: 12,
+                  fontSize: 14,
                   lineHeight: 1.5,
                   color: 'var(--text-secondary, #384151)',
                   margin: '12px 0 4px',
@@ -460,7 +460,7 @@ function RegisterPageContent() {
               {errors.agreed && (
                 <p
                   role="alert"
-                  style={{ fontSize: 11, color: 'var(--color-loss)', margin: '4px 0 12px' }}
+                  style={{ fontSize: 13, color: 'var(--color-loss)', margin: '4px 0 12px' }}
                 >
                   {errors.agreed}
                 </p>
@@ -471,7 +471,7 @@ function RegisterPageContent() {
                   role="alert"
                   style={{
                     padding: '10px 12px',
-                    fontSize: 12,
+                    fontSize: 14,
                     borderRadius: 10,
                     border: '1px solid rgba(229,72,77,0.4)',
                     background: 'rgba(229,72,77,0.08)',
@@ -495,7 +495,7 @@ function RegisterPageContent() {
                   color: '#FFFFFF',
                   border: 'none',
                   borderRadius: 12,
-                  fontSize: 14,
+                  fontSize: 15,
                   fontWeight: 700,
                   cursor: isSubmitting ? 'not-allowed' : 'pointer',
                   fontFamily: 'inherit',
@@ -520,7 +520,7 @@ function RegisterPageContent() {
               <div
                 style={{
                   textAlign: 'center',
-                  fontSize: 11,
+                  fontSize: 13,
                   color: 'var(--text-muted, #6B7280)',
                   marginTop: 16,
                   lineHeight: 1.5,
@@ -607,7 +607,7 @@ function SuccessScreen({ firstName }: { firstName: string }) {
         style={{
           marginTop: 8,
           maxWidth: 340,
-          fontSize: 13,
+          fontSize: 14,
           color: 'var(--text-secondary, #384151)',
         }}
       >
@@ -630,7 +630,7 @@ function SuccessScreen({ firstName }: { firstName: string }) {
             background: 'var(--text-primary, #0E1116)',
             color: '#FFFFFF',
             borderRadius: 12,
-            fontSize: 14,
+            fontSize: 15,
             fontWeight: 700,
             textDecoration: 'none',
             display: 'inline-flex',
@@ -649,7 +649,7 @@ function SuccessScreen({ firstName }: { firstName: string }) {
             color: 'var(--text-primary, #0E1116)',
             border: '1px solid var(--border-default, rgba(14,17,22,0.1))',
             borderRadius: 12,
-            fontSize: 14,
+            fontSize: 15,
             fontWeight: 600,
             textDecoration: 'none',
             display: 'inline-flex',

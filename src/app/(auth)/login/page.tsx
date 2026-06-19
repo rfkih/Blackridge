@@ -114,7 +114,7 @@ function LoginPageContent() {
             {errors.email && (
               <p
                 role="alert"
-                className="mt-1.5 text-[12px]"
+                className="mt-1.5 text-[14px]"
                 style={{ color: 'var(--color-loss)' }}
               >
                 {errors.email.message}
@@ -131,7 +131,7 @@ function LoginPageContent() {
               <Link
                 href="/forgot-password"
                 tabIndex={-1}
-                className="text-[12px] font-semibold"
+                className="text-[14px] font-semibold"
                 style={{ color: 'var(--brand-700)', textDecoration: 'none' }}
               >
                 Forgot?
@@ -155,7 +155,7 @@ function LoginPageContent() {
                 tabIndex={-1}
                 onClick={() => setShowPassword((v) => !v)}
                 aria-label={showPassword ? 'Hide password' : 'Show password'}
-                className="absolute top-1/2 -translate-y-1/2 inline-flex items-center gap-1 text-[12px]"
+                className="absolute top-1/2 -translate-y-1/2 inline-flex items-center gap-1 text-[14px]"
                 style={{
                   right: 12,
                   background: 'transparent',
@@ -171,7 +171,7 @@ function LoginPageContent() {
             {errors.password && (
               <p
                 role="alert"
-                className="mt-1.5 text-[12px]"
+                className="mt-1.5 text-[14px]"
                 style={{ color: 'var(--color-loss)' }}
               >
                 {errors.password.message}
@@ -182,7 +182,7 @@ function LoginPageContent() {
           {}
           <label
             htmlFor="keep-signed-in"
-            className="my-3 flex cursor-pointer items-center gap-2.5 text-[13px]"
+            className="my-3 flex cursor-pointer items-center gap-2.5 text-[14px]"
             style={{ color: 'var(--text-secondary)' }}
           >
             <input
@@ -205,7 +205,7 @@ function LoginPageContent() {
           {sessionExpired && !submitError && (
             <div
               role="status"
-              className="mb-3 flex gap-2.5 rounded-xl p-3 text-[13px]"
+              className="mb-3 flex gap-2.5 rounded-xl p-3 text-[14px]"
               style={{ background: 'var(--tint-warning)', color: 'var(--text-secondary)' }}
             >
               Your session expired. Please sign in again to continue where you left off.
@@ -215,7 +215,7 @@ function LoginPageContent() {
           {submitError && (
             <div
               role="alert"
-              className="mb-3 flex gap-2.5 rounded-xl p-3 text-[13px]"
+              className="mb-3 flex gap-2.5 rounded-xl p-3 text-[14px]"
               style={{ background: 'var(--tint-loss)', color: 'var(--color-loss)' }}
             >
               {submitError}
@@ -251,7 +251,7 @@ function LoginPageContent() {
           </button>
 
           <div
-            className="mt-4 text-center text-[12px]"
+            className="mt-4 text-center text-[14px]"
             style={{ color: 'var(--text-muted)', lineHeight: 1.5 }}
           >
             Protected by 2FA. We never custody funds.

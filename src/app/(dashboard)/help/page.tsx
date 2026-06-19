@@ -159,7 +159,7 @@ export default function HelpPage() {
   return (
     <div className="flex flex-col gap-5">
       <header>
-        <p className="font-mono text-[10px] uppercase tracking-widest text-text-muted">Help</p>
+        <p className="font-mono text-[12px] uppercase tracking-widest text-text-muted">Help</p>
         <h1 className="mt-1 font-display text-2xl text-text-primary">What is this thing?</h1>
         <p className="mt-1 max-w-2xl text-sm text-text-secondary">
           Quick-explain entries for the metrics, methodology, and engine constraints surfaced across
@@ -188,7 +188,7 @@ export default function HelpPage() {
           <button
             type="button"
             onClick={() => setQuery('')}
-            className="font-mono text-[10px] uppercase tracking-widest text-text-muted hover:text-text-primary"
+            className="font-mono text-[12px] uppercase tracking-widest text-text-muted hover:text-text-primary"
           >
             Clear
           </button>
@@ -206,7 +206,7 @@ export default function HelpPage() {
           if (inCat.length === 0) return null;
           return (
             <section key={cat} className="space-y-2">
-              <h2 className="font-mono text-[10px] uppercase tracking-widest text-text-muted">
+              <h2 className="font-mono text-[12px] uppercase tracking-widest text-text-muted">
                 {cat}
               </h2>
               <ul className="divide-y divide-bd-subtle overflow-hidden rounded-xl border border-bd-subtle bg-bg-surface">
@@ -220,7 +220,7 @@ export default function HelpPage() {
                         className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left transition-colors hover:bg-bg-hover"
                         aria-expanded={open}
                       >
-                        <span className="text-[13px] font-semibold text-text-primary">
+                        <span className="text-[14px] font-semibold text-text-primary">
                           {e.title}
                         </span>
                         {open ? (
@@ -230,7 +230,7 @@ export default function HelpPage() {
                         )}
                       </button>
                       {open && (
-                        <div className="space-y-2.5 px-4 pb-4 pt-1 text-[12px] leading-relaxed text-text-secondary">
+                        <div className="space-y-2.5 px-4 pb-4 pt-1 text-[14px] leading-relaxed text-text-secondary">
                           {e.body.split(/\n{2,}/).map((para, i) => (
                             <p key={i}>{para}</p>
                           ))}

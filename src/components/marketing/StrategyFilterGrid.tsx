@@ -57,7 +57,7 @@ export function StrategyFilterGrid({ strategies, categories }: Props) {
         aria-live="polite"
         style={{
           fontFamily: 'var(--font-mono)',
-          fontSize: 11,
+          fontSize: 13,
           letterSpacing: '0.05em',
           textTransform: 'uppercase',
           color: 'var(--qp-ink-muted)',
@@ -75,7 +75,7 @@ export function StrategyFilterGrid({ strategies, categories }: Props) {
             padding: 40,
             textAlign: 'center',
             color: 'var(--qp-ink-muted)',
-            fontSize: 14,
+            fontSize: 15,
           }}
         >
           No strategies in this category yet — try “All” or another category.
@@ -145,7 +145,7 @@ function StrategyRow({ strategy }: { strategy: PublicStrategy }) {
         <span
           style={{
             display: 'block',
-            fontSize: 9,
+            fontSize: 12,
             letterSpacing: '0.06em',
             textTransform: 'uppercase',
             color: 'var(--qp-ink-muted)',

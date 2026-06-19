@@ -206,7 +206,7 @@ export function DeployStrategyDialog({
             </SelectContent>
           </Select>
           {activeAccounts.length === 0 && (
-            <p className="text-[10px] text-[var(--color-warning)]">
+            <p className="text-[12px] text-[var(--color-warning)]">
               No active account to deploy onto. Add or activate an account first.
             </p>
           )}
@@ -226,19 +226,19 @@ export function DeployStrategyDialog({
             onChange={(e) => setAllocPct(e.target.value)}
             className="font-mono tabular-nums"
           />
-          <p className="text-[10px] text-[var(--text-muted)]">
+          <p className="text-[12px] text-[var(--text-muted)]">
             Position-size cap as a % of account cash. Default is conservative — raise it if you want
             a larger allocation.
           </p>
           {!allocValid && (
-            <p className="text-[10px] text-[var(--color-warning)]">
+            <p className="text-[12px] text-[var(--color-warning)]">
               Allocation must be between 0.01% and {ALLOC_MAX_PCT}%.
             </p>
           )}
         </div>
 
         {!strategiesKnown && !strategiesError && (
-          <p className="text-[10px] text-[var(--text-muted)]">
+          <p className="text-[12px] text-[var(--text-muted)]">
             Checking your account for a conflicting preset…
           </p>
         )}
@@ -248,7 +248,7 @@ export function DeployStrategyDialog({
             <button
               type="button"
               onClick={() => refetchStrategies()}
-              className="shrink-0 rounded border border-[var(--border-default)] px-2 py-0.5 text-[10px] font-semibold text-[var(--text-primary)] transition-colors hover:bg-[var(--bg-hover)]"
+              className="shrink-0 rounded border border-[var(--border-default)] px-2 py-0.5 text-[12px] font-semibold text-[var(--text-primary)] transition-colors hover:bg-[var(--bg-hover)]"
             >
               Retry
             </button>
@@ -371,7 +371,7 @@ function ConflictOption({
       />
       <span className="flex flex-col gap-0.5">
         <span className="text-xs font-semibold text-[var(--text-primary)]">{title}</span>
-        <span className="text-[10px] text-[var(--text-muted)]">{detail}</span>
+        <span className="text-[12px] text-[var(--text-muted)]">{detail}</span>
       </span>
     </button>
   );
@@ -395,7 +395,7 @@ function Stat({
       : 'var(--text-primary)';
   return (
     <div>
-      <div className="font-mono text-[10px] uppercase tracking-[0.08em] text-[var(--text-muted)]">
+      <div className="font-mono text-[12px] uppercase tracking-[0.08em] text-[var(--text-muted)]">
         {label}
       </div>
       <div className="font-mono text-sm tabular-nums" style={{ color }}>

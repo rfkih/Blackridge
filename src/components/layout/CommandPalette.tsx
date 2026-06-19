@@ -172,7 +172,7 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
               autoComplete="off"
               spellCheck={false}
             />
-            <kbd className="hidden rounded border border-[var(--border-subtle)] px-1.5 py-0.5 font-mono text-[10px] text-[var(--text-muted)] sm:block">
+            <kbd className="hidden rounded border border-[var(--border-subtle)] px-1.5 py-0.5 font-mono text-[12px] text-[var(--text-muted)] sm:block">
               ESC
             </kbd>
           </div>
@@ -189,7 +189,7 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
             ) : (
               Object.entries(groups).map(([groupName, items]) => (
                 <div key={groupName} className="mb-1">
-                  <p className="mb-1 px-2 pt-1 text-[10px] font-semibold uppercase tracking-widest text-[var(--text-muted)]">
+                  <p className="mb-1 px-2 pt-1 text-[12px] font-semibold uppercase tracking-widest text-[var(--text-muted)]">
                     {groupName}
                   </p>
                   {items.map((item) => {
@@ -222,13 +222,13 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
                         <div className="min-w-0 flex-1">
                           <span className="block truncate text-sm">{item.label}</span>
                           {item.subtitle && (
-                            <span className="block truncate text-[11px] text-[var(--text-muted)]">
+                            <span className="block truncate text-[13px] text-[var(--text-muted)]">
                               {item.subtitle}
                             </span>
                           )}
                         </div>
                         {isActive && (
-                          <kbd className="rounded border border-[var(--border-subtle)] px-1 py-0.5 font-mono text-[10px] text-[var(--text-muted)]">
+                          <kbd className="rounded border border-[var(--border-subtle)] px-1 py-0.5 font-mono text-[12px] text-[var(--text-muted)]">
                             ↵
                           </kbd>
                         )}
@@ -242,7 +242,7 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
 
           {}
           <div className="flex items-center gap-3 border-t border-[var(--border-subtle)] px-4 py-2">
-            <span className="text-[10px] text-[var(--text-muted)]">
+            <span className="text-[12px] text-[var(--text-muted)]">
               <kbd className="font-mono">↑↓</kbd> navigate&nbsp;&nbsp;
               <kbd className="font-mono">↵</kbd> open&nbsp;&nbsp;
               <kbd className="font-mono">esc</kbd> close

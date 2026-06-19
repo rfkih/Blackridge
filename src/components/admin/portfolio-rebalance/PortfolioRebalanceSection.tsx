@@ -35,7 +35,7 @@ export function PortfolioRebalanceSection() {
           <h2 className="font-display text-[18px] font-semibold tracking-tighter text-text-primary">
             Portfolio rebalance
           </h2>
-          <p className="mt-1 max-w-2xl text-[12px] text-text-secondary">
+          <p className="mt-1 max-w-2xl text-[14px] text-text-secondary">
             Cross-strategy allocation knob. Multiplies into live sizing alongside Kelly:{' '}
             <span className="font-mono">
               effective_capital = capital_allocation_pct &times; kelly_multiplier &times;
@@ -70,7 +70,7 @@ export function PortfolioRebalanceSection() {
           className="mt-0.5 shrink-0 text-[var(--color-info)]"
           aria-hidden="true"
         />
-        <div className="text-[12px] leading-relaxed text-text-secondary">
+        <div className="text-[14px] leading-relaxed text-text-secondary">
           <span className="font-semibold text-text-primary">Per-account</span> &mdash; rebalance
           targets only the active account. Switch the account selector in the top bar to rebalance
           a different book.{' '}

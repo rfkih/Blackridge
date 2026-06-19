@@ -78,7 +78,7 @@ export function ParametersPanel({ params }: ParametersPanelProps) {
 
   if (rows.length === 0) {
     return (
-      <p className="text-[12px] text-text-secondary">
+      <p className="text-[14px] text-text-secondary">
         No effective parameters captured. (Curator copies from backtest_run.effectiveParamsSnapshot
         -- empty means the snapshot field was null on the cited backtest, likely a pre-V104 row.)
       </p>
@@ -87,7 +87,7 @@ export function ParametersPanel({ params }: ParametersPanelProps) {
 
   return (
     <div className="space-y-2">
-      <div className="grid grid-cols-1 gap-1 text-[12px] sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-1 text-[14px] sm:grid-cols-2 lg:grid-cols-3">
         {visible.map((row) => (
           <div
             key={row.key}

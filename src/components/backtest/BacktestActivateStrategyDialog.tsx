@@ -131,13 +131,13 @@ export function BacktestActivateStrategyDialog({ run, open, onClose }: Props) {
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-[14px] font-semibold">
+          <DialogTitle className="flex items-center gap-2 text-[15px] font-semibold">
             <Zap size={14} strokeWidth={2} className="text-profit" />
             {selectedStrategy && !selectedStrategy.simulated
               ? 'Activate for Live Trading'
               : 'Activate as Strategy'}
           </DialogTitle>
-          <DialogDescription className="text-[12px] text-text-secondary">
+          <DialogDescription className="text-[14px] text-text-secondary">
             Apply this backtest&apos;s parameters to one of your strategies and enable it for{' '}
             {selectedStrategy
               ? selectedStrategy.simulated
@@ -227,7 +227,7 @@ function ConfigureStep({
   return (
     <div className="space-y-4">
       {}
-      <div className="flex flex-wrap gap-x-4 gap-y-1 rounded-sm bg-bg-base px-3 py-2 text-[11px]">
+      <div className="flex flex-wrap gap-x-4 gap-y-1 rounded-sm bg-bg-base px-3 py-2 text-[13px]">
         <span className="text-text-muted">
           Symbol <span className="font-mono font-semibold text-text-primary">{run.symbol}</span>
         </span>
@@ -269,16 +269,16 @@ function ConfigureStep({
       {}
       {strategyCodes.length > 1 && (
         <div className="space-y-1.5">
-          <Label className="text-[11px] font-semibold uppercase tracking-wider text-text-muted">
+          <Label className="text-[13px] font-semibold uppercase tracking-wider text-text-muted">
             Strategy
           </Label>
           <Select value={selectedCode} onValueChange={onSelectCode}>
-            <SelectTrigger className="h-8 text-[12px]">
+            <SelectTrigger className="h-8 text-[14px]">
               <SelectValue placeholder="Select strategy" />
             </SelectTrigger>
             <SelectContent>
               {strategyCodes.map((code) => (
-                <SelectItem key={code} value={code} className="text-[12px] font-mono">
+                <SelectItem key={code} value={code} className="text-[14px] font-mono">
                   {code}
                 </SelectItem>
               ))}
@@ -289,16 +289,16 @@ function ConfigureStep({
 
       {}
       <div className="space-y-1.5">
-        <Label className="text-[11px] font-semibold uppercase tracking-wider text-text-muted">
+        <Label className="text-[13px] font-semibold uppercase tracking-wider text-text-muted">
           Your {selectedCode} Strategy
         </Label>
         {strategiesLoading ? (
-          <div className="flex h-8 items-center gap-2 text-[11px] text-text-muted">
+          <div className="flex h-8 items-center gap-2 text-[13px] text-text-muted">
             <Loader2 size={12} className="animate-spin" />
             Loading strategies…
           </div>
         ) : matchingStrategies.length === 0 ? (
-          <div className="flex items-start gap-2 rounded-sm border border-bd-subtle bg-tint-warning px-3 py-2 text-[11px] text-warning">
+          <div className="flex items-start gap-2 rounded-sm border border-bd-subtle bg-tint-warning px-3 py-2 text-[13px] text-warning">
             <AlertTriangle size={12} className="mt-0.5 shrink-0" />
             <span>
               No {selectedCode} strategy found in your account for {run.symbol} · {run.interval}.{' '}
@@ -314,19 +314,19 @@ function ConfigureStep({
           </div>
         ) : (
           <Select value={selectedStrategyId} onValueChange={onSelectStrategyId}>
-            <SelectTrigger className="h-8 text-[12px]">
+            <SelectTrigger className="h-8 text-[14px]">
               <SelectValue placeholder="Select strategy preset" />
             </SelectTrigger>
             <SelectContent>
               {matchingStrategies.map((s) => (
-                <SelectItem key={s.id} value={s.id} className="text-[12px]">
+                <SelectItem key={s.id} value={s.id} className="text-[14px]">
                   <span className="flex items-center gap-2">
                     <span className="font-medium">{s.presetName}</span>
                     <span className="text-text-muted">
                       {s.symbol} · {s.interval}
                     </span>
                     {s.status === 'LIVE' && (
-                      <span className="rounded-full bg-profit/20 px-1.5 py-px text-[9px] font-semibold uppercase text-profit">
+                      <span className="rounded-full bg-profit/20 px-1.5 py-px text-[12px] font-semibold uppercase text-profit">
                         live
                       </span>
                     )}
@@ -340,7 +340,7 @@ function ConfigureStep({
 
       {}
       {selectedStrategy && (
-        <div className="rounded-sm border border-bd-subtle bg-bg-base px-3 py-2 text-[11px] space-y-1">
+        <div className="rounded-sm border border-bd-subtle bg-bg-base px-3 py-2 text-[13px] space-y-1">
           <div className="flex items-center justify-between">
             <span className="text-text-muted">Current status</span>
             <span
@@ -382,7 +382,7 @@ function ConfigureStep({
       )}
 
       {}
-      <div className="rounded-sm border border-bd-subtle bg-bg-base px-3 py-2 text-[11px] text-text-secondary">
+      <div className="rounded-sm border border-bd-subtle bg-bg-base px-3 py-2 text-[13px] text-text-secondary">
         <span className="font-semibold text-text-primary">{paramCount}</span>{' '}
         parameter{paramCount !== 1 ? 's' : ''} from this run will be saved as a new active
         preset.
@@ -395,7 +395,7 @@ function ConfigureStep({
 
       {}
       <div className="space-y-1.5">
-        <Label className="text-[11px] font-semibold uppercase tracking-wider text-text-muted">
+        <Label className="text-[13px] font-semibold uppercase tracking-wider text-text-muted">
           Preset name
           <span className="ml-1 font-normal normal-case text-text-muted">(optional)</span>
         </Label>
@@ -403,14 +403,14 @@ function ConfigureStep({
           value={presetName}
           onChange={(e) => onPresetNameChange(e.target.value)}
           placeholder={defaultPresetName}
-          className="h-8 text-[12px]"
+          className="h-8 text-[14px]"
           maxLength={80}
         />
       </div>
 
       {}
       {error && (
-        <div className="flex items-start gap-2 rounded-sm border border-loss/30 bg-tint-loss px-3 py-2 text-[11px] text-loss">
+        <div className="flex items-start gap-2 rounded-sm border border-loss/30 bg-tint-loss px-3 py-2 text-[13px] text-loss">
           <AlertTriangle size={12} className="mt-0.5 shrink-0" />
           <span>{error}</span>
         </div>
@@ -421,7 +421,7 @@ function ConfigureStep({
         <button
           type="button"
           onClick={onClose}
-          className="rounded-sm border border-bd-subtle bg-bg-base px-3 py-1.5 text-[12px] text-text-secondary transition-colors hover:bg-bg-hover hover:text-text-primary"
+          className="rounded-sm border border-bd-subtle bg-bg-base px-3 py-1.5 text-[14px] text-text-secondary transition-colors hover:bg-bg-hover hover:text-text-primary"
         >
           Cancel
         </button>
@@ -430,7 +430,7 @@ function ConfigureStep({
           onClick={onActivate}
           disabled={!canSubmit}
           className={cn(
-            'inline-flex items-center gap-1.5 rounded-sm bg-profit px-4 py-1.5 text-[12px] font-semibold text-text-inverse',
+            'inline-flex items-center gap-1.5 rounded-sm bg-profit px-4 py-1.5 text-[14px] font-semibold text-text-inverse',
             'transition-opacity hover:opacity-90',
             'disabled:cursor-not-allowed disabled:opacity-50',
           )}
@@ -471,13 +471,13 @@ function SuccessStep({
         <CheckCircle2 size={36} strokeWidth={1.5} className="text-profit" />
       </div>
       <div className="space-y-1">
-        <p className="text-[14px] font-semibold text-text-primary">Strategy activated</p>
-        <p className="text-[12px] text-text-secondary">
+        <p className="text-[15px] font-semibold text-text-primary">Strategy activated</p>
+        <p className="text-[14px] text-text-secondary">
           Preset &quot;{presetName}&quot; saved and enabled for{' '}
           {simulated ? 'paper trading' : 'live trading'}.
         </p>
         {strategyId && (
-          <p className="text-[11px] text-text-muted">
+          <p className="text-[13px] text-text-muted">
             {simulated
               ? 'The strategy will start paper trading on the next candle close.'
               : 'The strategy will execute real orders on the next candle close.'}
@@ -488,14 +488,14 @@ function SuccessStep({
         <button
           type="button"
           onClick={onClose}
-          className="rounded-sm border border-bd-subtle bg-bg-base px-3 py-1.5 text-[12px] text-text-secondary transition-colors hover:bg-bg-hover hover:text-text-primary"
+          className="rounded-sm border border-bd-subtle bg-bg-base px-3 py-1.5 text-[14px] text-text-secondary transition-colors hover:bg-bg-hover hover:text-text-primary"
         >
           Close
         </button>
         <button
           type="button"
           onClick={onViewStrategy}
-          className="inline-flex items-center gap-1.5 rounded-sm bg-profit px-4 py-1.5 text-[12px] font-semibold text-text-inverse transition-opacity hover:opacity-90"
+          className="inline-flex items-center gap-1.5 rounded-sm bg-profit px-4 py-1.5 text-[14px] font-semibold text-text-inverse transition-opacity hover:opacity-90"
         >
           View Strategies
           <ExternalLink size={11} strokeWidth={2} />

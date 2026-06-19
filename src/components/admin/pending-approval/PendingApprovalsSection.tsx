@@ -65,7 +65,7 @@ export function PendingApprovalsSection() {
             Pending approvals
           </h2>
           {!isFirstLoad && (
-            <span className="rounded-full bg-bg-elevated px-2 py-0.5 font-mono text-[11px] text-text-secondary">
+            <span className="rounded-full bg-bg-elevated px-2 py-0.5 font-mono text-[13px] text-text-secondary">
               {rows.length}
             </span>
           )}
@@ -77,7 +77,7 @@ export function PendingApprovalsSection() {
             <select
               value={symbolFilter}
               onChange={(e) => setSymbolFilter(e.target.value)}
-              className="rounded-md border border-bd-subtle bg-bg-surface px-2 py-1 font-mono text-[12px] text-text-primary focus:outline-none focus:ring-1 focus:ring-ring"
+              className="rounded-md border border-bd-subtle bg-bg-surface px-2 py-1 font-mono text-[14px] text-text-primary focus:outline-none focus:ring-1 focus:ring-ring"
               aria-label="Filter by symbol"
             >
               <option value="">All symbols</option>
@@ -115,10 +115,10 @@ export function PendingApprovalsSection() {
         <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-bd-subtle bg-bg-surface py-12 text-center">
           <Inbox className="h-8 w-8 text-text-muted" strokeWidth={1.25} />
           <div>
-            <p className="text-[14px] font-semibold text-text-primary">
+            <p className="text-[15px] font-semibold text-text-primary">
               {symbolFilter ? `No pending approvals for ${symbolFilter}` : 'Inbox is empty'}
             </p>
-            <p className="mt-1 text-[12px] text-text-secondary">
+            <p className="mt-1 text-[14px] text-text-secondary">
               {symbolFilter
                 ? 'Clear the filter to see all pending items.'
                 : 'New curator submissions will appear here automatically.'}

@@ -36,7 +36,7 @@ export function RebalanceHistory({ accountId }: RebalanceHistoryProps) {
         >
           Rebalances
         </h3>
-        <div className="mt-1 text-[12px]" style={{ color: 'var(--text-muted)' }}>
+        <div className="mt-1 text-[14px]" style={{ color: 'var(--text-muted)' }}>
           Close-and-reopen weight changes
         </div>
       </div>
@@ -49,7 +49,7 @@ export function RebalanceHistory({ accountId }: RebalanceHistoryProps) {
             border: '1px dashed var(--border-subtle)',
             borderRadius: 16,
             color: 'var(--text-muted)',
-            fontSize: 13,
+            fontSize: 14,
           }}
         >
           No rebalances yet.
@@ -66,7 +66,7 @@ export function RebalanceHistory({ accountId }: RebalanceHistoryProps) {
           <TableBody>
             {events.map((ev) => (
               <TableRow key={ev.id}>
-                <TableCell className="font-mono text-[12px] text-[var(--text-muted)]">
+                <TableCell className="font-mono text-[14px] text-[var(--text-muted)]">
                   {formatDate(ev.time)}
                 </TableCell>
                 <TableCell className="capitalize">{ev.reason}</TableCell>

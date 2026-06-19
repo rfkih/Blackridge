@@ -294,7 +294,7 @@ export function NotificationPanel() {
         <button
           type="button"
           className="mm-pill"
-          style={{ padding: '9px 14px', fontSize: 13, position: 'relative' }}
+          style={{ padding: '9px 14px', fontSize: 14, position: 'relative' }}
           aria-label={unreadCount > 0 ? `Alerts — ${unreadCount} unread` : 'Alerts'}
         >
           <Bell size={14} strokeWidth={1.7} />
@@ -312,7 +312,7 @@ export function NotificationPanel() {
                 borderRadius: 999,
                 background: 'var(--color-loss)',
                 color: 'var(--text-inverse)',
-                fontSize: 9,
+                fontSize: 12,
                 fontWeight: 600,
                 fontFamily: 'var(--font-mono)',
                 display: 'inline-flex',
@@ -334,7 +334,7 @@ export function NotificationPanel() {
       >
         <header className="flex items-center justify-between border-b border-bd-subtle px-4 py-3">
           <h3 className="font-display text-sm font-semibold text-text-primary">Alerts</h3>
-          <span className="font-mono text-[10px] uppercase tracking-widest text-text-muted">
+          <span className="font-mono text-[12px] uppercase tracking-widest text-text-muted">
             {isLoading
               ? 'loading…'
               : notifications.length === 0
@@ -346,13 +346,13 @@ export function NotificationPanel() {
         {isLoading ? (
           <div className="flex items-center justify-center gap-2 px-4 py-8 text-text-muted">
             <Loader2 size={16} className="animate-spin" />
-            <span className="text-[12px]">Loading alerts…</span>
+            <span className="text-[14px]">Loading alerts…</span>
           </div>
         ) : notifications.length === 0 ? (
           <div className="flex flex-col items-center gap-2 px-4 py-8 text-center">
             <CheckCircle2 size={20} strokeWidth={1.5} className="text-text-muted" />
-            <p className="text-[12px] text-text-secondary">Nothing to flag.</p>
-            <p className="text-[10px] text-text-muted">
+            <p className="text-[14px] text-text-secondary">Nothing to flag.</p>
+            <p className="text-[12px] text-text-muted">
               Trade executions, kill-switch trips, IP changes, and finished backtests show up here.
             </p>
           </div>
@@ -397,9 +397,9 @@ function NotificationRow({
         <Icon size={14} strokeWidth={1.75} />
       </span>
       <div className="min-w-0 flex-1">
-        <p className="truncate text-[12px] font-semibold text-text-primary">{n.title}</p>
-        <p className="line-clamp-2 text-[11px] text-text-secondary">{n.body}</p>
-        <p className="mt-1 font-mono text-[10px] text-text-muted">
+        <p className="truncate text-[14px] font-semibold text-text-primary">{n.title}</p>
+        <p className="line-clamp-2 text-[13px] text-text-secondary">{n.body}</p>
+        <p className="mt-1 font-mono text-[12px] text-text-muted">
           {formatDate(new Date(n.ts).getTime())}
         </p>
       </div>

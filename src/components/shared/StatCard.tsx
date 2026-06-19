@@ -92,7 +92,7 @@ export function StatCard({
           </span>
           {sub && (
             <p
-              className="num mt-2 text-[11px] leading-none"
+              className="num mt-2 text-[13px] leading-none"
               style={{ color: SUB_COLOR_MAP[subColor] }}
             >
               {sub}
@@ -166,7 +166,7 @@ function HelpfulLabel({ label, help }: { label: string; help: React.ReactNode })
           side="top"
           align="start"
           collisionPadding={8}
-          className="max-w-xs bg-bg-base text-[11px] leading-relaxed text-text-primary"
+          className="max-w-xs bg-bg-base text-[13px] leading-relaxed text-text-primary"
         >
           {help}
         </TooltipContent>

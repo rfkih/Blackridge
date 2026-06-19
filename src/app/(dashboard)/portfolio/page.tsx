@@ -262,7 +262,7 @@ export default function PortfolioPage() {
             <h2 className="font-display" style={{ fontSize: 22, letterSpacing: '-0.02em' }}>
               Holdings
             </h2>
-            <span style={{ fontSize: 12, color: 'var(--mm-ink-2)' }}>
+            <span style={{ fontSize: 14, color: 'var(--mm-ink-2)' }}>
               {isLoading
                 ? 'Loading…'
                 : rows.length === 0
@@ -292,7 +292,7 @@ export default function PortfolioPage() {
             padding: '10px 8px',
             borderTop: '1px solid var(--mm-hair)',
             borderBottom: '1px solid var(--mm-hair)',
-            fontSize: 10,
+            fontSize: 12,
             letterSpacing: '0.12em',
             color: 'var(--mm-ink-3)',
           }}
@@ -317,7 +317,7 @@ export default function PortfolioPage() {
             style={{
               padding: '40px 20px',
               color: 'var(--mm-ink-2)',
-              fontSize: 13,
+              fontSize: 14,
               textAlign: 'center',
             }}
           >
@@ -358,7 +358,7 @@ function HeroStat({
     <div>
       <div
         style={{
-          fontSize: 11,
+          fontSize: 13,
           color: 'var(--mm-ink-3)',
           textTransform: 'uppercase',
           letterSpacing: '0.1em',
@@ -378,7 +378,7 @@ function HeroStat({
       >
         {value}
       </div>
-      {sub && <div style={{ fontSize: 11, color: 'var(--mm-ink-3)', marginTop: 2 }}>{sub}</div>}
+      {sub && <div style={{ fontSize: 13, color: 'var(--mm-ink-3)', marginTop: 2 }}>{sub}</div>}
     </div>
   );
 }
@@ -393,7 +393,7 @@ function DeltaChip({ value, period }: { value: number; period: string }) {
         background: up ? 'var(--mm-up-soft)' : 'var(--mm-dn-soft)',
         color: up ? 'var(--mm-up)' : 'var(--mm-dn)',
         padding: '5px 12px',
-        fontSize: 13,
+        fontSize: 14,
         display: 'inline-flex',
         alignItems: 'center',
         gap: 6,
@@ -430,7 +430,7 @@ function AllocationCard({
       {isLoading ? (
         <Skeleton className="mt-[18px] h-[108px] w-full" />
       ) : slices.length === 0 ? (
-        <p style={{ marginTop: 18, fontSize: 13, color: 'var(--mm-ink-3)' }}>
+        <p style={{ marginTop: 18, fontSize: 14, color: 'var(--mm-ink-3)' }}>
           Fund the account to see allocation.
         </p>
       ) : (
@@ -440,7 +440,7 @@ function AllocationCard({
             {slices.map((s) => (
               <div
                 key={s.label}
-                style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12 }}
+                style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14 }}
               >
                 <span
                   style={{ width: 8, height: 8, borderRadius: 2, background: s.color }}
@@ -451,7 +451,7 @@ function AllocationCard({
                   style={{
                     fontFamily: 'var(--font-num)',
                     fontVariantNumeric: 'tabular-nums',
-                    fontSize: 12,
+                    fontSize: 14,
                   }}
                 >
                   {s.pct.toFixed(1)}%
@@ -558,7 +558,7 @@ function RiskCard({
               style={{
                 display: 'flex',
                 justifyContent: 'space-between',
-                fontSize: 12,
+                fontSize: 14,
                 marginBottom: 6,
               }}
             >
@@ -621,7 +621,7 @@ function OpenTradeRiskRow({
   const color = warn ? 'var(--mm-warn)' : 'var(--mm-ink-0)';
   return (
     <div style={{ borderTop: '1px solid var(--mm-hair)', paddingTop: 14 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 14 }}>
         <span style={{ color: 'var(--mm-ink-2)' }}>
           Open-trade risk
           <span style={{ color: 'var(--mm-ink-3)', marginLeft: 6 }}>
@@ -722,7 +722,7 @@ function PerformanceCard() {
       >
         {items.map((it) => (
           <div key={it.l}>
-            <div style={{ fontSize: 11, color: 'var(--mm-ink-3)' }}>{it.l}</div>
+            <div style={{ fontSize: 13, color: 'var(--mm-ink-3)' }}>{it.l}</div>
             <div
               style={{
                 fontSize: 17,
@@ -759,7 +759,7 @@ function HoldingRow({ row, last }: { row: EnrichedAsset; last: boolean }) {
         padding: '12px 8px',
         alignItems: 'center',
         borderBottom: last ? 'none' : '1px solid var(--mm-hair)',
-        fontSize: 13,
+        fontSize: 14,
       }}
     >
       <div
@@ -801,7 +801,7 @@ function HoldingRow({ row, last }: { row: EnrichedAsset; last: boolean }) {
             </span>
           )}
         </div>
-        <div style={{ fontSize: 11, color: 'var(--mm-ink-3)', marginTop: 2 }}>
+        <div style={{ fontSize: 13, color: 'var(--mm-ink-3)', marginTop: 2 }}>
           {isStable(row.asset) ? 'Stablecoin' : 'Crypto · spot'}
         </div>
       </div>
@@ -817,7 +817,7 @@ function HoldingRow({ row, last }: { row: EnrichedAsset; last: boolean }) {
           fontFamily: 'var(--font-num)',
           fontVariantNumeric: 'tabular-nums',
           textAlign: 'right',
-          fontSize: 13,
+          fontSize: 14,
         }}
       >
         {formatCurrency(row.usdtValue)}
@@ -827,7 +827,7 @@ function HoldingRow({ row, last }: { row: EnrichedAsset; last: boolean }) {
           style={{
             fontFamily: 'var(--font-num)',
             fontVariantNumeric: 'tabular-nums',
-            fontSize: 12,
+            fontSize: 14,
           }}
         >
           {row.portfolioPct.toFixed(1)}%
@@ -861,7 +861,7 @@ function NumCell({ value, decimals, muted }: { value: number; decimals: number; 
         fontFamily: 'var(--font-num)',
         fontVariantNumeric: 'tabular-nums',
         textAlign: 'right',
-        fontSize: 13,
+        fontSize: 14,
         color: muted ? 'var(--mm-ink-3)' : 'var(--mm-ink-0)',
       }}
     >

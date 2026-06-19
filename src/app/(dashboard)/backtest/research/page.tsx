@@ -193,7 +193,7 @@ export default function ResearchPage() {
         <div>
           <Link
             href="/backtest"
-            className="inline-flex items-center gap-1 text-[11px] text-text-muted hover:text-text-primary"
+            className="inline-flex items-center gap-1 text-[13px] text-text-muted hover:text-text-primary"
           >
             <ArrowLeft size={12} /> Back to backtests
           </Link>
@@ -201,7 +201,7 @@ export default function ResearchPage() {
           <h1 className="font-display text-[24px] font-semibold tracking-tighter text-text-primary">
             Iterative research sweep
           </h1>
-          <p className="mt-1 max-w-2xl text-[12px] text-text-muted">
+          <p className="mt-1 max-w-2xl text-[14px] text-text-muted">
             Define a <strong>range</strong> per parameter (min / max / step) and a number of rounds.
             The system runs round 1 across the full grid, keeps the top{' '}
             <strong>{Math.round(Number(elitePct || 0.25) * 100)}%</strong> by {rankMetric}, refines
@@ -247,7 +247,7 @@ export default function ResearchPage() {
               ))}
             </select>
             {eligibleStrategies.length === 0 && (
-              <span className="mt-1 text-[11px] text-[var(--color-warning)]">
+              <span className="mt-1 text-[13px] text-[var(--color-warning)]">
                 No eligible strategies. You need an AccountStrategy whose strategyCode is both
                 registered (ACTIVE in /admin/strategies) and research-capable (TPR today).
               </span>
@@ -314,12 +314,12 @@ export default function ResearchPage() {
 
         <div>
           <div className="label-caps">Parameter ranges</div>
-          <p className="text-[11px] text-text-muted">
+          <p className="text-[13px] text-text-muted">
             Round 1 expands every range into a grid. Each subsequent round picks the elite combos,
             builds a ±1-step neighbourhood in every dimension, and re-runs. Per-round cap: 256.
           </p>
           <div className="mt-2 space-y-2">
-            <div className="grid grid-cols-[1fr_1fr_1fr_1fr_auto] gap-2 font-mono text-[10px] uppercase tracking-wider text-text-muted">
+            <div className="grid grid-cols-[1fr_1fr_1fr_1fr_auto] gap-2 font-mono text-[12px] uppercase tracking-wider text-text-muted">
               <div>param</div>
               <div>min</div>
               <div>max</div>
@@ -366,7 +366,7 @@ export default function ResearchPage() {
                         ))}
                     </select>
                     {def != null && (
-                      <span className="mt-0.5 font-mono text-[10px] text-text-muted">
+                      <span className="mt-0.5 font-mono text-[12px] text-text-muted">
                         default {formatDefault(def)}
                       </span>
                     )}
@@ -401,7 +401,7 @@ export default function ResearchPage() {
                   <button
                     type="button"
                     onClick={() => setRanges((prev) => prev.filter((_, i) => i !== idx))}
-                    className="inline-flex items-center gap-1 rounded-sm border border-bd-subtle bg-bg-base px-2 py-1 text-[12px] text-text-secondary hover:bg-bg-hover"
+                    className="inline-flex items-center gap-1 rounded-sm border border-bd-subtle bg-bg-base px-2 py-1 text-[14px] text-text-secondary hover:bg-bg-hover"
                   >
                     <X size={12} />
                   </button>
@@ -413,15 +413,15 @@ export default function ResearchPage() {
             type="button"
             disabled={!selectedCode || defaultsQ.isLoading}
             onClick={() => setRanges((prev) => [...prev, { key: '', min: '', max: '', step: '' }])}
-            className="mt-2 inline-flex items-center gap-1.5 rounded-sm border border-bd-subtle bg-bg-base px-3 py-1 text-[11px] text-text-secondary hover:bg-bg-hover disabled:opacity-50"
+            className="mt-2 inline-flex items-center gap-1.5 rounded-sm border border-bd-subtle bg-bg-base px-3 py-1 text-[13px] text-text-secondary hover:bg-bg-hover disabled:opacity-50"
           >
             <Plus size={12} /> Add param
           </button>
           {selectedCode && defaultsQ.isLoading && (
-            <div className="mt-2 text-[11px] text-text-muted">Loading {selectedCode} defaults…</div>
+            <div className="mt-2 text-[13px] text-text-muted">Loading {selectedCode} defaults…</div>
           )}
           {selectedCode && defaultsQ.isError && (
-            <div className="mt-2 text-[11px] text-[var(--color-loss)]">
+            <div className="mt-2 text-[13px] text-[var(--color-loss)]">
               Could not load defaults for {selectedCode}. Param dropdown will be empty.
             </div>
           )}
@@ -436,7 +436,7 @@ export default function ResearchPage() {
           >
             <div className="flex items-center gap-2">
               {pinOpen ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
-              <span className="label-caps !text-[10px]">Pinned overrides (optional)</span>
+              <span className="label-caps !text-[12px]">Pinned overrides (optional)</span>
               {Object.keys(pinValues).filter((k) => {
                 const typed = pinValues[k];
                 if (typed === undefined || typed.trim() === '') return false;
@@ -445,7 +445,7 @@ export default function ResearchPage() {
                 return Number.isFinite(v) && Number.isFinite(def) && Math.abs(v - def) > 1e-9;
               }).length > 0 && (
                 <span
-                  className="rounded-sm px-1.5 py-0.5 font-mono text-[10px]"
+                  className="rounded-sm px-1.5 py-0.5 font-mono text-[12px]"
                   style={{
                     background: 'rgba(245,166,35,0.12)',
                     color: 'var(--color-warning)',
@@ -464,7 +464,7 @@ export default function ResearchPage() {
                 </span>
               )}
             </div>
-            <span className="font-mono text-[10px] text-text-muted">
+            <span className="font-mono text-[12px] text-text-muted">
               {selectedCode
                 ? pinOpen
                   ? 'collapse'
@@ -477,7 +477,7 @@ export default function ResearchPage() {
             <div className="mt-3">
               <div className="flex items-end justify-between gap-3">
                 <div>
-                  <p className="text-[11px] text-text-muted">
+                  <p className="text-[13px] text-text-muted">
                     Every param starts at its strategy default. Edit any value to pin it across all
                     combos. Untouched params stay at default. Swept params are hidden (sweep value
                     would override the pin).
@@ -487,7 +487,7 @@ export default function ResearchPage() {
                   <button
                     type="button"
                     onClick={() => setPinValues({})}
-                    className="text-[11px] text-text-muted underline-offset-2 hover:text-text-primary hover:underline"
+                    className="text-[13px] text-text-muted underline-offset-2 hover:text-text-primary hover:underline"
                   >
                     reset all to defaults
                   </button>
@@ -512,7 +512,7 @@ export default function ResearchPage() {
                     .filter((k) => !filter || k.toLowerCase().includes(filter));
                   if (selectedCode && visible.length === 0) {
                     return (
-                      <div className="text-[11px] text-text-muted">No params match the filter.</div>
+                      <div className="text-[13px] text-text-muted">No params match the filter.</div>
                     );
                   }
                   return visible.map((k) => {
@@ -537,7 +537,7 @@ export default function ResearchPage() {
                               title="overridden"
                             />
                           )}
-                          <span className="truncate font-mono text-[12px] text-text-primary">
+                          <span className="truncate font-mono text-[14px] text-text-primary">
                             {k}
                           </span>
                         </div>
@@ -559,7 +559,7 @@ export default function ResearchPage() {
                                 return next;
                               })
                             }
-                            className="text-[10px] text-text-muted hover:text-text-primary"
+                            className="text-[12px] text-text-muted hover:text-text-primary"
                             title="reset to default"
                           >
                             <X size={12} />
@@ -573,7 +573,7 @@ export default function ResearchPage() {
                 })()}
               </div>
               {selectedCode && defaultsQ.isLoading && (
-                <div className="mt-2 text-[11px] text-text-muted">
+                <div className="mt-2 text-[13px] text-text-muted">
                   Loading {selectedCode} defaults…
                 </div>
               )}
@@ -582,7 +582,7 @@ export default function ResearchPage() {
         </div>
 
         <div className="flex items-center justify-between border-t border-bd-subtle pt-3">
-          <div className="text-[12px] text-text-muted">
+          <div className="text-[14px] text-text-muted">
             Round 1 size: <span className="font-mono text-text-primary">{round1Combos}</span>
             {round1Combos > 128 && round1Combos <= 256 && (
               <span className="ml-2 text-[var(--color-warning)]">
@@ -597,7 +597,7 @@ export default function ResearchPage() {
             type="button"
             onClick={onSubmit}
             disabled={create.isPending || round1Combos > 256 || round1Combos === 0}
-            className="hover:bg-[var(--accent-primary)]/90 inline-flex items-center gap-1.5 rounded-sm bg-[var(--accent-primary)] px-4 py-2 text-[12px] font-semibold text-white transition-colors disabled:opacity-60"
+            className="hover:bg-[var(--accent-primary)]/90 inline-flex items-center gap-1.5 rounded-sm bg-[var(--accent-primary)] px-4 py-2 text-[14px] font-semibold text-white transition-colors disabled:opacity-60"
           >
             {create.isPending ? <Loader2 size={12} className="animate-spin" /> : <Play size={12} />}
             Start research session

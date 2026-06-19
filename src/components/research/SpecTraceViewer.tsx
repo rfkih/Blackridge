@@ -70,8 +70,8 @@ export function SpecTraceViewer({
   return (
     <div className="flex flex-col gap-3">
       <div className="flex flex-wrap items-center gap-3 rounded-xl border border-bd-subtle bg-bg-surface px-3 py-2">
-        <label className="flex items-center gap-1.5 text-[12px] text-text-secondary">
-          <span className="text-[11px] uppercase tracking-widest text-text-muted">
+        <label className="flex items-center gap-1.5 text-[14px] text-text-secondary">
+          <span className="text-[13px] uppercase tracking-widest text-text-muted">
             Decision
           </span>
           <select
@@ -80,7 +80,7 @@ export function SpecTraceViewer({
               setDecision(e.target.value);
               setPage(0);
             }}
-            className="rounded-sm border border-bd-subtle bg-bg-base px-2 py-1 font-mono text-[12px] text-text-primary"
+            className="rounded-sm border border-bd-subtle bg-bg-base px-2 py-1 font-mono text-[14px] text-text-primary"
           >
             <option value="">Any</option>
             <option value="OPEN_LONG">OPEN_LONG</option>
@@ -90,7 +90,7 @@ export function SpecTraceViewer({
             <option value="UPDATE_POSITION_MANAGEMENT">UPDATE_POSITION_MANAGEMENT</option>
           </select>
         </label>
-        <label className="flex items-center gap-1.5 text-[12px] text-text-secondary">
+        <label className="flex items-center gap-1.5 text-[14px] text-text-secondary">
           <input
             type="checkbox"
             checked={errorsOnly}
@@ -101,7 +101,7 @@ export function SpecTraceViewer({
           />
           <span>Errors only</span>
         </label>
-        <span className="ml-auto font-mono text-[10px] uppercase tracking-widest text-text-muted">
+        <span className="ml-auto font-mono text-[12px] uppercase tracking-widest text-text-muted">
           {totalElements} {totalElements === 1 ? 'trace' : 'traces'}
         </span>
       </div>
@@ -129,11 +129,11 @@ export function SpecTraceViewer({
             onClick={() => setPage((p) => Math.max(0, p - 1))}
             disabled={page <= 0}
             className="mm-pill disabled:cursor-not-allowed disabled:opacity-50"
-            style={{ padding: '6px 10px', fontSize: 12 }}
+            style={{ padding: '6px 10px', fontSize: 14 }}
           >
             Prev
           </button>
-          <span className="font-mono text-[11px] text-text-muted">
+          <span className="font-mono text-[13px] text-text-muted">
             Page {page + 1} / {totalPages}
           </span>
           <button
@@ -141,7 +141,7 @@ export function SpecTraceViewer({
             onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
             disabled={page >= totalPages - 1}
             className="mm-pill disabled:cursor-not-allowed disabled:opacity-50"
-            style={{ padding: '6px 10px', fontSize: 12 }}
+            style={{ padding: '6px 10px', fontSize: 14 }}
           >
             Next
           </button>
@@ -178,25 +178,25 @@ function SpecTraceRowItem({ row }: { row: SpecTraceRow }) {
           <Icon size={11} strokeWidth={1.75} />
         </span>
         <span
-          className="font-mono text-[11px] uppercase tracking-widest"
+          className="font-mono text-[13px] uppercase tracking-widest"
           style={{ color: meta.fg }}
         >
           {row.decision}
         </span>
-        <span className="font-mono text-[11px] text-text-secondary">{row.phase}</span>
-        <span className="font-mono text-[12px] text-text-primary">{row.strategyCode}</span>
+        <span className="font-mono text-[13px] text-text-secondary">{row.phase}</span>
+        <span className="font-mono text-[14px] text-text-primary">{row.strategyCode}</span>
         {row.decisionReason && (
-          <span className="truncate font-mono text-[11px] text-text-secondary">
+          <span className="truncate font-mono text-[13px] text-text-secondary">
             {row.decisionReason}
           </span>
         )}
         <span className="ml-auto flex items-center gap-3">
           {row.evalLatencyUs != null && (
-            <span className="font-mono text-[10px] text-text-muted">
+            <span className="font-mono text-[12px] text-text-muted">
               {row.evalLatencyUs}µs
             </span>
           )}
-          <span className="font-mono text-[10px] text-text-muted">{row.barTime ?? '—'}</span>
+          <span className="font-mono text-[12px] text-text-muted">{row.barTime ?? '—'}</span>
         </span>
       </button>
       {expanded && <SpecTraceDetailPanel traceId={row.traceId} />}
@@ -220,7 +220,7 @@ function SpecTraceDetailPanel({ traceId }: { traceId: string }) {
   }
   if (query.isError || !query.data) {
     return (
-      <div className="border-t border-bd-subtle bg-bg-base px-4 py-3 text-[12px] text-text-secondary">
+      <div className="border-t border-bd-subtle bg-bg-base px-4 py-3 text-[14px] text-text-secondary">
         Failed to load trace detail.
       </div>
     );
@@ -231,7 +231,7 @@ function SpecTraceDetailPanel({ traceId }: { traceId: string }) {
   return (
     <div className="flex flex-col gap-3 border-t border-bd-subtle bg-bg-base px-4 py-3">
       {errorClass && (
-        <div className="rounded-sm border border-[var(--color-loss)] bg-[rgba(229,72,77,0.08)] px-3 py-2 font-mono text-[11px]">
+        <div className="rounded-sm border border-[var(--color-loss)] bg-[rgba(229,72,77,0.08)] px-3 py-2 font-mono text-[13px]">
           <div className="text-[var(--color-loss)]">{errorClass}</div>
           {errorMessage && (
             <div className="mt-1 whitespace-pre-wrap text-text-secondary">{errorMessage}</div>
@@ -240,7 +240,7 @@ function SpecTraceDetailPanel({ traceId }: { traceId: string }) {
       )}
 
       <div>
-        <div className="mb-1 font-mono text-[10px] uppercase tracking-widest text-text-muted">
+        <div className="mb-1 font-mono text-[12px] uppercase tracking-widest text-text-muted">
           Rules
         </div>
         {rules && rules.length > 0 ? (
@@ -250,15 +250,15 @@ function SpecTraceDetailPanel({ traceId }: { traceId: string }) {
             ))}
           </ul>
         ) : (
-          <div className="font-mono text-[11px] text-text-secondary">—</div>
+          <div className="font-mono text-[13px] text-text-secondary">—</div>
         )}
       </div>
 
       <details className="rounded-sm border border-bd-subtle bg-bg-surface">
-        <summary className="cursor-pointer px-3 py-2 font-mono text-[10px] uppercase tracking-widest text-text-muted">
+        <summary className="cursor-pointer px-3 py-2 font-mono text-[12px] uppercase tracking-widest text-text-muted">
           Spec snapshot
         </summary>
-        <pre className="overflow-x-auto px-3 pb-3 font-mono text-[10px] leading-relaxed text-text-secondary">
+        <pre className="overflow-x-auto px-3 pb-3 font-mono text-[12px] leading-relaxed text-text-secondary">
           {JSON.stringify(specSnapshot ?? {}, null, 2)}
         </pre>
       </details>
@@ -274,7 +274,7 @@ function RuleRow({ rule, fallbackIndex }: { rule: SpecTraceRule; fallbackIndex: 
   const value = rule.value;
 
   return (
-    <li className="flex items-baseline gap-2 font-mono text-[11px]">
+    <li className="flex items-baseline gap-2 font-mono text-[13px]">
       <span className="w-5 text-right text-text-muted">{idx}</span>
       <span
         aria-hidden="true"

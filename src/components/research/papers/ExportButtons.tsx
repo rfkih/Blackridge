@@ -63,7 +63,7 @@ export function ExportButtons({ paperId, paper }: ExportButtonsProps) {
   }
 
   const buttonClass =
-    'inline-flex items-center gap-1.5 rounded-sm border border-bd-subtle bg-bg-surface px-3 py-1.5 text-[12px] font-semibold text-text-secondary transition-colors hover:bg-bg-hover disabled:opacity-50';
+    'inline-flex items-center gap-1.5 rounded-sm border border-bd-subtle bg-bg-surface px-3 py-1.5 text-[14px] font-semibold text-text-secondary transition-colors hover:bg-bg-hover disabled:opacity-50';
 
   return (
     <div className="flex items-center gap-2">

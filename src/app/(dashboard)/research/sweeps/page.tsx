@@ -37,14 +37,14 @@ export default function ResearchSweepsPage() {
           <h1 className="font-display text-[24px] font-semibold tracking-tighter text-text-primary">
             Parameter sweeps
           </h1>
-          <p className="mt-1 text-[12px] text-text-muted">
+          <p className="mt-1 text-[14px] text-text-muted">
             Define a grid of TPR params → run all combos → rank by outcome.
           </p>
         </div>
         <button
           type="button"
           onClick={() => setFormOpen((v) => !v)}
-          className="hover:bg-[var(--accent-primary)]/90 inline-flex items-center gap-1.5 rounded-sm bg-[var(--accent-primary)] px-3 py-2 text-[12px] font-semibold text-white transition-colors"
+          className="hover:bg-[var(--accent-primary)]/90 inline-flex items-center gap-1.5 rounded-sm bg-[var(--accent-primary)] px-3 py-2 text-[14px] font-semibold text-white transition-colors"
         >
           {formOpen ? <X size={12} /> : <Plus size={12} />}
           {formOpen ? 'Cancel' : 'New sweep'}
@@ -68,7 +68,7 @@ export default function ResearchSweepsPage() {
         </div>
       ) : (
         <div className="overflow-hidden rounded-xl border border-bd-subtle bg-bg-surface">
-          <table className="w-full min-w-[800px] text-[12px]">
+          <table className="w-full min-w-[800px] text-[14px]">
             <thead>
               <tr className="border-b border-bd-subtle bg-bg-base">
                 <Th>Created</Th>
@@ -105,7 +105,7 @@ export default function ResearchSweepsPage() {
                     <Td align="right">
                       <Link
                         href={`/research/sweeps/${s.sweepId}`}
-                        className="font-mono text-[10px] uppercase tracking-wider text-[var(--accent-primary)] hover:underline"
+                        className="font-mono text-[12px] uppercase tracking-wider text-[var(--accent-primary)] hover:underline"
                       >
                         Open →
                       </Link>
@@ -132,7 +132,7 @@ function StatusPill({ status }: { status: string }) {
   const c = cfg[status] ?? cfg.PENDING;
   return (
     <span
-      className="font-mono text-[10px] font-semibold uppercase tracking-wider"
+      className="font-mono text-[12px] font-semibold uppercase tracking-wider"
       style={{ background: c.bg, color: c.fg, padding: '2px 8px', borderRadius: 4 }}
     >
       {status}
@@ -351,7 +351,7 @@ function NewSweepForm({ onSubmitted }: { onSubmitted: (sweepId: string) => void 
             ))}
           </select>
           {eligibleStrategies.length === 0 && (
-            <span className="mt-1 text-[11px] text-[var(--color-warning)]">
+            <span className="mt-1 text-[13px] text-[var(--color-warning)]">
               No eligible strategies. Need an AccountStrategy whose code is both ACTIVE in
               /admin/strategies and research-capable (TPR today).
             </span>
@@ -401,7 +401,7 @@ function NewSweepForm({ onSubmitted }: { onSubmitted: (sweepId: string) => void 
             <option value="TRAIN_OOS">Train / OOS split</option>
             <option value="NONE">Single window (in-sample only)</option>
           </select>
-          <span className="mt-1 text-[11px] text-text-muted">
+          <span className="mt-1 text-[13px] text-text-muted">
             Walk-forward runs K rolling folds per combo — averages OOS Sharpe across regimes,
             exposes regime sensitivity. Train/OOS is cheaper but blind to regime. Single is for
             smoke tests only.
@@ -418,7 +418,7 @@ function NewSweepForm({ onSubmitted }: { onSubmitted: (sweepId: string) => void 
               value={oosFractionPct}
               onChange={(e) => setOosFractionPct(e.target.value)}
             />
-            <span className="mt-1 text-[11px] text-text-muted">
+            <span className="mt-1 text-[13px] text-text-muted">
               {splitMode === 'TRAIN_OOS'
                 ? '30% means train on 70%, score on the most recent 30%.'
                 : 'Total OOS coverage divided evenly across the K folds. Train head is whatever remains.'}
@@ -436,7 +436,7 @@ function NewSweepForm({ onSubmitted }: { onSubmitted: (sweepId: string) => void 
               value={walkForwardWindows}
               onChange={(e) => setWalkForwardWindows(e.target.value)}
             />
-            <span className="mt-1 text-[11px] text-text-muted">
+            <span className="mt-1 text-[13px] text-text-muted">
               Number of rolling train→OOS folds per combo. Higher K = better regime coverage but K×
               wall time. Default 4. Run cap: 2000 total backtests across all folds + combos.
             </span>
@@ -454,7 +454,7 @@ function NewSweepForm({ onSubmitted }: { onSubmitted: (sweepId: string) => void 
               onChange={(e) => setHoldoutFractionPct(e.target.value)}
               placeholder="leave blank to disable"
             />
-            <span className="mt-1 text-[11px] text-text-muted">
+            <span className="mt-1 text-[13px] text-text-muted">
               Tail of the window the sweep will <b>never</b> touch. After results land, evaluate
               your winner on this slice for the one unbiased estimate. Default 20%.
             </span>
@@ -464,7 +464,7 @@ function NewSweepForm({ onSubmitted }: { onSubmitted: (sweepId: string) => void 
 
       <div>
         <div className="label-caps">Param grid</div>
-        <p className="text-[11px] text-text-muted">
+        <p className="text-[13px] text-text-muted">
           One row per varied parameter. Values comma-separated. The server expands the
           cross-product. Cap: 64 combos.
         </p>
@@ -508,7 +508,7 @@ function NewSweepForm({ onSubmitted }: { onSubmitted: (sweepId: string) => void 
                       ))}
                   </select>
                   {def != null && (
-                    <span className="mt-0.5 font-mono text-[10px] text-text-muted">
+                    <span className="mt-0.5 font-mono text-[12px] text-text-muted">
                       default {formatDefault(def)}
                     </span>
                   )}
@@ -526,7 +526,7 @@ function NewSweepForm({ onSubmitted }: { onSubmitted: (sweepId: string) => void 
                 <button
                   type="button"
                   onClick={() => setGrid((prev) => prev.filter((_, i) => i !== idx))}
-                  className="inline-flex items-center gap-1 rounded-sm border border-bd-subtle bg-bg-base px-2 py-1 text-[12px] text-text-secondary hover:bg-bg-hover"
+                  className="inline-flex items-center gap-1 rounded-sm border border-bd-subtle bg-bg-base px-2 py-1 text-[14px] text-text-secondary hover:bg-bg-hover"
                 >
                   <X size={12} />
                 </button>
@@ -538,22 +538,22 @@ function NewSweepForm({ onSubmitted }: { onSubmitted: (sweepId: string) => void 
           type="button"
           disabled={!selectedCode || defaultsQ.isLoading}
           onClick={() => setGrid((prev) => [...prev, { key: '', values: '' }])}
-          className="mt-2 inline-flex items-center gap-1.5 rounded-sm border border-bd-subtle bg-bg-base px-3 py-1 text-[11px] text-text-secondary hover:bg-bg-hover disabled:opacity-50"
+          className="mt-2 inline-flex items-center gap-1.5 rounded-sm border border-bd-subtle bg-bg-base px-3 py-1 text-[13px] text-text-secondary hover:bg-bg-hover disabled:opacity-50"
         >
           <Plus size={12} /> Add param
         </button>
         {selectedCode && defaultsQ.isLoading && (
-          <div className="mt-2 text-[11px] text-text-muted">Loading {selectedCode} defaults…</div>
+          <div className="mt-2 text-[13px] text-text-muted">Loading {selectedCode} defaults…</div>
         )}
         {selectedCode && defaultsQ.isError && (
-          <div className="mt-2 text-[11px] text-[var(--color-loss)]">
+          <div className="mt-2 text-[13px] text-[var(--color-loss)]">
             Could not load defaults for {selectedCode}.
           </div>
         )}
       </div>
 
       <div className="flex items-center justify-between border-t border-bd-subtle pt-3">
-        <div className="text-[12px] text-text-muted">
+        <div className="text-[14px] text-text-muted">
           Total combos: <span className="font-mono text-text-primary">{totalCombos}</span>
           {totalCombos > 64 && (
             <span className="ml-2 text-[var(--color-loss)]">exceeds 64 cap</span>
@@ -563,7 +563,7 @@ function NewSweepForm({ onSubmitted }: { onSubmitted: (sweepId: string) => void 
           type="button"
           onClick={onSubmit}
           disabled={create.isPending || totalCombos > 64}
-          className="hover:bg-[var(--accent-primary)]/90 inline-flex items-center gap-1.5 rounded-sm bg-[var(--accent-primary)] px-3 py-2 text-[12px] font-semibold text-white transition-colors disabled:opacity-60"
+          className="hover:bg-[var(--accent-primary)]/90 inline-flex items-center gap-1.5 rounded-sm bg-[var(--accent-primary)] px-3 py-2 text-[14px] font-semibold text-white transition-colors disabled:opacity-60"
         >
           {create.isPending ? <Loader2 size={12} className="animate-spin" /> : <Play size={12} />}
           Start sweep
@@ -585,7 +585,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 function Th({ children, align }: { children?: React.ReactNode; align?: 'right' }) {
   return (
     <th
-      className={`label-caps whitespace-nowrap px-3 py-2 !text-[9px] ${
+      className={`label-caps whitespace-nowrap px-3 py-2 !text-[12px] ${
         align === 'right' ? 'text-right' : 'text-left'
       }`}
     >

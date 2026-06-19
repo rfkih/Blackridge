@@ -235,7 +235,7 @@ export function RebalanceDialog({ open, onOpenChange, accountId }: RebalanceDial
                 </SelectItem>
               </SelectContent>
             </Select>
-            <p className="text-[11px] text-text-muted">
+            <p className="text-[13px] text-text-muted">
               HRP is robust to ill-conditioned covariance. MV without a
               <span className="font-mono"> mu </span>vector returns the global minimum-variance
               allocation.
@@ -244,7 +244,7 @@ export function RebalanceDialog({ open, onOpenChange, accountId }: RebalanceDial
 
           {!canSubmit && (
             <div
-              className="rounded-md border px-3 py-2 text-[11px]"
+              className="rounded-md border px-3 py-2 text-[13px]"
               style={{
                 borderColor: 'rgba(245,158,11,0.35)',
                 backgroundColor: 'rgba(245,158,11,0.08)',
@@ -298,11 +298,11 @@ function PreviewPanel({ response }: { response: RebalanceResponse }) {
   if (codes.length === 0) {
     return (
       <div className="rounded-md border border-bd-subtle bg-bg-elevated p-3">
-        <p className="text-[12px] text-text-secondary">
+        <p className="text-[14px] text-text-secondary">
           No eligible strategies. {response.diagnostics.reason ?? 'Nothing to rebalance.'}
         </p>
         {skippedCodes.length > 0 && (
-          <ul className="mt-2 list-disc space-y-0.5 pl-5 font-mono text-[11px] text-text-muted">
+          <ul className="mt-2 list-disc space-y-0.5 pl-5 font-mono text-[13px] text-text-muted">
             {skippedCodes.map((c) => (
               <li key={c}>
                 {c}: {response.skipped[c]}
@@ -319,7 +319,7 @@ function PreviewPanel({ response }: { response: RebalanceResponse }) {
       <div className="rounded-md border border-bd-subtle bg-bg-elevated">
         <div className="flex items-center justify-between border-b border-bd-subtle px-3 py-2">
           <span className="label-caps">Proposed weights</span>
-          <span className="font-mono text-[10px] text-text-muted">
+          <span className="font-mono text-[12px] text-text-muted">
             {response.optimizer} · n_eff={response.summary?.n_effective?.toFixed(2) ?? '—'}
           </span>
         </div>
@@ -346,7 +346,7 @@ function PreviewPanel({ response }: { response: RebalanceResponse }) {
         </table>
       </div>
 
-      <div className="grid grid-cols-3 gap-2 font-mono text-[10px] text-text-muted">
+      <div className="grid grid-cols-3 gap-2 font-mono text-[12px] text-text-muted">
         <DiagChip label="clamped low" value={response.diagnostics.n_clamped_low ?? 0} />
         <DiagChip label="clamped high" value={response.diagnostics.n_clamped_high ?? 0} />
         <DiagChip label="renorm" value={response.diagnostics.renorm_factor ?? 1} digits={4} />
@@ -365,10 +365,10 @@ function PreviewPanel({ response }: { response: RebalanceResponse }) {
 
       {skippedCodes.length > 0 && (
         <div className="rounded-md border border-[rgba(245,158,11,0.35)] bg-[rgba(245,158,11,0.08)] p-2.5">
-          <p className="text-[11px] font-semibold text-[var(--color-warning)]">
+          <p className="text-[13px] font-semibold text-[var(--color-warning)]">
             Skipped {skippedCodes.length}
           </p>
-          <ul className="mt-1 list-disc space-y-0.5 pl-5 font-mono text-[10px] text-text-secondary">
+          <ul className="mt-1 list-disc space-y-0.5 pl-5 font-mono text-[12px] text-text-secondary">
             {skippedCodes.map((c) => (
               <li key={c}>
                 {c}: {response.skipped[c]}
@@ -451,14 +451,14 @@ function MinNotionalWarningPanel({
           aria-hidden="true"
         />
         <div className="flex-1">
-          <p className="text-[11px] font-semibold" style={{ color: tintColor }}>
+          <p className="text-[13px] font-semibold" style={{ color: tintColor }}>
             {isRefused
               ? `Apply refused — ${violations.length} strategy row${violations.length === 1 ? '' : 's'} below min-notional`
               : `Warning — ${violations.length} strategy row${violations.length === 1 ? '' : 's'} would land below min-notional`}
           </p>
-          {message && <p className="mt-1 text-[10px] text-text-secondary">{message}</p>}
+          {message && <p className="mt-1 text-[12px] text-text-secondary">{message}</p>}
           {!message && (
-            <p className="mt-1 text-[10px] text-text-secondary">
+            <p className="mt-1 text-[12px] text-text-secondary">
               The JVM executor silently rejects orders below this floor; the flagged strategies
               would carry their post-rebalance weight on the dashboard but never enter trades.
             </p>
@@ -470,7 +470,7 @@ function MinNotionalWarningPanel({
                 {['Code', 'Symbol', 'Weight', 'Cap%', 'Projected', 'Floor', 'Short'].map((col) => (
                   <th
                     key={col}
-                    className="label-caps whitespace-nowrap px-2 py-1 text-left text-[9px]"
+                    className="label-caps whitespace-nowrap px-2 py-1 text-left text-[12px]"
                   >
                     {col}
                   </th>
@@ -483,29 +483,29 @@ function MinNotionalWarningPanel({
                   key={`${v.strategy_code}-${v.symbol}`}
                   className="border-b border-bd-subtle last:border-b-0"
                 >
-                  <td className="px-2 py-1 font-mono text-[10px] font-semibold">
+                  <td className="px-2 py-1 font-mono text-[12px] font-semibold">
                     {v.strategy_code}
                   </td>
-                  <td className="px-2 py-1 font-mono text-[10px] text-text-secondary">
+                  <td className="px-2 py-1 font-mono text-[12px] text-text-secondary">
                     {v.symbol}
                   </td>
-                  <td className="num px-2 py-1 font-mono text-[10px] tabular-nums">
+                  <td className="num px-2 py-1 font-mono text-[12px] tabular-nums">
                     {(v.weight * 100).toFixed(2)}%
                   </td>
-                  <td className="num px-2 py-1 font-mono text-[10px] tabular-nums text-text-secondary">
+                  <td className="num px-2 py-1 font-mono text-[12px] tabular-nums text-text-secondary">
                     {v.capital_allocation_pct.toFixed(1)}%
                   </td>
                   <td
-                    className="num px-2 py-1 font-mono text-[10px] tabular-nums"
+                    className="num px-2 py-1 font-mono text-[12px] tabular-nums"
                     style={{ color: tintColor }}
                   >
                     ${v.projected_entry_usd.toFixed(2)}
                   </td>
-                  <td className="num px-2 py-1 font-mono text-[10px] tabular-nums text-text-muted">
+                  <td className="num px-2 py-1 font-mono text-[12px] tabular-nums text-text-muted">
                     ${v.floor_usd.toFixed(2)}
                   </td>
                   <td
-                    className="num px-2 py-1 font-mono text-[10px] tabular-nums"
+                    className="num px-2 py-1 font-mono text-[12px] tabular-nums"
                     style={{ color: tintColor }}
                   >
                     {v.shortfall_usd != null ? `−$${v.shortfall_usd.toFixed(2)}` : '—'}
@@ -515,7 +515,7 @@ function MinNotionalWarningPanel({
             </tbody>
           </table>
 
-          <div className="mt-2 font-mono text-[9px] text-text-muted">
+          <div className="mt-2 font-mono text-[12px] text-text-muted">
             available=${availableUsdt?.toFixed(2) ?? '—'}
             {availableUsdtSource && (
               <> ({availableUsdtSource === 'trading_jvm' ? 'live' : 'caller-provided'})</>
@@ -543,15 +543,15 @@ function WeightDiffRow({ code, before, after }: { code: string; before?: number;
         : 'text-text-muted';
   return (
     <tr className="border-b border-bd-subtle last:border-b-0">
-      <td className="px-3 py-1.5 font-mono text-[11px] font-semibold text-text-primary">{code}</td>
-      <td className="num px-3 py-1.5 font-mono text-[11px] tabular-nums text-text-secondary">
+      <td className="px-3 py-1.5 font-mono text-[13px] font-semibold text-text-primary">{code}</td>
+      <td className="num px-3 py-1.5 font-mono text-[13px] tabular-nums text-text-secondary">
         {fmtPct(before)}
       </td>
-      <td className="px-3 py-1.5 text-[11px] text-text-muted">→</td>
-      <td className="num px-3 py-1.5 font-mono text-[11px] tabular-nums text-text-primary">
+      <td className="px-3 py-1.5 text-[13px] text-text-muted">→</td>
+      <td className="num px-3 py-1.5 font-mono text-[13px] tabular-nums text-text-primary">
         {fmtPct(after)}
       </td>
-      <td className={cn('num px-3 py-1.5 font-mono text-[11px] tabular-nums', deltaCls)}>
+      <td className={cn('num px-3 py-1.5 font-mono text-[13px] tabular-nums', deltaCls)}>
         {fmtDeltaPct(delta)}
       </td>
     </tr>

@@ -100,7 +100,7 @@ export function PaperActionButtons({ paper }: PaperActionButtonsProps) {
       <button
         type="button"
         onClick={() => setRunOpen(true)}
-        className="border-[var(--color-info)]/30 bg-[var(--color-info)]/10 hover:bg-[var(--color-info)]/20 inline-flex items-center gap-1.5 rounded-sm border px-3 py-2 text-[12px] font-semibold text-[var(--color-info)] transition-colors"
+        className="border-[var(--color-info)]/30 bg-[var(--color-info)]/10 hover:bg-[var(--color-info)]/20 inline-flex items-center gap-1.5 rounded-sm border px-3 py-2 text-[14px] font-semibold text-[var(--color-info)] transition-colors"
       >
         <FlaskConical size={13} strokeWidth={1.75} />
         Run backtest
@@ -108,7 +108,7 @@ export function PaperActionButtons({ paper }: PaperActionButtonsProps) {
       <button
         type="button"
         onClick={() => setApplyOpen(true)}
-        className="inline-flex items-center gap-1.5 rounded-sm border border-bd-subtle bg-bg-surface px-3 py-2 text-[12px] font-semibold text-text-secondary transition-colors hover:bg-bg-hover"
+        className="inline-flex items-center gap-1.5 rounded-sm border border-bd-subtle bg-bg-surface px-3 py-2 text-[14px] font-semibold text-text-secondary transition-colors hover:bg-bg-hover"
       >
         <Settings2 size={13} strokeWidth={1.75} />
         Apply to strategy
@@ -123,7 +123,7 @@ export function PaperActionButtons({ paper }: PaperActionButtonsProps) {
               ? "Activate this paper's parameters on one of your strategies"
               : 'This paper has no linked backtest run to activate from'
           }
-          className="border-[var(--color-profit)]/30 bg-[var(--color-profit)]/10 hover:bg-[var(--color-profit)]/20 inline-flex items-center gap-1.5 rounded-sm border px-3 py-2 text-[12px] font-semibold text-[var(--color-profit)] transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+          className="border-[var(--color-profit)]/30 bg-[var(--color-profit)]/10 hover:bg-[var(--color-profit)]/20 inline-flex items-center gap-1.5 rounded-sm border px-3 py-2 text-[14px] font-semibold text-[var(--color-profit)] transition-colors disabled:cursor-not-allowed disabled:opacity-50"
         >
           <Zap size={13} strokeWidth={1.75} />
           Activate strategy
@@ -199,11 +199,11 @@ function ActivateFromPaperDialog({ open, backtestRunId, onClose }: ActivateFromP
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
       <DialogContent className="max-w-sm">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-[14px] font-semibold">
+          <DialogTitle className="flex items-center gap-2 text-[15px] font-semibold">
             <Zap size={14} strokeWidth={2} className="text-[var(--color-profit)]" />
             Activate strategy
           </DialogTitle>
-          <DialogDescription className="text-[12px] text-text-secondary">
+          <DialogDescription className="text-[14px] text-text-secondary">
             {message}
           </DialogDescription>
         </DialogHeader>
@@ -212,7 +212,7 @@ function ActivateFromPaperDialog({ open, backtestRunId, onClose }: ActivateFromP
           <button
             type="button"
             onClick={onClose}
-            className="rounded-sm border border-bd-subtle bg-bg-surface px-3 py-1.5 text-[12px] font-semibold text-text-secondary hover:bg-bg-hover"
+            className="rounded-sm border border-bd-subtle bg-bg-surface px-3 py-1.5 text-[14px] font-semibold text-text-secondary hover:bg-bg-hover"
           >
             Close
           </button>
@@ -244,7 +244,7 @@ function StrategySelector({ strategyCode, value, onChange }: StrategySelectorPro
 
   if (!matching.length) {
     return (
-      <p className="text-[11px] text-text-muted">
+      <p className="text-[13px] text-text-muted">
         No strategies with code <span className="font-mono">{strategyCode}</span> found. Create one
         on the Strategies page first.
       </p>
@@ -255,7 +255,7 @@ function StrategySelector({ strategyCode, value, onChange }: StrategySelectorPro
     <select
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      className="w-full rounded-sm border border-bd-subtle bg-bg-base px-2.5 py-2 font-mono text-[11px] text-text-primary focus:border-[var(--accent-primary)] focus:outline-none"
+      className="w-full rounded-sm border border-bd-subtle bg-bg-base px-2.5 py-2 font-mono text-[13px] text-text-primary focus:border-[var(--accent-primary)] focus:outline-none"
     >
       <option value="">Pick a strategy…</option>
       {matching.map((s) => (
@@ -404,7 +404,7 @@ function RunBacktestDialog({ open, paper, best, onClose }: RunBacktestDialogProp
                 style={{ background: 'var(--bg-hover)' }}
               />
             ) : matching.length === 0 ? (
-              <p className="text-[11px] text-text-muted">
+              <p className="text-[13px] text-text-muted">
                 No account-strategy with code{' '}
                 <span className="font-mono">{meta.strategy_code}</span> exists in your account yet.
                 Create one on the Strategies page first — the run needs a binding even though the
@@ -414,7 +414,7 @@ function RunBacktestDialog({ open, paper, best, onClose }: RunBacktestDialogProp
               <select
                 value={strategyId}
                 onChange={(e) => setStrategyId(e.target.value)}
-                className="w-full rounded-sm border border-bd-subtle bg-bg-base px-2.5 py-2 font-mono text-[11px] text-text-primary focus:border-[var(--accent-primary)] focus:outline-none"
+                className="w-full rounded-sm border border-bd-subtle bg-bg-base px-2.5 py-2 font-mono text-[13px] text-text-primary focus:border-[var(--accent-primary)] focus:outline-none"
               >
                 {matching.map((s) => (
                   <option key={s.id} value={s.id}>
@@ -423,7 +423,7 @@ function RunBacktestDialog({ open, paper, best, onClose }: RunBacktestDialogProp
                 ))}
               </select>
             )}
-            <p className="text-[10px] text-text-muted">
+            <p className="text-[12px] text-text-muted">
               Only attributes the run to one of your strategies — the paper&apos;s parameters below
               are applied regardless of which preset is bound.
             </p>
@@ -435,7 +435,7 @@ function RunBacktestDialog({ open, paper, best, onClose }: RunBacktestDialogProp
                 type="date"
                 value={fromDate}
                 onChange={(e) => setFromDate(e.target.value)}
-                className="w-full rounded-sm border border-bd-subtle bg-bg-base px-2.5 py-2 font-mono text-[11px] text-text-primary focus:border-[var(--accent-primary)] focus:outline-none"
+                className="w-full rounded-sm border border-bd-subtle bg-bg-base px-2.5 py-2 font-mono text-[13px] text-text-primary focus:border-[var(--accent-primary)] focus:outline-none"
               />
             </Field>
             <Field label="To">
@@ -443,7 +443,7 @@ function RunBacktestDialog({ open, paper, best, onClose }: RunBacktestDialogProp
                 type="date"
                 value={toDate}
                 onChange={(e) => setToDate(e.target.value)}
-                className="w-full rounded-sm border border-bd-subtle bg-bg-base px-2.5 py-2 font-mono text-[11px] text-text-primary focus:border-[var(--accent-primary)] focus:outline-none"
+                className="w-full rounded-sm border border-bd-subtle bg-bg-base px-2.5 py-2 font-mono text-[13px] text-text-primary focus:border-[var(--accent-primary)] focus:outline-none"
               />
             </Field>
           </div>
@@ -456,14 +456,14 @@ function RunBacktestDialog({ open, paper, best, onClose }: RunBacktestDialogProp
                 min={100}
                 step={100}
                 onChange={(e) => setCapital(e.target.value)}
-                className="w-full rounded-sm border border-bd-subtle bg-bg-base px-2.5 py-2 font-mono text-[11px] text-text-primary focus:border-[var(--accent-primary)] focus:outline-none"
+                className="w-full rounded-sm border border-bd-subtle bg-bg-base px-2.5 py-2 font-mono text-[13px] text-text-primary focus:border-[var(--accent-primary)] focus:outline-none"
               />
             </Field>
             <Field label="Asset allocation">
               <select
                 value={allocationPct}
                 onChange={(e) => setAllocationPct(e.target.value)}
-                className="w-full rounded-sm border border-bd-subtle bg-bg-base px-2.5 py-2 font-mono text-[11px] text-text-primary focus:border-[var(--accent-primary)] focus:outline-none"
+                className="w-full rounded-sm border border-bd-subtle bg-bg-base px-2.5 py-2 font-mono text-[13px] text-text-primary focus:border-[var(--accent-primary)] focus:outline-none"
               >
                 <option value="">Auto (account default)</option>
                 {ALLOC_OPTIONS.map((v) => (
@@ -476,14 +476,14 @@ function RunBacktestDialog({ open, paper, best, onClose }: RunBacktestDialogProp
           </div>
 
           <div className="rounded-sm border border-bd-subtle bg-bg-base p-3">
-            <p className="mb-1.5 font-mono text-[10px] font-semibold uppercase tracking-widest text-text-muted">
+            <p className="mb-1.5 font-mono text-[12px] font-semibold uppercase tracking-widest text-text-muted">
               Paper parameters · applied automatically ({Object.keys(best.params).length})
             </p>
             <div className="max-h-28 space-y-0.5 overflow-y-auto">
               {Object.entries(best.params).map(([k, v]) => (
                 <div key={k} className="flex justify-between gap-4">
-                  <span className="font-mono text-[10px] text-text-secondary">{k}</span>
-                  <span className="font-mono text-[10px] tabular-nums text-text-primary">
+                  <span className="font-mono text-[12px] text-text-secondary">{k}</span>
+                  <span className="font-mono text-[12px] tabular-nums text-text-primary">
                     {String(v)}
                   </span>
                 </div>
@@ -496,7 +496,7 @@ function RunBacktestDialog({ open, paper, best, onClose }: RunBacktestDialogProp
               type="button"
               onClick={onClose}
               disabled={isPending}
-              className="rounded-sm border border-bd-subtle bg-bg-surface px-3 py-2 text-[12px] font-semibold text-text-secondary hover:bg-bg-hover disabled:opacity-50"
+              className="rounded-sm border border-bd-subtle bg-bg-surface px-3 py-2 text-[14px] font-semibold text-text-secondary hover:bg-bg-hover disabled:opacity-50"
             >
               Cancel
             </button>
@@ -504,7 +504,7 @@ function RunBacktestDialog({ open, paper, best, onClose }: RunBacktestDialogProp
               type="button"
               onClick={handleSubmit}
               disabled={isPending || !strategyId}
-              className="border-[var(--color-info)]/30 bg-[var(--color-info)]/10 hover:bg-[var(--color-info)]/20 inline-flex items-center gap-1.5 rounded-sm border px-3 py-2 text-[12px] font-semibold text-[var(--color-info)] disabled:opacity-50"
+              className="border-[var(--color-info)]/30 bg-[var(--color-info)]/10 hover:bg-[var(--color-info)]/20 inline-flex items-center gap-1.5 rounded-sm border px-3 py-2 text-[14px] font-semibold text-[var(--color-info)] disabled:opacity-50"
             >
               {isPending && <Loader2 size={12} className="animate-spin" />}
               Queue backtest
@@ -588,14 +588,14 @@ function ApplyParamsDialog({ open, paper, best, onClose }: ApplyParamsDialogProp
           </Field>
 
           <div className="rounded-sm border border-bd-subtle bg-bg-base p-3">
-            <p className="mb-1.5 font-mono text-[10px] font-semibold uppercase tracking-widest text-text-muted">
+            <p className="mb-1.5 font-mono text-[12px] font-semibold uppercase tracking-widest text-text-muted">
               Params to apply ({Object.keys(best.params).length})
             </p>
             <div className="max-h-40 space-y-0.5 overflow-y-auto">
               {Object.entries(best.params).map(([k, v]) => (
                 <div key={k} className="flex justify-between gap-4">
-                  <span className="font-mono text-[10px] text-text-secondary">{k}</span>
-                  <span className="font-mono text-[10px] tabular-nums text-text-primary">
+                  <span className="font-mono text-[12px] text-text-secondary">{k}</span>
+                  <span className="font-mono text-[12px] tabular-nums text-text-primary">
                     {String(v)}
                   </span>
                 </div>
@@ -603,7 +603,7 @@ function ApplyParamsDialog({ open, paper, best, onClose }: ApplyParamsDialogProp
             </div>
           </div>
 
-          <p className="text-[11px] text-text-muted">
+          <p className="text-[13px] text-text-muted">
             The selected strategy&apos;s current preset will be deactivated. You can re-activate the
             previous preset from the Strategies page at any time.
           </p>
@@ -613,7 +613,7 @@ function ApplyParamsDialog({ open, paper, best, onClose }: ApplyParamsDialogProp
               type="button"
               onClick={onClose}
               disabled={isPending}
-              className="rounded-sm border border-bd-subtle bg-bg-surface px-3 py-2 text-[12px] font-semibold text-text-secondary hover:bg-bg-hover disabled:opacity-50"
+              className="rounded-sm border border-bd-subtle bg-bg-surface px-3 py-2 text-[14px] font-semibold text-text-secondary hover:bg-bg-hover disabled:opacity-50"
             >
               Cancel
             </button>
@@ -621,7 +621,7 @@ function ApplyParamsDialog({ open, paper, best, onClose }: ApplyParamsDialogProp
               type="button"
               onClick={handleSubmit}
               disabled={isPending || !strategyId}
-              className="border-[var(--color-profit)]/30 bg-[var(--color-profit)]/10 hover:bg-[var(--color-profit)]/20 inline-flex items-center gap-1.5 rounded-sm border px-3 py-2 text-[12px] font-semibold text-[var(--color-profit)] disabled:opacity-50"
+              className="border-[var(--color-profit)]/30 bg-[var(--color-profit)]/10 hover:bg-[var(--color-profit)]/20 inline-flex items-center gap-1.5 rounded-sm border px-3 py-2 text-[14px] font-semibold text-[var(--color-profit)] disabled:opacity-50"
             >
               {isPending && <Loader2 size={12} className="animate-spin" />}
               Apply params
@@ -640,7 +640,7 @@ function ApplyParamsDialog({ open, paper, best, onClose }: ApplyParamsDialogProp
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="space-y-1.5">
-      <p className="font-mono text-[10px] font-semibold uppercase tracking-widest text-text-muted">
+      <p className="font-mono text-[12px] font-semibold uppercase tracking-widest text-text-muted">
         {label}
       </p>
       {children}

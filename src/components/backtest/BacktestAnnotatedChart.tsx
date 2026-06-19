@@ -234,7 +234,7 @@ export function BacktestAnnotatedChart({
           background: { type: tv.ColorType.Solid, color: c.BG },
           textColor: c.TEXT,
           fontFamily: "'IBM Plex Mono', ui-monospace, monospace",
-          fontSize: 11,
+          fontSize: 13,
         },
         grid: {
           vertLines: { color: c.GRID },
@@ -610,7 +610,7 @@ function ClickAnyMarkerHint() {
   return (
     <div
       role="status"
-      className="pointer-events-auto absolute bottom-3 right-3 z-10 flex items-center gap-2 rounded-md border border-[var(--border-default)] px-3 py-1.5 text-[11px] text-[var(--text-secondary)] shadow-lg"
+      className="pointer-events-auto absolute bottom-3 right-3 z-10 flex items-center gap-2 rounded-md border border-[var(--border-default)] px-3 py-1.5 text-[13px] text-[var(--text-secondary)] shadow-lg"
       style={{ background: 'var(--bg-elevated)' }}
     >
       <span>Click any marker for trade details</span>
@@ -646,7 +646,7 @@ function ExportChartButton({ chartRef }: { chartRef: { current: IChartApi | null
     <button
       type="button"
       onClick={handleExport}
-      className="absolute bottom-3 left-3 z-10 rounded-md border border-[var(--border-default)] px-2.5 py-1.5 font-mono text-[10px] uppercase tracking-wider text-[var(--text-secondary)] shadow-md transition-colors hover:text-[var(--text-primary)]"
+      className="absolute bottom-3 left-3 z-10 rounded-md border border-[var(--border-default)] px-2.5 py-1.5 font-mono text-[12px] uppercase tracking-wider text-[var(--text-secondary)] shadow-md transition-colors hover:text-[var(--text-primary)]"
       style={{ background: 'var(--bg-elevated)' }}
       aria-label="Export chart as PNG"
     >
@@ -664,7 +664,7 @@ function TradeMarkerTooltip({ trade, x, y }: { trade: BacktestTrade; x: number; 
   const outcomeColors = tooltipOutcomeColors(outcome.tone);
   return (
     <div
-      className="pointer-events-none absolute z-10 rounded-md border border-[var(--border-default)] px-2.5 py-2 font-mono text-[11px] text-[var(--text-primary)] shadow-lg"
+      className="pointer-events-none absolute z-10 rounded-md border border-[var(--border-default)] px-2.5 py-2 font-mono text-[13px] text-[var(--text-primary)] shadow-lg"
       style={{
         background: 'var(--bg-elevated)',
         left: Math.min(x + 12, 400),
@@ -674,7 +674,7 @@ function TradeMarkerTooltip({ trade, x, y }: { trade: BacktestTrade; x: number; 
     >
       <div className="flex items-center gap-2">
         <span
-          className="rounded-sm px-1.5 py-0.5 text-[10px] font-semibold tracking-wider"
+          className="rounded-sm px-1.5 py-0.5 text-[12px] font-semibold tracking-wider"
           style={{
             background: trade.direction === 'LONG' ? 'var(--tint-profit)' : 'var(--tint-loss)',
             color: trade.direction === 'LONG' ? 'var(--color-profit)' : 'var(--color-loss)',
@@ -683,7 +683,7 @@ function TradeMarkerTooltip({ trade, x, y }: { trade: BacktestTrade; x: number; 
           {trade.direction}
         </span>
         <span
-          className="rounded-sm px-1.5 py-0.5 text-[10px] font-semibold tracking-wider"
+          className="rounded-sm px-1.5 py-0.5 text-[12px] font-semibold tracking-wider"
           title={outcome.description}
           style={{ background: outcomeColors.bg, color: outcomeColors.fg }}
         >
@@ -703,7 +703,7 @@ function TradeMarkerTooltip({ trade, x, y }: { trade: BacktestTrade; x: number; 
         {formatPnl(trade.realizedPnl)}
       </div>
       {legs.length > 0 && (
-        <div className="mt-1 text-[10px] text-[var(--text-muted)]">
+        <div className="mt-1 text-[12px] text-[var(--text-muted)]">
           Legs hit: {legs.join(' · ')}
         </div>
       )}
@@ -737,7 +737,7 @@ function TradeDetailCard({ trade, onClose }: { trade: BacktestTrade; onClose: ()
       <div className="flex items-center justify-between gap-2 border-b border-[var(--border-subtle)] px-3 py-2">
         <div className="flex min-w-0 items-center gap-2">
           <span
-            className="rounded-sm px-1.5 py-0.5 font-mono text-[10px] font-semibold tracking-wider"
+            className="rounded-sm px-1.5 py-0.5 font-mono text-[12px] font-semibold tracking-wider"
             style={{
               background: isLong ? 'var(--tint-profit)' : 'var(--tint-loss)',
               color: isLong ? 'var(--color-profit)' : 'var(--color-loss)',
@@ -746,7 +746,7 @@ function TradeDetailCard({ trade, onClose }: { trade: BacktestTrade; onClose: ()
             {trade.direction}
           </span>
           <span
-            className="rounded-sm px-1.5 py-0.5 font-mono text-[10px] font-semibold tracking-wider"
+            className="rounded-sm px-1.5 py-0.5 font-mono text-[12px] font-semibold tracking-wider"
             title={outcome.description}
             style={{ background: outcomeColors.bg, color: outcomeColors.fg }}
           >
@@ -767,21 +767,21 @@ function TradeDetailCard({ trade, onClose }: { trade: BacktestTrade; onClose: ()
       <div className="flex items-center gap-2 border-b border-[var(--border-subtle)] px-3 py-2">
         {trade.strategyCode || trade.strategyName ? (
           <span
-            className="truncate rounded-sm border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-1.5 py-0.5 font-mono text-[10px] font-semibold text-[var(--text-primary)]"
+            className="truncate rounded-sm border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-1.5 py-0.5 font-mono text-[12px] font-semibold text-[var(--text-primary)]"
             title={trade.strategyName ?? trade.strategyCode ?? ''}
           >
             {trade.strategyCode ?? trade.strategyName}
           </span>
         ) : (
-          <span className="font-mono text-[10px] text-[var(--text-muted)]">no strategy</span>
+          <span className="font-mono text-[12px] text-[var(--text-muted)]">no strategy</span>
         )}
-        <span className="font-mono text-[10px] uppercase tracking-wider text-[var(--text-muted)]">
+        <span className="font-mono text-[12px] uppercase tracking-wider text-[var(--text-muted)]">
           {trade.interval ?? '—'}
         </span>
       </div>
 
       {}
-      <div className="space-y-1 border-b border-[var(--border-subtle)] px-3 py-2 font-mono text-[11px]">
+      <div className="space-y-1 border-b border-[var(--border-subtle)] px-3 py-2 font-mono text-[13px]">
         <DetailRow label="Entry" value={formatDate(trade.entryTime)} muted />
         <DetailRow
           label="Exit"
@@ -796,7 +796,7 @@ function TradeDetailCard({ trade, onClose }: { trade: BacktestTrade; onClose: ()
         const isRunnerOnly =
           trade.positions.length > 0 && trade.positions.every((p) => p.type === 'RUNNER');
         return (
-          <div className="space-y-1 border-b border-[var(--border-subtle)] px-3 py-2 font-mono text-[11px] tabular-nums">
+          <div className="space-y-1 border-b border-[var(--border-subtle)] px-3 py-2 font-mono text-[13px] tabular-nums">
             <DetailRow label="Entry @" value={formatPrice(trade.entryPrice)} />
             <DetailRow
               label="Exit @"
@@ -838,9 +838,9 @@ function TradeDetailCard({ trade, onClose }: { trade: BacktestTrade; onClose: ()
       })()}
 
       {}
-      <div className="space-y-1 border-b border-[var(--border-subtle)] px-3 py-2 font-mono text-[11px] tabular-nums">
+      <div className="space-y-1 border-b border-[var(--border-subtle)] px-3 py-2 font-mono text-[13px] tabular-nums">
         <div className="flex items-center justify-between">
-          <span className="text-[10px] uppercase tracking-wider text-[var(--text-muted)]">
+          <span className="text-[12px] uppercase tracking-wider text-[var(--text-muted)]">
             Realized P&L
           </span>
           <span className="font-semibold" style={{ color: pnlColor }}>
@@ -848,7 +848,7 @@ function TradeDetailCard({ trade, onClose }: { trade: BacktestTrade; onClose: ()
           </span>
         </div>
         <div className="flex items-center justify-between">
-          <span className="text-[10px] uppercase tracking-wider text-[var(--text-muted)]">
+          <span className="text-[12px] uppercase tracking-wider text-[var(--text-muted)]">
             R-multiple
           </span>
           <span style={{ color: pnlColor }}>{formatRMultiple(trade.rMultiple)}</span>
@@ -858,11 +858,11 @@ function TradeDetailCard({ trade, onClose }: { trade: BacktestTrade; onClose: ()
 
       {}
       <div className="px-3 py-2">
-        <div className="label-caps mb-1 !text-[9px]">Legs</div>
+        <div className="label-caps mb-1 !text-[12px]">Legs</div>
         {trade.positions.length === 0 ? (
-          <div className="font-mono text-[10px] text-[var(--text-muted)]">— no positions</div>
+          <div className="font-mono text-[12px] text-[var(--text-muted)]">— no positions</div>
         ) : (
-          <ul className="space-y-1 font-mono text-[10px]">
+          <ul className="space-y-1 font-mono text-[12px]">
             {trade.positions.map((p) => (
               <li key={p.id} className="flex items-center justify-between gap-2">
                 <span className="flex items-center gap-1">
@@ -898,7 +898,7 @@ function DetailRow({
 }) {
   return (
     <div className="flex items-center justify-between">
-      <span className="flex items-center gap-1 text-[10px] uppercase tracking-wider text-[var(--text-muted)]">
+      <span className="flex items-center gap-1 text-[12px] uppercase tracking-wider text-[var(--text-muted)]">
         {dotColor && (
           <span
             aria-hidden="true"

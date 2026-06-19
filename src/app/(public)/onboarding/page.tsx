@@ -131,7 +131,7 @@ export default function OnboardingPage() {
             </div>
             <div>
               <div style={{ fontWeight: 600 }}>Maya Chen</div>
-              <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.65)' }}>
+              <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.65)' }}>
                 Prop trader · Hong Kong
               </div>
             </div>
@@ -139,7 +139,7 @@ export default function OnboardingPage() {
         </div>
 
         <div
-          className="relative z-[1] flex gap-7 text-[13px]"
+          className="relative z-[1] flex gap-7 text-[14px]"
           style={{ color: 'rgba(255,255,255,0.7)' }}
         >
           <span className="inline-flex items-center gap-1.5">
@@ -161,7 +161,7 @@ export default function OnboardingPage() {
             <Link href="/welcome" className="br-btn br-btn-ghost br-btn-sm">
               <ChevronLeft size={14} /> Back to site
             </Link>
-            <div className="text-[13px]" style={{ color: 'var(--text-muted)' }}>
+            <div className="text-[14px]" style={{ color: 'var(--text-muted)' }}>
               Step {step + 1} of {TOTAL_STEPS}
             </div>
           </div>
@@ -218,7 +218,7 @@ export default function OnboardingPage() {
               </Field>
               <label
                 htmlFor="onboarding-tos"
-                className="mt-3 flex items-start gap-2.5 text-[13px]"
+                className="mt-3 flex items-start gap-2.5 text-[14px]"
                 style={{ color: 'var(--text-secondary)', lineHeight: 1.5 }}
               >
                 <input id="onboarding-tos" type="checkbox" defaultChecked className="mt-0.5" />
@@ -270,7 +270,7 @@ export default function OnboardingPage() {
                 <input className="br-input" type="date" defaultValue="1990-06-12" />
               </Field>
               <div
-                className="mt-2 flex gap-2.5 rounded-xl p-3.5 text-[13px]"
+                className="mt-2 flex gap-2.5 rounded-xl p-3.5 text-[14px]"
                 style={{ background: 'var(--tint-info)', color: 'var(--color-info)' }}
               >
                 <Shield size={18} className="mt-0.5 flex-shrink-0" />
@@ -387,9 +387,9 @@ export default function OnboardingPage() {
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
                         <div className="text-[15px] font-semibold">{s.name}</div>
-                        <span className="br-chip br-chip-brand text-[10px]">{s.tag}</span>
+                        <span className="br-chip br-chip-brand text-[12px]">{s.tag}</span>
                       </div>
-                      <div className="mt-0.5 text-[12px]" style={{ color: 'var(--text-muted)' }}>
+                      <div className="mt-0.5 text-[14px]" style={{ color: 'var(--text-muted)' }}>
                         30d return{' '}
                         <span style={{ color: 'var(--color-profit)', fontWeight: 600 }}>
                           {s.pnl}
@@ -414,7 +414,7 @@ export default function OnboardingPage() {
                     type="button"
                     key={ex}
                     onClick={() => set('exchange', ex)}
-                    className="rounded-xl text-[14px] font-semibold capitalize transition-colors"
+                    className="rounded-xl text-[15px] font-semibold capitalize transition-colors"
                     style={{
                       padding: '14px 12px',
                       border: `1.5px solid ${data.exchange === ex ? 'var(--brand-500)' : 'var(--border-default)'}`,
@@ -444,7 +444,7 @@ export default function OnboardingPage() {
                 />
               </Field>
               <div
-                className="mt-2 flex gap-2.5 rounded-xl p-3.5 text-[13px]"
+                className="mt-2 flex gap-2.5 rounded-xl p-3.5 text-[14px]"
                 style={{ background: 'var(--tint-warning)' }}
               >
                 <Shield
@@ -555,7 +555,7 @@ function Row({ children }: { children: React.ReactNode }) {
 function Divider({ children }: { children: React.ReactNode }) {
   return (
     <div
-      className="my-5 flex items-center gap-3 text-[12px]"
+      className="my-5 flex items-center gap-3 text-[14px]"
       style={{ color: 'var(--text-muted)' }}
     >
       <span className="h-px flex-1" style={{ background: 'var(--border-default)' }} />
@@ -611,11 +611,11 @@ function RadioGroup({
               )}
             </div>
             <div>
-              <div className="text-[14px] font-semibold" style={{ color: 'var(--text-primary)' }}>
+              <div className="text-[15px] font-semibold" style={{ color: 'var(--text-primary)' }}>
                 {o.label}
               </div>
               {o.sub && (
-                <div className="mt-0.5 text-[12px]" style={{ color: 'var(--text-muted)' }}>
+                <div className="mt-0.5 text-[14px]" style={{ color: 'var(--text-muted)' }}>
                   {o.sub}
                 </div>
               )}

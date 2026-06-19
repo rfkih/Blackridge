@@ -86,14 +86,14 @@ export function CrossWindowPanel({
     return (
       <div className="flex items-center gap-2 rounded-xl border border-bd-subtle bg-bg-surface px-3 py-3 text-text-secondary">
         <Loader2 size={14} className="animate-spin" />
-        <span className="text-[12px]">Loading cross-window verdict…</span>
+        <span className="text-[14px]">Loading cross-window verdict…</span>
       </div>
     );
   }
 
   if (query.isError || !query.data) {
     return (
-      <div className="rounded-xl border border-bd-subtle bg-bg-surface px-3 py-3 text-[12px] text-text-secondary">
+      <div className="rounded-xl border border-bd-subtle bg-bg-surface px-3 py-3 text-[14px] text-text-secondary">
         Cross-window verdict unavailable.
       </div>
     );
@@ -103,9 +103,9 @@ export function CrossWindowPanel({
 
   if (!latest) {
     return (
-      <div className="rounded-xl border border-bd-subtle bg-bg-surface px-3 py-3 text-[12px] text-text-secondary">
+      <div className="rounded-xl border border-bd-subtle bg-bg-surface px-3 py-3 text-[14px] text-text-secondary">
         No cross-window run yet for {strategyCode} · {intervalName} · {instrument}.
-        <div className="mt-1 text-[11px] text-text-muted">
+        <div className="mt-1 text-[13px] text-text-muted">
           Orchestrator will populate this after a SIGNIFICANT_EDGE iteration goes
           through walk-forward + cross-window stratification.
         </div>
@@ -122,26 +122,26 @@ export function CrossWindowPanel({
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-2">
             <span
-              className="inline-flex items-center gap-1.5 rounded px-2 py-1 text-[11px] font-semibold uppercase tracking-wider"
+              className="inline-flex items-center gap-1.5 rounded px-2 py-1 text-[13px] font-semibold uppercase tracking-wider"
               style={{ backgroundColor: meta.bg, color: meta.fg }}
             >
               <Icon size={13} strokeWidth={2} />
               {meta.label}
             </span>
-            <span className="font-mono text-[11px] text-text-muted">
+            <span className="font-mono text-[13px] text-text-muted">
               {strategyCode} · {intervalName} · {instrument}
             </span>
           </div>
-          <span className="font-mono text-[10px] text-text-muted">
+          <span className="font-mono text-[12px] text-text-muted">
             {latest.createdTime ? formatDate(new Date(latest.createdTime).getTime()) : '—'}
           </span>
         </div>
 
         {meta.blurb && (
-          <div className="text-[12px] text-text-secondary">{meta.blurb}</div>
+          <div className="text-[14px] text-text-secondary">{meta.blurb}</div>
         )}
 
-        <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-[11px] sm:grid-cols-4">
+        <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-[13px] sm:grid-cols-4">
           <Stat label="Windows" value={`${latest.nWindowsCompleted}/${latest.nWindows}`} />
           <Stat label="PF mean" value={fmtNum(latest.windowPfMean, 2)} />
           <Stat label="PF range" value={`${fmtNum(latest.windowPfMin, 2)} – ${fmtNum(latest.windowPfMax, 2)}`} />
@@ -158,7 +158,7 @@ export function CrossWindowPanel({
 
         {!compact && runs.length > 1 && (
           <div className="border-t border-bd-subtle pt-2">
-            <div className="mb-1 font-mono text-[10px] uppercase tracking-widest text-text-muted">
+            <div className="mb-1 font-mono text-[12px] uppercase tracking-widest text-text-muted">
               History
             </div>
             <div className="flex flex-col gap-1">
@@ -184,11 +184,11 @@ function Stat({
 }) {
   return (
     <div className="flex flex-col gap-0.5">
-      <span className="font-mono text-[10px] uppercase tracking-widest text-text-muted">
+      <span className="font-mono text-[12px] uppercase tracking-widest text-text-muted">
         {label}
       </span>
       <span
-        className={mono ? 'font-mono text-[12px] text-text-primary' : 'text-[12px] text-text-primary'}
+        className={mono ? 'font-mono text-[14px] text-text-primary' : 'text-[14px] text-text-primary'}
       >
         {value}
       </span>
@@ -199,9 +199,9 @@ function Stat({
 function PriorRow({ run }: { run: CrossWindowRun }) {
   const meta = metaFor(run.crossWindowVerdict);
   return (
-    <div className="flex items-center justify-between gap-3 text-[11px]">
+    <div className="flex items-center justify-between gap-3 text-[13px]">
       <span
-        className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider"
+        className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[12px] font-semibold uppercase tracking-wider"
         style={{ backgroundColor: meta.bg, color: meta.fg }}
       >
         {meta.label}

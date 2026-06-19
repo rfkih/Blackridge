@@ -336,7 +336,7 @@ export function NewStrategyDialog({
                     <span className="flex flex-col">
                       <span className="font-mono text-xs">{def.strategyCode}</span>
                       {def.strategyName && def.strategyName !== def.strategyCode && (
-                        <span className="text-[10px] text-[var(--text-muted)]">
+                        <span className="text-[12px] text-[var(--text-muted)]">
                           {def.strategyName}
                           {def.strategyType ? ` · ${def.strategyType}` : ''}
                         </span>
@@ -347,14 +347,14 @@ export function NewStrategyDialog({
               </SelectContent>
             </Select>
             {!isDefinitionsLoading && activeDefinitions.length === 0 ? (
-              <p className="text-[10px] text-[var(--color-warning)]">
+              <p className="text-[12px] text-[var(--color-warning)]">
                 No ACTIVE strategy definitions exist. Ask an admin to register one via the strategy
                 catalogue before creating a preset.
               </p>
             ) : isApprovalsLoading ? (
-              <p className="text-[10px] text-[var(--text-muted)]">Loading approvals…</p>
+              <p className="text-[12px] text-[var(--text-muted)]">Loading approvals…</p>
             ) : !symbolHasStrategies ? (
-              <p className="text-[10px] text-[var(--color-warning)]">
+              <p className="text-[12px] text-[var(--color-warning)]">
                 No strategies are validated for {form.symbol} yet. Run a backtest sweep and confirm
                 walk-forward gates before this symbol can host a live preset.
                 {isAdmin && (
@@ -370,7 +370,7 @@ export function NewStrategyDialog({
                 )}
               </p>
             ) : validDefinitions.length === 0 ? (
-              <p className="text-[10px] text-[var(--color-warning)]">
+              <p className="text-[12px] text-[var(--color-warning)]">
                 None of the active strategies are validated for {form.symbol}. Validate one via
                 /research first, or pick a different symbol.
               </p>
@@ -387,7 +387,7 @@ export function NewStrategyDialog({
               maxLength={80}
               placeholder="e.g. Aggressive · Conservative · V2-tuned"
             />
-            <p className="text-[10px] text-[var(--text-muted)]">
+            <p className="text-[12px] text-[var(--text-muted)]">
               Multiple presets can share the same strategy + symbol + interval. Only one is active
               at a time. Leave blank to auto-name.
             </p>
@@ -407,7 +407,7 @@ export function NewStrategyDialog({
               onChange={(e) => setForm((s) => ({ ...s, capitalAllocationPct: e.target.value }))}
               className="font-mono tabular-nums"
             />
-            <p className="text-[10px] text-[var(--text-muted)]">
+            <p className="text-[12px] text-[var(--text-muted)]">
               {!riskSizingApplies
                 ? 'Notional cap on trade size (% of cash).'
                 : form.useRiskBasedSizing
@@ -453,7 +453,7 @@ export function NewStrategyDialog({
                   <Label className="font-mono text-xs uppercase tracking-wider">
                     Risk-based sizing
                   </Label>
-                  <p className="text-[10px] text-[var(--text-muted)]">
+                  <p className="text-[12px] text-[var(--text-muted)]">
                     Sizes both LONG and SHORT entries off Max risk per trade; allocation above
                     becomes the position cap. Off = allocation is the trade size directly (legacy
                     behaviour).
@@ -479,7 +479,7 @@ export function NewStrategyDialog({
                     onChange={(e) => setForm((s) => ({ ...s, riskPct: e.target.value }))}
                     className="font-mono tabular-nums"
                   />
-                  <p className="text-[10px] text-[var(--text-muted)]">
+                  <p className="text-[12px] text-[var(--text-muted)]">
                     Loss target if the stop is hit, as a fraction of cash. Applied symmetrically to
                     LONG (USDT notional) and SHORT (BTC qty). Range 0.01–20%. Strategy-specific
                     multipliers (e.g. LSR continuation 0.85×, premium short 0.70×) further shrink
@@ -490,7 +490,7 @@ export function NewStrategyDialog({
             </div>
           ) : (
             <div className="col-span-2 rounded-md border border-[var(--border-subtle)] bg-[var(--bg-elevated)] px-3 py-2">
-              <p className="text-[11px] text-[var(--text-secondary)]">
+              <p className="text-[13px] text-[var(--text-secondary)]">
                 Sizing for this strategy is controlled by its spec parameters. The Position-size cap
                 above still acts as a notional ceiling.
               </p>
@@ -528,7 +528,7 @@ export function NewStrategyDialog({
               <Label className="font-mono text-xs uppercase tracking-wider">
                 Min-notional floor
               </Label>
-              <p className="text-[10px] text-[var(--text-muted)]">
+              <p className="text-[12px] text-[var(--text-muted)]">
                 Sizes a sub-minimum order up to the exchange minimum (if affordable) instead of
                 skipping it.
               </p>

@@ -311,7 +311,7 @@ function TradesPageContent() {
         header: '#',
         size: 48,
         cell: ({ row }) => (
-          <span className="font-mono text-[11px] text-text-muted">
+          <span className="font-mono text-[13px] text-text-muted">
             {filters.page * filters.size + row.index + 1}
           </span>
         ),
@@ -320,9 +320,9 @@ function TradesPageContent() {
         accessorKey: 'symbol',
         header: 'Symbol',
         cell: ({ row }) => (
-          <span className="font-mono text-[13px] font-medium text-text-primary">
+          <span className="font-mono text-[14px] font-medium text-text-primary">
             {row.original.symbol.replace(/USDT$/, '')}
-            <span className="ml-1 text-[10px] text-text-muted">
+            <span className="ml-1 text-[12px] text-text-muted">
               {row.original.symbol.endsWith('USDT') ? 'USDT' : ''}
             </span>
           </span>
@@ -384,7 +384,7 @@ function TradesPageContent() {
         cell: ({ row }) => {
           const end = row.original.exitTime ?? Date.now();
           return (
-            <span className="font-mono text-[11px] text-text-secondary">
+            <span className="font-mono text-[13px] text-text-secondary">
               {formatDuration(end - row.original.entryTime)}
             </span>
           );
@@ -394,7 +394,7 @@ function TradesPageContent() {
         accessorKey: 'entryTime',
         header: 'Opened',
         cell: ({ row }) => (
-          <span className="font-mono text-[11px] text-text-muted">
+          <span className="font-mono text-[13px] text-text-muted">
             {formatDate(row.original.entryTime)}
           </span>
         ),
@@ -406,7 +406,7 @@ function TradesPageContent() {
         enableHiding: false,
         enableSorting: false,
         cell: ({ row }) => (
-          <div className="flex items-center justify-end gap-1 text-[11px] text-text-muted group-hover:text-text-primary">
+          <div className="flex items-center justify-end gap-1 text-[13px] text-text-muted group-hover:text-text-primary">
             <span className="sr-only">View {row.original.symbol} trade</span>
             View
             <ChevronRight size={12} strokeWidth={1.75} />
@@ -455,7 +455,7 @@ function TradesPageContent() {
             >
               Journal
             </h1>
-            <span style={{ color: 'var(--mm-ink-2)', fontSize: 13 }}>
+            <span style={{ color: 'var(--mm-ink-2)', fontSize: 14 }}>
               {tradesQuery.data?.total ?? 0} total · page {filters.page + 1} of {totalPages}
               {filters.from && filters.to ? ` · ${filters.from} → ${filters.to}` : ''}
             </span>
@@ -525,7 +525,7 @@ function TradesPageContent() {
               padding: '7px 12px',
               borderRadius: 999,
               background: 'var(--mm-surface-2)',
-              fontSize: 12,
+              fontSize: 14,
               color: 'var(--mm-ink-3)',
               minWidth: 0,
             }}
@@ -541,7 +541,7 @@ function TradesPageContent() {
                 background: 'transparent',
                 border: 'none',
                 outline: 'none',
-                fontSize: 12,
+                fontSize: 14,
                 color: 'var(--mm-ink-1)',
                 width: '100%',
               }}
@@ -555,7 +555,7 @@ function TradesPageContent() {
                 type="button"
                 onClick={() => patchFilters({ status: s })}
                 className={cn('mm-pill', filters.status === s && 'mm-pill-active')}
-                style={{ padding: '5px 12px', fontSize: 11 }}
+                style={{ padding: '5px 12px', fontSize: 13 }}
                 aria-pressed={filters.status === s}
               >
                 {STATUS_META[s].label}
@@ -574,7 +574,7 @@ function TradesPageContent() {
               alignItems: 'center',
               gap: 6,
               padding: '5px 12px',
-              fontSize: 11,
+              fontSize: 13,
             }}
             aria-expanded={filtersOpen}
           >
@@ -590,7 +590,7 @@ function TradesPageContent() {
                   height: 16,
                   borderRadius: 999,
                   background: 'rgba(255,255,255,0.25)',
-                  fontSize: 10,
+                  fontSize: 12,
                   fontWeight: 600,
                   lineHeight: 1,
                 }}
@@ -616,13 +616,13 @@ function TradesPageContent() {
           >
             {}
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span style={{ fontSize: 11, color: 'var(--mm-ink-3)' }}>Strategy</span>
+              <span style={{ fontSize: 13, color: 'var(--mm-ink-3)' }}>Strategy</span>
               <select
                 aria-label="Filter by strategy"
                 value={filters.strategyCode}
                 onChange={(e) => patchFilters({ strategyCode: e.target.value })}
                 className="mm-btn"
-                style={{ padding: '5px 10px', fontSize: 12, cursor: 'pointer' }}
+                style={{ padding: '5px 10px', fontSize: 14, cursor: 'pointer' }}
               >
                 <option value="">any</option>
                 {uniqueStrategyCodes.map((code) => (
@@ -635,7 +635,7 @@ function TradesPageContent() {
 
             {}
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span style={{ fontSize: 11, color: 'var(--mm-ink-3)' }}>Symbol</span>
+              <span style={{ fontSize: 13, color: 'var(--mm-ink-3)' }}>Symbol</span>
               <input
                 aria-label="Filter by symbol"
                 type="text"
@@ -645,7 +645,7 @@ function TradesPageContent() {
                 className="mm-btn"
                 style={{
                   padding: '5px 10px',
-                  fontSize: 12,
+                  fontSize: 14,
                   width: 110,
                   fontFamily: 'var(--font-mono)',
                   textTransform: 'uppercase',
@@ -656,23 +656,23 @@ function TradesPageContent() {
 
             {}
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span style={{ fontSize: 11, color: 'var(--mm-ink-3)' }}>From</span>
+              <span style={{ fontSize: 13, color: 'var(--mm-ink-3)' }}>From</span>
               <DatePicker
                 id="trades-from"
                 value={filters.from}
                 onChange={(v) => patchFilters({ from: v })}
                 placeholder="From"
                 clearable
-                className="h-7 px-2 py-0 text-[12px]"
+                className="h-7 px-2 py-0 text-[14px]"
               />
-              <span style={{ fontSize: 11, color: 'var(--mm-ink-3)' }}>To</span>
+              <span style={{ fontSize: 13, color: 'var(--mm-ink-3)' }}>To</span>
               <DatePicker
                 id="trades-to"
                 value={filters.to}
                 onChange={(v) => patchFilters({ to: v })}
                 placeholder="To"
                 clearable
-                className="h-7 px-2 py-0 text-[12px]"
+                className="h-7 px-2 py-0 text-[14px]"
               />
             </div>
 
@@ -685,7 +685,7 @@ function TradesPageContent() {
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: 4,
-                  fontSize: 11,
+                  fontSize: 13,
                   padding: '5px 10px',
                 }}
               >
@@ -720,7 +720,7 @@ function TradesPageContent() {
       {}
       {tradesQuery.data && tradesQuery.data.total > filters.size && (
         <div className="flex flex-wrap items-center justify-between gap-3 px-1">
-          <div className="text-[11px] text-text-muted">
+          <div className="text-[13px] text-text-muted">
             Showing {filters.page * filters.size + 1}–
             {Math.min((filters.page + 1) * filters.size, tradesQuery.data.total)} of{' '}
             {tradesQuery.data.total}
@@ -730,7 +730,7 @@ function TradesPageContent() {
               type="button"
               onClick={() => patchFilters({ page: Math.max(0, filters.page - 1) })}
               disabled={filters.page === 0}
-              className="rounded-xl border border-bd-subtle bg-bg-surface px-3 py-1.5 text-[11px] text-text-secondary transition-colors hover:bg-bg-hover disabled:opacity-40"
+              className="rounded-xl border border-bd-subtle bg-bg-surface px-3 py-1.5 text-[13px] text-text-secondary transition-colors hover:bg-bg-hover disabled:opacity-40"
             >
               Previous
             </button>
@@ -738,7 +738,7 @@ function TradesPageContent() {
               type="button"
               onClick={() => patchFilters({ page: filters.page + 1 })}
               disabled={filters.page + 1 >= totalPages}
-              className="rounded-xl border border-bd-subtle bg-bg-surface px-3 py-1.5 text-[11px] text-text-secondary transition-colors hover:bg-bg-hover disabled:opacity-40"
+              className="rounded-xl border border-bd-subtle bg-bg-surface px-3 py-1.5 text-[13px] text-text-secondary transition-colors hover:bg-bg-hover disabled:opacity-40"
             >
               Next
             </button>
@@ -833,7 +833,7 @@ function TradesListChart({ trades, filterSymbol }: { trades: Trades[]; filterSym
         <span className="inline-flex items-center gap-2">
           <LineChart size={13} strokeWidth={1.75} className="text-text-muted" />
           <span className="mm-kicker">PRICE CHART</span>
-          <span className="font-mono text-[12px] text-text-secondary">
+          <span className="font-mono text-[14px] text-text-secondary">
             {symbol.replace(/USDT$/, '')} · {symbolTrades.length} trade
             {symbolTrades.length === 1 ? '' : 's'}
           </span>
@@ -867,7 +867,7 @@ function DirectionPill({ direction }: { direction: 'LONG' | 'SHORT' }) {
   const isLong = direction === 'LONG';
   return (
     <span
-      className="inline-flex items-center gap-1 rounded-sm px-1.5 py-0.5 text-[10px] font-semibold tracking-wider"
+      className="inline-flex items-center gap-1 rounded-sm px-1.5 py-0.5 text-[12px] font-semibold tracking-wider"
       style={{
         backgroundColor: isLong ? 'var(--tint-profit)' : 'var(--tint-loss)',
         color: isLong ? 'var(--color-profit)' : 'var(--color-loss)',
@@ -887,7 +887,7 @@ function StatusPill({ status }: { status: TradeStatus }) {
   if (status === 'OPEN') {
     return (
       <span
-        className="inline-flex items-center gap-1 rounded-sm px-1.5 py-0.5 text-[10px] font-semibold tracking-wider"
+        className="inline-flex items-center gap-1 rounded-sm px-1.5 py-0.5 text-[12px] font-semibold tracking-wider"
         style={{ backgroundColor: 'var(--tint-info)', color: 'var(--color-info)' }}
       >
         <TrendingUp size={10} strokeWidth={2} />
@@ -898,7 +898,7 @@ function StatusPill({ status }: { status: TradeStatus }) {
   if (status === 'PARTIALLY_CLOSED') {
     return (
       <span
-        className="inline-flex items-center rounded-sm px-1.5 py-0.5 text-[10px] font-semibold tracking-wider"
+        className="inline-flex items-center rounded-sm px-1.5 py-0.5 text-[12px] font-semibold tracking-wider"
         style={{ backgroundColor: 'var(--tint-warning)', color: 'var(--color-warning)' }}
       >
         PARTIAL
@@ -906,7 +906,7 @@ function StatusPill({ status }: { status: TradeStatus }) {
     );
   }
   return (
-    <span className="inline-flex items-center rounded-sm bg-bg-base px-1.5 py-0.5 text-[10px] font-semibold tracking-wider text-text-secondary">
+    <span className="inline-flex items-center rounded-sm bg-bg-base px-1.5 py-0.5 text-[12px] font-semibold tracking-wider text-text-secondary">
       CLOSED
     </span>
   );
@@ -937,7 +937,7 @@ function NotionalCell({ trade }: { trade: Trades }) {
   const mark = useRowMarkPrice(trade);
   const { notional } = computeTradeRisk(tradeToRiskPosition(trade), mark, 0);
   return (
-    <span className="font-mono text-[13px] tabular-nums text-text-primary">
+    <span className="font-mono text-[14px] tabular-nums text-text-primary">
       {formatCurrency(notional)}
     </span>
   );
@@ -957,7 +957,7 @@ function RiskCell({ trade, availableUsdt }: { trade: Trades; availableUsdt: numb
   if (isSignalExit || dollarAtRisk == null) {
     return (
       <span
-        className="font-mono text-[11px] italic text-text-muted"
+        className="font-mono text-[13px] italic text-text-muted"
         title="No fixed stop — exits on strategy signal"
       >
         signal exit
@@ -968,12 +968,12 @@ function RiskCell({ trade, availableUsdt }: { trade: Trades; availableUsdt: numb
   const warn = pctAtRisk != null && pctAtRisk >= SINGLE_TRADE_RISK_WARN_PCT;
   return (
     <span className="inline-flex flex-col leading-tight">
-      <span className="font-mono text-[13px] tabular-nums text-text-primary">
+      <span className="font-mono text-[14px] tabular-nums text-text-primary">
         {formatCurrency(dollarAtRisk)}
       </span>
       {pctAtRisk != null && (
         <span
-          className="font-mono text-[10px] tabular-nums"
+          className="font-mono text-[12px] tabular-nums"
           style={{ color: warn ? 'var(--color-warning)' : 'var(--text-muted)' }}
         >
           {pctAtRisk.toFixed(2)}% of acct
@@ -1023,7 +1023,7 @@ function OpenTradeRiskSummary({
       <span className="mm-kicker" style={{ marginRight: 4 }}>
         LIVE RISK
       </span>
-      <span style={{ fontSize: 13, color: 'var(--mm-ink-1)' }}>
+      <span style={{ fontSize: 14, color: 'var(--mm-ink-1)' }}>
         Deployed{' '}
         <strong className="font-mono tabular-nums" style={{ color: 'var(--mm-ink-0)' }}>
           {formatCurrency(agg.totalNotional)}

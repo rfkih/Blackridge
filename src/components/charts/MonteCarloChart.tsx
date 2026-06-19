@@ -54,17 +54,17 @@ export function MonteCarloChart({ result, height = 320 }: MonteCarloChartProps) 
         className="rounded-md border border-[var(--border-default)] px-3 py-2 text-left"
         style={{ background: 'var(--bg-elevated)', minWidth: 180 }}
       >
-        <p className="mb-1 font-mono text-[10px] text-[var(--text-muted)]">Trade #{row.trade}</p>
+        <p className="mb-1 font-mono text-[12px] text-[var(--text-muted)]">Trade #{row.trade}</p>
         {payload.map((p) => {
           if (!p.name) return null;
           const key = p.name.toLowerCase() as keyof ChartRow;
           return (
             <div key={p.name} className="flex items-center justify-between gap-3">
-              <span className="flex items-center gap-1.5 text-[11px]" style={{ color: p.color }}>
+              <span className="flex items-center gap-1.5 text-[13px]" style={{ color: p.color }}>
                 <span aria-hidden className="h-2 w-2 rounded-full" style={{ background: p.color }} />
                 {p.name}
               </span>
-              <span className="num text-[11px] text-[var(--text-primary)]">
+              <span className="num text-[13px] text-[var(--text-primary)]">
                 {formatCurrency(p.payload[key] as number)}
               </span>
             </div>
@@ -94,7 +94,7 @@ export function MonteCarloChart({ result, height = 320 }: MonteCarloChartProps) 
 
   if (!rows.length) {
     return (
-      <div className="flex h-[240px] items-center justify-center text-[12px] text-text-muted">
+      <div className="flex h-[240px] items-center justify-center text-[14px] text-text-muted">
         No equity curves were returned for this run.
       </div>
     );
@@ -130,10 +130,10 @@ export function MonteCarloChart({ result, height = 320 }: MonteCarloChartProps) 
             value: 'Initial',
             position: 'insideBottomLeft',
             fill: CHART_COLORS.neutral,
-            fontSize: 10,
+            fontSize: 12,
           }}
         />
-        <Legend wrapperStyle={{ fontSize: 11, color: CHART_COLORS.neutral }} />
+        <Legend wrapperStyle={{ fontSize: 13, color: CHART_COLORS.neutral }} />
         <Line
           name="Best"
           type="monotone"

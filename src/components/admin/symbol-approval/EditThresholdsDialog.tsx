@@ -106,12 +106,12 @@ export function EditThresholdsDialog({ open, onOpenChange, threshold }: EditThre
     <Dialog open={open} onOpenChange={(v) => !upsert.isPending && onOpenChange(v)}>
       <DialogContent className="max-w-md border-bd-subtle bg-bg-surface">
         <DialogHeader>
-          <DialogTitle className="text-[14px]">
+          <DialogTitle className="text-[15px]">
             {step === 'input'
               ? `Edit thresholds for ${threshold.symbol}`
               : 'Confirm threshold change'}
           </DialogTitle>
-          <DialogDescription className="text-[12px] text-text-secondary">
+          <DialogDescription className="text-[14px] text-text-secondary">
             {step === 'input'
               ? 'Raising any floor may flag existing approvals as stale. Approvals are never auto-revoked — staleness is the signal.'
               : `Applying this will mark ${willStaleCount} approval${willStaleCount === 1 ? '' : 's'} as stale.`}
@@ -209,7 +209,7 @@ function InputStep({
         role="status"
         aria-live="polite"
         className={cn(
-          'col-span-2 rounded-sm px-3 py-2 text-[11px]',
+          'col-span-2 rounded-sm px-3 py-2 text-[13px]',
           willStaleCount > 0
             ? 'border border-[var(--color-warning)]/30 bg-[var(--tint-warning)] text-[var(--color-warning)]'
             : 'border border-bd-subtle bg-bg-base text-text-muted',
@@ -266,7 +266,7 @@ function ConfirmStep({
 
   return (
     <div className="space-y-3">
-      <div className="space-y-1 rounded-sm border border-bd-subtle bg-bg-base px-3 py-2 text-[12px]">
+      <div className="space-y-1 rounded-sm border border-bd-subtle bg-bg-base px-3 py-2 text-[14px]">
         {diffs.length === 0 ? (
           <span className="font-mono text-text-muted">No changes.</span>
         ) : (
@@ -283,8 +283,8 @@ function ConfirmStep({
 
       {impact.length > 0 && (
         <div className="space-y-1">
-          <p className="label-caps !text-[9px]">Impact on existing approvals</p>
-          <ul className="space-y-0.5 rounded-sm border border-bd-subtle bg-bg-base px-3 py-2 font-mono text-[11px]">
+          <p className="label-caps !text-[12px]">Impact on existing approvals</p>
+          <ul className="space-y-0.5 rounded-sm border border-bd-subtle bg-bg-base px-3 py-2 font-mono text-[13px]">
             {impact.map(({ approval, before, after }) => {
               const flipped = before !== after;
               return (
@@ -320,13 +320,13 @@ function Field({
 }) {
   return (
     <div className="space-y-1">
-      <Label className="label-caps !text-[9px]">{label}</Label>
+      <Label className="label-caps !text-[12px]">{label}</Label>
       <Input
         type="number"
         inputMode="decimal"
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="h-8 font-mono text-[12px]"
+        className="h-8 font-mono text-[14px]"
       />
     </div>
   );

@@ -10,10 +10,10 @@ import { CATEGORY_LABEL } from './FailureBreakdownPanel';
 
 function CauseBadge({ event }: { event: ExecutionEvent }) {
   if (event.status !== 'FAILED' || !event.failureCategory) {
-    return <span style={{ color: 'var(--mm-up)', fontSize: 11 }}>● OK</span>;
+    return <span style={{ color: 'var(--mm-up)', fontSize: 13 }}>● OK</span>;
   }
   return (
-    <span style={{ color: 'var(--mm-dn)', fontSize: 11, fontWeight: 500 }}>
+    <span style={{ color: 'var(--mm-dn)', fontSize: 13, fontWeight: 500 }}>
       {'● '}
       <span>{CATEGORY_LABEL[event.failureCategory]}</span>
     </span>
@@ -29,7 +29,7 @@ export function ExecutionTable({
       cell: ({ row }) => {
         const d = new Date(row.original.executedAt);
         return (
-          <span className="font-mono text-[11px] text-text-muted">
+          <span className="font-mono text-[13px] text-text-muted">
             {Number.isNaN(d.getTime()) ? row.original.executedAt : format(d, 'MM-dd HH:mm')}
           </span>
         );
@@ -38,13 +38,13 @@ export function ExecutionTable({
     {
       accessorKey: 'executionType', header: 'Type',
       cell: ({ row }) => (
-        <span className="font-mono text-[11px] text-text-secondary">{row.original.executionType}</span>
+        <span className="font-mono text-[13px] text-text-secondary">{row.original.executionType}</span>
       ),
     },
     {
       accessorKey: 'asset', header: 'Symbol',
       cell: ({ row }) => (
-        <span className="font-mono text-[13px] font-medium text-text-primary">{row.original.asset}</span>
+        <span className="font-mono text-[14px] font-medium text-text-primary">{row.original.asset}</span>
       ),
     },
     {
@@ -57,7 +57,7 @@ export function ExecutionTable({
     {
       accessorKey: 'side', header: 'Side',
       cell: ({ row }) => (
-        <span style={{ color: row.original.side === 'SHORT' ? 'var(--mm-dn)' : 'var(--mm-up)', fontSize: 11 }}>
+        <span style={{ color: row.original.side === 'SHORT' ? 'var(--mm-dn)' : 'var(--mm-up)', fontSize: 13 }}>
           {row.original.side ?? '—'}
         </span>
       ),
@@ -70,7 +70,7 @@ export function ExecutionTable({
       id: 'detail', header: 'Detail',
       cell: ({ row }) => (
         <span
-          className="text-[11px] text-text-secondary"
+          className="text-[13px] text-text-secondary"
           style={{ display: 'block', maxWidth: 280, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
         >
           {row.original.errorMessage ?? row.original.executionReason ?? '—'}

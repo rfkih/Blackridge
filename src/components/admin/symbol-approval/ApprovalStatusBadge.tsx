@@ -38,7 +38,7 @@ export function ApprovalStatusBadge({ status, title, className }: ApprovalStatus
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-1 rounded-sm px-1.5 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wider',
+        'inline-flex items-center gap-1 rounded-sm px-1.5 py-0.5 font-mono text-[12px] font-semibold uppercase tracking-wider',
         className,
       )}
       style={{ backgroundColor: meta.bg, color: meta.fg }}

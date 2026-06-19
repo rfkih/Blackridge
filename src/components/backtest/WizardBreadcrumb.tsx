@@ -43,7 +43,7 @@ export function WizardBreadcrumb({ current, onStepClick, className }: WizardBrea
               <span
                 aria-hidden="true"
                 className={cn(
-                  'flex h-5 w-5 items-center justify-center rounded-full border font-mono text-[10px] font-semibold',
+                  'flex h-5 w-5 items-center justify-center rounded-full border font-mono text-[12px] font-semibold',
                   isCurrent && 'border-profit bg-tint-profit text-profit',
                   isDone && 'border-profit bg-profit text-text-inverse',
                   isFuture && 'border-bd text-text-muted',
@@ -53,7 +53,7 @@ export function WizardBreadcrumb({ current, onStepClick, className }: WizardBrea
               </span>
               <span
                 className={cn(
-                  'label-caps !text-[10px]',
+                  'label-caps !text-[12px]',
                   isCurrent && '!text-text-primary',
                   isDone && '!text-text-secondary',
                 )}

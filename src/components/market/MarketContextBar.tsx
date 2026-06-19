@@ -48,7 +48,7 @@ function RegimeCard() {
           </span>
         </div>
         <span
-          className="font-mono text-[11px] font-semibold uppercase tracking-[0.06em]"
+          className="font-mono text-[13px] font-semibold uppercase tracking-[0.06em]"
           style={{ color: toneColor(verdict.tone) }}
         >
           {verdict.tag}
@@ -64,7 +64,7 @@ function RegimeCard() {
       />
 
       <div
-        className="font-mono text-[11px] tabular-nums"
+        className="font-mono text-[13px] tabular-nums"
         style={{ color: 'var(--text-muted)' }}
       >
         {verdict.detail}
@@ -189,7 +189,7 @@ function SentimentCard() {
               </span>
             </div>
             <span
-              className="font-mono text-[11px] font-semibold uppercase tracking-[0.06em]"
+              className="font-mono text-[13px] font-semibold uppercase tracking-[0.06em]"
               style={{
                 color: verdict.tone === 'warning' ? toneColor('warning') : 'var(--text-muted)',
               }}
@@ -206,7 +206,7 @@ function SentimentCard() {
           />
 
           <div
-            className="font-mono text-[11px] tabular-nums"
+            className="font-mono text-[13px] tabular-nums"
             style={{ color: 'var(--text-muted)' }}
           >
             {delta >= 0 ? '+' : ''}
@@ -268,13 +268,13 @@ function ContextCard({ eyebrow, source, loading, error, children }: ContextCardP
     >
       <div className="flex items-center justify-between gap-2">
         <span
-          className="font-mono text-[10px] font-semibold uppercase tracking-[0.08em]"
+          className="font-mono text-[12px] font-semibold uppercase tracking-[0.08em]"
           style={{ color: 'var(--text-muted)' }}
         >
           {eyebrow}
         </span>
         <span
-          className="font-mono text-[10px] uppercase tracking-[0.06em]"
+          className="font-mono text-[12px] uppercase tracking-[0.06em]"
           style={{ color: 'var(--text-muted)', opacity: 0.7 }}
         >
           {source}
@@ -288,7 +288,7 @@ function ContextCard({ eyebrow, source, loading, error, children }: ContextCardP
         />
       ) : error ? (
         <div
-          className="text-[12px]"
+          className="text-[14px]"
           style={{ color: 'var(--text-muted)' }}
         >
           Unable to compute right now.
@@ -332,7 +332,7 @@ function ScaleBar({ position, leftLabel, rightLabel, tone }: ScaleBarProps) {
         />
       </div>
       <div
-        className="flex justify-between font-mono text-[9px] uppercase tracking-[0.08em]"
+        className="flex justify-between font-mono text-[12px] uppercase tracking-[0.08em]"
         style={{ color: 'var(--text-muted)', opacity: 0.7 }}
       >
         <span>{leftLabel}</span>

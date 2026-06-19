@@ -43,15 +43,15 @@ export function PaperTradePanel({
   return (
     <section className="overflow-hidden rounded-xl border border-bd-subtle bg-bg-surface">
       <div className="flex items-center justify-between border-b border-bd-subtle px-4 py-3">
-        <h3 className="flex items-center gap-2 font-display text-[13px] font-semibold text-text-primary">
+        <h3 className="flex items-center gap-2 font-display text-[14px] font-semibold text-text-primary">
           <TestTube size={13} strokeWidth={1.75} className="text-text-secondary" />
           Paper trades
-          <span className="font-mono text-[11px] font-normal text-text-muted">
+          <span className="font-mono text-[13px] font-normal text-text-muted">
             simulated decisions captured while {isPaperTrade ? 'in' : 'pre'} PAPER_TRADE
           </span>
         </h3>
         {summary.total > 0 && (
-          <span className="font-mono text-[10px] uppercase tracking-widest text-text-muted">
+          <span className="font-mono text-[12px] uppercase tracking-widest text-text-muted">
             {summary.total} {summary.total === 1 ? 'event' : 'events'}
           </span>
         )}
@@ -60,14 +60,14 @@ export function PaperTradePanel({
       {query.isLoading ? (
         <div className="flex items-center gap-2 px-4 py-6 text-text-secondary">
           <Loader2 size={14} className="animate-spin" />
-          <span className="text-[12px]">Loading paper-trade history…</span>
+          <span className="text-[14px]">Loading paper-trade history…</span>
         </div>
       ) : query.isError ? (
-        <div className="px-4 py-6 text-[12px] text-text-secondary">
+        <div className="px-4 py-6 text-[14px] text-text-secondary">
           Could not load paper-trade history.
         </div>
       ) : !query.data || query.data.length === 0 ? (
-        <div className="px-4 py-6 text-[12px] text-text-secondary">
+        <div className="px-4 py-6 text-[14px] text-text-secondary">
           {isPaperTrade
             ? 'No paper-trade decisions captured yet. The live executor writes a row here when this strategy fires while simulated=true.'
             : 'This strategy has not yet been in PAPER_TRADE state. Promote it via the /research dashboard to start capturing simulated decisions.'}
@@ -158,13 +158,13 @@ function PaperTradeBody({
 
       {decisionMix.length > 0 && (
         <div className="flex flex-wrap items-center gap-2">
-          <span className="font-mono text-[10px] uppercase tracking-widest text-text-muted">
+          <span className="font-mono text-[12px] uppercase tracking-widest text-text-muted">
             Decision mix
           </span>
           {decisionMix.map(([k, n]) => (
             <span
               key={k}
-              className="rounded-sm bg-bg-hover px-1.5 py-px font-mono text-[10px] text-text-secondary"
+              className="rounded-sm bg-bg-hover px-1.5 py-px font-mono text-[12px] text-text-secondary"
             >
               {k} ×{n}
             </span>
@@ -173,8 +173,8 @@ function PaperTradeBody({
       )}
 
       <div className="overflow-x-auto rounded-sm border border-bd-subtle">
-        <table className="min-w-full text-left text-[11px]">
-          <thead className="bg-bg-base font-mono text-[10px] uppercase tracking-widest text-text-muted">
+        <table className="min-w-full text-left text-[13px]">
+          <thead className="bg-bg-base font-mono text-[12px] uppercase tracking-widest text-text-muted">
             <tr>
               <th className="px-2 py-1.5">Time</th>
               <th className="px-2 py-1.5">Decision</th>
@@ -222,13 +222,13 @@ function PaperTradeBody({
           </tbody>
         </table>
         {rows.length > 100 && (
-          <div className="border-t border-bd-subtle bg-bg-base px-2 py-1.5 font-mono text-[10px] text-text-muted">
+          <div className="border-t border-bd-subtle bg-bg-base px-2 py-1.5 font-mono text-[12px] text-text-muted">
             Showing first 100 of {rows.length} rows.
           </div>
         )}
       </div>
 
-      <p className="text-[11px] text-text-muted">
+      <p className="text-[13px] text-text-muted">
         Paper-trade rows capture only OPEN_LONG / OPEN_SHORT decisions while
         the strategy is simulated. CLOSE_* and position-management decisions
         always execute against real positions and are not diverted.
@@ -254,11 +254,11 @@ function Stat({
         : 'var(--text-primary)';
   return (
     <div className="flex flex-col gap-0.5">
-      <span className="font-mono text-[10px] uppercase tracking-widest text-text-muted">
+      <span className="font-mono text-[12px] uppercase tracking-widest text-text-muted">
         {label}
       </span>
       <span
-        className="font-mono tabular-nums text-[13px]"
+        className="font-mono tabular-nums text-[14px]"
         style={{ color }}
       >
         {value}
@@ -274,7 +274,7 @@ function SideBadge({ side }: { side: 'LONG' | 'SHORT' | null }) {
   const isLong = side === 'LONG';
   return (
     <span
-      className="inline-flex items-center gap-1 rounded-sm px-1.5 py-px font-mono text-[10px] uppercase tracking-widest"
+      className="inline-flex items-center gap-1 rounded-sm px-1.5 py-px font-mono text-[12px] uppercase tracking-widest"
       style={{
         background: isLong ? 'rgba(22,179,100,0.12)' : 'rgba(229,72,77,0.12)',
         color: isLong ? 'var(--color-profit)' : 'var(--color-loss)',

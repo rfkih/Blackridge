@@ -136,11 +136,11 @@ function DetailsBlock({ details }: { details: Record<string, unknown> }) {
       {entries.map(([key, value]) => {
         const isComplex = typeof value === 'object' && value !== null;
         return (
-          <div key={key} className="flex gap-3 text-[11px]">
+          <div key={key} className="flex gap-3 text-[13px]">
             <dt className="w-44 shrink-0 font-mono text-text-muted">{key}</dt>
             <dd className="min-w-0 break-all font-mono text-text-primary">
               {isComplex ? (
-                <pre className="whitespace-pre-wrap text-[10px]">
+                <pre className="whitespace-pre-wrap text-[12px]">
                   {JSON.stringify(value, null, 2)}
                 </pre>
               ) : (
@@ -193,7 +193,7 @@ function ActivityItem({
         <div className="flex flex-wrap items-center gap-1.5">
           {}
           <span
-            className="rounded-sm px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide"
+            className="rounded-sm px-1.5 py-0.5 text-[12px] font-semibold uppercase tracking-wide"
             style={{ color: style.color, background: style.bg }}
           >
             {toTitleCase(activity.activityType)}
@@ -203,23 +203,23 @@ function ActivityItem({
 
           {}
           {activity.status !== 'SUCCESS' && (
-            <span className="rounded-sm px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[var(--color-loss)]">
+            <span className="rounded-sm px-1.5 py-0.5 text-[12px] font-semibold uppercase tracking-wide text-[var(--color-loss)]">
               {activity.status}
             </span>
           )}
 
-          <span className="font-mono text-[11px] tabular-nums text-text-muted">
+          <span className="font-mono text-[13px] tabular-nums text-text-muted">
             {relativeOffset(sessionStart, activity.createdAt)}
           </span>
         </div>
 
-        <p className="mt-0.5 text-[12px] text-text-primary">{activity.title}</p>
+        <p className="mt-0.5 text-[14px] text-text-primary">{activity.title}</p>
 
         {hasDetails && (
           <button
             type="button"
             onClick={() => setExpanded((v) => !v)}
-            className="mt-1 inline-flex items-center gap-1 text-[11px] text-text-muted hover:text-text-secondary"
+            className="mt-1 inline-flex items-center gap-1 text-[13px] text-text-muted hover:text-text-secondary"
           >
             {expanded ? <ChevronDown size={11} /> : <ChevronRight size={11} />}
             {expanded ? 'Hide details' : 'Show details'}
@@ -265,7 +265,7 @@ function SessionTimeline({
           <button
             type="button"
             onClick={onBack}
-            className="mb-2 inline-flex items-center gap-1.5 text-[12px] text-text-muted hover:text-text-secondary"
+            className="mb-2 inline-flex items-center gap-1.5 text-[14px] text-text-muted hover:text-text-secondary"
           >
             <ArrowLeft size={12} /> Back to sessions
           </button>
@@ -276,13 +276,13 @@ function SessionTimeline({
           <h1 className="mt-1 font-display text-[24px] font-semibold tracking-tighter text-text-primary">
             Session Timeline
           </h1>
-          <p className="mt-1 font-mono text-[12px] tabular-nums text-text-muted">{sessionId}</p>
+          <p className="mt-1 font-mono text-[14px] tabular-nums text-text-muted">{sessionId}</p>
         </div>
         <button
           type="button"
           onClick={() => query.refetch()}
           className="mm-pill shrink-0"
-          style={{ padding: '8px 12px', fontSize: 12 }}
+          style={{ padding: '8px 12px', fontSize: 14 }}
           aria-label="Refresh timeline"
         >
           {query.isFetching ? (
@@ -330,14 +330,14 @@ function SessionTimeline({
             style={{ background: 'rgba(46,196,138,0.08)' }}
           >
             <Star size={12} fill="currentColor" className="text-[var(--color-profit)]" />
-            <span className="text-[12px] font-semibold text-[var(--color-profit)]">
+            <span className="text-[14px] font-semibold text-[var(--color-profit)]">
               Goal hit this session
             </span>
           </div>
         )}
         {(session.strategyCodes?.length ?? 0) > 0 && (
           <div className="flex flex-wrap items-center gap-2 border-t border-bd-subtle px-4 py-2">
-            <span className="text-[11px] text-text-muted">Strategies:</span>
+            <span className="text-[13px] text-text-muted">Strategies:</span>
             {session.strategyCodes.map((code) => (
               <StrategyBadge key={code} code={code} />
             ))}
@@ -349,10 +349,10 @@ function SessionTimeline({
       <section className="overflow-hidden rounded-xl border border-bd-subtle bg-bg-surface">
         <header className="flex items-center gap-2.5 border-b border-bd-subtle px-4 py-3">
           <div>
-            <h2 className="font-display text-[14px] font-semibold text-text-primary">
+            <h2 className="font-display text-[15px] font-semibold text-text-primary">
               Activity timeline
             </h2>
-            <p className="text-[11px] text-text-secondary">
+            <p className="text-[13px] text-text-secondary">
               {activities.length} event{activities.length !== 1 ? 's' : ''}
               {newLive.length > 0 && (
                 <span className="ml-1.5 text-[var(--color-profit)]">+{newLive.length} live</span>
@@ -378,13 +378,13 @@ function SessionTimeline({
           )}
 
           {query.isError && (
-            <p className="text-[12px] text-[var(--color-loss)]">
+            <p className="text-[14px] text-[var(--color-loss)]">
               Failed to load activities. Try refreshing.
             </p>
           )}
 
           {!query.isLoading && !query.isError && activities.length === 0 && (
-            <p className="text-[12px] text-text-muted">No activities recorded for this session.</p>
+            <p className="text-[14px] text-text-muted">No activities recorded for this session.</p>
           )}
 
           {activities.length > 0 && (
@@ -427,9 +427,9 @@ function MetaStat({
 
   return (
     <div>
-      <dt className="text-[10px] uppercase tracking-widest text-text-muted">{label}</dt>
+      <dt className="text-[12px] uppercase tracking-widest text-text-muted">{label}</dt>
       <dd
-        className={`mt-0.5 text-[13px] font-semibold ${mono ? 'font-mono tabular-nums' : ''} ${colorClass}`}
+        className={`mt-0.5 text-[14px] font-semibold ${mono ? 'font-mono tabular-nums' : ''} ${colorClass}`}
       >
         {value}
       </dd>
@@ -459,7 +459,7 @@ function SessionCard({
         <div className="flex flex-wrap items-center gap-2">
           {}
           <span
-            className="inline-flex items-center gap-1 rounded-sm px-2 py-0.5 text-[11px] font-medium"
+            className="inline-flex items-center gap-1 rounded-sm px-2 py-0.5 text-[13px] font-medium"
             style={{ background: 'var(--accent-glow)', color: 'var(--accent-primary)' }}
           >
             <Bot size={11} />
@@ -468,7 +468,7 @@ function SessionCard({
 
           {}
           <div className="flex items-center gap-1">
-            <span className="font-mono text-[12px] tabular-nums text-text-muted">{shortId}…</span>
+            <span className="font-mono text-[14px] tabular-nums text-text-muted">{shortId}…</span>
             <button
               type="button"
               onClick={handleCopyId}
@@ -483,7 +483,7 @@ function SessionCard({
           {}
           {session.goalHit && (
             <span
-              className="inline-flex items-center gap-1 rounded-sm px-1.5 py-0.5 text-[10px] font-bold uppercase"
+              className="inline-flex items-center gap-1 rounded-sm px-1.5 py-0.5 text-[12px] font-bold uppercase"
               style={{ color: 'var(--color-profit)', background: 'rgba(46,196,138,0.14)' }}
             >
               <Star size={9} fill="currentColor" />
@@ -493,7 +493,7 @@ function SessionCard({
         </div>
 
         {}
-        <div className="font-mono text-[11px] tabular-nums text-text-muted">
+        <div className="font-mono text-[13px] tabular-nums text-text-muted">
           <span title={session.startedAt}>
             {format(parseISO(session.startedAt), 'MMM d, HH:mm')}
           </span>
@@ -575,11 +575,11 @@ function Stat({
   return (
     <div className="text-center">
       <div
-        className={`text-[14px] font-semibold ${mono ? 'font-mono tabular-nums' : ''} ${colorClass}`}
+        className={`text-[15px] font-semibold ${mono ? 'font-mono tabular-nums' : ''} ${colorClass}`}
       >
         {value}
       </div>
-      <div className="text-[10px] uppercase tracking-widest text-text-muted">{label}</div>
+      <div className="text-[12px] uppercase tracking-widest text-text-muted">{label}</div>
     </div>
   );
 }
@@ -626,7 +626,7 @@ function PaginationBar({
   if (totalPages <= 1) return null;
 
   return (
-    <div className="flex items-center justify-between pt-1 text-[12px] text-text-muted">
+    <div className="flex items-center justify-between pt-1 text-[14px] text-text-muted">
       <span className="font-mono tabular-nums">
         Page {page + 1} of {totalPages} · {total} session{total !== 1 ? 's' : ''}
       </span>
@@ -682,7 +682,7 @@ function SessionsList({
             </h1>
             {wsConnected && (
               <span
-                className="inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide"
+                className="inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[12px] font-semibold uppercase tracking-wide"
                 style={{ background: 'rgba(46,196,138,0.14)', color: 'var(--color-profit)' }}
               >
                 <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-[var(--color-profit)]" />
@@ -690,7 +690,7 @@ function SessionsList({
               </span>
             )}
           </div>
-          <p className="mt-1 max-w-2xl text-[13px] text-text-secondary">
+          <p className="mt-1 max-w-2xl text-[14px] text-text-secondary">
             Quant-researcher agent session log — iteration outcomes, edge verdicts, walk-forward
             submissions, and goal events. Select a session to view the full activity timeline.
           </p>
@@ -699,7 +699,7 @@ function SessionsList({
           type="button"
           onClick={() => query.refetch()}
           className="mm-pill shrink-0"
-          style={{ padding: '8px 12px', fontSize: 12 }}
+          style={{ padding: '8px 12px', fontSize: 14 }}
           aria-label="Refresh sessions"
         >
           {query.isFetching && !query.isLoading ? (
@@ -719,7 +719,7 @@ function SessionsList({
       {}
       {query.isError && !query.isLoading && (
         <div className="rounded-xl border border-bd-subtle bg-bg-surface p-6 text-center">
-          <p className="text-[13px] text-[var(--color-loss)]">
+          <p className="text-[14px] text-[var(--color-loss)]">
             Failed to load sessions. Check the Research JVM connection and try refreshing.
           </p>
         </div>
@@ -729,8 +729,8 @@ function SessionsList({
       {!query.isLoading && !query.isError && sessions.length === 0 && (
         <div className="rounded-xl border border-bd-subtle bg-bg-surface p-10 text-center">
           <Bot size={32} className="mx-auto mb-3 text-text-muted" strokeWidth={1.4} />
-          <p className="text-[14px] font-medium text-text-primary">No sessions yet</p>
-          <p className="mt-1 text-[12px] text-text-secondary">
+          <p className="text-[15px] font-medium text-text-primary">No sessions yet</p>
+          <p className="mt-1 text-[14px] text-text-secondary">
             The quant-researcher agent has not started any sessions. Start the agent to begin
             recording activity.
           </p>

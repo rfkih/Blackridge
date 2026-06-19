@@ -100,19 +100,19 @@ export function EquityCurve({
         className="rounded-md border border-[var(--border-default)] px-3 py-2 text-left"
         style={{ background: 'var(--bg-elevated)', minWidth: 150 }}
       >
-        <p className="mb-1 font-mono text-[10px] text-[var(--text-muted)]">{formatDate(d.ts)}</p>
+        <p className="mb-1 font-mono text-[12px] text-[var(--text-muted)]">{formatDate(d.ts)}</p>
         <p className="font-display text-sm font-semibold tabular-nums text-[var(--text-primary)]">
           {formatCurrency(d.equity)}
         </p>
         <p
-          className="mt-0.5 font-mono text-[11px] tabular-nums"
+          className="mt-0.5 font-mono text-[13px] tabular-nums"
           style={{ color: up ? 'var(--color-profit)' : 'var(--color-loss)' }}
         >
           {formatCurrency(change, { withSign: true })} ({pct.toFixed(2)}%)
         </p>
         {compareSeries && compare != null && (
           <p
-            className="mt-1 font-mono text-[11px] tabular-nums"
+            className="mt-1 font-mono text-[13px] tabular-nums"
             style={{ color: compareSeries.color }}
           >
             {compareSeries.label} {formatCurrency(compare)}
@@ -124,7 +124,7 @@ export function EquityCurve({
           return (
             <p
               key={s.label}
-              className="mt-1 font-mono text-[11px] tabular-nums"
+              className="mt-1 font-mono text-[13px] tabular-nums"
               style={{ color: s.color }}
             >
               {s.label} {formatCurrency(v)}
@@ -178,7 +178,7 @@ export function EquityCurve({
             const d = new Date(v);
             return `${d.getMonth() + 1}/${d.getDate()}`;
           }}
-          tick={{ fill: CHART_COLORS.neutral, fontSize: 10, fontFamily: 'IBM Plex Mono, ui-monospace, monospace' }}
+          tick={{ fill: CHART_COLORS.neutral, fontSize: 12, fontFamily: 'IBM Plex Mono, ui-monospace, monospace' }}
           axisLine={false}
           tickLine={false}
           interval="preserveStartEnd"
@@ -189,7 +189,7 @@ export function EquityCurve({
           tickFormatter={(v: number) =>
             v >= 1_000 ? `$${(v / 1_000).toFixed(1)}K` : `$${v.toFixed(0)}`
           }
-          tick={{ fill: CHART_COLORS.neutral, fontSize: 10, fontFamily: 'IBM Plex Mono, ui-monospace, monospace' }}
+          tick={{ fill: CHART_COLORS.neutral, fontSize: 12, fontFamily: 'IBM Plex Mono, ui-monospace, monospace' }}
           axisLine={false}
           tickLine={false}
           width={56}

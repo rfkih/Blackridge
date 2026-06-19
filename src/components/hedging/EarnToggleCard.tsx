@@ -44,13 +44,13 @@ export function EarnToggleCard() {
           <h3 className="font-display" style={{ fontSize: 18, marginTop: 4, letterSpacing: '-0.02em' }}>
             Earn on idle USDT
           </h3>
-          <p className="mt-1.5 text-[13px]" style={{ color: 'var(--mm-ink-2)', maxWidth: 520 }}>
+          <p className="mt-1.5 text-[14px]" style={{ color: 'var(--mm-ink-2)', maxWidth: 520 }}>
             Park idle USDT in Binance Flexible Simple Earn while the hedge is in cash; it&apos;s
             redeemed automatically before the strategy buys BTC. Roughly +1–2%/yr on the cash leg,
             with no added market risk.
           </p>
           {shown && !runningPlatformWide && (
-            <p className="mt-2 text-[12px]" style={{ color: 'var(--mm-ink-3)' }}>
+            <p className="mt-2 text-[14px]" style={{ color: 'var(--mm-ink-3)' }}>
               On for this account — activates once the platform&apos;s Earn feature is enabled.
             </p>
           )}

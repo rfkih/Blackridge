@@ -49,12 +49,12 @@ function PageSkeleton() {
 function NotFound({ id }: { id: string }) {
   return (
     <div className="space-y-3 rounded-xl border border-bd-subtle bg-bg-surface p-10 text-center">
-      <p className="text-[13px] text-text-muted">
+      <p className="text-[14px] text-text-muted">
         No research paper found with ID <span className="font-mono">{id}</span>.
       </p>
       <Link
         href="/research/papers"
-        className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-[var(--accent-primary)] hover:underline"
+        className="inline-flex items-center gap-1.5 text-[14px] font-semibold text-[var(--accent-primary)] hover:underline"
       >
         <ArrowLeft size={12} /> Back to library
       </Link>
@@ -134,7 +134,7 @@ export default function PaperPage({ params }: { params: { id: string } }) {
       <div className="flex flex-wrap items-start justify-between gap-3 print:hidden">
         <Link
           href="/research/papers"
-          className="inline-flex items-center gap-1.5 text-[12px] text-text-muted hover:text-text-primary"
+          className="inline-flex items-center gap-1.5 text-[14px] text-text-muted hover:text-text-primary"
         >
           <ArrowLeft size={12} /> Research library
         </Link>
@@ -151,7 +151,7 @@ export default function PaperPage({ params }: { params: { id: string } }) {
           {/* Sticky sidebar ToC */}
           <aside className="hidden w-44 shrink-0 lg:block print:hidden">
             <div className="sticky top-4 px-4 py-6">
-              <p className="mb-3 text-[9px] font-semibold uppercase tracking-widest text-text-muted">
+              <p className="mb-3 text-[12px] font-semibold uppercase tracking-widest text-text-muted">
                 Contents
               </p>
               <nav className="space-y-0.5">
@@ -159,7 +159,7 @@ export default function PaperPage({ params }: { params: { id: string } }) {
                   <a
                     key={item.id}
                     href={`#${item.id}`}
-                    className="block rounded px-2 py-1 text-[11px] text-text-secondary transition-colors hover:bg-bg-hover hover:text-text-primary"
+                    className="block rounded px-2 py-1 text-[13px] text-text-secondary transition-colors hover:bg-bg-hover hover:text-text-primary"
                   >
                     {item.label}
                   </a>
@@ -176,10 +176,10 @@ export default function PaperPage({ params }: { params: { id: string } }) {
             {/* Paper masthead */}
             <header className="mb-8 space-y-3 border-b border-bd-subtle pb-6">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="font-mono text-[10px] text-text-muted">{paper.paper_id}</span>
-                <span className="font-mono text-[10px] text-text-muted">· v{paper.version}</span>
+                <span className="font-mono text-[12px] text-text-muted">{paper.paper_id}</span>
+                <span className="font-mono text-[12px] text-text-muted">· v{paper.version}</span>
                 <span
-                  className="rounded-sm px-1.5 py-0.5 font-mono text-[9px] font-semibold uppercase tracking-wider"
+                  className="rounded-sm px-1.5 py-0.5 font-mono text-[12px] font-semibold uppercase tracking-wider"
                   style={{
                     background: 'var(--bg-elevated)',
                     color: toneColor(statusTone(paper.paper_status)),
@@ -189,7 +189,7 @@ export default function PaperPage({ params }: { params: { id: string } }) {
                 </span>
                 {meta.final_verdict && (
                   <span
-                    className="rounded-sm px-1.5 py-0.5 font-mono text-[9px] font-semibold uppercase tracking-wider"
+                    className="rounded-sm px-1.5 py-0.5 font-mono text-[12px] font-semibold uppercase tracking-wider"
                     style={{
                       background: 'var(--bg-elevated)',
                       color: toneColor(verdictTone(meta.final_verdict)),
@@ -204,7 +204,7 @@ export default function PaperPage({ params }: { params: { id: string } }) {
                 {paper.title}
               </h1>
 
-              <p className="text-[11px] text-text-muted">
+              <p className="text-[13px] text-text-muted">
                 {meta.strategy_code} · {meta.instrument} · {meta.interval_name}
                 {meta.n_iterations > 0 && ` · ${meta.n_iterations} iterations`}
                 {paper.created_by && ` · ${paper.created_by}`}

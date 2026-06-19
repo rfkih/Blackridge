@@ -168,7 +168,7 @@ function PresetRow({
           <span>{preset.name}</span>
           {preset.sourceBacktestRunId && (
             <span
-              className="font-mono text-[10px] text-text-muted"
+              className="font-mono text-[12px] text-text-muted"
               title={`Saved from backtest run ${preset.sourceBacktestRunId}`}
             >
               from run #{preset.sourceBacktestRunId.slice(0, 8)}

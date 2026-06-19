@@ -79,7 +79,7 @@ function VerifyEmailContent() {
         </h1>
         <p
           style={{
-            fontSize: 14,
+            fontSize: 15,
             color: 'var(--text-secondary, #384151)',
             margin: '0 0 24px',
             lineHeight: 1.5,
@@ -99,7 +99,7 @@ function VerifyEmailContent() {
               background: 'var(--bg-surface, #F7FAF8)',
               border: '1px solid var(--border-default, rgba(14,17,22,0.1))',
               color: 'var(--text-secondary, #384151)',
-              fontSize: 13,
+              fontSize: 14,
             }}
           >
             <Loader2 size={14} className="animate-spin" />
@@ -139,7 +139,7 @@ function VerifyEmailContent() {
                 <div
                   className="font-display"
                   style={{
-                    fontSize: 14,
+                    fontSize: 15,
                     fontWeight: 700,
                     color: 'var(--text-primary, #0E1116)',
                   }}
@@ -148,7 +148,7 @@ function VerifyEmailContent() {
                 </div>
                 <div
                   style={{
-                    fontSize: 12,
+                    fontSize: 14,
                     color: 'var(--text-secondary, #384151)',
                     marginTop: 2,
                   }}
@@ -166,7 +166,7 @@ function VerifyEmailContent() {
                 background: 'var(--text-primary, #0E1116)',
                 color: '#FFFFFF',
                 borderRadius: 12,
-                fontSize: 14,
+                fontSize: 15,
                 fontWeight: 700,
                 textDecoration: 'none',
                 display: 'inline-flex',
@@ -212,7 +212,7 @@ function VerifyEmailContent() {
                 <div
                   className="font-display"
                   style={{
-                    fontSize: 14,
+                    fontSize: 15,
                     fontWeight: 700,
                     color: 'var(--color-loss)',
                   }}
@@ -221,7 +221,7 @@ function VerifyEmailContent() {
                 </div>
                 <div
                   style={{
-                    fontSize: 12,
+                    fontSize: 14,
                     color: 'var(--text-secondary, #384151)',
                     marginTop: 2,
                   }}
@@ -233,7 +233,7 @@ function VerifyEmailContent() {
 
             <p
               style={{
-                fontSize: 11,
+                fontSize: 13,
                 color: 'var(--text-muted, #6B7280)',
                 lineHeight: 1.5,
                 marginBottom: 16,
@@ -252,7 +252,7 @@ function VerifyEmailContent() {
                 color: 'var(--text-primary, #0E1116)',
                 border: '1px solid var(--border-default, rgba(14,17,22,0.1))',
                 borderRadius: 12,
-                fontSize: 14,
+                fontSize: 15,
                 fontWeight: 600,
                 textDecoration: 'none',
                 display: 'inline-flex',

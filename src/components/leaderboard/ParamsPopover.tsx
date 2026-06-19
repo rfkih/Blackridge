@@ -34,7 +34,7 @@ export function ParamsPopover({
   const entries = Object.entries(params ?? {});
 
   if (entries.length === 0) {
-    return <span className="font-mono text-[11px] text-[var(--text-muted)]">—</span>;
+    return <span className="font-mono text-[13px] text-[var(--text-muted)]">—</span>;
   }
 
   return (
@@ -42,7 +42,7 @@ export function ParamsPopover({
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="inline-flex items-center gap-1 font-mono text-[11px] text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)]"
+        className="inline-flex items-center gap-1 font-mono text-[13px] text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)]"
         aria-expanded={open}
       >
         <ChevronDown size={13} className={cn('transition-transform', open && 'rotate-180')} />
@@ -53,7 +53,7 @@ export function ParamsPopover({
           {entries.map(([k, v]) => (
             <span
               key={k}
-              className="inline-flex items-center gap-1 rounded border border-[var(--border-subtle)] bg-[var(--bg-elevated)] px-1.5 py-0.5 font-mono text-[10px]"
+              className="inline-flex items-center gap-1 rounded border border-[var(--border-subtle)] bg-[var(--bg-elevated)] px-1.5 py-0.5 font-mono text-[12px]"
             >
               <span className="text-[var(--text-muted)]">{k}</span>
               <span className="tabular-nums text-[var(--text-primary)]">{fmtParamValue(v)}</span>

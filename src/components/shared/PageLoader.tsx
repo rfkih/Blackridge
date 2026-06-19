@@ -110,7 +110,7 @@ export function PageLoader({ label = 'Loading', fullscreen = true, className }: 
         {}
         <div className="flex flex-col items-center gap-2">
           <div
-            className="font-mono text-[10px] uppercase"
+            className="font-mono text-[12px] uppercase"
             style={{
               letterSpacing: '0.32em',
               color: 'var(--text-secondary)',

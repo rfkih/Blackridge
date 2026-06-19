@@ -28,7 +28,7 @@ export function StrategyRankingTable() {
             Strategy ranking
           </h3>
           {data && (
-            <span className="text-[11px]" style={{ color: 'var(--text-muted)' }}>
+            <span className="text-[13px]" style={{ color: 'var(--text-muted)' }}>
               {data.total} strategies
             </span>
           )}
@@ -39,7 +39,7 @@ export function StrategyRankingTable() {
               key={o.days}
               type="button"
               onClick={() => setMinDays(o.days)}
-              className="rounded-md px-3 py-1 text-[12px] font-semibold transition-colors"
+              className="rounded-md px-3 py-1 text-[14px] font-semibold transition-colors"
               style={{
                 background: minDays === o.days ? 'var(--bg-elevated)' : 'transparent',
                 color: minDays === o.days ? 'var(--text-primary)' : 'var(--text-muted)',
@@ -54,19 +54,19 @@ export function StrategyRankingTable() {
       </div>
 
       {isLoading && (
-        <div className="py-10 text-center text-[13px]" style={{ color: 'var(--text-muted)' }}>
+        <div className="py-10 text-center text-[14px]" style={{ color: 'var(--text-muted)' }}>
           Loading rankings…
         </div>
       )}
 
       {isError && (
-        <div className="py-10 text-center text-[13px]" style={{ color: 'var(--color-loss)' }}>
+        <div className="py-10 text-center text-[14px]" style={{ color: 'var(--color-loss)' }}>
           Could not load rankings — orchestrator may be offline.
         </div>
       )}
 
       {data && data.rankings.length === 0 && (
-        <div className="py-10 text-center text-[13px]" style={{ color: 'var(--text-muted)' }}>
+        <div className="py-10 text-center text-[14px]" style={{ color: 'var(--text-muted)' }}>
           No completed backtests with a {minDays}-day window yet.
         </div>
       )}
@@ -75,7 +75,7 @@ export function StrategyRankingTable() {
         <div style={{ overflowX: 'auto' }}>
           {/* header */}
           <div
-            className="mb-1 grid px-3 text-[10px] font-semibold uppercase tracking-[0.08em]"
+            className="mb-1 grid px-3 text-[12px] font-semibold uppercase tracking-[0.08em]"
             style={{
               gridTemplateColumns: '32px 1fr 80px 52px 96px 84px 80px 72px 60px 24px',
               color: 'var(--text-muted)',
@@ -146,7 +146,7 @@ function RankingRow({
       >
         {/* rank */}
         <span
-          className="num text-[13px] font-bold"
+          className="num text-[14px] font-bold"
           style={{ color: row.rank <= 3 ? 'var(--color-profit)' : 'var(--text-muted)' }}
         >
           {row.rank}
@@ -155,43 +155,43 @@ function RankingRow({
         {/* identity */}
         <div style={{ minWidth: 0 }}>
           <div
-            className="truncate text-[13px] font-semibold"
+            className="truncate text-[14px] font-semibold"
             style={{ color: 'var(--text-primary)' }}
           >
             {row.strategyCode}
           </div>
-          <div className="text-[11px]" style={{ color: 'var(--text-muted)' }}>
+          <div className="text-[13px]" style={{ color: 'var(--text-muted)' }}>
             {row.symbol} · {row.intervalName} · {row.windowDays}d
           </div>
         </div>
 
         {/* ann return */}
-        <span className="num text-right text-[13px] font-bold" style={{ color: retColor }}>
+        <span className="num text-right text-[14px] font-bold" style={{ color: retColor }}>
           {ret != null ? `${ret >= 0 ? '+' : ''}${ret.toFixed(1)}%` : '—'}
         </span>
 
         {/* sharpe */}
-        <span className="num text-right text-[12px]" style={{ color: 'var(--text-primary)' }}>
+        <span className="num text-right text-[14px]" style={{ color: 'var(--text-primary)' }}>
           {row.sharpeAnnualized != null ? row.sharpeAnnualized.toFixed(2) : '—'}
         </span>
 
         {/* max dd */}
-        <span className="num text-right text-[12px]" style={{ color: 'var(--color-loss)' }}>
+        <span className="num text-right text-[14px]" style={{ color: 'var(--color-loss)' }}>
           {row.maxDrawdownPct != null ? `-${Math.abs(row.maxDrawdownPct).toFixed(1)}%` : '—'}
         </span>
 
         {/* n trades */}
-        <span className="num text-right text-[12px]" style={{ color: 'var(--text-muted)' }}>
+        <span className="num text-right text-[14px]" style={{ color: 'var(--text-muted)' }}>
           {row.nTrades ?? '—'}
         </span>
 
         {/* win rate */}
-        <span className="num text-right text-[12px]" style={{ color: 'var(--text-muted)' }}>
+        <span className="num text-right text-[14px]" style={{ color: 'var(--text-muted)' }}>
           {row.winRate != null ? `${(row.winRate * 100).toFixed(1)}%` : '—'}
         </span>
 
         {/* profit factor */}
-        <span className="num text-right text-[12px]" style={{ color: 'var(--text-muted)' }}>
+        <span className="num text-right text-[14px]" style={{ color: 'var(--text-muted)' }}>
           {row.profitFactor != null ? row.profitFactor.toFixed(2) : '—'}
         </span>
 
@@ -220,14 +220,14 @@ function ParamsPanel({ row }: { row: StrategyRankRow }) {
       style={{ background: 'var(--bg-subtle)', border: '1px solid var(--border-subtle)' }}
     >
       <div
-        className="mb-2 text-[10px] font-semibold uppercase tracking-[0.1em]"
+        className="mb-2 text-[12px] font-semibold uppercase tracking-[0.1em]"
         style={{ color: 'var(--text-muted)' }}
       >
         Parameters — {row.strategyCode} ({row.symbol} {row.intervalName})
       </div>
 
       {entries.length === 0 ? (
-        <span className="text-[12px]" style={{ color: 'var(--text-muted)' }}>
+        <span className="text-[14px]" style={{ color: 'var(--text-muted)' }}>
           No params snapshot available for this run.
         </span>
       ) : (
@@ -238,13 +238,13 @@ function ParamsPanel({ row }: { row: StrategyRankRow }) {
           {entries.map(([k, v]) => (
             <div key={k} className="flex items-baseline justify-between gap-2">
               <span
-                className="font-mono text-[11px]"
+                className="font-mono text-[13px]"
                 style={{ color: 'var(--text-muted)', flexShrink: 0 }}
               >
                 {k}
               </span>
               <span
-                className="num truncate text-[12px] font-semibold"
+                className="num truncate text-[14px] font-semibold"
                 style={{ color: 'var(--text-primary)' }}
               >
                 {String(v)}
@@ -255,7 +255,7 @@ function ParamsPanel({ row }: { row: StrategyRankRow }) {
       )}
 
       <div
-        className="mt-3 flex flex-wrap gap-4 pt-3 text-[11px]"
+        className="mt-3 flex flex-wrap gap-4 pt-3 text-[13px]"
         style={{ borderTop: '1px solid var(--border-subtle)', color: 'var(--text-muted)' }}
       >
         <span>
@@ -319,7 +319,7 @@ function VerdictPill({ verdict }: { verdict: StrategyRankRow['verdict'] }) {
 
   return (
     <span
-      className="inline-block rounded px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider"
+      className="inline-block rounded px-1.5 py-0.5 text-[12px] font-bold uppercase tracking-wider"
       style={{ background: cfg.bg, color: cfg.color }}
     >
       {cfg.label}

@@ -148,18 +148,18 @@ export function HedgingParamForm({ strategy, definition }: HedgingParamFormProps
     <div className="space-y-4">
       <div className="flex items-center gap-2">
         <Sliders size={14} className="shrink-0 text-[var(--text-muted)]" aria-hidden="true" />
-        <span className="font-mono text-[10px] uppercase tracking-wider text-[var(--text-muted)]">
+        <span className="font-mono text-[12px] uppercase tracking-wider text-[var(--text-muted)]">
           Hedging parameters
         </span>
         {definition.archetype && (
-          <span className="font-mono text-[10px] text-[var(--text-muted)]">
+          <span className="font-mono text-[12px] text-[var(--text-muted)]">
             · archetype {definition.archetype}
           </span>
         )}
       </div>
 
       {isError && (
-        <p className="text-[11px] text-[var(--color-warning)]">
+        <p className="text-[13px] text-[var(--color-warning)]">
           Could not load the active preset — editing from spec defaults.
         </p>
       )}
@@ -170,11 +170,11 @@ export function HedgingParamForm({ strategy, definition }: HedgingParamFormProps
             <div className="min-w-0 flex-1">
               <label
                 htmlFor={`hedging-param-${key}`}
-                className="block truncate text-[13px] text-[var(--text-primary)]"
+                className="block truncate text-[14px] text-[var(--text-primary)]"
               >
                 {humanizeKey(key)}
               </label>
-              <p className="font-mono text-[10px] text-[var(--text-muted)]">
+              <p className="font-mono text-[12px] text-[var(--text-muted)]">
                 {key} · default {String(defaults[key])}
               </p>
             </div>
@@ -184,7 +184,7 @@ export function HedgingParamForm({ strategy, definition }: HedgingParamFormProps
               step="any"
               value={Number.isFinite(values[key]) ? values[key] : ''}
               onChange={(e) => onFieldChange(key, e.target.value)}
-              className="w-28 rounded-sm border border-[var(--border-subtle)] bg-[var(--bg-base)] px-2 py-1 text-right font-mono text-[12px] tabular-nums text-[var(--text-primary)] focus:border-[var(--border-strong)] focus:outline-none"
+              className="w-28 rounded-sm border border-[var(--border-subtle)] bg-[var(--bg-base)] px-2 py-1 text-right font-mono text-[14px] tabular-nums text-[var(--text-primary)] focus:border-[var(--border-strong)] focus:outline-none"
             />
           </div>
         ))}

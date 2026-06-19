@@ -115,7 +115,7 @@ export default function TradeDetailPage({ params }: { params: { id: string } }) 
                 <DirectionBadge direction={trade.direction} />
                 <StatusBadge status={trade.status} />
               </div>
-              <div className="mt-2 flex items-center gap-3 text-[12px] text-text-muted">
+              <div className="mt-2 flex items-center gap-3 text-[14px] text-text-muted">
                 <StrategyBadge code={trade.strategyCode} size="sm" />
                 <span className="font-mono">id · {trade.id.slice(0, 8)}</span>
                 <span className="inline-flex items-center gap-1">
@@ -132,7 +132,7 @@ export default function TradeDetailPage({ params }: { params: { id: string } }) 
                 <span className="label-caps">Unrealized P&L</span>
                 <PnlCell value={unrealized} className="!text-[22px]" />
                 {trade.unrealizedPnlPct != null && (
-                  <span className="font-mono text-[11px] text-text-muted">
+                  <span className="font-mono text-[13px] text-text-muted">
                     {trade.unrealizedPnlPct >= 0 ? '+' : ''}
                     {trade.unrealizedPnlPct.toFixed(2)}%
                   </span>
@@ -145,7 +145,7 @@ export default function TradeDetailPage({ params }: { params: { id: string } }) 
             <div className="flex flex-col items-end">
               <span className="label-caps">Realized P&L</span>
               <PnlCell value={trade.realizedPnl} noFlash className="!text-[22px]" />
-              <span className="font-mono text-[11px] text-text-muted">
+              <span className="font-mono text-[13px] text-text-muted">
                 closed {formatDate(trade.exitTime)}
               </span>
             </div>
@@ -165,15 +165,15 @@ export default function TradeDetailPage({ params }: { params: { id: string } }) 
           <PriceCell value={trade.stopLossPrice} decimals={4} />
         </SummaryCell>
         <SummaryCell label="Realized P&L">
-          <PnlCell value={trade.realizedPnl} noFlash className="!text-[14px]" />
+          <PnlCell value={trade.realizedPnl} noFlash className="!text-[15px]" />
         </SummaryCell>
         <SummaryCell label="Fees">
-          <span className="font-mono text-[14px] tabular-nums text-text-primary">
+          <span className="font-mono text-[15px] tabular-nums text-text-primary">
             {formatCurrency(-Math.abs(trade.feeUsdt), { withSign: true })}
           </span>
         </SummaryCell>
         <SummaryCell label="Net P&L">
-          <PnlCell value={netPnl} noFlash className="!text-[14px]" />
+          <PnlCell value={netPnl} noFlash className="!text-[15px]" />
         </SummaryCell>
       </section>
 
@@ -206,7 +206,7 @@ export default function TradeDetailPage({ params }: { params: { id: string } }) 
               Fills
             </h2>
           </div>
-          <span className="text-[11px] text-text-muted">
+          <span className="text-[13px] text-text-muted">
             {positions.length} leg{positions.length === 1 ? '' : 's'}
           </span>
         </div>
@@ -299,7 +299,7 @@ function EntryPlanPanel({ trade }: { trade: Trades }) {
     <section className="rounded-xl border border-bd-subtle bg-bg-surface p-5">
       <header className="flex items-baseline justify-between">
         <div>
-          <p className="font-mono text-[10px] uppercase tracking-wider text-text-muted">
+          <p className="font-mono text-[12px] uppercase tracking-wider text-text-muted">
             Entry plan
           </p>
           <h3 className="mt-0.5 font-display text-[15px] font-semibold text-text-primary">
@@ -308,51 +308,51 @@ function EntryPlanPanel({ trade }: { trade: Trades }) {
         </div>
         <Link
           href={`/strategies/${trade.accountStrategyId}`}
-          className="font-mono text-[11px] text-text-muted hover:text-text-primary"
+          className="font-mono text-[13px] text-text-muted hover:text-text-primary"
         >
           View strategy →
         </Link>
       </header>
 
-      <p className="mt-3 text-[12px] leading-relaxed text-text-secondary">{rationale}</p>
+      <p className="mt-3 text-[14px] leading-relaxed text-text-secondary">{rationale}</p>
 
       <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
         <div className="flex flex-col gap-1 rounded-sm border border-bd-subtle bg-bg-base px-3 py-2.5">
-          <span className="font-mono text-[9px] uppercase tracking-wider text-text-muted">
+          <span className="font-mono text-[12px] uppercase tracking-wider text-text-muted">
             Risk distance (1 R)
           </span>
-          <span className="font-mono text-[14px] tabular-nums text-text-primary">
+          <span className="font-mono text-[15px] tabular-nums text-text-primary">
             {rDistance == null ? '—' : rDistance.toFixed(4)}
           </span>
-          <span className="text-[10px] leading-snug text-text-muted">
+          <span className="text-[12px] leading-snug text-text-muted">
             Entry to stop. All R-multiples below scale to this.
           </span>
         </div>
         <div className="flex flex-col gap-1 rounded-sm border border-bd-subtle bg-bg-base px-3 py-2.5">
-          <span className="font-mono text-[9px] uppercase tracking-wider text-text-muted">
+          <span className="font-mono text-[12px] uppercase tracking-wider text-text-muted">
             TP1 reward
           </span>
           <span
-            className="font-mono text-[14px] tabular-nums"
+            className="font-mono text-[15px] tabular-nums"
             style={{ color: 'var(--color-profit)' }}
           >
             {tp1R == null ? '—' : `${tp1R >= 0 ? '+' : ''}${tp1R.toFixed(2)} R`}
           </span>
-          <span className="text-[10px] leading-snug text-text-muted">
+          <span className="text-[12px] leading-snug text-text-muted">
             Move from entry to TP1, in units of risk.
           </span>
         </div>
         <div className="flex flex-col gap-1 rounded-sm border border-bd-subtle bg-bg-base px-3 py-2.5">
-          <span className="font-mono text-[9px] uppercase tracking-wider text-text-muted">
+          <span className="font-mono text-[12px] uppercase tracking-wider text-text-muted">
             TP2 reward
           </span>
           <span
-            className="font-mono text-[14px] tabular-nums"
+            className="font-mono text-[15px] tabular-nums"
             style={{ color: 'var(--color-profit)' }}
           >
             {tp2R == null ? '—' : `${tp2R >= 0 ? '+' : ''}${tp2R.toFixed(2)} R`}
           </span>
-          <span className="text-[10px] leading-snug text-text-muted">
+          <span className="text-[12px] leading-snug text-text-muted">
             Move from entry to TP2, in units of risk.
           </span>
         </div>
@@ -406,14 +406,14 @@ function TradeAttributionPanel({ tradeId }: { tradeId: string }) {
     <section className="rounded-xl border border-bd-subtle bg-bg-surface p-5">
       <header className="flex items-baseline justify-between">
         <div>
-          <p className="font-mono text-[10px] uppercase tracking-wider text-text-muted">
+          <p className="font-mono text-[12px] uppercase tracking-wider text-text-muted">
             P&L attribution
           </p>
           <h3 className="mt-0.5 font-display text-[15px] font-semibold text-text-primary">
             How realized P&L was earned
           </h3>
         </div>
-        <span className="font-mono text-[11px] text-text-muted">
+        <span className="font-mono text-[13px] text-text-muted">
           Σ legs = {formatCurrency(data.realizedPnl, { withSign: true })}
         </span>
       </header>
@@ -424,11 +424,11 @@ function TradeAttributionPanel({ tradeId }: { tradeId: string }) {
             key={leg.label}
             className="flex flex-col gap-1 rounded-sm border border-bd-subtle bg-bg-base px-3 py-2.5"
           >
-            <span className="font-mono text-[9px] uppercase tracking-wider text-text-muted">
+            <span className="font-mono text-[12px] uppercase tracking-wider text-text-muted">
               {leg.label}
             </span>
             <span
-              className="font-mono text-[14px] tabular-nums"
+              className="font-mono text-[15px] tabular-nums"
               style={{
                 color:
                   leg.value > 0
@@ -440,13 +440,13 @@ function TradeAttributionPanel({ tradeId }: { tradeId: string }) {
             >
               {formatCurrency(leg.value, { withSign: true })}
             </span>
-            <span className="text-[10px] leading-snug text-text-muted">{leg.help}</span>
+            <span className="text-[12px] leading-snug text-text-muted">{leg.help}</span>
           </div>
         ))}
       </div>
 
       {(data.entrySlippagePct != null || data.sizeRatio != null) && (
-        <div className="mt-3 flex flex-wrap gap-x-5 gap-y-1 border-t border-bd-subtle pt-3 font-mono text-[11px] text-text-muted">
+        <div className="mt-3 flex flex-wrap gap-x-5 gap-y-1 border-t border-bd-subtle pt-3 font-mono text-[13px] text-text-muted">
           {data.entrySlippagePct != null && (
             <span>
               Entry slip:{' '}
@@ -472,7 +472,7 @@ function BackLink() {
   return (
     <Link
       href="/trades"
-      className="inline-flex w-fit items-center gap-1 text-[12px] text-text-muted transition-colors hover:text-text-primary"
+      className="inline-flex w-fit items-center gap-1 text-[14px] text-text-muted transition-colors hover:text-text-primary"
     >
       <ArrowLeft size={13} strokeWidth={1.75} />
       All trades
@@ -524,7 +524,7 @@ function CloseTradeButton({ trade }: { trade: Trades }) {
       onClick={handleClose}
       disabled={closeMutation.isPending}
       title="Place a real Binance market order to flatten every open leg of this trade"
-      className="border-[var(--color-loss)]/60 inline-flex items-center gap-1.5 rounded-sm border bg-[var(--bg-base)] px-3 py-1.5 font-mono text-[10px] uppercase tracking-wider text-[var(--color-loss)] transition-colors hover:bg-[rgba(229,72,77,0.08)] disabled:cursor-not-allowed disabled:opacity-50"
+      className="border-[var(--color-loss)]/60 inline-flex items-center gap-1.5 rounded-sm border bg-[var(--bg-base)] px-3 py-1.5 font-mono text-[12px] uppercase tracking-wider text-[var(--color-loss)] transition-colors hover:bg-[rgba(229,72,77,0.08)] disabled:cursor-not-allowed disabled:opacity-50"
     >
       {closeMutation.isPending ? (
         <Loader2 size={11} strokeWidth={1.75} className="animate-spin" />
@@ -540,7 +540,7 @@ function DirectionBadge({ direction }: { direction: Trades['direction'] }) {
   const isLong = direction === 'LONG';
   return (
     <span
-      className="inline-flex items-center gap-1 rounded-sm px-2 py-0.5 text-[11px] font-semibold tracking-wider"
+      className="inline-flex items-center gap-1 rounded-sm px-2 py-0.5 text-[13px] font-semibold tracking-wider"
       style={{
         backgroundColor: isLong ? 'var(--tint-profit)' : 'var(--tint-loss)',
         color: isLong ? 'var(--color-profit)' : 'var(--color-loss)',
@@ -560,7 +560,7 @@ function StatusBadge({ status }: { status: TradeStatus }) {
   if (status === 'OPEN') {
     return (
       <span
-        className="inline-flex items-center gap-1 rounded-sm px-2 py-0.5 text-[11px] font-semibold tracking-wider"
+        className="inline-flex items-center gap-1 rounded-sm px-2 py-0.5 text-[13px] font-semibold tracking-wider"
         style={{ backgroundColor: 'var(--tint-info)', color: 'var(--color-info)' }}
       >
         <span className="pulse-dot inline-block size-1.5 rounded-full bg-info" aria-hidden="true" />
@@ -571,7 +571,7 @@ function StatusBadge({ status }: { status: TradeStatus }) {
   if (status === 'PARTIALLY_CLOSED') {
     return (
       <span
-        className="inline-flex items-center rounded-sm px-2 py-0.5 text-[11px] font-semibold tracking-wider"
+        className="inline-flex items-center rounded-sm px-2 py-0.5 text-[13px] font-semibold tracking-wider"
         style={{ backgroundColor: 'var(--tint-warning)', color: 'var(--color-warning)' }}
       >
         Partially closed
@@ -579,7 +579,7 @@ function StatusBadge({ status }: { status: TradeStatus }) {
     );
   }
   return (
-    <span className="inline-flex items-center rounded-sm bg-bg-base px-2 py-0.5 text-[11px] font-semibold tracking-wider text-text-secondary">
+    <span className="inline-flex items-center rounded-sm bg-bg-base px-2 py-0.5 text-[13px] font-semibold tracking-wider text-text-secondary">
       Closed
     </span>
   );
@@ -607,7 +607,7 @@ function RiskStat({ risk }: { risk: ReturnType<typeof computeTradeRisk> }) {
       <div className="flex max-w-[160px] flex-col items-end">
         <span className="label-caps">$ at risk</span>
         <span className="font-mono text-[22px] leading-none text-text-secondary">—</span>
-        <span className="mt-1 text-right font-mono text-[11px] text-text-muted">
+        <span className="mt-1 text-right font-mono text-[13px] text-text-muted">
           signal exit — no fixed stop
         </span>
       </div>
@@ -625,7 +625,7 @@ function RiskStat({ risk }: { risk: ReturnType<typeof computeTradeRisk> }) {
       </span>
       {risk.pctAtRisk != null && (
         <span
-          className="font-mono text-[11px]"
+          className="font-mono text-[13px]"
           style={{ color: warn ? 'var(--color-warning)' : 'var(--text-muted)' }}
         >
           {risk.pctAtRisk.toFixed(2)}% of account
@@ -650,7 +650,7 @@ function MetaTile({
         {Icon && <Icon size={11} strokeWidth={1.75} className="text-text-muted" />}
         <span className="label-caps">{label}</span>
       </div>
-      <div className="mt-1.5 text-[13px] text-text-primary">{children}</div>
+      <div className="mt-1.5 text-[14px] text-text-primary">{children}</div>
     </div>
   );
 }
@@ -660,7 +660,7 @@ function SymbolAvatar({ symbol, direction }: { symbol: string; direction: Trades
   return (
     <div
       aria-hidden="true"
-      className="flex size-11 items-center justify-center rounded-md font-mono text-[14px] font-semibold"
+      className="flex size-11 items-center justify-center rounded-md font-mono text-[15px] font-semibold"
       style={{
         backgroundColor: isLong ? 'var(--tint-profit)' : 'var(--tint-loss)',
         color: isLong ? 'var(--color-profit)' : 'var(--color-loss)',

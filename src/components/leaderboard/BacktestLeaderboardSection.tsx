@@ -109,14 +109,14 @@ export function BacktestLeaderboardSection({
       {entries.length > 0 && (
         <>
           <div className="px-1">
-            <p className="font-mono text-[10px] uppercase tracking-[0.1em] text-[var(--text-muted)]">
+            <p className="font-mono text-[12px] uppercase tracking-[0.1em] text-[var(--text-muted)]">
               Showing top {shown} of {qualifyingCells} qualifying cells · candidates (not deployable)
             </p>
-            <p className="mt-1 text-[11px] text-[var(--text-muted)]">
+            <p className="mt-1 text-[13px] text-[var(--text-muted)]">
               One most-recent run per (symbol × interval × strategy) · ≥100 trades · ≥2y data window ·
               ordered by deflated Sharpe.
             </p>
-            <p className="mt-0.5 text-[10px] text-[var(--text-muted)]">
+            <p className="mt-0.5 text-[12px] text-[var(--text-muted)]">
               Deflated Sharpe for older runs may understate trial multiplicity until the analyzer
               backfill runs.
             </p>
@@ -135,10 +135,10 @@ export function BacktestLeaderboardSection({
       {hedgingEntries.length > 0 && (
         <div className="space-y-3 pt-2">
           <div className="px-1">
-            <p className="font-mono text-[10px] uppercase tracking-[0.1em] text-[var(--color-btc)]">
+            <p className="font-mono text-[12px] uppercase tracking-[0.1em] text-[var(--color-btc)]">
               Hedging candidates · top {hedgingShown} of {hedgingQualifyingCells} cells
             </p>
-            <p className="mt-1 text-[11px] text-[var(--text-muted)]">
+            <p className="mt-1 text-[13px] text-[var(--text-muted)]">
               Allocation tilts, ranked by Calmar (return ÷ |max drawdown|). Exempt from the
               trade-count floor — low turnover is the mechanism, so DSR / PF / trade-count do not
               apply. Listed separately because Calmar and deflated Sharpe are not comparable.
@@ -196,14 +196,14 @@ function BacktestRow({
             <span className="font-display text-base font-bold tracking-tight text-[var(--text-primary)]">
               {entry.symbol}
             </span>
-            <span className="rounded bg-[var(--bg-elevated)] px-1.5 py-0.5 font-mono text-[11px] text-[var(--text-muted)]">
+            <span className="rounded bg-[var(--bg-elevated)] px-1.5 py-0.5 font-mono text-[13px] text-[var(--text-muted)]">
               {entry.interval || '—'}
             </span>
             <VerdictBadge verdict={entry.walkForwardVerdict} />
             <KindBadge strategyKind={entry.strategyKind} />
             {entry.runCreatedAt && (
               <span
-                className="font-mono text-[10px] text-[var(--text-muted)]"
+                className="font-mono text-[12px] text-[var(--text-muted)]"
                 title="When this run was created. It's the most-recent run in its cell with a scored DSR — a newer unscored run may exist."
               >
                 run {entry.runCreatedAt.replace('T', ' ').slice(0, 16)}
@@ -302,7 +302,7 @@ function Metric({
         : 'var(--text-primary)';
   return (
     <div title={title}>
-      <div className="font-mono text-[10px] uppercase tracking-[0.08em] text-[var(--text-muted)]">
+      <div className="font-mono text-[12px] uppercase tracking-[0.08em] text-[var(--text-muted)]">
         {label}
       </div>
       <div className="font-mono text-sm tabular-nums" style={{ color }}>

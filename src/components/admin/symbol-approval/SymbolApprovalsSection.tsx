@@ -70,7 +70,7 @@ export function SymbolApprovalsSection() {
         <h2 className="font-display text-[18px] font-semibold tracking-tighter text-text-primary">
           Symbol approvals
         </h2>
-        <p className="mt-1 max-w-2xl text-[12px] text-text-secondary">
+        <p className="mt-1 max-w-2xl text-[14px] text-text-secondary">
           Gate-enforced allowlist of <span className="font-mono">(symbol, strategy)</span> pairs
           permitted in the New Strategy picker. Approvals require a backtest run that clears the
           per-symbol thresholds — the backend re-checks every submission.
@@ -90,7 +90,7 @@ export function SymbolApprovalsSection() {
           className="mt-0.5 shrink-0 text-[var(--color-info)]"
           aria-hidden="true"
         />
-        <div className="text-[12px] leading-relaxed text-text-secondary">
+        <div className="text-[14px] leading-relaxed text-text-secondary">
           <span className="font-semibold text-text-primary">Gate semantics</span> — approvals are a
           UI gate only, not a live-execution gate. Existing live strategies keep running through a
           revoke; the gate just hides the pair from new pickers.

@@ -114,7 +114,7 @@ export default function AdminStrategiesPage() {
           <h1 className="mt-1 font-display text-[24px] font-semibold tracking-tighter text-text-primary">
             Strategy catalogue
           </h1>
-          <p className="mt-1 max-w-xl text-[13px] text-text-secondary">
+          <p className="mt-1 max-w-xl text-[14px] text-text-secondary">
             Register new strategy definitions, edit display metadata, or deprecate obsolete ones.
             Codes are immutable once created — downstream tables (account_strategy, backtest_run,
             LSR/VCB params) key on the string.
@@ -220,9 +220,9 @@ function StrategyTable({
   return (
     <section className="overflow-hidden rounded-xl border border-bd-subtle bg-bg-surface">
       <div className="flex items-center justify-between border-b border-bd-subtle px-4 py-3">
-        <h3 className="font-display text-[13px] font-semibold text-text-primary">
+        <h3 className="font-display text-[14px] font-semibold text-text-primary">
           {label}
-          <span className="ml-2 font-mono text-[11px] text-text-muted">{rows.length}</span>
+          <span className="ml-2 font-mono text-[13px] text-text-muted">{rows.length}</span>
         </h3>
       </div>
       <div className="overflow-x-auto">
@@ -246,15 +246,15 @@ function StrategyTable({
                 className="group border-b border-bd-subtle last:border-b-0 hover:bg-bg-hover"
               >
                 <td className="num whitespace-nowrap px-4 py-3">
-                  <span className="font-mono text-[12px] font-semibold text-text-primary">
+                  <span className="font-mono text-[14px] font-semibold text-text-primary">
                     {row.strategyCode}
                   </span>
                 </td>
-                <td className="whitespace-nowrap px-4 py-3 text-[13px] text-text-primary">
+                <td className="whitespace-nowrap px-4 py-3 text-[14px] text-text-primary">
                   {row.strategyName}
                 </td>
                 <td className="whitespace-nowrap px-4 py-3">
-                  <span className="rounded-sm bg-bg-base px-1.5 py-0.5 font-mono text-[10px] text-text-secondary">
+                  <span className="rounded-sm bg-bg-base px-1.5 py-0.5 font-mono text-[12px] text-text-secondary">
                     {row.strategyType}
                   </span>
                 </td>
@@ -264,7 +264,7 @@ function StrategyTable({
                 <td className="whitespace-nowrap px-4 py-3">
                   <StatusBadge status={row.status} />
                 </td>
-                <td className="num whitespace-nowrap px-4 py-3 text-[11px] text-text-muted">
+                <td className="num whitespace-nowrap px-4 py-3 text-[13px] text-text-muted">
                   {safeDateFmt(row.updatedAt)}
                 </td>
                 <td className="whitespace-nowrap px-4 py-3 text-right">
@@ -272,7 +272,7 @@ function StrategyTable({
                     <button
                       type="button"
                       onClick={() => onEdit(row)}
-                      className="inline-flex items-center gap-1 rounded-sm border border-bd-subtle bg-bg-base px-2 py-1 text-[11px] text-text-primary transition-colors hover:bg-bg-hover"
+                      className="inline-flex items-center gap-1 rounded-sm border border-bd-subtle bg-bg-base px-2 py-1 text-[13px] text-text-primary transition-colors hover:bg-bg-hover"
                       aria-label={`Edit ${row.strategyCode}`}
                     >
                       <Edit3 size={11} strokeWidth={1.75} /> Edit
@@ -280,7 +280,7 @@ function StrategyTable({
                     <button
                       type="button"
                       onClick={() => onReplicate(row)}
-                      className="inline-flex items-center gap-1 rounded-sm border border-bd-subtle bg-bg-base px-2 py-1 text-[11px] text-text-primary transition-colors hover:bg-bg-hover"
+                      className="inline-flex items-center gap-1 rounded-sm border border-bd-subtle bg-bg-base px-2 py-1 text-[13px] text-text-primary transition-colors hover:bg-bg-hover"
                       aria-label={`Replicate ${row.strategyCode}`}
                     >
                       <Copy size={11} strokeWidth={1.75} /> Replicate
@@ -289,7 +289,7 @@ function StrategyTable({
                       <button
                         type="button"
                         onClick={() => onDeprecate(row)}
-                        className="inline-flex items-center gap-1 rounded-sm border border-bd-subtle bg-bg-base px-2 py-1 text-[11px] text-[var(--color-loss)] transition-colors hover:bg-[rgba(229,72,77,0.12)]"
+                        className="inline-flex items-center gap-1 rounded-sm border border-bd-subtle bg-bg-base px-2 py-1 text-[13px] text-[var(--color-loss)] transition-colors hover:bg-[rgba(229,72,77,0.12)]"
                         aria-label={`Deprecate ${row.strategyCode}`}
                       >
                         <Archive size={11} strokeWidth={1.75} /> Deprecate
@@ -311,7 +311,7 @@ function StatusBadge({ status }: { status: string }) {
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-1.5 rounded-sm px-1.5 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wider',
+        'inline-flex items-center gap-1.5 rounded-sm px-1.5 py-0.5 font-mono text-[12px] font-semibold uppercase tracking-wider',
       )}
       style={{ backgroundColor: meta.bg, color: meta.fg }}
     >
@@ -355,7 +355,7 @@ function AdminNotice() {
         className="mt-0.5 shrink-0 text-[var(--color-info)]"
         aria-hidden="true"
       />
-      <div className="text-[12px] leading-relaxed text-text-secondary">
+      <div className="text-[14px] leading-relaxed text-text-secondary">
         <span className="font-semibold text-text-primary">Admin action</span> — changes here surface
         everywhere downstream. Deprecating a strategy hides it from new selections but keeps
         historical backtests and live trades resolvable.

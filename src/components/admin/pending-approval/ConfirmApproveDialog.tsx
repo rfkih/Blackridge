@@ -166,29 +166,29 @@ export function ConfirmApproveDialog({
         {row && (
           <div className="flex flex-col gap-4">
             {/* Cited backtest metrics */}
-            <div className="bg-bg-surface-2 rounded-lg border border-bd-subtle p-3 text-[13px]">
-              <div className="mb-1.5 text-[12px] font-semibold text-text-secondary">
+            <div className="bg-bg-surface-2 rounded-lg border border-bd-subtle p-3 text-[14px]">
+              <div className="mb-1.5 text-[14px] font-semibold text-text-secondary">
                 Cited backtest
               </div>
-              <div className="text-text-tertiary mb-2 font-mono text-[11px]">
+              <div className="text-text-tertiary mb-2 font-mono text-[13px]">
                 {effectiveCitedId || row.backtestRunId}
               </div>
               <div className="flex items-center gap-4">
                 <div className="flex flex-col gap-0.5">
-                  <span className="text-text-tertiary text-[11px]">ag90</span>
+                  <span className="text-text-tertiary text-[13px]">ag90</span>
                   <span className="font-mono tabular-nums text-text-primary">
                     {formatAg90(metrics.ag90)}
                   </span>
                 </div>
                 <div className="flex flex-col gap-0.5">
-                  <span className="text-text-tertiary text-[11px]">n_trades</span>
+                  <span className="text-text-tertiary text-[13px]">n_trades</span>
                   <span className="font-mono tabular-nums text-text-primary">
                     {metrics.n_trades}
                   </span>
                 </div>
               </div>
               {isReplicated && (
-                <div className="mt-2 flex items-center gap-1.5 text-[11px] text-info">
+                <div className="mt-2 flex items-center gap-1.5 text-[13px] text-info">
                   <Info className="h-3 w-3 shrink-0" />
                   Using a replicated run — metrics may differ from original evidence.
                 </div>
@@ -198,10 +198,10 @@ export function ConfirmApproveDialog({
             {/* Concerns — shown for HOLD rows */}
             {isHoldWithConcerns && (
               <div className="border-warning/30 bg-warning/5 rounded-lg border p-3">
-                <div className="mb-2 text-[12px] font-semibold text-warning">
+                <div className="mb-2 text-[14px] font-semibold text-warning">
                   Curator concerns (verdict: HOLD)
                 </div>
-                <ul className="space-y-2 text-[12px]">
+                <ul className="space-y-2 text-[14px]">
                   {row.concerns.map((c, i) => (
                     <li
                       key={`${c.source}-${i}`}
@@ -221,12 +221,12 @@ export function ConfirmApproveDialog({
             {/* 422 GATE_FAILED inline render — mirrors V102 NewApprovalDialog pattern */}
             {gateFailure && (
               <div className="border-warning/30 bg-warning/5 space-y-1 rounded-sm border px-3 py-2">
-                <div className="flex items-center gap-1.5 text-[11px] font-semibold text-warning">
+                <div className="flex items-center gap-1.5 text-[13px] font-semibold text-warning">
                   <AlertCircle className="h-3 w-3 shrink-0" />
                   Gate rejected this approval — {gateFailure.failedChecks.length} threshold
                   {gateFailure.failedChecks.length === 1 ? '' : 's'} not met
                 </div>
-                <ul className="space-y-0.5 pl-4 text-[11px] text-warning">
+                <ul className="space-y-0.5 pl-4 text-[13px] text-warning">
                   {gateFailure.failedChecks.map((c) => (
                     <li key={c.name} className="font-mono">
                       {c.name}: threshold <span className="font-semibold">{c.threshold}</span> &gt;

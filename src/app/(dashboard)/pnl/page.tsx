@@ -98,7 +98,7 @@ function HedgingPnlContent() {
             type="button"
             onClick={() => setPeriod(p)}
             className={cn(
-              'rounded-sm px-2.5 py-1 font-mono text-[11px] transition-colors',
+              'rounded-sm px-2.5 py-1 font-mono text-[13px] transition-colors',
               period === p
                 ? 'bg-bg-elevated text-text-primary'
                 : 'text-text-muted hover:text-text-primary',
@@ -218,10 +218,10 @@ function PnlPageContent() {
 
       <section className="overflow-hidden rounded-xl border border-bd-subtle bg-bg-surface">
         <div className="flex items-center justify-between border-b border-bd-subtle px-4 py-3">
-          <h3 className="font-display text-[13px] font-semibold text-text-primary">
+          <h3 className="font-display text-[14px] font-semibold text-text-primary">
             Daily P&amp;L
           </h3>
-          <span className="font-mono text-[11px] text-text-muted">
+          <span className="font-mono text-[13px] text-text-muted">
             {dailySeries.length} day{dailySeries.length === 1 ? '' : 's'}
           </span>
         </div>
@@ -243,11 +243,11 @@ function PnlPageContent() {
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-5">
         <section className="overflow-hidden rounded-xl border border-bd-subtle bg-bg-surface lg:col-span-3">
           <div className="flex items-center justify-between border-b border-bd-subtle px-4 py-3">
-            <h3 className="font-display text-[13px] font-semibold text-text-primary">
+            <h3 className="font-display text-[14px] font-semibold text-text-primary">
               Cumulative P&amp;L
             </h3>
             <span
-              className="num font-mono text-[11px] tabular-nums"
+              className="num font-mono text-[13px] tabular-nums"
               style={{
                 color: stats.total >= 0 ? 'var(--color-profit)' : 'var(--color-loss)',
               }}
@@ -271,10 +271,10 @@ function PnlPageContent() {
 
         <section className="overflow-hidden rounded-xl border border-bd-subtle bg-bg-surface lg:col-span-2">
           <div className="flex items-center justify-between border-b border-bd-subtle px-4 py-3">
-            <h3 className="font-display text-[13px] font-semibold text-text-primary">
+            <h3 className="font-display text-[14px] font-semibold text-text-primary">
               Per-Strategy
             </h3>
-            <span className="font-mono text-[11px] text-text-muted">
+            <span className="font-mono text-[13px] text-text-muted">
               {byStratQ.data?.length ?? 0} strateg
               {byStratQ.data?.length === 1 ? 'y' : 'ies'}
             </span>
@@ -359,7 +359,7 @@ function FilterBar({
             symbol: '',
           })
         }
-        className="ml-auto inline-flex items-center gap-1.5 rounded-sm border border-bd-subtle bg-bg-base px-3 py-1.5 text-[11px] text-text-secondary transition-colors hover:bg-bg-hover hover:text-text-primary"
+        className="ml-auto inline-flex items-center gap-1.5 rounded-sm border border-bd-subtle bg-bg-base px-3 py-1.5 text-[13px] text-text-secondary transition-colors hover:bg-bg-hover hover:text-text-primary"
       >
         <RefreshCw size={11} strokeWidth={1.75} /> Reset
       </button>
@@ -393,7 +393,7 @@ function DateInput({
         min={min}
         max={max}
         placeholder={label}
-        className={cn('h-8 px-2 text-[12px]')}
+        className={cn('h-8 px-2 text-[14px]')}
       />
     </label>
   );
@@ -420,7 +420,7 @@ function SelectInput({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         className={cn(
-          'h-8 rounded-sm border border-bd-subtle bg-bg-base px-2 text-[12px] text-text-primary',
+          'h-8 rounded-sm border border-bd-subtle bg-bg-base px-2 text-[14px] text-text-primary',
           'focus:border-bd focus:outline-none focus-visible:ring-2 focus-visible:ring-ring',
         )}
       >
@@ -543,21 +543,21 @@ function StrategyTable({ rows }: { rows: StrategyPnl[] }) {
                   <PnlCell value={r.totalPnl} noFlash />
                 </td>
                 <td
-                  className="num whitespace-nowrap px-3 py-2 text-[12px]"
+                  className="num whitespace-nowrap px-3 py-2 text-[14px]"
                   style={{
                     color: r.winRate >= 50 ? 'var(--color-profit)' : 'var(--color-loss)',
                   }}
                 >
                   {r.winRate.toFixed(1)}%
                 </td>
-                <td className="num whitespace-nowrap px-3 py-2 text-[12px] text-text-primary">
+                <td className="num whitespace-nowrap px-3 py-2 text-[14px] text-text-primary">
                   {r.tradeCount}
                 </td>
                 <td className="whitespace-nowrap px-3 py-2">
                   <PnlCell value={avg} noFlash />
                 </td>
                 <td
-                  className="num whitespace-nowrap px-3 py-2 text-[12px]"
+                  className="num whitespace-nowrap px-3 py-2 text-[14px]"
                   title="Mean per-trade return rate (pnl ÷ notional × 100). Sizing-independent."
                   style={{
                     color:
@@ -571,7 +571,7 @@ function StrategyTable({ rows }: { rows: StrategyPnl[] }) {
                   {avgPct != null ? `${avgPct >= 0 ? '+' : ''}${avgPct.toFixed(3)}%` : '—'}
                 </td>
                 <td
-                  className="num whitespace-nowrap px-3 py-2 text-[12px]"
+                  className="num whitespace-nowrap px-3 py-2 text-[14px]"
                   title="Compounded return assuming every trade had been sized at 90% of equity."
                   style={{
                     color:
@@ -597,13 +597,13 @@ function StrategyTable({ rows }: { rows: StrategyPnl[] }) {
 
 function ChartError({ onRetry }: { onRetry: () => void }) {
   return (
-    <div className="flex flex-col items-center justify-center gap-2 py-10 text-[12px] text-text-muted">
+    <div className="flex flex-col items-center justify-center gap-2 py-10 text-[14px] text-text-muted">
       <AlertCircle size={18} />
       <span>Could not load P&L data.</span>
       <button
         type="button"
         onClick={onRetry}
-        className="inline-flex items-center gap-1 rounded-sm border border-bd-subtle bg-bg-base px-2 py-1 text-[11px] text-text-primary hover:bg-bg-hover"
+        className="inline-flex items-center gap-1 rounded-sm border border-bd-subtle bg-bg-base px-2 py-1 text-[13px] text-text-primary hover:bg-bg-hover"
       >
         <RefreshCw size={11} /> Retry
       </button>
@@ -613,7 +613,7 @@ function ChartError({ onRetry }: { onRetry: () => void }) {
 
 function EmptyChartState({ label }: { label: string }) {
   return (
-    <div className="flex flex-col items-center justify-center gap-2 py-10 text-[12px] text-text-muted">
+    <div className="flex flex-col items-center justify-center gap-2 py-10 text-[14px] text-text-muted">
       <BarChart3 size={18} />
       <span>{label}</span>
     </div>

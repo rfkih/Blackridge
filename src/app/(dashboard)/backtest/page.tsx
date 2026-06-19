@@ -200,7 +200,7 @@ function BacktestListContent() {
         size: 56,
         enableSorting: false,
         cell: ({ row }) => (
-          <span className="num text-[12px] text-text-muted">
+          <span className="num text-[14px] text-text-muted">
             {String(filters.page * filters.size + row.index + 1).padStart(3, '0')}
           </span>
         ),
@@ -230,7 +230,7 @@ function BacktestListContent() {
         accessorKey: 'symbol',
         header: 'Symbol',
         cell: ({ row }) => (
-          <span className="num text-[13px] text-text-primary">{row.original.symbol}</span>
+          <span className="num text-[14px] text-text-primary">{row.original.symbol}</span>
         ),
       },
       {
@@ -239,7 +239,7 @@ function BacktestListContent() {
         header: 'Interval',
         enableSorting: false,
         cell: ({ row }) => (
-          <span className="num text-[12px] text-text-secondary">{row.original.interval}</span>
+          <span className="num text-[14px] text-text-secondary">{row.original.interval}</span>
         ),
       },
       {
@@ -247,7 +247,7 @@ function BacktestListContent() {
         header: 'Date range',
         enableSorting: false,
         cell: ({ row }) => (
-          <span className="num whitespace-nowrap text-[11px] text-text-muted">
+          <span className="num whitespace-nowrap text-[13px] text-text-muted">
             {safeDateFmt(row.original.fromDate)}
             <span className="mx-1 text-text-muted">→</span>
             {safeDateFmt(row.original.toDate)}
@@ -259,7 +259,7 @@ function BacktestListContent() {
         accessorKey: 'createdAt',
         header: 'Run at',
         cell: ({ row }) => (
-          <span className="num whitespace-nowrap text-[11px] text-text-secondary">
+          <span className="num whitespace-nowrap text-[13px] text-text-secondary">
             {safeDateTimeFmt(row.original.createdAt)}
           </span>
         ),
@@ -283,7 +283,7 @@ function BacktestListContent() {
         cell: ({ row }) => {
           const v = row.original.metrics?.sharpe;
           return (
-            <span className="num text-[12px] text-text-primary">
+            <span className="num text-[14px] text-text-primary">
               {v != null ? v.toFixed(2) : '—'}
             </span>
           );
@@ -297,7 +297,7 @@ function BacktestListContent() {
           const v = row.original.metrics?.maxDrawdownPct;
           return (
             <span
-              className="num text-[12px]"
+              className="num text-[14px]"
               style={{ color: v != null ? 'var(--color-loss)' : 'var(--text-muted)' }}
             >
               {v != null ? `−${v.toFixed(2)}%` : '—'}
@@ -310,7 +310,7 @@ function BacktestListContent() {
         header: 'Trades',
         accessorFn: (r) => r.metrics?.totalTrades ?? null,
         cell: ({ row }) => (
-          <span className="num text-[12px] text-text-secondary">
+          <span className="num text-[14px] text-text-secondary">
             {row.original.metrics?.totalTrades ?? '—'}
           </span>
         ),
@@ -322,7 +322,7 @@ function BacktestListContent() {
         cell: ({ row }) => {
           const v = row.original.metrics?.winRate;
           return (
-            <span className="num text-[12px] text-text-primary">
+            <span className="num text-[14px] text-text-primary">
               {v != null ? `${v.toFixed(1)}%` : '—'}
             </span>
           );
@@ -335,7 +335,7 @@ function BacktestListContent() {
         enableSorting: false,
         enableHiding: false,
         cell: () => (
-          <div className="flex items-center justify-end gap-0.5 text-[11px] text-text-muted">
+          <div className="flex items-center justify-end gap-0.5 text-[13px] text-text-muted">
             View
             <ChevronRight size={12} strokeWidth={1.75} />
           </div>
@@ -353,13 +353,13 @@ function BacktestListContent() {
         description="Simulate strategies against historical data. Filter, sort, and re-run with tweaked params any time."
         actions={
           <>
-            <span className="text-[11px] text-text-muted">
+            <span className="text-[13px] text-text-muted">
               {total} run{total === 1 ? '' : 's'} · page {filters.page + 1} of {totalPages}
             </span>
             <Link
               href="/backtest/research"
               className="mm-btn"
-              style={{ borderRadius: 9999, padding: '9px 16px', fontSize: 13 }}
+              style={{ borderRadius: 9999, padding: '9px 16px', fontSize: 14 }}
               title="Iterative multi-round parameter search"
             >
               Research mode →
@@ -367,7 +367,7 @@ function BacktestListContent() {
             <Link
               href="/backtest/new"
               className="mm-btn mm-btn-mint inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap"
-              style={{ borderRadius: 9999, padding: '9px 16px', fontSize: 13 }}
+              style={{ borderRadius: 9999, padding: '9px 16px', fontSize: 14 }}
             >
               <Plus size={14} strokeWidth={2.2} className="shrink-0" />
               New Backtest
@@ -390,7 +390,7 @@ function BacktestListContent() {
                 type="button"
                 onClick={() => patchFilters({ status: s.value })}
                 className={cn(
-                  'rounded-full px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider transition-colors',
+                  'rounded-full px-3 py-1.5 text-[13px] font-semibold uppercase tracking-wider transition-colors',
                   active
                     ? 'bg-white/10 text-white'
                     : 'text-text-muted hover:bg-bg-hover hover:text-text-secondary',
@@ -411,7 +411,7 @@ function BacktestListContent() {
             patchFilters({ source: filters.source === 'RESEARCHER' ? 'USER' : 'RESEARCHER' })
           }
           className={cn(
-            'rounded-full px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider transition-colors',
+            'rounded-full px-3 py-1.5 text-[13px] font-semibold uppercase tracking-wider transition-colors',
             filters.source === 'RESEARCHER'
               ? 'bg-[var(--color-bot)]/15 text-[var(--color-bot)]'
               : 'text-text-muted hover:bg-bg-hover hover:text-text-secondary',
@@ -421,7 +421,7 @@ function BacktestListContent() {
           Researcher
         </button>
 
-        <div className="flex items-center gap-2 text-[11px] text-text-muted">
+        <div className="flex items-center gap-2 text-[13px] text-text-muted">
           <span>Strategy</span>
           <input
             aria-label="Filter by strategy code"
@@ -429,11 +429,11 @@ function BacktestListContent() {
             value={filters.strategyCode}
             onChange={(e) => patchFilters({ strategyCode: e.target.value.toUpperCase() })}
             placeholder="LSR_V2"
-            className="h-8 w-[140px] rounded-md border border-bd-subtle bg-bg-base px-2 font-mono text-[12px] uppercase text-text-primary placeholder:normal-case placeholder:text-[var(--text-muted)] focus:border-[var(--accent-primary)] focus:outline-none"
+            className="h-8 w-[140px] rounded-md border border-bd-subtle bg-bg-base px-2 font-mono text-[14px] uppercase text-text-primary placeholder:normal-case placeholder:text-[var(--text-muted)] focus:border-[var(--accent-primary)] focus:outline-none"
           />
         </div>
 
-        <div className="flex items-center gap-2 text-[11px] text-text-muted">
+        <div className="flex items-center gap-2 text-[13px] text-text-muted">
           <span>Symbol</span>
           <input
             aria-label="Filter by symbol"
@@ -441,17 +441,17 @@ function BacktestListContent() {
             value={filters.symbol}
             onChange={(e) => patchFilters({ symbol: e.target.value.toUpperCase() })}
             placeholder="e.g. BTCUSDT, ETHUSDT"
-            className="h-8 w-[120px] rounded-md border border-bd-subtle bg-bg-base px-2 font-mono text-[12px] uppercase text-text-primary placeholder:normal-case placeholder:text-[var(--text-muted)] focus:border-[var(--accent-primary)] focus:outline-none"
+            className="h-8 w-[120px] rounded-md border border-bd-subtle bg-bg-base px-2 font-mono text-[14px] uppercase text-text-primary placeholder:normal-case placeholder:text-[var(--text-muted)] focus:border-[var(--accent-primary)] focus:outline-none"
           />
         </div>
 
-        <div className="flex items-center gap-2 text-[11px] text-text-muted">
+        <div className="flex items-center gap-2 text-[13px] text-text-muted">
           <span>Interval</span>
           <select
             aria-label="Filter by interval"
             value={filters.interval}
             onChange={(e) => patchFilters({ interval: e.target.value })}
-            className="h-8 rounded-md border border-bd-subtle bg-bg-base px-2 text-[12px] text-text-primary focus:outline-none"
+            className="h-8 rounded-md border border-bd-subtle bg-bg-base px-2 text-[14px] text-text-primary focus:outline-none"
           >
             {INTERVALS.map((iv) => (
               <option key={iv || 'all'} value={iv}>
@@ -461,7 +461,7 @@ function BacktestListContent() {
           </select>
         </div>
 
-        <div className="flex items-center gap-2 text-[11px] text-text-muted">
+        <div className="flex items-center gap-2 text-[13px] text-text-muted">
           <span>Run from</span>
           <DatePicker
             id="backtest-list-from"
@@ -469,10 +469,10 @@ function BacktestListContent() {
             onChange={(v) => patchFilters({ from: v })}
             placeholder="Run from"
             clearable
-            className="h-8 px-2 text-[12px]"
+            className="h-8 px-2 text-[14px]"
           />
         </div>
-        <div className="flex items-center gap-2 text-[11px] text-text-muted">
+        <div className="flex items-center gap-2 text-[13px] text-text-muted">
           <span>Run to</span>
           <DatePicker
             id="backtest-list-to"
@@ -480,17 +480,17 @@ function BacktestListContent() {
             onChange={(v) => patchFilters({ to: v })}
             placeholder="Run to"
             clearable
-            className="h-8 px-2 text-[12px]"
+            className="h-8 px-2 text-[14px]"
           />
         </div>
 
-        <div className="ml-auto flex items-center gap-2 text-[11px] text-text-muted">
+        <div className="ml-auto flex items-center gap-2 text-[13px] text-text-muted">
           <span>Rows</span>
           <select
             aria-label="Page size"
             value={filters.size}
             onChange={(e) => patchFilters({ size: Number(e.target.value) })}
-            className="h-8 rounded-md border border-bd-subtle bg-bg-base px-2 text-[12px] text-text-primary focus:outline-none"
+            className="h-8 rounded-md border border-bd-subtle bg-bg-base px-2 text-[14px] text-text-primary focus:outline-none"
           >
             {PAGE_SIZES.map((n) => (
               <option key={n} value={n}>
@@ -512,7 +512,7 @@ function BacktestListContent() {
                   to: '',
                 });
               }}
-              className="inline-flex h-8 items-center gap-1 rounded-md border border-bd-subtle bg-bg-base px-2.5 text-[11px] text-text-muted transition-colors hover:border-bd hover:text-text-primary"
+              className="inline-flex h-8 items-center gap-1 rounded-md border border-bd-subtle bg-bg-base px-2.5 text-[13px] text-text-muted transition-colors hover:border-bd hover:text-text-primary"
             >
               <X size={11} strokeWidth={1.75} />
               Clear
@@ -531,7 +531,7 @@ function BacktestListContent() {
             <button
               type="button"
               onClick={() => runsQuery.refetch()}
-              className="rounded-sm border border-bd-subtle bg-bg-base px-3 py-1.5 text-[12px] text-text-primary transition-colors duration-fast hover:bg-bg-hover"
+              className="rounded-sm border border-bd-subtle bg-bg-base px-3 py-1.5 text-[14px] text-text-primary transition-colors duration-fast hover:bg-bg-hover"
             >
               Retry
             </button>
@@ -545,7 +545,7 @@ function BacktestListContent() {
           action={
             <Link
               href="/backtest/new"
-              className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-sm bg-profit px-3 py-2 text-[12px] font-semibold text-text-inverse transition-opacity duration-fast hover:opacity-90"
+              className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-sm bg-profit px-3 py-2 text-[14px] font-semibold text-text-inverse transition-opacity duration-fast hover:opacity-90"
             >
               <Plus size={13} strokeWidth={2} className="shrink-0" />
               New Backtest
@@ -572,7 +572,7 @@ function BacktestListContent() {
       {}
       {!runsQuery.isLoading && total > filters.size && (
         <div className="flex flex-wrap items-center justify-between gap-3 px-1">
-          <div className="text-[11px] text-text-muted">
+          <div className="text-[13px] text-text-muted">
             Showing {filters.page * filters.size + 1}–
             {Math.min((filters.page + 1) * filters.size, total)} of {total}
           </div>
@@ -583,7 +583,7 @@ function BacktestListContent() {
                 patchFilters({ page: Math.max(0, filters.page - 1) }, { resetPage: false })
               }
               disabled={filters.page === 0}
-              className="rounded-xl border border-bd-subtle bg-bg-surface px-3 py-1.5 text-[11px] text-text-secondary transition-colors hover:bg-bg-hover disabled:opacity-40"
+              className="rounded-xl border border-bd-subtle bg-bg-surface px-3 py-1.5 text-[13px] text-text-secondary transition-colors hover:bg-bg-hover disabled:opacity-40"
             >
               Previous
             </button>
@@ -591,7 +591,7 @@ function BacktestListContent() {
               type="button"
               onClick={() => patchFilters({ page: filters.page + 1 }, { resetPage: false })}
               disabled={filters.page + 1 >= totalPages}
-              className="rounded-xl border border-bd-subtle bg-bg-surface px-3 py-1.5 text-[11px] text-text-secondary transition-colors hover:bg-bg-hover disabled:opacity-40"
+              className="rounded-xl border border-bd-subtle bg-bg-surface px-3 py-1.5 text-[13px] text-text-secondary transition-colors hover:bg-bg-hover disabled:opacity-40"
             >
               Next
             </button>
@@ -660,7 +660,7 @@ function StatusPill({ status }: { status: BacktestStatus | string }) {
   const meta = resolveStatusMeta(status);
   return (
     <span
-      className="inline-flex items-center gap-1.5 rounded-sm px-1.5 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wider"
+      className="inline-flex items-center gap-1.5 rounded-sm px-1.5 py-0.5 font-mono text-[12px] font-semibold uppercase tracking-wider"
       style={{ backgroundColor: meta.bg, color: meta.text }}
     >
       <span
@@ -675,13 +675,13 @@ function StatusPill({ status }: { status: BacktestStatus | string }) {
 
 function ReturnCell({ value }: { value: number | undefined | null }) {
   if (value == null) {
-    return <span className="num text-[12px] text-text-muted">—</span>;
+    return <span className="num text-[14px] text-text-muted">—</span>;
   }
   const isUp = value >= 0;
   const Icon = isUp ? TrendingUp : TrendingDown;
   return (
     <span
-      className="num inline-flex items-center gap-1 text-[12px] font-semibold"
+      className="num inline-flex items-center gap-1 text-[14px] font-semibold"
       style={{ color: isUp ? 'var(--color-profit)' : 'var(--color-loss)' }}
     >
       <Icon size={11} strokeWidth={2} />

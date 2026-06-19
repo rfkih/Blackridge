@@ -99,7 +99,7 @@ export function CandlestickChart({
           background: { type: tv.ColorType.Solid, color: c.BG },
           textColor: c.TEXT,
           fontFamily: "'IBM Plex Mono', ui-monospace, monospace",
-          fontSize: 11,
+          fontSize: 13,
         },
         grid: {
           vertLines: { color: c.GRID },

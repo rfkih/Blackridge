@@ -92,7 +92,7 @@ function LegendToggle({
       />
       <label
         htmlFor={id}
-        className="flex cursor-pointer items-center gap-1 font-mono text-[10px] font-semibold"
+        className="flex cursor-pointer items-center gap-1 font-mono text-[12px] font-semibold"
         style={{ color, opacity: checked ? 1 : 0.4 }}
       >
         <span aria-hidden>●</span> {label}
@@ -115,11 +115,11 @@ function PanelShell({
   return (
     <div className="flex flex-col overflow-hidden rounded-xl border border-bd-subtle bg-bg-surface">
       <div className="flex items-baseline justify-between gap-3 border-b border-bd-subtle px-4 py-3">
-        <h3 className="font-display text-[13px] font-semibold text-text-primary">{title}</h3>
+        <h3 className="font-display text-[14px] font-semibold text-text-primary">{title}</h3>
         <div className="flex items-baseline gap-3">
           {headerRight}
           {subtitle && (
-            <span className="font-mono text-[11px] tabular-nums text-text-muted">{subtitle}</span>
+            <span className="font-mono text-[13px] tabular-nums text-text-muted">{subtitle}</span>
           )}
         </div>
       </div>
@@ -235,7 +235,7 @@ export function BacktestEquityPanel({
             hasBuyHold || hasComposition ? (
               <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
                 <span
-                  className="flex items-center gap-1 font-mono text-[10px] font-semibold"
+                  className="flex items-center gap-1 font-mono text-[12px] font-semibold"
                   style={{ color: '#00C896' }}
                 >
                   <span aria-hidden>●</span> Strategy
@@ -300,7 +300,7 @@ export function BacktestEquityPanel({
 
 function EmptyChartState({ label }: { label: string }) {
   return (
-    <div className="flex h-[220px] items-center justify-center text-[12px] text-text-muted">
+    <div className="flex h-[220px] items-center justify-center text-[14px] text-text-muted">
       {label}
     </div>
   );

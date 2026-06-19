@@ -159,11 +159,11 @@ export function NewApprovalDialog({
     <Dialog open={open} onOpenChange={(v) => !pending && onOpenChange(v)}>
       <DialogContent className="max-w-lg border-bd-subtle bg-bg-surface">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-[14px]">
+          <DialogTitle className="flex items-center gap-2 text-[15px]">
             <ShieldCheck size={14} className="text-profit" />
             {mode === 'attach' ? 'Attach evidence to approval' : 'Approve a strategy for a symbol'}
           </DialogTitle>
-          <DialogDescription className="text-[12px] text-text-secondary">
+          <DialogDescription className="text-[14px] text-text-secondary">
             {mode === 'attach'
               ? 'Attach a backtest run that clears the per-symbol thresholds — flips this row from grandfathered to approved.'
               : 'Approving a (symbol, strategy) pair unlocks it in the New Strategy picker. The backend gate enforces the per-symbol thresholds.'}
@@ -173,14 +173,14 @@ export function NewApprovalDialog({
         <div className="space-y-3">
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
-              <Label className="label-caps !text-[9px]">Symbol</Label>
+              <Label className="label-caps !text-[12px]">Symbol</Label>
               {lockedSymbol ? (
-                <div className="rounded-sm border border-bd-subtle bg-bg-base px-2 py-1.5 font-mono text-[12px] text-text-primary">
+                <div className="rounded-sm border border-bd-subtle bg-bg-base px-2 py-1.5 font-mono text-[14px] text-text-primary">
                   {lockedSymbol}
                 </div>
               ) : (
                 <Select value={symbol} onValueChange={setSymbol}>
-                  <SelectTrigger className="h-8 text-[12px]">
+                  <SelectTrigger className="h-8 text-[14px]">
                     <SelectValue placeholder="Pick a symbol" />
                   </SelectTrigger>
                   <SelectContent>
@@ -195,9 +195,9 @@ export function NewApprovalDialog({
             </div>
 
             <div className="space-y-1">
-              <Label className="label-caps !text-[9px]">Strategy code</Label>
+              <Label className="label-caps !text-[12px]">Strategy code</Label>
               {lockedCode ? (
-                <div className="rounded-sm border border-bd-subtle bg-bg-base px-2 py-1.5 font-mono text-[12px] text-text-primary">
+                <div className="rounded-sm border border-bd-subtle bg-bg-base px-2 py-1.5 font-mono text-[14px] text-text-primary">
                   {lockedCode}
                 </div>
               ) : (
@@ -206,7 +206,7 @@ export function NewApprovalDialog({
                   onValueChange={setStrategyCode}
                   disabled={!symbol || eligibleCodes.length === 0}
                 >
-                  <SelectTrigger className="h-8 text-[12px]">
+                  <SelectTrigger className="h-8 text-[14px]">
                     <SelectValue
                       placeholder={
                         !symbol
@@ -230,7 +230,7 @@ export function NewApprovalDialog({
           </div>
 
           {threshold && (
-            <div className="rounded-sm border border-bd-subtle bg-bg-base px-3 py-2 text-[10px] font-mono text-text-secondary">
+            <div className="rounded-sm border border-bd-subtle bg-bg-base px-3 py-2 text-[12px] font-mono text-text-secondary">
               Bar for {threshold.symbol}: CAGR ≥ {threshold.minCagrPct}% · cap ≥ $
               {threshold.minInitialCapitalUsd} · window ≥ {threshold.minWindowDays}d · trades ≥{' '}
               {threshold.minTrades}
@@ -239,7 +239,7 @@ export function NewApprovalDialog({
 
           {symbol && strategyCode && (
             <div className="space-y-1">
-              <Label className="label-caps !text-[9px]">Backtest run (evidence)</Label>
+              <Label className="label-caps !text-[12px]">Backtest run (evidence)</Label>
               <BacktestRunPicker
                 symbol={symbol}
                 strategyCode={strategyCode}
@@ -251,13 +251,13 @@ export function NewApprovalDialog({
           )}
 
           <div className="space-y-1">
-            <Label className="label-caps !text-[9px]">Notes (optional)</Label>
+            <Label className="label-caps !text-[12px]">Notes (optional)</Label>
             <Input
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="e.g. tuned 2026-05 on 4h"
               maxLength={500}
-              className="h-8 text-[12px]"
+              className="h-8 text-[14px]"
             />
           </div>
 
@@ -286,12 +286,12 @@ export function NewApprovalDialog({
 function GateFailureCallout({ failure }: { failure: GateFailureBody }) {
   return (
     <div className="space-y-1 rounded-sm border border-[var(--color-loss)]/30 bg-[var(--tint-loss)] px-3 py-2">
-      <div className="flex items-center gap-1.5 text-[11px] font-semibold text-[var(--color-loss)]">
+      <div className="flex items-center gap-1.5 text-[13px] font-semibold text-[var(--color-loss)]">
         <AlertCircle size={12} />
         Gate rejected this run — {failure.failedChecks.length} threshold
         {failure.failedChecks.length === 1 ? '' : 's'} not met
       </div>
-      <ul className="space-y-0.5 pl-4 text-[11px] text-[var(--color-loss)]">
+      <ul className="space-y-0.5 pl-4 text-[13px] text-[var(--color-loss)]">
         {failure.failedChecks.map((c) => (
           <li key={c.name} className="font-mono">
             {humanizeCheckName(c.name)}: needed{' '}

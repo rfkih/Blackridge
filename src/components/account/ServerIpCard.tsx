@@ -55,7 +55,7 @@ export function ServerIpCard({ variant = 'card' }: ServerIpCardProps) {
         <div
           className="font-mono"
           style={{
-            fontSize: 9,
+            fontSize: 12,
             letterSpacing: '0.16em',
             color: 'var(--mm-ink-3, var(--text-muted))',
             textTransform: 'uppercase',
@@ -67,7 +67,7 @@ export function ServerIpCard({ variant = 'card' }: ServerIpCardProps) {
           className="font-mono"
           style={{
             marginTop: 2,
-            fontSize: compact ? 13 : 15,
+            fontSize: compact ? 14 : 15,
             color: 'var(--mm-ink-0, var(--text-primary))',
             overflow: 'hidden',
             textOverflow: 'ellipsis',
@@ -92,7 +92,7 @@ export function ServerIpCard({ variant = 'card' }: ServerIpCardProps) {
         className="mm-btn mm-btn-ghost"
         style={{
           padding: compact ? '4px 7px' : '6px 9px',
-          fontSize: 11,
+          fontSize: 13,
           display: 'inline-flex',
           alignItems: 'center',
           gap: 4,
@@ -108,7 +108,7 @@ export function ServerIpCard({ variant = 'card' }: ServerIpCardProps) {
         className="mm-btn mm-btn-ghost"
         style={{
           padding: compact ? '4px 7px' : '6px 9px',
-          fontSize: 11,
+          fontSize: 13,
           display: 'inline-flex',
           alignItems: 'center',
           gap: 4,

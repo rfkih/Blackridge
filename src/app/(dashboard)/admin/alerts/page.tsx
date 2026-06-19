@@ -69,7 +69,7 @@ export default function AdminAlertsPage() {
           type="button"
           onClick={() => query.refetch()}
           className="mm-pill"
-          style={{ padding: '8px 12px', fontSize: 12 }}
+          style={{ padding: '8px 12px', fontSize: 14 }}
           aria-label="Refresh alerts"
         >
           {query.isFetching && !query.isLoading ? (
@@ -85,7 +85,7 @@ export default function AdminAlertsPage() {
       <div className="flex flex-col gap-2 rounded-xl border border-bd-subtle bg-bg-surface px-3 py-2.5">
         {}
         <div className="flex items-center gap-2">
-          <span className="w-20 shrink-0 text-[11px] uppercase tracking-widest text-text-muted">
+          <span className="w-20 shrink-0 text-[13px] uppercase tracking-widest text-text-muted">
             Search
           </span>
           <div className="relative">
@@ -98,14 +98,14 @@ export default function AdminAlertsPage() {
               placeholder="message or kind…"
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
-              className="h-7 w-64 rounded-sm border border-bd-subtle bg-bg-base pl-6 pr-2 font-mono text-[12px] text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-1 focus:ring-[var(--accent-primary)]"
+              className="h-7 w-64 rounded-sm border border-bd-subtle bg-bg-base pl-6 pr-2 font-mono text-[14px] text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-1 focus:ring-[var(--accent-primary)]"
             />
           </div>
         </div>
 
         {}
         <div className="flex items-center gap-2">
-          <span className="w-20 shrink-0 text-[11px] uppercase tracking-widest text-text-muted">
+          <span className="w-20 shrink-0 text-[13px] uppercase tracking-widest text-text-muted">
             Severity
           </span>
           <div className="flex flex-wrap items-center gap-1.5">
@@ -119,7 +119,7 @@ export default function AdminAlertsPage() {
                     setSeverity(f.value);
                     setPage(0);
                   }}
-                  className="rounded-sm px-2 py-1 text-[12px] transition-colors"
+                  className="rounded-sm px-2 py-1 text-[14px] transition-colors"
                   style={{
                     background: active ? 'var(--bg-hover)' : 'transparent',
                     color: active ? 'var(--text-primary)' : 'var(--text-secondary)',
@@ -136,7 +136,7 @@ export default function AdminAlertsPage() {
 
         {}
         <div className="flex items-center gap-3">
-          <span className="w-20 shrink-0 text-[11px] uppercase tracking-widest text-text-muted">
+          <span className="w-20 shrink-0 text-[13px] uppercase tracking-widest text-text-muted">
             Sort
           </span>
           <select
@@ -145,7 +145,7 @@ export default function AdminAlertsPage() {
               setSort(e.target.value);
               setPage(0);
             }}
-            className="h-7 rounded-sm border border-bd-subtle bg-bg-base px-2 font-mono text-[12px] text-text-primary"
+            className="h-7 rounded-sm border border-bd-subtle bg-bg-base px-2 font-mono text-[14px] text-text-primary"
           >
             {SORT_OPTIONS.map((o) => (
               <option key={o.value} value={o.value}>
@@ -156,7 +156,7 @@ export default function AdminAlertsPage() {
 
           <span className="mx-1 h-4 w-px bg-bd-subtle" />
 
-          <label className="flex cursor-pointer items-center gap-1.5 text-[12px] text-text-secondary">
+          <label className="flex cursor-pointer items-center gap-1.5 text-[14px] text-text-secondary">
             <input
               type="checkbox"
               checked={includeSuppressed}
@@ -168,7 +168,7 @@ export default function AdminAlertsPage() {
             Show suppressed
           </label>
 
-          <span className="ml-auto font-mono text-[10px] uppercase tracking-widest text-text-muted">
+          <span className="ml-auto font-mono text-[12px] uppercase tracking-widest text-text-muted">
             {totalElements} {totalElements === 1 ? 'event' : 'events'}
           </span>
         </div>
@@ -193,7 +193,7 @@ export default function AdminAlertsPage() {
 
       {}
       {totalPages > 1 && (
-        <div className="flex items-center justify-between text-[12px] text-text-muted">
+        <div className="flex items-center justify-between text-[14px] text-text-muted">
           <span>
             {totalElements} event{totalElements !== 1 ? 's' : ''} · page {page + 1} of {totalPages}
           </span>
@@ -203,7 +203,7 @@ export default function AdminAlertsPage() {
               onClick={() => setPage((p) => Math.max(0, p - 1))}
               disabled={page <= 0}
               className="mm-pill disabled:cursor-not-allowed disabled:opacity-50"
-              style={{ padding: '6px 10px', fontSize: 12 }}
+              style={{ padding: '6px 10px', fontSize: 14 }}
             >
               ← Prev
             </button>
@@ -212,7 +212,7 @@ export default function AdminAlertsPage() {
               onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
               disabled={page >= totalPages - 1}
               className="mm-pill disabled:cursor-not-allowed disabled:opacity-50"
-              style={{ padding: '6px 10px', fontSize: 12 }}
+              style={{ padding: '6px 10px', fontSize: 14 }}
             >
               Next →
             </button>
@@ -239,29 +239,29 @@ function AlertRow({ alert }: { alert: AlertEvent }) {
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-baseline gap-2">
           <span
-            className="font-mono text-[10px] uppercase tracking-widest"
+            className="font-mono text-[12px] uppercase tracking-widest"
             style={{ color: sev.fg }}
           >
             {alert.severity}
           </span>
-          <span className="font-mono text-[11px] uppercase tracking-widest text-text-secondary">
+          <span className="font-mono text-[13px] uppercase tracking-widest text-text-secondary">
             {alert.kind}
           </span>
           {alert.suppressed && (
-            <span className="rounded-sm bg-bg-hover px-1.5 py-px font-mono text-[9px] uppercase tracking-widest text-text-muted">
+            <span className="rounded-sm bg-bg-hover px-1.5 py-px font-mono text-[12px] uppercase tracking-widest text-text-muted">
               suppressed
             </span>
           )}
-          <span className="ml-auto font-mono text-[10px] text-text-muted">
+          <span className="ml-auto font-mono text-[12px] text-text-muted">
             {ts ? formatDate(ts) : '—'}
           </span>
         </div>
-        <p className="mt-1 text-[12px] text-text-primary">{alert.message}</p>
+        <p className="mt-1 text-[14px] text-text-primary">{alert.message}</p>
         {alert.dedupeKey && (
-          <p className="mt-1 font-mono text-[10px] text-text-muted">dedupe: {alert.dedupeKey}</p>
+          <p className="mt-1 font-mono text-[12px] text-text-muted">dedupe: {alert.dedupeKey}</p>
         )}
         {alert.context != null && (
-          <pre className="mt-1.5 max-h-40 overflow-auto rounded-sm bg-bg-base p-2 font-mono text-[10px] leading-tight text-text-secondary">
+          <pre className="mt-1.5 max-h-40 overflow-auto rounded-sm bg-bg-base p-2 font-mono text-[12px] leading-tight text-text-secondary">
             {JSON.stringify(alert.context, null, 2)}
           </pre>
         )}

@@ -88,7 +88,7 @@ export default function SettingsPage() {
                 textAlign: 'left',
                 padding: '9px 12px',
                 borderRadius: 10,
-                fontSize: 14,
+                fontSize: 15,
                 fontWeight: 500,
                 color: isActive ? 'var(--brand-700)' : 'var(--text-secondary)',
                 background: isActive ? 'var(--brand-50)' : 'transparent',
@@ -174,14 +174,14 @@ function RecentActivitySection() {
         <h2 className="font-display" style={{ fontSize: 18, color: 'var(--mm-ink-0)' }}>
           Recent activity
         </h2>
-        <p style={{ marginTop: 4, fontSize: 13, color: 'var(--mm-ink-2)' }}>
+        <p style={{ marginTop: 4, fontSize: 14, color: 'var(--mm-ink-2)' }}>
           Every security-sensitive change to your strategies, accounts, and risk config — newest
           first. Scoped to your own actions.
         </p>
       </div>
 
       {query.isLoading && events.length === 0 ? (
-        <div style={{ padding: 16, fontSize: 12, color: 'var(--mm-ink-2)' }}>Loading activity…</div>
+        <div style={{ padding: 16, fontSize: 14, color: 'var(--mm-ink-2)' }}>Loading activity…</div>
       ) : query.isError ? (
         <div
           role="alert"
@@ -190,7 +190,7 @@ function RecentActivitySection() {
             borderRadius: 12,
             border: '1px solid rgba(229,72,77,0.40)',
             background: 'rgba(229,72,77,0.08)',
-            fontSize: 12,
+            fontSize: 14,
             color: 'var(--color-loss)',
           }}
         >
@@ -203,7 +203,7 @@ function RecentActivitySection() {
             textAlign: 'center',
             border: '1px dashed var(--mm-hair-2)',
             borderRadius: 12,
-            fontSize: 12,
+            fontSize: 14,
             color: 'var(--mm-ink-2)',
           }}
         >
@@ -235,7 +235,7 @@ function RecentActivitySection() {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
-              fontSize: 11,
+              fontSize: 13,
               color: 'var(--mm-ink-2)',
               fontFamily: 'var(--font-mono)',
             }}
@@ -298,11 +298,11 @@ function ActivityRow({ event }: { event: import('@/lib/api/auditEvents').AuditEv
       <div style={{ minWidth: 0 }}>
         <p
           className="font-mono"
-          style={{ fontSize: 12, fontWeight: 600, color: 'var(--mm-ink-0)' }}
+          style={{ fontSize: 14, fontWeight: 600, color: 'var(--mm-ink-0)' }}
         >
           {humanAction(event.action)}
         </p>
-        <p style={{ fontSize: 11, color: 'var(--mm-ink-2)' }}>
+        <p style={{ fontSize: 13, color: 'var(--mm-ink-2)' }}>
           {event.entityType ?? '—'}
           {event.entityId ? ` · ${event.entityId.slice(0, 8)}…` : ''}
           {event.reason ? ` · ${event.reason}` : ''}
@@ -311,7 +311,7 @@ function ActivityRow({ event }: { event: import('@/lib/api/auditEvents').AuditEv
       <span
         className="font-mono"
         style={{
-          fontSize: 10,
+          fontSize: 12,
           color: 'var(--mm-ink-3)',
           whiteSpace: 'nowrap',
         }}
@@ -407,7 +407,7 @@ function SupportSection() {
         <h2 className="font-display" style={{ fontSize: 18, color: 'var(--mm-ink-0)' }}>
           Help &amp; support
         </h2>
-        <p style={{ marginTop: 4, fontSize: 13, color: 'var(--mm-ink-2)' }}>
+        <p style={{ marginTop: 4, fontSize: 14, color: 'var(--mm-ink-2)' }}>
           Hit a bug or have a question? Send us a message — it lands in the team inbox and we reply
           by email. The diagnostic snapshot helps us reproduce issues without you needing to dig for
           the version or page.
@@ -422,7 +422,7 @@ function SupportSection() {
             borderRadius: 10,
             border: '1px solid rgba(22,179,100,0.32)',
             background: 'rgba(22,179,100,0.08)',
-            fontSize: 12,
+            fontSize: 14,
             color: 'var(--mm-ink-1)',
             display: 'flex',
             justifyContent: 'space-between',
@@ -437,7 +437,7 @@ function SupportSection() {
           <button
             type="button"
             className="mm-btn mm-btn-ghost"
-            style={{ fontSize: 11, padding: '4px 10px' }}
+            style={{ fontSize: 13, padding: '4px 10px' }}
             onClick={() => setSubmittedId(null)}
           >
             Send another
@@ -493,7 +493,7 @@ function SupportSection() {
             className="font-mono"
             style={{
               marginTop: 4,
-              fontSize: 10,
+              fontSize: 12,
               color: trimmedBody.length < 10 ? 'var(--mm-ink-3)' : 'var(--mm-ink-2)',
               display: 'flex',
               justifyContent: 'space-between',
@@ -513,7 +513,7 @@ function SupportSection() {
             display: 'inline-flex',
             alignItems: 'center',
             gap: 8,
-            fontSize: 12,
+            fontSize: 14,
             color: 'var(--mm-ink-1)',
             cursor: 'pointer',
           }}
@@ -533,7 +533,7 @@ function SupportSection() {
               className="mm-kicker"
               style={{
                 cursor: 'pointer',
-                fontSize: 9,
+                fontSize: 12,
                 letterSpacing: '0.18em',
                 color: 'var(--mm-ink-3)',
               }}
@@ -546,7 +546,7 @@ function SupportSection() {
                 padding: 10,
                 background: 'var(--mm-surface-2)',
                 borderRadius: 6,
-                fontSize: 11,
+                fontSize: 13,
                 fontFamily: 'var(--font-mono)',
                 color: 'var(--mm-ink-1)',
                 whiteSpace: 'pre-wrap',
@@ -663,7 +663,7 @@ function ProfileSection() {
           <div
             style={{
               color: 'var(--mm-ink-2)',
-              fontSize: 13,
+              fontSize: 14,
               marginTop: 2,
               overflow: 'hidden',
               textOverflow: 'ellipsis',
@@ -768,7 +768,7 @@ function ProfileSection() {
                   className={isActive ? 'mm-pill mm-pill-mint' : 'mm-pill'}
                   style={{
                     padding: '7px 14px',
-                    fontSize: 12,
+                    fontSize: 14,
                     textTransform: 'capitalize',
                   }}
                 >
@@ -793,7 +793,7 @@ function ProfileSection() {
         }}
       >
         {update.isError && (
-          <span style={{ fontSize: 12, color: 'var(--color-loss)' }}>
+          <span style={{ fontSize: 14, color: 'var(--color-loss)' }}>
             {normalizeError(update.error)}
           </span>
         )}
@@ -842,7 +842,7 @@ function DisplayCurrencyPicker() {
               title={opt.hint}
               onClick={() => setCurrency(opt.value as DisplayCurrency)}
               className={isActive ? 'mm-pill mm-pill-mint' : 'mm-pill'}
-              style={{ padding: '7px 14px', fontSize: 12 }}
+              style={{ padding: '7px 14px', fontSize: 14 }}
             >
               {opt.label}
             </button>
@@ -850,7 +850,7 @@ function DisplayCurrencyPicker() {
         })}
       </div>
       {activeOption && (
-        <div style={{ marginTop: 6, fontSize: 11, color: 'var(--mm-ink-3)' }}>
+        <div style={{ marginTop: 6, fontSize: 13, color: 'var(--mm-ink-3)' }}>
           {activeOption.hint}
         </div>
       )}
@@ -918,7 +918,7 @@ function SecuritySection() {
             background: 'var(--mm-up-soft)',
             color: 'var(--mm-up)',
             padding: '4px 10px',
-            fontSize: 11,
+            fontSize: 13,
             display: 'inline-flex',
             alignItems: 'center',
             gap: 6,
@@ -946,8 +946,8 @@ function SecuritySection() {
             }}
           >
             <div>
-              <div style={{ fontSize: 14, color: 'var(--mm-ink-0)' }}>{r.label}</div>
-              <div style={{ fontSize: 12, color: 'var(--mm-ink-3)', marginTop: 2 }}>{r.value}</div>
+              <div style={{ fontSize: 15, color: 'var(--mm-ink-0)' }}>{r.label}</div>
+              <div style={{ fontSize: 14, color: 'var(--mm-ink-3)', marginTop: 2 }}>{r.value}</div>
             </div>
             {typeof r.on === 'boolean' && (
               <ToggleSwitch on={r.on} aria-label={`${r.label} toggle`} />
@@ -958,7 +958,7 @@ function SecuritySection() {
               <button
                 type="button"
                 className="mm-btn mm-btn-ghost"
-                style={{ fontSize: 12, opacity: r.disabled ? 0.7 : 1 }}
+                style={{ fontSize: 14, opacity: r.disabled ? 0.7 : 1 }}
                 disabled={r.disabled}
                 title={r.disabled ? r.disabledHint : undefined}
               >
@@ -987,10 +987,10 @@ function SecuritySection() {
           <div className="mm-kicker" style={{ color: 'var(--color-loss)' }}>
             DANGER ZONE
           </div>
-          <div style={{ fontSize: 13, marginTop: 4, color: 'var(--mm-ink-0)' }}>
+          <div style={{ fontSize: 14, marginTop: 4, color: 'var(--mm-ink-0)' }}>
             Sign out of this session
           </div>
-          <div style={{ fontSize: 12, color: 'var(--mm-ink-3)', marginTop: 2 }}>
+          <div style={{ fontSize: 14, color: 'var(--mm-ink-3)', marginTop: 2 }}>
             Clears the HttpOnly auth cookie and drops you at the login screen.
           </div>
         </div>
@@ -1056,7 +1056,7 @@ function RiskGuardrailsSection() {
       <p
         style={{
           marginTop: 8,
-          fontSize: 12,
+          fontSize: 14,
           color: 'var(--mm-ink-2, var(--text-secondary))',
         }}
       >
@@ -1068,7 +1068,7 @@ function RiskGuardrailsSection() {
         <p
           style={{
             marginTop: 16,
-            fontSize: 12,
+            fontSize: 14,
             color: 'var(--text-muted)',
           }}
         >
@@ -1112,13 +1112,13 @@ function HedgingRiskCard({ account }: { account: AccountSummary }) {
         style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}
       >
         <div>
-          <div className="font-mono" style={{ fontSize: 13, color: 'var(--text-primary)' }}>
+          <div className="font-mono" style={{ fontSize: 14, color: 'var(--text-primary)' }}>
             {account.label}
           </div>
           <div
             className="font-mono"
             style={{
-              fontSize: 10,
+              fontSize: 12,
               color: 'var(--text-muted)',
               textTransform: 'uppercase',
               letterSpacing: '0.16em',
@@ -1132,7 +1132,7 @@ function HedgingRiskCard({ account }: { account: AccountSummary }) {
 
       <p
         data-testid="hedging-risk-note"
-        style={{ marginTop: 12, fontSize: 12, lineHeight: 1.55, color: 'var(--mm-ink-2, var(--text-secondary))' }}
+        style={{ marginTop: 12, fontSize: 14, lineHeight: 1.55, color: 'var(--mm-ink-2, var(--text-secondary))' }}
       >
         Hedging risk — target allocation, rebalance deadband, and cash yield — is configured{' '}
         <strong style={{ color: 'var(--text-primary)' }}>per-strategy</strong> on each hedging
@@ -1149,7 +1149,7 @@ function HedgingRiskCard({ account }: { account: AccountSummary }) {
           padding: '10px 12px',
           borderRadius: 8,
           border: '1px dashed var(--mm-hair-2, var(--border-default))',
-          fontSize: 11,
+          fontSize: 13,
           color: 'var(--text-muted)',
           display: 'flex',
           alignItems: 'center',
@@ -1158,7 +1158,7 @@ function HedgingRiskCard({ account }: { account: AccountSummary }) {
       >
         <span
           className="font-mono"
-          style={{ fontSize: 9, letterSpacing: '0.16em', textTransform: 'uppercase' }}
+          style={{ fontSize: 12, letterSpacing: '0.16em', textTransform: 'uppercase' }}
         >
           Coming soon
         </span>
@@ -1207,13 +1207,13 @@ function TradingRiskPolicyCard({ account }: { account: AccountSummary }) {
         style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}
       >
         <div>
-          <div className="font-mono" style={{ fontSize: 13, color: 'var(--text-primary)' }}>
+          <div className="font-mono" style={{ fontSize: 14, color: 'var(--text-primary)' }}>
             {account.label}
           </div>
           <div
             className="font-mono"
             style={{
-              fontSize: 10,
+              fontSize: 12,
               color: 'var(--text-muted)',
               textTransform: 'uppercase',
               letterSpacing: '0.16em',
@@ -1230,7 +1230,7 @@ function TradingRiskPolicyCard({ account }: { account: AccountSummary }) {
           onClick={save}
           disabled={mut.isPending}
           className="mm-btn mm-btn-ghost"
-          style={{ fontSize: 11, padding: '6px 12px' }}
+          style={{ fontSize: 13, padding: '6px 12px' }}
         >
           {mut.isPending ? 'Saving…' : 'Save policy'}
         </button>
@@ -1272,7 +1272,7 @@ function TradingRiskPolicyCard({ account }: { account: AccountSummary }) {
               display: 'inline-flex',
               alignItems: 'center',
               gap: 8,
-              fontSize: 12,
+              fontSize: 14,
               color: 'var(--text-primary)',
             }}
           >
@@ -1307,7 +1307,7 @@ function RiskField({ label, children }: { label: string; children: React.ReactNo
       <span
         className="font-mono"
         style={{
-          fontSize: 9,
+          fontSize: 12,
           letterSpacing: '0.16em',
           textTransform: 'uppercase',
           color: 'var(--text-muted)',
@@ -1370,7 +1370,7 @@ function BrokersSection() {
               borderRadius: 12,
               background: 'var(--mm-surface-2)',
               color: 'var(--mm-ink-2)',
-              fontSize: 13,
+              fontSize: 14,
               textAlign: 'center',
             }}
           >
@@ -1415,7 +1415,7 @@ function BrokersSection() {
                 <div style={{ minWidth: 0 }}>
                   <div
                     style={{
-                      fontSize: 13,
+                      fontSize: 14,
                       fontWeight: 500,
                       overflow: 'hidden',
                       textOverflow: 'ellipsis',
@@ -1426,7 +1426,7 @@ function BrokersSection() {
                   </div>
                   <div
                     style={{
-                      fontSize: 11,
+                      fontSize: 13,
                       color: 'var(--mm-ink-3)',
                       marginTop: 2,
                       overflow: 'hidden',
@@ -1446,7 +1446,7 @@ function BrokersSection() {
                     display: 'inline-flex',
                     alignItems: 'center',
                     gap: 6,
-                    fontSize: 11,
+                    fontSize: 13,
                     padding: '6px 10px',
                   }}
                 >
@@ -1456,7 +1456,7 @@ function BrokersSection() {
                   className="font-mono"
                   style={{
                     padding: '3px 9px',
-                    fontSize: 10,
+                    fontSize: 12,
                     letterSpacing: '0.12em',
                     background: isLive ? 'var(--mm-up-soft)' : 'var(--mm-surface-3)',
                     color: isLive ? 'var(--mm-up)' : 'var(--mm-ink-3)',
@@ -1570,10 +1570,10 @@ function AppearanceSection() {
                       {m.label}
                     </span>
                     {on && (
-                      <span className="br-chip br-chip-brand ml-auto text-[10px]">Active</span>
+                      <span className="br-chip br-chip-brand ml-auto text-[12px]">Active</span>
                     )}
                   </div>
-                  <div className="mt-1 text-[12px]" style={{ color: 'var(--text-muted)' }}>
+                  <div className="mt-1 text-[14px]" style={{ color: 'var(--text-muted)' }}>
                     {m.desc}
                   </div>
                 </div>
@@ -1624,7 +1624,7 @@ function AppearanceSection() {
                     }}
                   />
                   <div
-                    className="absolute bottom-2.5 left-3 text-[11px] font-semibold uppercase tracking-[0.1em]"
+                    className="absolute bottom-2.5 left-3 text-[13px] font-semibold uppercase tracking-[0.1em]"
                     style={{ color: '#fff', opacity: 0.9 }}
                   >
                     Balance
@@ -1649,10 +1649,10 @@ function AppearanceSection() {
                       {meta.label}
                     </span>
                     {on && (
-                      <span className="br-chip br-chip-brand ml-auto text-[10px]">Active</span>
+                      <span className="br-chip br-chip-brand ml-auto text-[12px]">Active</span>
                     )}
                   </div>
-                  <div className="mt-1 text-[12px]" style={{ color: 'var(--text-muted)' }}>
+                  <div className="mt-1 text-[14px]" style={{ color: 'var(--text-muted)' }}>
                     {meta.desc}
                   </div>
                 </div>
@@ -1726,7 +1726,7 @@ function SettingCard({
           {title}
         </h2>
         {desc && (
-          <p className="m-0 mt-1.5 text-[14px]" style={{ color: 'var(--text-muted)' }}>
+          <p className="m-0 mt-1.5 text-[15px]" style={{ color: 'var(--text-muted)' }}>
             {desc}
           </p>
         )}
@@ -1755,7 +1755,7 @@ function Segmented({
           key={o.v}
           type="button"
           onClick={() => onChange(o.v)}
-          className="rounded-lg px-4 py-2 text-[13px] font-semibold transition-colors"
+          className="rounded-lg px-4 py-2 text-[14px] font-semibold transition-colors"
           style={{
             background: value === o.v ? 'var(--bg-elevated)' : 'transparent',
             color: value === o.v ? 'var(--text-primary)' : 'var(--text-muted)',
@@ -1845,17 +1845,17 @@ function ApiSection() {
                 borderRadius: 10,
                 background: 'var(--bg-hover)',
                 fontWeight: 700,
-                fontSize: 12,
+                fontSize: 14,
                 color: 'var(--text-primary)',
               }}
             >
               {k.ex.slice(0, 2).toUpperCase()}
             </div>
             <div className="flex-1">
-              <div className="text-[14px] font-semibold" style={{ color: 'var(--text-primary)' }}>
+              <div className="text-[15px] font-semibold" style={{ color: 'var(--text-primary)' }}>
                 {k.ex}
               </div>
-              <div className="text-[12px]" style={{ color: 'var(--text-muted)' }}>
+              <div className="text-[14px]" style={{ color: 'var(--text-muted)' }}>
                 {k.label} · last used {k.lastUsed}
               </div>
             </div>
@@ -1895,12 +1895,12 @@ function ToggleRow({
     >
       <div className="flex-1">
         <div className="flex items-center gap-2">
-          <span className="text-[14px] font-semibold" style={{ color: 'var(--text-primary)' }}>
+          <span className="text-[15px] font-semibold" style={{ color: 'var(--text-primary)' }}>
             {title}
           </span>
-          {badge && <span className="br-chip br-chip-brand text-[10px]">{badge}</span>}
+          {badge && <span className="br-chip br-chip-brand text-[12px]">{badge}</span>}
         </div>
-        <div className="mt-0.5 text-[13px]" style={{ color: 'var(--text-muted)' }}>
+        <div className="mt-0.5 text-[14px]" style={{ color: 'var(--text-muted)' }}>
           {sub}
         </div>
       </div>

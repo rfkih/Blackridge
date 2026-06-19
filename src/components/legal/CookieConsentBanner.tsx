@@ -66,7 +66,7 @@ export function CookieConsentBanner() {
           flexWrap: 'wrap',
         }}
       >
-        <div style={{ flex: '1 1 280px', fontSize: 12, color: 'var(--mm-ink-1)', lineHeight: 1.5 }}>
+        <div style={{ flex: '1 1 280px', fontSize: 14, color: 'var(--mm-ink-1)', lineHeight: 1.5 }}>
           We use a session signal cookie + a few localStorage entries for sign-in and preferences.{' '}
           <Link
             href="/cookies"
@@ -81,7 +81,7 @@ export function CookieConsentBanner() {
             type="button"
             className="mm-btn"
             onClick={() => decide('declined')}
-            style={{ fontSize: 11, padding: '6px 12px' }}
+            style={{ fontSize: 13, padding: '6px 12px' }}
           >
             Decline
           </button>
@@ -89,7 +89,7 @@ export function CookieConsentBanner() {
             type="button"
             className="mm-btn mm-btn-mint"
             onClick={() => decide('accepted')}
-            style={{ fontSize: 11, padding: '6px 12px' }}
+            style={{ fontSize: 13, padding: '6px 12px' }}
           >
             Accept
           </button>

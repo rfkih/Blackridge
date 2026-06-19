@@ -51,11 +51,11 @@ function DdTooltip({
       className="rounded-md border border-[var(--border-default)] px-3 py-2 text-left"
       style={{ background: 'var(--bg-elevated)', minWidth: 160 }}
     >
-      <p className="mb-1 font-mono text-[10px] text-[var(--text-muted)]">{formatDate(d.time)}</p>
-      <p className="font-mono text-[11px] tabular-nums" style={{ color: 'var(--color-profit)' }}>
+      <p className="mb-1 font-mono text-[12px] text-[var(--text-muted)]">{formatDate(d.time)}</p>
+      <p className="font-mono text-[13px] tabular-nums" style={{ color: 'var(--color-profit)' }}>
         Strategy {d.strat != null ? `${d.strat.toFixed(2)}%` : '—'}
       </p>
-      <p className="font-mono text-[11px] tabular-nums" style={{ color: 'var(--color-loss)' }}>
+      <p className="font-mono text-[13px] tabular-nums" style={{ color: 'var(--color-loss)' }}>
         BTC buy-hold {d.bh != null ? `${d.bh.toFixed(2)}%` : '—'}
       </p>
     </div>
@@ -104,7 +104,7 @@ export function DrawdownVsBuyHoldPanel({
       title="Drawdown vs buy-hold"
       subtitle="strategy vs holding BTC"
       headerRight={
-        <div className="flex items-center gap-3 text-[11px] font-semibold">
+        <div className="flex items-center gap-3 text-[13px] font-semibold">
           <span style={{ color: 'var(--color-profit)' }}>● Strategy</span>
           <span style={{ color: 'var(--color-loss)' }}>● BTC buy-hold</span>
         </div>
@@ -162,7 +162,7 @@ export function DrawdownVsBuyHoldPanel({
       {verdict?.ddCutPct != null && verdict.ddCutPct > 0 && (
         <div
           data-testid="dd-verdict"
-          className="mt-2 text-[12px] font-medium"
+          className="mt-2 text-[14px] font-medium"
           style={{ color: 'var(--text-muted)' }}
         >
           Strategy cut buy-hold drawdown by{' '}

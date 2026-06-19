@@ -52,16 +52,16 @@ const TradeTooltip = ({
       className="rounded-md border px-3 py-2 text-left"
       style={{ background: THEME.surface, borderColor: THEME.axis, minWidth: 150 }}
     >
-      <p className="mb-1 font-mono text-[10px]" style={{ color: THEME.neutral }}>
+      <p className="mb-1 font-mono text-[12px]" style={{ color: THEME.neutral }}>
         Trade #{d.n} · {d.side}
       </p>
       <p
-        className="font-mono text-[12px] font-semibold tabular-nums"
+        className="font-mono text-[14px] font-semibold tabular-nums"
         style={{ color: up ? CHART_COLORS.profit : CHART_COLORS.loss }}
       >
         {up ? '+' : ''}{d.pnl_pct.toFixed(3)}%
       </p>
-      <p className="mt-0.5 font-mono text-[10px]" style={{ color: THEME.neutral }}>
+      <p className="mt-0.5 font-mono text-[12px]" style={{ color: THEME.neutral }}>
         {fmtDate(d.entry)}{d.exit ? ` → ${fmtDate(d.exit)}` : ' → open'}
       </p>
     </div>
@@ -85,7 +85,7 @@ export function PaperTradeHistogram({ trades, height = 200 }: PaperTradeHistogra
   if (!data.length) {
     return (
       <div
-        className="flex items-center justify-center text-[12px] text-text-muted"
+        className="flex items-center justify-center text-[14px] text-text-muted"
         style={{ height }}
       >
         No trade data available.
@@ -99,13 +99,13 @@ export function PaperTradeHistogram({ trades, height = 200 }: PaperTradeHistogra
   return (
     <div className="space-y-1">
       <div className="flex items-center gap-4">
-        <span className="font-mono text-[10px] text-text-muted">
+        <span className="font-mono text-[12px] text-text-muted">
           {data.length} trades · {winRate}% win rate
         </span>
-        <span className="font-mono text-[10px]" style={{ color: CHART_COLORS.profit }}>
+        <span className="font-mono text-[12px]" style={{ color: CHART_COLORS.profit }}>
           {wins} wins
         </span>
-        <span className="font-mono text-[10px]" style={{ color: CHART_COLORS.loss }}>
+        <span className="font-mono text-[12px]" style={{ color: CHART_COLORS.loss }}>
           {data.length - wins} losses
         </span>
       </div>
@@ -119,7 +119,7 @@ export function PaperTradeHistogram({ trades, height = 200 }: PaperTradeHistogra
           />
           <YAxis
             tickFormatter={(v: number) => `${v > 0 ? '+' : ''}${v.toFixed(1)}%`}
-            tick={{ ...AXIS_TICK, fontSize: 9 }}
+            tick={{ ...AXIS_TICK, fontSize: 12 }}
             axisLine={false}
             tickLine={false}
             width={48}

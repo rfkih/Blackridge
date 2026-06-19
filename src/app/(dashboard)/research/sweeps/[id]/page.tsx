@@ -188,7 +188,7 @@ export default function SweepDetailPage({ params }: PageProps) {
       {s.status === 'COMPLETED' && winner && (
         <div className="rounded-md border border-[rgba(22,179,100,0.3)] bg-[rgba(22,179,100,0.06)] px-4 py-3">
           <div className="label-caps text-[var(--color-profit)]">WINNER</div>
-          <div className="mt-1 font-mono text-[12px] text-text-primary">
+          <div className="mt-1 font-mono text-[14px] text-text-primary">
             {Object.entries(winner.paramSet).map(([k, v]) => (
               <span key={k} className="mr-3">
                 {k}={String(v)}
@@ -203,9 +203,9 @@ export default function SweepDetailPage({ params }: PageProps) {
 
       <section className="overflow-hidden rounded-xl border border-bd-subtle bg-bg-surface">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-bd-subtle px-4 py-3">
-          <div className="font-display text-[13px] font-semibold text-text-primary">
+          <div className="font-display text-[14px] font-semibold text-text-primary">
             Leaderboard
-            <span className="ml-2 font-mono text-[10px] uppercase tracking-wider text-text-muted">
+            <span className="ml-2 font-mono text-[12px] uppercase tracking-wider text-text-muted">
               {rankedResults.length} of {allResults.length}
               {sortKey === rankMetric && sortDir === 'desc' ? (
                 <span className="ml-2">· ranked by {rankMetric}</span>
@@ -220,7 +220,7 @@ export default function SweepDetailPage({ params }: PageProps) {
                 setRoundFilter(new Set());
                 setPage(0);
               }}
-              className="text-[11px] text-text-muted underline-offset-2 hover:text-text-primary hover:underline"
+              className="text-[13px] text-text-muted underline-offset-2 hover:text-text-primary hover:underline"
             >
               clear filters
             </button>
@@ -247,7 +247,7 @@ export default function SweepDetailPage({ params }: PageProps) {
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[900px] text-[12px]">
+          <table className="w-full min-w-[900px] text-[14px]">
             <thead>
               <tr className="border-b border-bd-subtle bg-bg-base">
                 <Th>#</Th>
@@ -364,7 +364,7 @@ export default function SweepDetailPage({ params }: PageProps) {
                 <tr>
                   <td
                     colSpan={paramKeys.length + (isResearchMode ? 13 : 12)}
-                    className="px-4 py-10 text-center text-[12px] text-text-muted"
+                    className="px-4 py-10 text-center text-[14px] text-text-muted"
                   >
                     No combos match the current filter.
                   </td>
@@ -388,7 +388,7 @@ export default function SweepDetailPage({ params }: PageProps) {
         </div>
 
         {pageCount > 1 && (
-          <div className="flex items-center justify-between gap-3 border-t border-bd-subtle px-4 py-2.5 font-mono text-[11px] text-text-muted">
+          <div className="flex items-center justify-between gap-3 border-t border-bd-subtle px-4 py-2.5 font-mono text-[13px] text-text-muted">
             <span>
               Page {safePage + 1} of {pageCount} · showing {safePage * PAGE_SIZE + 1}–
               {Math.min((safePage + 1) * PAGE_SIZE, rankedResults.length)} of {rankedResults.length}
@@ -411,7 +411,7 @@ export default function SweepDetailPage({ params }: PageProps) {
 function FilterGroup({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="flex items-center gap-2">
-      <span className="font-mono text-[10px] uppercase tracking-wider text-text-muted">
+      <span className="font-mono text-[12px] uppercase tracking-wider text-text-muted">
         {label}
       </span>
       <div className="flex items-center gap-1">{children}</div>
@@ -432,7 +432,7 @@ function FilterPill({
     <button
       type="button"
       onClick={onClick}
-      className="rounded-sm border px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider transition-colors"
+      className="rounded-sm border px-2 py-0.5 font-mono text-[12px] uppercase tracking-wider transition-colors"
       style={{
         borderColor: active ? 'var(--accent-primary)' : 'var(--border-subtle)',
         background: active ? 'rgba(59,130,246,0.10)' : 'transparent',
@@ -463,7 +463,7 @@ function SortableTh({
   return (
     <th
       onClick={() => onClick(sortKey)}
-      className={`label-caps cursor-pointer select-none whitespace-nowrap px-3 py-2 !text-[9px] hover:text-text-primary ${
+      className={`label-caps cursor-pointer select-none whitespace-nowrap px-3 py-2 !text-[12px] hover:text-text-primary ${
         align === 'right' ? 'text-right' : 'text-left'
       }`}
       style={{ color: isActive ? 'var(--text-primary)' : undefined }}
@@ -495,7 +495,7 @@ function PageBtn({
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className="inline-flex items-center gap-1 rounded-sm border border-bd-subtle bg-bg-surface px-2 py-1 text-[10px] uppercase tracking-wider text-text-secondary transition-colors hover:bg-bg-hover disabled:cursor-not-allowed disabled:opacity-40"
+      className="inline-flex items-center gap-1 rounded-sm border border-bd-subtle bg-bg-surface px-2 py-1 text-[12px] uppercase tracking-wider text-text-secondary transition-colors hover:bg-bg-hover disabled:cursor-not-allowed disabled:opacity-40"
     >
       {children}
     </button>
@@ -516,7 +516,7 @@ function SweepHeader({
       <div>
         <Link
           href="/research/sweeps"
-          className="inline-flex items-center gap-1 text-[11px] text-text-muted hover:text-text-primary"
+          className="inline-flex items-center gap-1 text-[13px] text-text-muted hover:text-text-primary"
         >
           <ArrowLeft size={12} /> Back to sweeps
         </Link>
@@ -525,7 +525,7 @@ function SweepHeader({
           {spec?.label || spec?.strategyCode || 'Sweep'}
         </h1>
         {createdAt && (
-          <div className="mt-0.5 font-mono text-[11px] text-text-muted">
+          <div className="mt-0.5 font-mono text-[13px] text-text-muted">
             started {formatDate(Date.parse(createdAt))}
             {status && <span className="ml-2">· {status}</span>}
           </div>
@@ -632,7 +632,7 @@ function ResultRow({
         {result.backtestRunId && (
           <Link
             href={`/backtest/${result.backtestRunId}`}
-            className="font-mono text-[10px] uppercase tracking-wider text-[var(--accent-primary)] hover:underline"
+            className="font-mono text-[12px] uppercase tracking-wider text-[var(--accent-primary)] hover:underline"
           >
             run →
           </Link>
@@ -655,7 +655,7 @@ function ProgressCell({ status, progress }: { status: SweepResult['status']; pro
   const label = status === 'PENDING' ? 'PENDING' : status === 'RUNNING' ? `${pct}%` : status;
   return (
     <div className="flex flex-col items-end gap-1">
-      <span className="font-mono text-[10px] uppercase tracking-wider" style={{ color: c.label }}>
+      <span className="font-mono text-[12px] uppercase tracking-wider" style={{ color: c.label }}>
         {label}
       </span>
       <div className="h-1 w-24 overflow-hidden rounded-full bg-[var(--bg-overlay)]">
@@ -721,9 +721,9 @@ function HoldoutPanel({ state, winner }: { state: SweepState; winner: SweepResul
       >
         Locked holdout
       </div>
-      <div className="mt-2 grid grid-cols-1 gap-4 text-[12px] sm:grid-cols-3">
+      <div className="mt-2 grid grid-cols-1 gap-4 text-[14px] sm:grid-cols-3">
         <div className="flex flex-col gap-0.5">
-          <span className="font-mono text-[9px] uppercase tracking-wider text-text-muted">
+          <span className="font-mono text-[12px] uppercase tracking-wider text-text-muted">
             Reserved window
           </span>
           <span className="num text-text-primary">
@@ -733,11 +733,11 @@ function HoldoutPanel({ state, winner }: { state: SweepState; winner: SweepResul
           </span>
         </div>
         <div className="flex flex-col gap-0.5">
-          <span className="font-mono text-[9px] uppercase tracking-wider text-text-muted">
+          <span className="font-mono text-[12px] uppercase tracking-wider text-text-muted">
             Status
           </span>
           <span
-            className="text-[11px]"
+            className="text-[13px]"
             style={{
               color: alreadyEvaluated
                 ? 'var(--color-info)'
@@ -754,13 +754,13 @@ function HoldoutPanel({ state, winner }: { state: SweepState; winner: SweepResul
           </span>
         </div>
         <div className="flex flex-col gap-0.5">
-          <span className="font-mono text-[9px] uppercase tracking-wider text-text-muted">
+          <span className="font-mono text-[12px] uppercase tracking-wider text-text-muted">
             {alreadyEvaluated ? 'Holdout result' : 'Action'}
           </span>
           {alreadyEvaluated ? (
             <Link
               href={`/backtest/${state.holdoutBacktestRunId}`}
-              className="font-mono text-[11px] text-[var(--color-info)] hover:underline"
+              className="font-mono text-[13px] text-[var(--color-info)] hover:underline"
             >
               run {state.holdoutBacktestRunId?.slice(0, 8) ?? '—'} →
             </Link>
@@ -769,7 +769,7 @@ function HoldoutPanel({ state, winner }: { state: SweepState; winner: SweepResul
               type="button"
               onClick={onEvaluate}
               disabled={!sweepCompleted || !winner || evalMutation.isPending}
-              className="self-start rounded-sm border border-bd-subtle bg-bg-base px-3 py-1.5 font-mono text-[10px] uppercase tracking-wider text-text-primary transition-colors duration-fast hover:bg-bg-hover disabled:cursor-not-allowed disabled:opacity-50"
+              className="self-start rounded-sm border border-bd-subtle bg-bg-base px-3 py-1.5 font-mono text-[12px] uppercase tracking-wider text-text-primary transition-colors duration-fast hover:bg-bg-hover disabled:cursor-not-allowed disabled:opacity-50"
             >
               {evalMutation.isPending ? 'Submitting…' : 'Evaluate winner on holdout'}
             </button>
@@ -777,7 +777,7 @@ function HoldoutPanel({ state, winner }: { state: SweepState; winner: SweepResul
         </div>
       </div>
       {!alreadyEvaluated && (
-        <p className="mt-2 text-[11px] text-text-muted">
+        <p className="mt-2 text-[13px] text-text-muted">
           One-shot by design. Once you click, the holdout is spent — no second chance, no re-tune.
           That&apos;s how the result stays unbiased.
         </p>
@@ -835,15 +835,15 @@ function DsrThresholdPanel({ state }: { state: SweepState }) {
   return (
     <div className="rounded-xl border border-bd-subtle bg-bg-surface px-4 py-3">
       <div className="label-caps text-text-secondary">Multiple-comparison context</div>
-      <div className="mt-2 grid grid-cols-2 gap-4 text-[12px] sm:grid-cols-4">
+      <div className="mt-2 grid grid-cols-2 gap-4 text-[14px] sm:grid-cols-4">
         <div className="flex flex-col gap-0.5">
-          <span className="font-mono text-[9px] uppercase tracking-wider text-text-muted">
+          <span className="font-mono text-[12px] uppercase tracking-wider text-text-muted">
             DSR threshold (E[max])
           </span>
           <span className="num text-text-primary">{threshold.toFixed(3)}</span>
         </div>
         <div className="flex flex-col gap-0.5">
-          <span className="font-mono text-[9px] uppercase tracking-wider text-text-muted">
+          <span className="font-mono text-[12px] uppercase tracking-wider text-text-muted">
             Top Sharpe
           </span>
           <span
@@ -860,17 +860,17 @@ function DsrThresholdPanel({ state }: { state: SweepState }) {
           </span>
         </div>
         <div className="flex flex-col gap-0.5">
-          <span className="font-mono text-[9px] uppercase tracking-wider text-text-muted">
+          <span className="font-mono text-[12px] uppercase tracking-wider text-text-muted">
             Cohort σ(SR)
           </span>
           <span className="num text-text-secondary">{sigma != null ? sigma.toFixed(3) : '—'}</span>
         </div>
         <div className="flex flex-col gap-0.5">
-          <span className="font-mono text-[9px] uppercase tracking-wider text-text-muted">
+          <span className="font-mono text-[12px] uppercase tracking-wider text-text-muted">
             Verdict
           </span>
           <span
-            className="text-[11px]"
+            className="text-[13px]"
             style={{
               color: passes ? 'var(--color-profit)' : 'var(--color-warning)',
             }}
@@ -888,8 +888,8 @@ function DsrThresholdPanel({ state }: { state: SweepState }) {
 function Stat({ label, value }: { label: string; value: string | number }) {
   return (
     <div className="rounded-sm border border-bd-subtle bg-bg-base px-3 py-2">
-      <div className="label-caps !text-[9px]">{label}</div>
-      <div className="num mt-0.5 truncate text-[14px] font-semibold text-text-primary">{value}</div>
+      <div className="label-caps !text-[12px]">{label}</div>
+      <div className="num mt-0.5 truncate text-[15px] font-semibold text-text-primary">{value}</div>
     </div>
   );
 }
@@ -897,7 +897,7 @@ function Stat({ label, value }: { label: string; value: string | number }) {
 function Th({ children, align }: { children?: React.ReactNode; align?: 'right' }) {
   return (
     <th
-      className={`label-caps whitespace-nowrap px-3 py-2 !text-[9px] ${
+      className={`label-caps whitespace-nowrap px-3 py-2 !text-[12px] ${
         align === 'right' ? 'text-right' : 'text-left'
       }`}
     >

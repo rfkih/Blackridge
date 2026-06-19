@@ -129,7 +129,7 @@ export function RotateCredentialsDialog({
             <ServerIpCard variant="compact" />
           </div>
           <div className="col-span-2 flex flex-col gap-1.5">
-            <Label className="text-[10px] uppercase tracking-[0.18em] text-text-secondary">
+            <Label className="text-[12px] uppercase tracking-[0.18em] text-text-secondary">
               New API key
             </Label>
             <Input
@@ -143,14 +143,14 @@ export function RotateCredentialsDialog({
               aria-invalid={keyTooShort && form.apiKey.length > 0}
             />
             {keyTooShort && form.apiKey.length > 0 && (
-              <p role="alert" className="text-[11px] text-[var(--color-loss)]">
+              <p role="alert" className="text-[13px] text-[var(--color-loss)]">
                 API key looks too short.
               </p>
             )}
           </div>
 
           <div className="col-span-2 flex flex-col gap-1.5">
-            <Label className="text-[10px] uppercase tracking-[0.18em] text-text-secondary">
+            <Label className="text-[12px] uppercase tracking-[0.18em] text-text-secondary">
               New API secret
             </Label>
             <div className="relative">
@@ -176,7 +176,7 @@ export function RotateCredentialsDialog({
               </button>
             </div>
             {secretTooShort && form.apiSecret.length > 0 && (
-              <p role="alert" className="text-[11px] text-[var(--color-loss)]">
+              <p role="alert" className="text-[13px] text-[var(--color-loss)]">
                 API secret looks too short.
               </p>
             )}
@@ -191,7 +191,7 @@ export function RotateCredentialsDialog({
               className="mt-0.5 h-4 w-4 shrink-0 accent-[var(--color-profit)]"
               aria-label="I have disabled withdrawal permissions on this API key"
             />
-            <span className="text-[12px] leading-relaxed text-text-secondary">
+            <span className="text-[14px] leading-relaxed text-text-secondary">
               I confirm this new key has{' '}
               <span className="font-semibold text-text-primary">withdrawal disabled</span> and only
               trading / read-only permissions enabled.

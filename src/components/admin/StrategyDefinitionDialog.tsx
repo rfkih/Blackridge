@@ -306,7 +306,7 @@ export function StrategyDefinitionDialog({
               rows={4}
               maxLength={4000}
               className={cn(
-                'w-full resize-y rounded-sm border border-bd-subtle bg-bg-base p-2 font-mono text-[12px] text-text-primary',
+                'w-full resize-y rounded-sm border border-bd-subtle bg-bg-base p-2 font-mono text-[14px] text-text-primary',
                 'focus:border-bd focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-primary)]',
               )}
               placeholder="Long breakouts on sustained ADX > 25 with ATR-scaled stops…"
@@ -316,8 +316,8 @@ export function StrategyDefinitionDialog({
           {!isEdit && (
             <div className="col-span-2 flex items-center justify-between rounded-sm border border-bd-subtle bg-bg-base px-3 py-2.5">
               <div>
-                <p className="text-[11px] font-semibold text-text-primary">Simulated (paper trading)</p>
-                <p className="text-[10px] text-text-muted">
+                <p className="text-[13px] font-semibold text-text-primary">Simulated (paper trading)</p>
+                <p className="text-[12px] text-text-muted">
                   When on, all accounts using this strategy route OPEN orders to paper_trade_run.
                   Turn off only when the strategy has passed walk-forward validation.
                 </p>

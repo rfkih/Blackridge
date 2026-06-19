@@ -131,7 +131,7 @@ export function ResearchStatusPill() {
     <Link
       href="/research"
       className="mm-pill hidden md:inline-flex"
-      style={{ padding: '9px 14px', fontSize: 12, textDecoration: 'none' }}
+      style={{ padding: '9px 14px', fontSize: 14, textDecoration: 'none' }}
       title={title}
       aria-label={`Research status: ${visual.label}`}
     >

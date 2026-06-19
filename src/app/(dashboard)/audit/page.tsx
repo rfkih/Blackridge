@@ -35,7 +35,7 @@ export default function AuditLogPage() {
           type="button"
           onClick={() => query.refetch()}
           className="mm-pill"
-          style={{ padding: '8px 12px', fontSize: 12 }}
+          style={{ padding: '8px 12px', fontSize: 14 }}
           aria-label="Refresh audit log"
         >
           <RefreshCcw size={13} strokeWidth={1.7} />
@@ -54,10 +54,10 @@ export default function AuditLogPage() {
         </div>
       ) : (
         <div className="overflow-x-auto rounded-xl border border-bd-subtle bg-bg-surface">
-          <table className="w-full text-[12px]">
+          <table className="w-full text-[14px]">
             <thead>
               <tr
-                className="text-left font-mono text-[10px] uppercase tracking-widest"
+                className="text-left font-mono text-[12px] uppercase tracking-widest"
                 style={{
                   background: 'var(--bg-elevated)',
                   color: 'var(--text-muted)',
@@ -78,7 +78,7 @@ export default function AuditLogPage() {
         </div>
       )}
 
-      <div className="flex items-center justify-between text-[11px] text-text-muted">
+      <div className="flex items-center justify-between text-[13px] text-text-muted">
         <span className="font-mono">
           {totalElements} {totalElements === 1 ? 'event' : 'events'}
         </span>
@@ -89,7 +89,7 @@ export default function AuditLogPage() {
               onClick={() => setPage((p) => Math.max(0, p - 1))}
               disabled={page <= 0}
               className="mm-pill disabled:cursor-not-allowed disabled:opacity-50"
-              style={{ padding: '6px 10px', fontSize: 11 }}
+              style={{ padding: '6px 10px', fontSize: 13 }}
             >
               Prev
             </button>
@@ -101,7 +101,7 @@ export default function AuditLogPage() {
               onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
               disabled={page >= totalPages - 1}
               className="mm-pill disabled:cursor-not-allowed disabled:opacity-50"
-              style={{ padding: '6px 10px', fontSize: 11 }}
+              style={{ padding: '6px 10px', fontSize: 13 }}
             >
               Next
             </button>
@@ -116,11 +116,11 @@ function AuditRow({ event }: { event: AuditEvent }) {
   const ts = event.createdAt ? new Date(event.createdAt).getTime() : null;
   return (
     <tr className="border-t border-bd-subtle">
-      <td className="px-3 py-2 font-mono text-[11px] text-text-muted">
+      <td className="px-3 py-2 font-mono text-[13px] text-text-muted">
         {ts ? formatDate(ts) : '—'}
       </td>
       <td className="px-3 py-2 font-mono text-text-primary">{event.action}</td>
-      <td className="px-3 py-2 font-mono text-[11px] text-text-secondary">
+      <td className="px-3 py-2 font-mono text-[13px] text-text-secondary">
         {event.entityType ?? '—'}
         {event.entityId ? (
           <>

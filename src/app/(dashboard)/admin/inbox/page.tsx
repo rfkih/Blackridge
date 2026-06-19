@@ -54,7 +54,7 @@ export default function AdminInboxPage() {
         <h2 className="font-display" style={{ fontSize: 18, color: 'var(--mm-ink-0)' }}>
           Inbox
         </h2>
-        <p style={{ marginTop: 8, fontSize: 13, color: 'var(--mm-ink-2)' }}>
+        <p style={{ marginTop: 8, fontSize: 14, color: 'var(--mm-ink-2)' }}>
           Admin only. Sign in as an admin to read support messages.
         </p>
       </section>
@@ -86,7 +86,7 @@ export default function AdminInboxPage() {
           <h2 className="font-display" style={{ fontSize: 22, color: 'var(--mm-ink-0)' }}>
             Inbox
           </h2>
-          <p style={{ marginTop: 4, fontSize: 13, color: 'var(--mm-ink-2)' }}>
+          <p style={{ marginTop: 4, fontSize: 14, color: 'var(--mm-ink-2)' }}>
             Support messages submitted from Settings → Help &amp; support.{' '}
             {unread > 0 ? (
               <strong style={{ color: 'var(--color-warning)' }}>{unread} unread</strong>
@@ -125,7 +125,7 @@ export default function AdminInboxPage() {
                 setPage(0);
               }}
               className={active ? 'mm-pill mm-pill-mint' : 'mm-pill'}
-              style={{ padding: '6px 14px', fontSize: 12 }}
+              style={{ padding: '6px 14px', fontSize: 14 }}
             >
               {f.label}
             </button>
@@ -135,7 +135,7 @@ export default function AdminInboxPage() {
 
       {}
       {query.isLoading && messages.length === 0 ? (
-        <div style={{ padding: 24, fontSize: 12, color: 'var(--mm-ink-2)', textAlign: 'center' }}>
+        <div style={{ padding: 24, fontSize: 14, color: 'var(--mm-ink-2)', textAlign: 'center' }}>
           Loading messages…
         </div>
       ) : query.isError ? (
@@ -146,7 +146,7 @@ export default function AdminInboxPage() {
             borderRadius: 8,
             border: '1px solid rgba(229,72,77,0.40)',
             background: 'rgba(229,72,77,0.08)',
-            fontSize: 12,
+            fontSize: 14,
             color: 'var(--color-loss)',
           }}
         >
@@ -159,7 +159,7 @@ export default function AdminInboxPage() {
             textAlign: 'center',
             border: '1px dashed var(--mm-hair-2)',
             borderRadius: 12,
-            fontSize: 13,
+            fontSize: 14,
             color: 'var(--mm-ink-2)',
           }}
         >
@@ -200,7 +200,7 @@ export default function AdminInboxPage() {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            fontSize: 11,
+            fontSize: 13,
             color: 'var(--mm-ink-2)',
             fontFamily: 'var(--font-mono)',
           }}
@@ -292,7 +292,7 @@ function MessageRow({
         <div style={{ minWidth: 0 }}>
           <div
             style={{
-              fontSize: 13,
+              fontSize: 14,
               fontWeight: isNew ? 600 : 500,
               color: 'var(--mm-ink-0)',
               overflow: 'hidden',
@@ -306,7 +306,7 @@ function MessageRow({
             className="font-mono"
             style={{
               marginTop: 2,
-              fontSize: 11,
+              fontSize: 13,
               color: 'var(--mm-ink-2)',
               overflow: 'hidden',
               textOverflow: 'ellipsis',
@@ -319,7 +319,7 @@ function MessageRow({
         <span
           className="mm-chip"
           style={{
-            fontSize: 9,
+            fontSize: 12,
             letterSpacing: '0.16em',
             padding: '2px 8px',
             borderRadius: 999,
@@ -332,7 +332,7 @@ function MessageRow({
         </span>
         <span
           className="font-mono"
-          style={{ fontSize: 10, color: 'var(--mm-ink-3)', whiteSpace: 'nowrap' }}
+          style={{ fontSize: 12, color: 'var(--mm-ink-3)', whiteSpace: 'nowrap' }}
         >
           {formatDate(created)}
         </span>
@@ -351,14 +351,14 @@ function MessageRow({
           <div>
             <div
               className="mm-kicker"
-              style={{ fontSize: 9, letterSpacing: '0.18em', color: 'var(--mm-ink-3)' }}
+              style={{ fontSize: 12, letterSpacing: '0.18em', color: 'var(--mm-ink-3)' }}
             >
               MESSAGE
             </div>
             <p
               style={{
                 marginTop: 4,
-                fontSize: 13,
+                fontSize: 14,
                 color: 'var(--mm-ink-1)',
                 whiteSpace: 'pre-wrap',
                 lineHeight: 1.5,
@@ -374,7 +374,7 @@ function MessageRow({
                 className="mm-kicker"
                 style={{
                   cursor: 'pointer',
-                  fontSize: 9,
+                  fontSize: 12,
                   letterSpacing: '0.18em',
                   color: 'var(--mm-ink-3)',
                 }}
@@ -387,7 +387,7 @@ function MessageRow({
                   padding: 10,
                   background: 'var(--mm-surface-3)',
                   borderRadius: 6,
-                  fontSize: 11,
+                  fontSize: 13,
                   fontFamily: 'var(--font-mono)',
                   color: 'var(--mm-ink-1)',
                   whiteSpace: 'pre-wrap',
@@ -403,7 +403,7 @@ function MessageRow({
             <a
               className="mm-btn mm-btn-ghost"
               href={`mailto:${message.fromEmail}?subject=Re: ${encodeURIComponent(message.subject)}`}
-              style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12 }}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 14 }}
             >
               <Mail size={12} /> Reply via email
             </a>
@@ -413,7 +413,7 @@ function MessageRow({
                 className="mm-btn"
                 disabled={busy}
                 onClick={onMarkRead}
-                style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12 }}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 14 }}
               >
                 <MailOpen size={12} /> Mark read
               </button>
@@ -424,7 +424,7 @@ function MessageRow({
                 className="mm-btn mm-btn-mint"
                 disabled={busy}
                 onClick={onMarkResolved}
-                style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12 }}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 14 }}
               >
                 <CheckCircle2 size={12} /> Resolve
               </button>
@@ -435,7 +435,7 @@ function MessageRow({
                 className="mm-btn mm-btn-ghost"
                 disabled={busy}
                 onClick={onReopen}
-                style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12 }}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 14 }}
               >
                 Reopen
               </button>

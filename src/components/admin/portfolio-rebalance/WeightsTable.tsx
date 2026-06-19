@@ -58,15 +58,15 @@ export function WeightsTable({ accountId }: WeightsTableProps = {}) {
   return (
     <section className="overflow-hidden rounded-xl border border-bd-subtle bg-bg-surface">
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-bd-subtle px-4 py-3">
-        <h3 className="font-display text-[13px] font-semibold text-text-primary">
+        <h3 className="font-display text-[14px] font-semibold text-text-primary">
           Current weights
-          <span className="ml-2 font-mono text-[11px] text-text-muted">{data.items.length}</span>
+          <span className="ml-2 font-mono text-[13px] text-text-muted">{data.items.length}</span>
         </h3>
-        <div className="font-mono text-[10px] text-text-muted">
+        <div className="font-mono text-[12px] text-text-muted">
           guardrails [{data.guardrails.min_weight}, {data.guardrails.max_weight}]
         </div>
       </div>
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 border-b border-bd-subtle bg-bg-elevated px-4 py-2 font-mono text-[11px] text-text-muted">
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 border-b border-bd-subtle bg-bg-elevated px-4 py-2 font-mono text-[13px] text-text-muted">
         {scoped && (
           <span>
             last rebalance{' '}
@@ -117,21 +117,21 @@ function WeightRow({ row }: { row: PortfolioWeightRow }) {
   return (
     <tr className="border-b border-bd-subtle last:border-b-0 hover:bg-bg-hover">
       <td className="num whitespace-nowrap px-4 py-3">
-        <span className="font-mono text-[12px] font-semibold text-text-primary">
+        <span className="font-mono text-[14px] font-semibold text-text-primary">
           {row.strategy_code}
         </span>
       </td>
-      <td className="whitespace-nowrap px-4 py-3 text-[13px] text-text-primary">{row.symbol}</td>
-      <td className="num whitespace-nowrap px-4 py-3 font-mono text-[11px] text-text-muted">
+      <td className="whitespace-nowrap px-4 py-3 text-[14px] text-text-primary">{row.symbol}</td>
+      <td className="num whitespace-nowrap px-4 py-3 font-mono text-[13px] text-text-muted">
         {row.interval_name}
       </td>
-      <td className="num whitespace-nowrap px-4 py-3 font-mono text-[12px] tabular-nums text-text-primary">
+      <td className="num whitespace-nowrap px-4 py-3 font-mono text-[14px] tabular-nums text-text-primary">
         {formatWeight(row.portfolio_weight)}
       </td>
       <td className="whitespace-nowrap px-4 py-3">
         <SourceBadge source={row.weight_source} />
       </td>
-      <td className="num whitespace-nowrap px-4 py-3 text-[11px] text-text-muted">
+      <td className="num whitespace-nowrap px-4 py-3 text-[13px] text-text-muted">
         {safeDateFmt(row.weight_updated_at)}
       </td>
     </tr>
@@ -148,7 +148,7 @@ function SourceBadge({ source }: { source: PortfolioWeightSource }) {
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-1.5 rounded-sm px-1.5 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wider',
+        'inline-flex items-center gap-1.5 rounded-sm px-1.5 py-0.5 font-mono text-[12px] font-semibold uppercase tracking-wider',
       )}
       style={{ backgroundColor: meta.bg, color: meta.fg }}
     >

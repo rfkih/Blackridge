@@ -18,7 +18,7 @@ export const RunSourceBadge = memo(function RunSourceBadge({
       title="Submitted by the research-orchestrator agent"
       className={cn(
         'inline-flex items-center rounded-full font-mono font-semibold uppercase tracking-wider',
-        size === 'sm' ? 'px-2 py-0.5 text-[9px]' : 'px-2.5 py-[3px] text-[10px]',
+        size === 'sm' ? 'px-2 py-0.5 text-[12px]' : 'px-2.5 py-[3px] text-[12px]',
         className,
       )}
       style={{

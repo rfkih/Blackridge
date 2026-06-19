@@ -67,7 +67,7 @@ export default function ResearchLogPage() {
           <h1 className="font-display text-[24px] font-semibold tracking-tighter text-text-primary">
             Progression
           </h1>
-          <p className="mt-1 text-[12px] text-text-muted">
+          <p className="mt-1 text-[14px] text-text-muted">
             One row per completed run with an analysis snapshot.
           </p>
         </div>
@@ -86,7 +86,7 @@ export default function ResearchLogPage() {
             placeholder="Search strategy or asset…"
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
-            className="num h-7 w-52 rounded-sm border border-bd-subtle bg-bg-base pl-6 pr-2 text-[12px] text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-1 focus:ring-[var(--accent-primary)]"
+            className="num h-7 w-52 rounded-sm border border-bd-subtle bg-bg-base pl-6 pr-2 text-[14px] text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-1 focus:ring-[var(--accent-primary)]"
           />
         </div>
 
@@ -110,7 +110,7 @@ export default function ResearchLogPage() {
             setAssetFilter(e.target.value);
             setPage(0);
           }}
-          className="num h-7 w-28 rounded-sm border border-bd-subtle bg-bg-base px-2 text-[12px] text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-1 focus:ring-[var(--accent-primary)]"
+          className="num h-7 w-28 rounded-sm border border-bd-subtle bg-bg-base px-2 text-[14px] text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-1 focus:ring-[var(--accent-primary)]"
         />
 
         <FilterSelect
@@ -141,7 +141,7 @@ export default function ResearchLogPage() {
       ) : (
         <div className="overflow-hidden rounded-xl border border-bd-subtle bg-bg-surface">
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[900px] text-[12px]">
+            <table className="w-full min-w-[900px] text-[14px]">
               <thead>
                 <tr className="border-b border-bd-subtle bg-bg-base">
                   <SortTh
@@ -259,7 +259,7 @@ export default function ResearchLogPage() {
                       <Td align="right">
                         <Link
                           href={`/backtest/${row.runId}`}
-                          className="font-mono text-[10px] uppercase tracking-wider text-[var(--accent-primary)] hover:underline"
+                          className="font-mono text-[12px] uppercase tracking-wider text-[var(--accent-primary)] hover:underline"
                         >
                           View →
                         </Link>
@@ -275,7 +275,7 @@ export default function ResearchLogPage() {
 
       {}
       {totalPages > 1 && (
-        <div className="flex items-center justify-between text-[12px] text-text-muted">
+        <div className="flex items-center justify-between text-[14px] text-text-muted">
           <span>
             {totalElements} run{totalElements !== 1 ? 's' : ''} · page {page + 1} of {totalPages}
           </span>
@@ -284,7 +284,7 @@ export default function ResearchLogPage() {
               type="button"
               disabled={page === 0}
               onClick={() => setPage((p) => p - 1)}
-              className="rounded-sm border border-bd-subtle bg-bg-surface px-3 py-1 text-[11px] text-text-secondary hover:bg-bg-hover disabled:cursor-not-allowed disabled:opacity-40"
+              className="rounded-sm border border-bd-subtle bg-bg-surface px-3 py-1 text-[13px] text-text-secondary hover:bg-bg-hover disabled:cursor-not-allowed disabled:opacity-40"
             >
               ← Prev
             </button>
@@ -292,7 +292,7 @@ export default function ResearchLogPage() {
               type="button"
               disabled={page >= totalPages - 1}
               onClick={() => setPage((p) => p + 1)}
-              className="rounded-sm border border-bd-subtle bg-bg-surface px-3 py-1 text-[11px] text-text-secondary hover:bg-bg-hover disabled:cursor-not-allowed disabled:opacity-40"
+              className="rounded-sm border border-bd-subtle bg-bg-surface px-3 py-1 text-[13px] text-text-secondary hover:bg-bg-hover disabled:cursor-not-allowed disabled:opacity-40"
             >
               Next →
             </button>
@@ -316,11 +316,11 @@ function FilterSelect({
 }) {
   return (
     <div className="flex items-center gap-1.5">
-      <label className="label-caps !text-[9px]">{label}</label>
+      <label className="label-caps !text-[12px]">{label}</label>
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="num h-7 rounded-sm border border-bd-subtle bg-bg-base px-2 text-[12px] text-text-primary"
+        className="num h-7 rounded-sm border border-bd-subtle bg-bg-base px-2 text-[14px] text-text-primary"
       >
         {options.map((o) => (
           <option key={o.value} value={o.value}>
@@ -351,7 +351,7 @@ function SortTh({
   return (
     <th
       onClick={() => onSort(sortKey)}
-      className={`label-caps cursor-pointer select-none whitespace-nowrap px-3 py-2 !text-[9px] hover:text-text-primary ${
+      className={`label-caps cursor-pointer select-none whitespace-nowrap px-3 py-2 !text-[12px] hover:text-text-primary ${
         align === 'right' ? 'text-right' : 'text-left'
       } ${active ? 'text-text-primary' : ''}`}
     >
@@ -374,7 +374,7 @@ function SortTh({
 function Th({ children, align }: { children?: React.ReactNode; align?: 'right' }) {
   return (
     <th
-      className={`label-caps whitespace-nowrap px-3 py-2 !text-[9px] ${
+      className={`label-caps whitespace-nowrap px-3 py-2 !text-[12px] ${
         align === 'right' ? 'text-right' : 'text-left'
       }`}
     >

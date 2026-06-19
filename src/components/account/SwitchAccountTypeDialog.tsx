@@ -177,7 +177,7 @@ export function SwitchAccountTypeDialog({ account, open, onOpenChange }: SwitchA
           )}
 
           {!isLoading && !isError && (disables.length > 0 || closes.length > 0 || restores.length > 0) && (
-            <p className="text-[11px] text-[var(--text-muted)]">
+            <p className="text-[13px] text-[var(--text-muted)]">
               Reflects the current state — the exact actions are recalculated when you confirm.
             </p>
           )}

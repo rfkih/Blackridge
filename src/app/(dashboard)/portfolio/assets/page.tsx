@@ -133,7 +133,7 @@ function Header({ loading, onRefresh }: { loading: boolean; onRefresh: () => voi
         <h1 className="font-display text-[24px] font-semibold tracking-tighter text-text-primary">
           Asset Allocation
         </h1>
-        <p className="mt-1 text-[12px] text-text-secondary">
+        <p className="mt-1 text-[14px] text-text-secondary">
           Layer-2 portfolio targets — what fraction of base inventory sits in each asset. Plans are
           generated on demand; execution is currently manual.
         </p>
@@ -141,7 +141,7 @@ function Header({ loading, onRefresh }: { loading: boolean; onRefresh: () => voi
       <button
         type="button"
         onClick={onRefresh}
-        className="inline-flex items-center gap-1.5 rounded-sm border border-bd-subtle bg-bg-base px-3 py-1.5 text-[11px] text-text-primary transition-colors hover:bg-bg-hover"
+        className="inline-flex items-center gap-1.5 rounded-sm border border-bd-subtle bg-bg-base px-3 py-1.5 text-[13px] text-text-primary transition-colors hover:bg-bg-hover"
         disabled={loading}
       >
         <RefreshCw size={12} className={loading ? 'animate-spin' : ''} /> Refresh balance
@@ -179,19 +179,19 @@ function CurrentMixPanel({
     <section className="rounded-xl border border-bd-subtle bg-bg-surface p-4 shadow-panel">
       <div className="mb-3 flex items-center gap-2">
         <Wallet size={14} className="text-text-muted" />
-        <h2 className="font-display text-[14px] font-semibold text-text-primary">Current mix</h2>
-        <span className="ml-auto font-mono text-[11px] text-text-muted">
+        <h2 className="font-display text-[15px] font-semibold text-text-primary">Current mix</h2>
+        <span className="ml-auto font-mono text-[13px] text-text-muted">
           NAV {formatCurrency(totalUsdt)}
         </span>
       </div>
       {loading ? (
         <Skeleton className="h-[200px] w-full" />
       ) : rows.length === 0 ? (
-        <p className="text-[12px] text-text-muted">No holdings.</p>
+        <p className="text-[14px] text-text-muted">No holdings.</p>
       ) : (
         <div className="grid grid-cols-[160px_1fr] gap-4">
           <Donut data={rows} />
-          <table className="w-full font-mono text-[11px]">
+          <table className="w-full font-mono text-[13px]">
             <tbody>
               {rows.map((r) => (
                 <tr key={r.asset} className="border-bd-subtle/60 border-t first:border-t-0">
@@ -357,12 +357,12 @@ function TargetsEditor({
   return (
     <section className="rounded-xl border border-bd-subtle bg-bg-surface p-4 shadow-panel">
       <div className="mb-3 flex items-center gap-2">
-        <h2 className="font-display text-[14px] font-semibold text-text-primary">Targets</h2>
-        <span className="font-mono text-[10px] uppercase tracking-wider text-text-muted">
+        <h2 className="font-display text-[15px] font-semibold text-text-primary">Targets</h2>
+        <span className="font-mono text-[12px] uppercase tracking-wider text-text-muted">
           account {accountId.slice(0, 8)}
         </span>
         <span
-          className="ml-auto rounded-full px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wider"
+          className="ml-auto rounded-full px-2 py-0.5 font-mono text-[12px] font-semibold uppercase tracking-wider"
           style={{
             backgroundColor: sumOk ? 'var(--tint-profit)' : 'var(--tint-loss)',
             color: sumOk ? 'var(--color-profit)' : 'var(--color-loss)',
@@ -376,7 +376,7 @@ function TargetsEditor({
       ) : (
         <>
           <div className="space-y-1.5">
-            <div className="grid grid-cols-[1fr_90px_90px_30px] gap-2 px-1 font-mono text-[9px] uppercase tracking-wider text-text-muted">
+            <div className="grid grid-cols-[1fr_90px_90px_30px] gap-2 px-1 font-mono text-[12px] uppercase tracking-wider text-text-muted">
               <span>Asset</span>
               <span className="text-right">Target %</span>
               <span className="text-right">Band pp</span>
@@ -392,7 +392,7 @@ function TargetsEditor({
               return (
                 <div key={i} className="grid grid-cols-[1fr_90px_90px_30px] items-center gap-2">
                   <select
-                    className="focus:border-bd-focus rounded border border-bd-subtle bg-bg-base px-2 py-1 text-[12px] uppercase text-text-primary focus:outline-none"
+                    className="focus:border-bd-focus rounded border border-bd-subtle bg-bg-base px-2 py-1 text-[14px] uppercase text-text-primary focus:outline-none"
                     value={r.asset}
                     onChange={(e) => update(i, { asset: e.target.value })}
                   >
@@ -415,7 +415,7 @@ function TargetsEditor({
                   </select>
                   <input
                     type="number"
-                    className="focus:border-bd-focus rounded border border-bd-subtle bg-bg-base px-2 py-1 text-right font-mono text-[12px] tabular-nums text-text-primary focus:outline-none"
+                    className="focus:border-bd-focus rounded border border-bd-subtle bg-bg-base px-2 py-1 text-right font-mono text-[14px] tabular-nums text-text-primary focus:outline-none"
                     value={r.targetPct}
                     onChange={(e) => update(i, { targetPct: e.target.value })}
                     step="0.1"
@@ -424,7 +424,7 @@ function TargetsEditor({
                   />
                   <input
                     type="number"
-                    className="focus:border-bd-focus rounded border border-bd-subtle bg-bg-base px-2 py-1 text-right font-mono text-[12px] tabular-nums text-text-primary focus:outline-none"
+                    className="focus:border-bd-focus rounded border border-bd-subtle bg-bg-base px-2 py-1 text-right font-mono text-[14px] tabular-nums text-text-primary focus:outline-none"
                     value={r.minBandPp}
                     onChange={(e) => update(i, { minBandPp: e.target.value })}
                     step="0.5"
@@ -447,7 +447,7 @@ function TargetsEditor({
             <button
               type="button"
               onClick={addRow}
-              className="inline-flex items-center gap-1 rounded-sm border border-bd-subtle bg-bg-base px-2 py-1 text-[11px] text-text-primary hover:bg-bg-hover"
+              className="inline-flex items-center gap-1 rounded-sm border border-bd-subtle bg-bg-base px-2 py-1 text-[13px] text-text-primary hover:bg-bg-hover"
             >
               + Add asset
             </button>
@@ -455,7 +455,7 @@ function TargetsEditor({
               type="button"
               onClick={handleSave}
               disabled={!sumOk || saving || !touched}
-              className="ml-auto inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-[12px] font-semibold disabled:cursor-not-allowed disabled:opacity-60"
+              className="ml-auto inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-[14px] font-semibold disabled:cursor-not-allowed disabled:opacity-60"
               style={{
                 background: sumOk ? 'var(--color-profit)' : 'var(--bg-elevated)',
                 color: sumOk ? 'var(--text-inverse)' : 'var(--text-muted)',
@@ -464,9 +464,9 @@ function TargetsEditor({
               <Save size={12} /> Save targets
             </button>
           </div>
-          {saveError && <p className="mt-2 text-[11px] text-[var(--color-loss)]">{saveError}</p>}
+          {saveError && <p className="mt-2 text-[13px] text-[var(--color-loss)]">{saveError}</p>}
           {!sumOk && (
-            <p className="mt-2 text-[11px] text-text-muted">
+            <p className="mt-2 text-[13px] text-text-muted">
               Sum of target percentages must be exactly 100. Adjust any row to balance.
             </p>
           )}
@@ -519,11 +519,11 @@ function PolicyEditor({
   return (
     <section className="rounded-xl border border-bd-subtle bg-bg-surface p-4 shadow-panel">
       <div className="mb-3 flex items-center gap-2">
-        <h2 className="font-display text-[14px] font-semibold text-text-primary">
+        <h2 className="font-display text-[15px] font-semibold text-text-primary">
           Rebalance policy
         </h2>
         {!policy?.persisted && (
-          <span className="rounded-full bg-bg-elevated px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-text-muted">
+          <span className="rounded-full bg-bg-elevated px-2 py-0.5 font-mono text-[12px] uppercase tracking-wider text-text-muted">
             Defaults — not yet saved
           </span>
         )}
@@ -613,7 +613,7 @@ function PolicyEditor({
             setTouched(false);
           }}
           disabled={!touched || saving}
-          className="inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-[12px] font-semibold disabled:cursor-not-allowed disabled:opacity-60"
+          className="inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-[14px] font-semibold disabled:cursor-not-allowed disabled:opacity-60"
           style={{ background: 'var(--color-profit)', color: 'var(--text-inverse)' }}
         >
           <Save size={12} /> Save policy
@@ -624,7 +624,7 @@ function PolicyEditor({
 }
 
 const INPUT_CLS =
-  'rounded border border-bd-subtle bg-bg-base px-2 py-1 font-mono text-[12px] tabular-nums text-text-primary focus:border-bd-focus focus:outline-none';
+  'rounded border border-bd-subtle bg-bg-base px-2 py-1 font-mono text-[14px] tabular-nums text-text-primary focus:border-bd-focus focus:outline-none';
 
 function PolicyField({
   label,
@@ -637,11 +637,11 @@ function PolicyField({
 }) {
   return (
     <label className="flex flex-col gap-1">
-      <span className="font-mono text-[10px] uppercase tracking-wider text-text-muted">
+      <span className="font-mono text-[12px] uppercase tracking-wider text-text-muted">
         {label}
       </span>
       {children}
-      <span className="text-[10px] text-text-muted">{hint}</span>
+      <span className="text-[12px] text-text-muted">{hint}</span>
     </label>
   );
 }
@@ -685,10 +685,10 @@ function PlanSection({
     <section className="rounded-xl border border-bd-subtle bg-bg-surface p-4 shadow-panel">
       <div className="mb-3 flex items-center justify-between gap-3">
         <div>
-          <h2 className="font-display text-[14px] font-semibold text-text-primary">
+          <h2 className="font-display text-[15px] font-semibold text-text-primary">
             Rebalance plan
           </h2>
-          <p className="text-[11px] text-text-muted">
+          <p className="text-[13px] text-text-muted">
             Drift vs targets, trade legs, cost estimate. Persisted plans can be executed via the
             button on the right — trades submit through Binance, capped at the policy&apos;s
             max-per-execute USDT.
@@ -699,7 +699,7 @@ function PlanSection({
             type="button"
             onClick={() => onGenerate(false)}
             disabled={running || executing}
-            className="inline-flex items-center gap-1.5 rounded-full border border-bd-subtle bg-bg-base px-3 py-1.5 text-[12px] text-text-primary hover:bg-bg-hover disabled:opacity-60"
+            className="inline-flex items-center gap-1.5 rounded-full border border-bd-subtle bg-bg-base px-3 py-1.5 text-[14px] text-text-primary hover:bg-bg-hover disabled:opacity-60"
           >
             <Play size={12} /> Preview
           </button>
@@ -707,7 +707,7 @@ function PlanSection({
             type="button"
             onClick={() => onGenerate(true)}
             disabled={running || executing}
-            className="inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-[12px] font-semibold disabled:opacity-60"
+            className="inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-[14px] font-semibold disabled:opacity-60"
             style={{ background: 'var(--bg-elevated)', color: 'var(--text-primary)' }}
           >
             <Play size={12} /> Generate + persist
@@ -717,7 +717,7 @@ function PlanSection({
             onClick={() => setConfirmOpen(true)}
             disabled={!canExecute || executing}
             title={canExecute ? 'Submit this plan to Binance' : 'Persist a PROPOSED plan first'}
-            className="inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-[12px] font-semibold disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-[14px] font-semibold disabled:cursor-not-allowed disabled:opacity-50"
             style={{ background: 'var(--color-loss)', color: 'var(--text-inverse)' }}
           >
             <Rocket size={12} /> {executing ? 'Executing…' : 'Execute now'}
@@ -726,12 +726,12 @@ function PlanSection({
       </div>
 
       {error && (
-        <div className="mb-2 inline-flex items-center gap-2 rounded-md border border-[rgba(229,72,77,0.4)] bg-[rgba(229,72,77,0.06)] px-3 py-2 text-[11px] text-[var(--color-loss)]">
+        <div className="mb-2 inline-flex items-center gap-2 rounded-md border border-[rgba(229,72,77,0.4)] bg-[rgba(229,72,77,0.06)] px-3 py-2 text-[13px] text-[var(--color-loss)]">
           <AlertTriangle size={12} /> {error}
         </div>
       )}
       {executeError && (
-        <div className="mb-2 inline-flex items-center gap-2 rounded-md border border-[rgba(229,72,77,0.4)] bg-[rgba(229,72,77,0.06)] px-3 py-2 text-[11px] text-[var(--color-loss)]">
+        <div className="mb-2 inline-flex items-center gap-2 rounded-md border border-[rgba(229,72,77,0.4)] bg-[rgba(229,72,77,0.06)] px-3 py-2 text-[13px] text-[var(--color-loss)]">
           <AlertTriangle size={12} /> Execute failed: {executeError}
         </div>
       )}
@@ -741,7 +741,7 @@ function PlanSection({
       ) : plan ? (
         <PlanView plan={plan} formatCurrency={formatCurrency} />
       ) : (
-        <p className="text-[12px] text-text-muted">
+        <p className="text-[14px] text-text-muted">
           {running
             ? 'Computing plan…'
             : 'No plan generated yet. Click Preview to see what would happen.'}
@@ -793,14 +793,14 @@ function ExecuteConfirmDialog({
             Confirm execute
           </h3>
         </div>
-        <p className="text-[12px] text-text-secondary">
+        <p className="text-[14px] text-text-secondary">
           You&apos;re about to submit{' '}
           <span className="font-semibold text-text-primary">{plan.tradePlan.length}</span> trade
           {plan.tradePlan.length === 1 ? '' : 's'} for a total notional of{' '}
           <span className="font-mono text-text-primary">{formatCurrency(totalNotional)}</span> on
           your live Binance account. Trades fire immediately.
         </p>
-        <ul className="my-3 space-y-1 rounded-md border border-bd-subtle bg-bg-base p-2 font-mono text-[11px]">
+        <ul className="my-3 space-y-1 rounded-md border border-bd-subtle bg-bg-base p-2 font-mono text-[13px]">
           {plan.tradePlan.map((l, i) => (
             <li key={i} className="flex items-center justify-between gap-3">
               <span
@@ -815,12 +815,12 @@ function ExecuteConfirmDialog({
             </li>
           ))}
         </ul>
-        <label className="block text-[11px] text-text-muted">
+        <label className="block text-[13px] text-text-muted">
           Type <span className="font-mono font-bold text-text-primary">EXECUTE</span> to confirm:
         </label>
         <input
           type="text"
-          className="focus:border-bd-focus mt-1 w-full rounded border border-bd-subtle bg-bg-base px-2 py-1.5 font-mono text-[13px] uppercase tracking-wider text-text-primary focus:outline-none"
+          className="focus:border-bd-focus mt-1 w-full rounded border border-bd-subtle bg-bg-base px-2 py-1.5 font-mono text-[14px] uppercase tracking-wider text-text-primary focus:outline-none"
           value={typed}
           onChange={(e) => setTyped(e.target.value)}
           autoFocus
@@ -829,7 +829,7 @@ function ExecuteConfirmDialog({
           <button
             type="button"
             onClick={onCancel}
-            className="rounded-full border border-bd-subtle bg-bg-base px-4 py-1.5 text-[12px] text-text-primary hover:bg-bg-hover"
+            className="rounded-full border border-bd-subtle bg-bg-base px-4 py-1.5 text-[14px] text-text-primary hover:bg-bg-hover"
           >
             Cancel
           </button>
@@ -837,7 +837,7 @@ function ExecuteConfirmDialog({
             type="button"
             disabled={!armed}
             onClick={onConfirm}
-            className="rounded-full px-4 py-1.5 text-[12px] font-semibold disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-full px-4 py-1.5 text-[14px] font-semibold disabled:cursor-not-allowed disabled:opacity-50"
             style={{ background: 'var(--color-loss)', color: 'var(--text-inverse)' }}
           >
             Submit trades
@@ -860,9 +860,9 @@ function ExecutionResultView({
   const success = result.status === 'COMPLETED';
   return (
     <div className="space-y-3">
-      <div className="flex flex-wrap items-center gap-3 text-[12px]">
+      <div className="flex flex-wrap items-center gap-3 text-[14px]">
         <span
-          className="rounded-full px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wider"
+          className="rounded-full px-2 py-0.5 font-mono text-[12px] font-semibold uppercase tracking-wider"
           style={{ backgroundColor: statusStyle.bg, color: statusStyle.fg }}
         >
           {result.status}
@@ -887,7 +887,7 @@ function ExecutionResultView({
       </div>
 
       {result.failedReason && (
-        <p className="rounded-md border border-[rgba(229,72,77,0.4)] bg-[rgba(229,72,77,0.06)] px-3 py-2 text-[11px] text-[var(--color-loss)]">
+        <p className="rounded-md border border-[rgba(229,72,77,0.4)] bg-[rgba(229,72,77,0.06)] px-3 py-2 text-[13px] text-[var(--color-loss)]">
           {result.failedReason}
         </p>
       )}
@@ -908,25 +908,25 @@ function ExecutionLegTable({
 }) {
   return (
     <div className="overflow-hidden rounded-md border border-bd-subtle">
-      <table className="w-full font-mono text-[11px]">
+      <table className="w-full font-mono text-[13px]">
         <thead>
           <tr className="bg-bg-elevated text-text-muted">
-            <th className="px-3 py-1.5 text-left font-mono text-[9px] uppercase tracking-wider">
+            <th className="px-3 py-1.5 text-left font-mono text-[12px] uppercase tracking-wider">
               Action
             </th>
-            <th className="px-3 py-1.5 text-left font-mono text-[9px] uppercase tracking-wider">
+            <th className="px-3 py-1.5 text-left font-mono text-[12px] uppercase tracking-wider">
               Asset
             </th>
-            <th className="px-3 py-1.5 text-right font-mono text-[9px] uppercase tracking-wider">
+            <th className="px-3 py-1.5 text-right font-mono text-[12px] uppercase tracking-wider">
               Filled USDT
             </th>
-            <th className="px-3 py-1.5 text-right font-mono text-[9px] uppercase tracking-wider">
+            <th className="px-3 py-1.5 text-right font-mono text-[12px] uppercase tracking-wider">
               Filled qty
             </th>
-            <th className="px-3 py-1.5 text-right font-mono text-[9px] uppercase tracking-wider">
+            <th className="px-3 py-1.5 text-right font-mono text-[12px] uppercase tracking-wider">
               Avg price
             </th>
-            <th className="px-3 py-1.5 text-left font-mono text-[9px] uppercase tracking-wider">
+            <th className="px-3 py-1.5 text-left font-mono text-[12px] uppercase tracking-wider">
               Status
             </th>
           </tr>
@@ -977,9 +977,9 @@ function PlanView({
   const statusStyle = statusBadge(plan.status);
   return (
     <div className="space-y-3">
-      <div className="flex flex-wrap items-center gap-3 text-[12px]">
+      <div className="flex flex-wrap items-center gap-3 text-[14px]">
         <span
-          className="rounded-full px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wider"
+          className="rounded-full px-2 py-0.5 font-mono text-[12px] font-semibold uppercase tracking-wider"
           style={{ backgroundColor: statusStyle.bg, color: statusStyle.fg }}
         >
           {plan.status}
@@ -1012,7 +1012,7 @@ function PlanView({
       </div>
 
       {plan.skipReason && (
-        <p className="rounded-md border border-bd-subtle bg-bg-elevated px-3 py-2 text-[11px] text-text-secondary">
+        <p className="rounded-md border border-bd-subtle bg-bg-elevated px-3 py-2 text-[13px] text-text-secondary">
           {plan.skipReason}
         </p>
       )}
@@ -1036,25 +1036,25 @@ function DriftTable({
   if (!items.length) return null;
   return (
     <div className="overflow-hidden rounded-md border border-bd-subtle">
-      <table className="w-full font-mono text-[11px]">
+      <table className="w-full font-mono text-[13px]">
         <thead>
           <tr className="bg-bg-elevated text-text-muted">
-            <th className="px-3 py-1.5 text-left font-mono text-[9px] uppercase tracking-wider">
+            <th className="px-3 py-1.5 text-left font-mono text-[12px] uppercase tracking-wider">
               Asset
             </th>
-            <th className="px-3 py-1.5 text-right font-mono text-[9px] uppercase tracking-wider">
+            <th className="px-3 py-1.5 text-right font-mono text-[12px] uppercase tracking-wider">
               Value
             </th>
-            <th className="px-3 py-1.5 text-right font-mono text-[9px] uppercase tracking-wider">
+            <th className="px-3 py-1.5 text-right font-mono text-[12px] uppercase tracking-wider">
               Current
             </th>
-            <th className="px-3 py-1.5 text-right font-mono text-[9px] uppercase tracking-wider">
+            <th className="px-3 py-1.5 text-right font-mono text-[12px] uppercase tracking-wider">
               Target
             </th>
-            <th className="px-3 py-1.5 text-right font-mono text-[9px] uppercase tracking-wider">
+            <th className="px-3 py-1.5 text-right font-mono text-[12px] uppercase tracking-wider">
               Drift
             </th>
-            <th className="px-3 py-1.5 text-right font-mono text-[9px] uppercase tracking-wider">
+            <th className="px-3 py-1.5 text-right font-mono text-[12px] uppercase tracking-wider">
               Band
             </th>
           </tr>
@@ -1099,25 +1099,25 @@ function TradeList({
 }) {
   return (
     <div className="overflow-hidden rounded-md border border-bd-subtle">
-      <table className="w-full font-mono text-[11px]">
+      <table className="w-full font-mono text-[13px]">
         <thead>
           <tr className="bg-bg-elevated text-text-muted">
-            <th className="px-3 py-1.5 text-left font-mono text-[9px] uppercase tracking-wider">
+            <th className="px-3 py-1.5 text-left font-mono text-[12px] uppercase tracking-wider">
               Action
             </th>
-            <th className="px-3 py-1.5 text-left font-mono text-[9px] uppercase tracking-wider">
+            <th className="px-3 py-1.5 text-left font-mono text-[12px] uppercase tracking-wider">
               Asset
             </th>
-            <th className="px-3 py-1.5 text-right font-mono text-[9px] uppercase tracking-wider">
+            <th className="px-3 py-1.5 text-right font-mono text-[12px] uppercase tracking-wider">
               USDT
             </th>
-            <th className="px-3 py-1.5 text-right font-mono text-[9px] uppercase tracking-wider">
+            <th className="px-3 py-1.5 text-right font-mono text-[12px] uppercase tracking-wider">
               Base qty
             </th>
-            <th className="px-3 py-1.5 text-right font-mono text-[9px] uppercase tracking-wider">
+            <th className="px-3 py-1.5 text-right font-mono text-[12px] uppercase tracking-wider">
               Ref price
             </th>
-            <th className="px-3 py-1.5 text-left font-mono text-[9px] uppercase tracking-wider">
+            <th className="px-3 py-1.5 text-left font-mono text-[12px] uppercase tracking-wider">
               Reason
             </th>
           </tr>

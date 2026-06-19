@@ -57,7 +57,7 @@ export function SpecParamsForm({
 
   if (keys.length === 0) {
     return (
-      <div className="rounded-sm border border-bd-subtle bg-bg-base px-4 py-4 text-[12px] text-text-secondary">
+      <div className="rounded-sm border border-bd-subtle bg-bg-base px-4 py-4 text-[14px] text-text-secondary">
         <p className="font-mono font-semibold text-text-primary">{strategyCode}</p>
         <p className="mt-1">
           The spec for this strategy declares no tunable parameters. Backend will run with built-in
@@ -70,7 +70,7 @@ export function SpecParamsForm({
   return (
     <div className="space-y-3">
       <div className="flex items-baseline justify-between">
-        <p className="font-mono text-[12px] font-semibold text-text-primary">{strategyCode}</p>
+        <p className="font-mono text-[14px] font-semibold text-text-primary">{strategyCode}</p>
         {archetype && <span className="label-caps">archetype · {archetype}</span>}
       </div>
 
@@ -91,7 +91,7 @@ export function SpecParamsForm({
             >
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-1.5">
-                  <span className="truncate text-[13px] text-text-primary">{humanizeKey(key)}</span>
+                  <span className="truncate text-[14px] text-text-primary">{humanizeKey(key)}</span>
                   {overridden && (
                     <span
                       aria-label="Overridden"
@@ -99,7 +99,7 @@ export function SpecParamsForm({
                     />
                   )}
                 </div>
-                <p className="font-mono text-[10px] text-text-muted">
+                <p className="font-mono text-[12px] text-text-muted">
                   {key} · default {String(def)}
                 </p>
               </div>
@@ -120,7 +120,7 @@ export function SpecParamsForm({
                       const n = Number(txt);
                       if (Number.isFinite(n)) onChange(key, n);
                     }}
-                    className="num w-28 rounded-sm border border-bd-subtle bg-bg-base px-2 py-1 text-right text-[12px] text-text-primary focus:border-bd-strong focus:outline-none"
+                    className="num w-28 rounded-sm border border-bd-subtle bg-bg-base px-2 py-1 text-right text-[14px] text-text-primary focus:border-bd-strong focus:outline-none"
                   />
                 )}
               </div>

@@ -76,10 +76,10 @@ export function BacktestRunPicker({
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
             placeholder={`Search ${symbol} · ${strategyCode} runs…`}
-            className="h-8 pl-7 text-[12px]"
+            className="h-8 pl-7 text-[14px]"
           />
         </div>
-        <label className="inline-flex shrink-0 items-center gap-1.5 text-[11px] text-text-secondary">
+        <label className="inline-flex shrink-0 items-center gap-1.5 text-[13px] text-text-secondary">
           <input
             type="checkbox"
             checked={hideBelow}
@@ -92,12 +92,12 @@ export function BacktestRunPicker({
 
       <div className="max-h-64 overflow-y-auto rounded-sm border border-bd-subtle bg-bg-base">
         {runsQ.isLoading ? (
-          <div className="flex items-center justify-center gap-2 px-3 py-6 text-[11px] text-text-muted">
+          <div className="flex items-center justify-center gap-2 px-3 py-6 text-[13px] text-text-muted">
             <Loader2 size={12} className="animate-spin" />
             Loading runs…
           </div>
         ) : rows.length === 0 ? (
-          <div className="px-3 py-6 text-center text-[11px] text-text-muted">
+          <div className="px-3 py-6 text-center text-[13px] text-text-muted">
             {hideBelow
               ? `No ${symbol}·${strategyCode} runs above the bar. Untoggle "Hide below bar" to see all.`
               : `No COMPLETED ${symbol}·${strategyCode} runs found. Run a backtest first.`}
@@ -185,15 +185,15 @@ function RunRow({
         )}
       >
         <div className="flex items-center justify-between gap-2">
-          <span className="font-mono text-[11px] text-text-primary">
+          <span className="font-mono text-[13px] text-text-primary">
             {run.id.slice(0, 8)} · {run.interval ?? '—'}
           </span>
-          <span className="font-mono text-[10px] text-text-muted">
+          <span className="font-mono text-[12px] text-text-muted">
             {run.fromDate ? format(new Date(run.fromDate), 'yyyy-MM-dd') : '—'} →{' '}
             {run.toDate ? format(new Date(run.toDate), 'yyyy-MM-dd') : '—'}
           </span>
         </div>
-        <div className="mt-1 flex flex-wrap gap-x-4 gap-y-0.5 font-mono text-[10px]">
+        <div className="mt-1 flex flex-wrap gap-x-4 gap-y-0.5 font-mono text-[12px]">
           <Metric
             label="CAGR"
             value={rowEval.cagr.actual != null ? `${rowEval.cagr.actual.toFixed(2)}%` : '—'}

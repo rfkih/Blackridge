@@ -500,7 +500,7 @@ function HistoricalIntegrityConsole() {
         <h1 className="mt-1 font-display text-[24px] font-semibold tracking-tighter text-text-primary">
           Historical data integrity
         </h1>
-        <p className="mt-1 max-w-2xl text-[13px] text-text-secondary">
+        <p className="mt-1 max-w-2xl text-[14px] text-text-secondary">
           Diagnose missing market_data candles, missing feature_store rows, and NULL indicator
           columns — then submit one or more async repair jobs. Each job runs on the research JVM and
           reports live progress.
@@ -610,8 +610,8 @@ function ScopeCard(props: ScopeCardProps) {
           <Database size={14} strokeWidth={1.75} />
         </span>
         <div>
-          <h2 className="font-display text-[14px] font-semibold text-text-primary">Scope</h2>
-          <p className="text-[11px] text-text-secondary">
+          <h2 className="font-display text-[15px] font-semibold text-text-primary">Scope</h2>
+          <p className="text-[13px] text-text-secondary">
             Pick the (symbol, interval) — and optionally a time range — to inspect.
           </p>
         </div>
@@ -656,7 +656,7 @@ function ScopeCard(props: ScopeCardProps) {
 
         <label
           htmlFor={fullRangeId}
-          className="flex cursor-pointer items-start gap-2 text-[12px] text-text-secondary"
+          className="flex cursor-pointer items-start gap-2 text-[14px] text-text-secondary"
         >
           <input
             id={fullRangeId}
@@ -698,7 +698,7 @@ function ScopeCard(props: ScopeCardProps) {
         )}
 
         {rangeError && (
-          <p className="inline-flex items-center gap-1.5 text-[11px] text-[var(--color-loss)]">
+          <p className="inline-flex items-center gap-1.5 text-[13px] text-[var(--color-loss)]">
             <AlertTriangle size={11} /> {rangeError}
           </p>
         )}
@@ -724,7 +724,7 @@ function CoverageCard({ query, onFillGaps, isFilling }: CoverageCardProps) {
   if (query.isLoading) {
     return (
       <section className="rounded-xl border border-bd-subtle bg-bg-surface p-4">
-        <p className="inline-flex items-center gap-1.5 text-[12px] text-text-secondary">
+        <p className="inline-flex items-center gap-1.5 text-[14px] text-text-secondary">
           <Loader2 size={12} className="animate-spin" /> Inspecting coverage…
         </p>
       </section>
@@ -733,7 +733,7 @@ function CoverageCard({ query, onFillGaps, isFilling }: CoverageCardProps) {
   if (query.isError) {
     return (
       <section className="rounded-xl border border-bd-subtle bg-bg-surface p-4">
-        <p className="inline-flex items-center gap-1.5 text-[12px] text-[var(--color-loss)]">
+        <p className="inline-flex items-center gap-1.5 text-[14px] text-[var(--color-loss)]">
           <AlertTriangle size={12} /> Coverage failed: {normalizeError(query.error)}
         </p>
       </section>
@@ -755,10 +755,10 @@ function CoverageCard({ query, onFillGaps, isFilling }: CoverageCardProps) {
             <Sparkles size={14} strokeWidth={1.75} />
           </span>
           <div>
-            <h2 className="font-display text-[14px] font-semibold text-text-primary">
+            <h2 className="font-display text-[15px] font-semibold text-text-primary">
               Coverage report
             </h2>
-            <p className="font-mono text-[11px] text-text-secondary">
+            <p className="font-mono text-[13px] text-text-secondary">
               {r.symbol} · {r.interval} · {r.from?.replace('T', ' ').slice(0, 19)} →{' '}
               {r.to?.replace('T', ' ').slice(0, 19)}
             </p>
@@ -812,8 +812,8 @@ function CoverageBlockMarketData({ report }: { report: CoverageReport }) {
   const completeness = md.expected > 0 ? (md.actual / md.expected) * 100 : 100;
   return (
     <div className="rounded-md border border-bd-subtle p-3">
-      <h3 className="mb-2 font-display text-[12px] font-semibold text-text-primary">market_data</h3>
-      <dl className="space-y-1.5 text-[12px]">
+      <h3 className="mb-2 font-display text-[14px] font-semibold text-text-primary">market_data</h3>
+      <dl className="space-y-1.5 text-[14px]">
         <Row
           label="Rows"
           value={`${md.actual.toLocaleString()} / ${md.expected.toLocaleString()}`}
@@ -829,11 +829,11 @@ function CoverageBlockMarketData({ report }: { report: CoverageReport }) {
       </dl>
       {md.gaps.length > 0 && (
         <details className="mt-3">
-          <summary className="cursor-pointer text-[11px] text-text-secondary hover:text-text-primary">
+          <summary className="cursor-pointer text-[13px] text-text-secondary hover:text-text-primary">
             Show first {md.gaps.length} gap(s)
           </summary>
           <div className="mt-2 max-h-48 overflow-auto rounded-sm border border-bd-subtle bg-bg-base p-2">
-            <table className="w-full text-[11px]">
+            <table className="w-full text-[13px]">
               <thead className="text-text-muted">
                 <tr>
                   <th className="text-left">After</th>
@@ -862,10 +862,10 @@ function CoverageBlockFeatureStore({ report }: { report: CoverageReport }) {
   const fs = report.featureStore;
   return (
     <div className="rounded-md border border-bd-subtle p-3">
-      <h3 className="mb-2 font-display text-[12px] font-semibold text-text-primary">
+      <h3 className="mb-2 font-display text-[14px] font-semibold text-text-primary">
         feature_store
       </h3>
-      <dl className="space-y-1.5 text-[12px]">
+      <dl className="space-y-1.5 text-[14px]">
         <Row label="Rows" value={fs.actual.toLocaleString()} />
         <Row
           label="Missing rows"
@@ -873,7 +873,7 @@ function CoverageBlockFeatureStore({ report }: { report: CoverageReport }) {
           tone={fs.missingRows > 0 ? 'warn' : 'ok'}
         />
       </dl>
-      <p className="mt-2 text-[11px] text-text-muted">
+      <p className="mt-2 text-[13px] text-text-muted">
         Missing = market_data rows in range that have no corresponding feature_store row. Patchable
         via the &ldquo;backfill missing feature_store rows&rdquo; action.
       </p>
@@ -885,15 +885,15 @@ function CoverageBlockNullColumns({ report }: { report: CoverageReport }) {
   const entries = Object.entries(report.nullColumns).sort((a, b) => b[1] - a[1]);
   return (
     <div className="rounded-md border border-bd-subtle p-3">
-      <h3 className="mb-2 font-display text-[12px] font-semibold text-text-primary">
+      <h3 className="mb-2 font-display text-[14px] font-semibold text-text-primary">
         NULL indicator columns
       </h3>
       {entries.length === 0 ? (
-        <p className="inline-flex items-center gap-1.5 text-[11px] text-[var(--color-profit)]">
+        <p className="inline-flex items-center gap-1.5 text-[13px] text-[var(--color-profit)]">
           <CheckCircle2 size={11} /> All indicator columns populated.
         </p>
       ) : (
-        <ul className="space-y-1.5 font-mono text-[12px]">
+        <ul className="space-y-1.5 font-mono text-[14px]">
           {entries.map(([col, count]) => (
             <li key={col} className="flex items-center justify-between">
               <span className="text-text-primary">{col}</span>
@@ -911,10 +911,10 @@ function CoverageBlockSanity({ report }: { report: CoverageReport }) {
   const hits = s.highLessThanLow + s.zeroVolume + s.duplicateStartTime;
   return (
     <div className="rounded-md border border-bd-subtle p-3">
-      <h3 className="mb-2 font-display text-[12px] font-semibold text-text-primary">
+      <h3 className="mb-2 font-display text-[14px] font-semibold text-text-primary">
         Sanity checks
       </h3>
-      <dl className="space-y-1.5 text-[12px]">
+      <dl className="space-y-1.5 text-[14px]">
         <Row
           label="high < low"
           value={`${s.highLessThanLow}`}
@@ -932,7 +932,7 @@ function CoverageBlockSanity({ report }: { report: CoverageReport }) {
         />
       </dl>
       {hits === 0 && (
-        <p className="mt-2 inline-flex items-center gap-1.5 text-[11px] text-[var(--color-profit)]">
+        <p className="mt-2 inline-flex items-center gap-1.5 text-[13px] text-[var(--color-profit)]">
           <CheckCircle2 size={11} /> Clean.
         </p>
       )}
@@ -952,17 +952,17 @@ function CoverageBlockMicrostructure({ report }: { report: CoverageReport }) {
 
   return (
     <div className="rounded-md border border-bd-subtle p-3 lg:col-span-2">
-      <h3 className="mb-3 font-display text-[12px] font-semibold text-text-primary">
+      <h3 className="mb-3 font-display text-[14px] font-semibold text-text-primary">
         Market microstructure
       </h3>
 
       <div className="grid gap-4 sm:grid-cols-2">
         {/* OFI features (feature_values) */}
         <div>
-          <p className="mb-2 text-[11px] font-medium text-text-secondary">
+          <p className="mb-2 text-[13px] font-medium text-text-secondary">
             OFI features — feature_values
           </p>
-          <dl className="space-y-1.5 text-[12px]">
+          <dl className="space-y-1.5 text-[14px]">
             {ofiEntries.map(([name, count]) => (
               <Row
                 key={name}
@@ -974,12 +974,12 @@ function CoverageBlockMicrostructure({ report }: { report: CoverageReport }) {
             ))}
           </dl>
           {anyOfiMissing ? (
-            <p className="mt-2 inline-flex items-center gap-1.5 text-[11px] text-[var(--color-warning)]">
+            <p className="mt-2 inline-flex items-center gap-1.5 text-[13px] text-[var(--color-warning)]">
               <AlertTriangle size={11} /> One or more OFI features have no rows in this range. Use
               &ldquo;Backfill OFI features&rdquo; to fill.
             </p>
           ) : (
-            <p className="mt-2 inline-flex items-center gap-1.5 text-[11px] text-[var(--color-profit)]">
+            <p className="mt-2 inline-flex items-center gap-1.5 text-[13px] text-[var(--color-profit)]">
               <CheckCircle2 size={11} /> All OFI features populated.
             </p>
           )}
@@ -987,10 +987,10 @@ function CoverageBlockMicrostructure({ report }: { report: CoverageReport }) {
 
         {/* Order book snapshots */}
         <div>
-          <p className="mb-2 text-[11px] font-medium text-text-secondary">
+          <p className="mb-2 text-[13px] font-medium text-text-secondary">
             Order book snapshots — orderbook_snapshots
           </p>
-          <dl className="space-y-1.5 text-[12px]">
+          <dl className="space-y-1.5 text-[14px]">
             <Row
               label="Rows"
               value={ms.obSnapshotsActual.toLocaleString()}
@@ -1012,7 +1012,7 @@ function CoverageBlockMicrostructure({ report }: { report: CoverageReport }) {
               mono
             />
           </dl>
-          <p className="mt-2 inline-flex items-center gap-1.5 text-[11px] text-text-muted">
+          <p className="mt-2 inline-flex items-center gap-1.5 text-[13px] text-text-muted">
             <Info size={11} /> OB snapshots are live-only — Binance does not provide historical
             L2 data. Gaps can only be closed by live streaming.
           </p>
@@ -1077,10 +1077,10 @@ function RepairActionsCard(props: RepairActionsCardProps) {
           <History size={14} strokeWidth={1.75} />
         </span>
         <div>
-          <h2 className="font-display text-[14px] font-semibold text-text-primary">
+          <h2 className="font-display text-[15px] font-semibold text-text-primary">
             Repair actions
           </h2>
-          <p className="text-[11px] text-text-secondary">
+          <p className="text-[13px] text-text-secondary">
             Select one or more — each runs as a separate async job.
           </p>
         </div>
@@ -1110,21 +1110,21 @@ function RepairActionsCard(props: RepairActionsCardProps) {
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
                     <span
-                      className={`text-[13px] font-semibold ${
+                      className={`text-[14px] font-semibold ${
                         isDanger ? 'text-[var(--color-loss)]' : 'text-text-primary'
                       }`}
                     >
                       {a.label}
                     </span>
                     {isDanger && (
-                      <span className="rounded-sm border border-[var(--color-loss)] px-1.5 py-0 text-[9px] font-bold uppercase text-[var(--color-loss)]">
+                      <span className="rounded-sm border border-[var(--color-loss)] px-1.5 py-0 text-[12px] font-bold uppercase text-[var(--color-loss)]">
                         Danger
                       </span>
                     )}
                   </div>
-                  <p className="mt-0.5 text-[11px] text-text-muted">{a.description}</p>
+                  <p className="mt-0.5 text-[13px] text-text-muted">{a.description}</p>
                   {a.disabled && a.disabledReason && (
-                    <p className="mt-1 text-[10px] text-text-secondary">⤷ {a.disabledReason}</p>
+                    <p className="mt-1 text-[12px] text-text-secondary">⤷ {a.disabledReason}</p>
                   )}
                 </div>
               </label>
@@ -1134,7 +1134,7 @@ function RepairActionsCard(props: RepairActionsCardProps) {
       </ul>
 
       <div className="flex items-center justify-between border-t border-bd-subtle px-4 py-3">
-        <p className="text-[11px] text-text-secondary">
+        <p className="text-[13px] text-text-secondary">
           {enabledSelected.length === 0
             ? 'Nothing selected.'
             : `${enabledSelected.length} action(s) selected.`}
@@ -1165,10 +1165,10 @@ function ActiveJobsPanel({ jobIds, onDismiss }: { jobIds: string[]; onDismiss: (
             <Loader2 size={14} strokeWidth={1.75} />
           </span>
           <div>
-            <h2 className="font-display text-[14px] font-semibold text-text-primary">
+            <h2 className="font-display text-[15px] font-semibold text-text-primary">
               Active jobs
             </h2>
-            <p className="text-[11px] text-text-secondary">
+            <p className="text-[13px] text-text-secondary">
               Polling every 1.5s while not terminal. Cancel is cooperative — most jobs stop at the
               next chunk boundary; warmup and funding-history complete their current call before
               honoring cancel.
@@ -1195,7 +1195,7 @@ function ActiveJobRow({ jobId }: { jobId: string }) {
 
   if (!data) {
     return (
-      <li className="p-3 text-[12px] text-text-secondary">
+      <li className="p-3 text-[14px] text-text-secondary">
         {isError ? `error: ${normalizeError(error)}` : 'loading…'}
       </li>
     );
@@ -1206,18 +1206,18 @@ function ActiveJobRow({ jobId }: { jobId: string }) {
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
             <StatusBadge status={data.status} />
-            <span className="font-mono text-[12px] text-text-primary">{data.jobType}</span>
+            <span className="font-mono text-[14px] text-text-primary">{data.jobType}</span>
             {data.symbol && (
-              <span className="font-mono text-[11px] text-text-secondary">
+              <span className="font-mono text-[13px] text-text-secondary">
                 · {data.symbol} {data.interval ?? ''}
               </span>
             )}
           </div>
-          <p className="mt-1 font-mono text-[11px] text-text-muted">
+          <p className="mt-1 font-mono text-[13px] text-text-muted">
             jobId {data.jobId.slice(0, 8)}… · phase {data.phase ?? '—'}
           </p>
           <ProgressBar done={data.progressDone} total={data.progressTotal} />
-          <p className="mt-1 text-[10px] text-text-muted">
+          <p className="mt-1 text-[12px] text-text-muted">
             <Clock size={10} className="-mt-0.5 mr-1 inline" />
             created {formatDistanceToNowStrict(new Date(data.createdAt), { addSuffix: true })}
             {data.finishedAt && (
@@ -1228,7 +1228,7 @@ function ActiveJobRow({ jobId }: { jobId: string }) {
             )}
           </p>
           {data.errorMessage && (
-            <p className="mt-1 text-[11px] text-[var(--color-loss)]">err: {data.errorMessage}</p>
+            <p className="mt-1 text-[13px] text-[var(--color-loss)]">err: {data.errorMessage}</p>
           )}
         </div>
         {!isJobTerminal(data) && (
@@ -1265,7 +1265,7 @@ function ProgressBar({ done, total }: { done: number; total: number }) {
           }}
         />
       </div>
-      <span className="font-mono text-[10px] text-text-muted">
+      <span className="font-mono text-[12px] text-text-muted">
         {done}/{total} · {pct}%
       </span>
     </div>
@@ -1283,7 +1283,7 @@ function StatusBadge({ status }: { status: JobStatus }) {
   const cfg = map[status];
   return (
     <span
-      className="rounded-sm px-1.5 py-0.5 text-[10px] font-bold uppercase"
+      className="rounded-sm px-1.5 py-0.5 text-[12px] font-bold uppercase"
       style={{ color: cfg.color, background: cfg.bg }}
     >
       {cfg.label}
@@ -1312,10 +1312,10 @@ function RecentJobsPanel() {
             <Clock size={14} strokeWidth={1.75} />
           </span>
           <div>
-            <h2 className="font-display text-[14px] font-semibold text-text-primary">
+            <h2 className="font-display text-[15px] font-semibold text-text-primary">
               Recent jobs
             </h2>
-            <p className="text-[11px] text-text-secondary">
+            <p className="text-[13px] text-text-secondary">
               Last {list.data?.length ?? 0} historical backfill jobs across all (symbol, interval).
             </p>
           </div>
@@ -1325,12 +1325,12 @@ function RecentJobsPanel() {
       {expanded && (
         <ul className="max-h-96 divide-y divide-bd-subtle overflow-auto">
           {list.isLoading && (
-            <li className="p-3 text-[12px] text-text-secondary">
+            <li className="p-3 text-[14px] text-text-secondary">
               <Loader2 size={12} className="-mt-0.5 mr-1 inline animate-spin" /> loading…
             </li>
           )}
           {list.data && list.data.length === 0 && (
-            <li className="p-3 text-[12px] text-text-muted">No jobs yet.</li>
+            <li className="p-3 text-[14px] text-text-muted">No jobs yet.</li>
           )}
           {list.data?.map((j) => (
             <RecentJobRow key={j.jobId} job={j} />
@@ -1348,17 +1348,17 @@ function RecentJobRow({ job }: { job: HistoricalBackfillJob }) {
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <StatusBadge status={job.status} />
-          <span className="font-mono text-[12px] text-text-primary">{job.jobType}</span>
+          <span className="font-mono text-[14px] text-text-primary">{job.jobType}</span>
           {job.symbol && (
-            <span className="font-mono text-[11px] text-text-secondary">
+            <span className="font-mono text-[13px] text-text-secondary">
               {job.symbol} {job.interval ?? ''}
             </span>
           )}
         </div>
-        <span className="font-mono text-[10px] text-text-muted">{format(created, 'HH:mm:ss')}</span>
+        <span className="font-mono text-[12px] text-text-muted">{format(created, 'HH:mm:ss')}</span>
       </div>
       {job.errorMessage && (
-        <p className="mt-1 truncate text-[11px] text-[var(--color-loss)]">
+        <p className="mt-1 truncate text-[13px] text-[var(--color-loss)]">
           err: {job.errorMessage}
         </p>
       )}
@@ -1390,7 +1390,7 @@ function RecomputeConfirmDialog(props: RecomputeConfirmDialogProps) {
             from scratch. Existing strategies that read these features will see momentary gaps.
           </DialogDescription>
         </DialogHeader>
-        <div className="space-y-1 rounded-sm border border-bd-subtle bg-bg-base p-3 font-mono text-[11px] text-text-primary">
+        <div className="space-y-1 rounded-sm border border-bd-subtle bg-bg-base p-3 font-mono text-[13px] text-text-primary">
           <div>symbol: {symbol}</div>
           <div>interval: {interval}</div>
           <div>from: {from ?? '—'}</div>
@@ -1480,10 +1480,10 @@ function BackfillCandleRangeCard({
           <Database size={14} strokeWidth={1.75} />
         </span>
         <div>
-          <h2 className="font-display text-[14px] font-semibold text-text-primary">
+          <h2 className="font-display text-[15px] font-semibold text-text-primary">
             Add candle range
           </h2>
-          <p className="text-[11px] text-text-secondary">
+          <p className="text-[13px] text-text-secondary">
             Fetch raw OHLCV candles from Binance for a custom date window across all active
             intervals&nbsp;
             <span className="font-mono text-text-muted">({BACKTEST_INTERVALS.join(' · ')})</span>.
@@ -1530,13 +1530,13 @@ function BackfillCandleRangeCard({
         </div>
 
         {rangeError && (
-          <p className="inline-flex items-center gap-1.5 text-[11px] text-[var(--color-loss)]">
+          <p className="inline-flex items-center gap-1.5 text-[13px] text-[var(--color-loss)]">
             <AlertTriangle size={11} /> {rangeError}
           </p>
         )}
 
         <div className="flex items-center justify-between pt-1">
-          <p className="text-[11px] text-text-muted">
+          <p className="text-[13px] text-text-muted">
             Submits {BACKTEST_INTERVALS.length} jobs in parallel — one per interval. Idempotent;
             existing candles are skipped.
           </p>
@@ -1565,7 +1565,7 @@ function AdminNotice() {
         className="mt-0.5 shrink-0 text-[var(--color-info)]"
         aria-hidden="true"
       />
-      <div className="text-[12px] leading-relaxed text-text-secondary">
+      <div className="text-[14px] leading-relaxed text-text-secondary">
         <span className="font-semibold text-text-primary">Admin action</span> — backfills mutate
         shared market_data + feature_store tables. Avoid wide ranges during market hours; cancel
         cleanly via the active-jobs panel rather than killing the JVM.

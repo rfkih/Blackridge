@@ -25,7 +25,7 @@ export function PageHeader({ eyebrow, title, description, actions, className }: 
         {eyebrow && (
           <div
             style={{
-              fontSize: 11,
+              fontSize: 13,
               fontWeight: 600,
               letterSpacing: '0.12em',
               textTransform: 'uppercase',
@@ -53,7 +53,7 @@ export function PageHeader({ eyebrow, title, description, actions, className }: 
           <p
             style={{
               marginTop: 6,
-              fontSize: 14,
+              fontSize: 15,
               lineHeight: 1.55,
               color: 'var(--mm-ink-2)',
               maxWidth: 720,

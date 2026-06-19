@@ -32,7 +32,7 @@ export function LegalPage({ title, subtitle, children }: LegalPageProps) {
             display: 'inline-flex',
             alignItems: 'center',
             gap: 6,
-            fontSize: 12,
+            fontSize: 14,
             color: 'var(--mm-ink-2)',
             textDecoration: 'none',
             fontFamily: 'var(--font-body)',
@@ -53,7 +53,7 @@ export function LegalPage({ title, subtitle, children }: LegalPageProps) {
               className="font-mono"
               style={{
                 marginTop: 8,
-                fontSize: 11,
+                fontSize: 13,
                 color: 'var(--mm-ink-3)',
                 letterSpacing: '0.06em',
               }}
@@ -66,7 +66,7 @@ export function LegalPage({ title, subtitle, children }: LegalPageProps) {
         <article
           className="legal-prose"
           style={{
-            fontSize: 14,
+            fontSize: 15,
             lineHeight: 1.7,
             color: 'var(--mm-ink-1)',
             display: 'flex',
@@ -82,7 +82,7 @@ export function LegalPage({ title, subtitle, children }: LegalPageProps) {
             borderTop: '1px solid var(--mm-hair)',
             paddingTop: 16,
             marginTop: 16,
-            fontSize: 11,
+            fontSize: 13,
             color: 'var(--mm-ink-3)',
             display: 'flex',
             gap: 16,

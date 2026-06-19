@@ -64,7 +64,7 @@ export default function StrategyHistoryPage() {
 
       <div className="flex flex-wrap items-end gap-3 rounded-xl border border-bd-subtle bg-bg-surface px-3 py-3">
         <label className="flex flex-col gap-1">
-          <span className="text-[10px] uppercase tracking-widest text-text-muted">
+          <span className="text-[12px] uppercase tracking-widest text-text-muted">
             strategy_code
           </span>
           <input
@@ -72,7 +72,7 @@ export default function StrategyHistoryPage() {
             value={strategyCode}
             onChange={(e) => setStrategyCode(e.target.value)}
             placeholder="e.g. LSR"
-            className="w-[200px] rounded-sm border border-bd-subtle bg-bg-base px-2 py-1 font-mono text-[12px] text-text-primary"
+            className="w-[200px] rounded-sm border border-bd-subtle bg-bg-base px-2 py-1 font-mono text-[14px] text-text-primary"
           />
         </label>
         <button
@@ -82,12 +82,12 @@ export default function StrategyHistoryPage() {
             setPage(0);
           }}
           className="mm-pill"
-          style={{ padding: '8px 14px', fontSize: 12 }}
+          style={{ padding: '8px 14px', fontSize: 14 }}
         >
           Load
         </button>
         {appliedCode && (
-          <span className="ml-auto font-mono text-[10px] uppercase tracking-widest text-text-muted">
+          <span className="ml-auto font-mono text-[12px] uppercase tracking-widest text-text-muted">
             {totalElements} {totalElements === 1 ? 'revision' : 'revisions'}
           </span>
         )}
@@ -120,11 +120,11 @@ export default function StrategyHistoryPage() {
             onClick={() => setPage((p) => Math.max(0, p - 1))}
             disabled={page <= 0}
             className="mm-pill disabled:cursor-not-allowed disabled:opacity-50"
-            style={{ padding: '6px 10px', fontSize: 12 }}
+            style={{ padding: '6px 10px', fontSize: 14 }}
           >
             Prev
           </button>
-          <span className="font-mono text-[11px] text-text-muted">
+          <span className="font-mono text-[13px] text-text-muted">
             Page {page + 1} / {totalPages}
           </span>
           <button
@@ -132,7 +132,7 @@ export default function StrategyHistoryPage() {
             onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
             disabled={page >= totalPages - 1}
             className="mm-pill disabled:cursor-not-allowed disabled:opacity-50"
-            style={{ padding: '6px 10px', fontSize: 12 }}
+            style={{ padding: '6px 10px', fontSize: 14 }}
           >
             Next
           </button>
@@ -177,19 +177,19 @@ function RevisionRow({
           <Icon size={13} strokeWidth={1.75} />
         </span>
         <span
-          className="font-mono text-[11px] uppercase tracking-widest"
+          className="font-mono text-[13px] uppercase tracking-widest"
           style={{ color: meta.fg }}
         >
           {row.operation}
         </span>
-        <span className="font-mono text-[12px] text-text-primary">{row.archetype}</span>
-        <span className="font-mono text-[10px] text-text-muted">
+        <span className="font-mono text-[14px] text-text-primary">{row.archetype}</span>
+        <span className="font-mono text-[12px] text-text-muted">
           v{row.archetypeVersion} · schema v{row.specSchemaVersion}
         </span>
         {row.changeReason && (
-          <span className="truncate text-[12px] text-text-secondary">{row.changeReason}</span>
+          <span className="truncate text-[14px] text-text-secondary">{row.changeReason}</span>
         )}
-        <span className="ml-auto font-mono text-[10px] text-text-muted">
+        <span className="ml-auto font-mono text-[12px] text-text-muted">
           {ts ? formatDate(ts) : '—'}
         </span>
       </button>
@@ -199,7 +199,7 @@ function RevisionRow({
             <button
               type="button"
               onClick={() => setMode('snapshot')}
-              className="rounded-sm px-2 py-1 text-[12px] transition-colors"
+              className="rounded-sm px-2 py-1 text-[14px] transition-colors"
               style={{
                 background: mode === 'snapshot' ? 'var(--bg-hover)' : 'transparent',
                 color: mode === 'snapshot' ? 'var(--text-primary)' : 'var(--text-secondary)',
@@ -213,7 +213,7 @@ function RevisionRow({
               type="button"
               onClick={() => setMode('diff')}
               disabled={!priorId}
-              className="rounded-sm px-2 py-1 text-[12px] transition-colors disabled:cursor-not-allowed disabled:opacity-40"
+              className="rounded-sm px-2 py-1 text-[14px] transition-colors disabled:cursor-not-allowed disabled:opacity-40"
               style={{
                 background: mode === 'diff' ? 'var(--bg-hover)' : 'transparent',
                 color: mode === 'diff' ? 'var(--text-primary)' : 'var(--text-secondary)',
@@ -250,10 +250,10 @@ function SnapshotPanel({ historyId }: { historyId: string }) {
     );
   }
   if (query.isError || !query.data) {
-    return <div className="text-[12px] text-text-secondary">Failed to load revision detail.</div>;
+    return <div className="text-[14px] text-text-secondary">Failed to load revision detail.</div>;
   }
   return (
-    <pre className="max-h-[400px] overflow-auto rounded-sm border border-bd-subtle bg-bg-surface px-3 py-2 font-mono text-[11px] leading-relaxed text-text-primary">
+    <pre className="max-h-[400px] overflow-auto rounded-sm border border-bd-subtle bg-bg-surface px-3 py-2 font-mono text-[13px] leading-relaxed text-text-primary">
       {JSON.stringify(query.data.specJsonb ?? {}, null, 2)}
     </pre>
   );
@@ -284,11 +284,11 @@ function DiffPanel({ currentId, priorId }: { currentId: string; priorId: string 
     );
   }
   if (!diff) {
-    return <div className="text-[12px] text-text-secondary">Failed to load both revisions.</div>;
+    return <div className="text-[14px] text-text-secondary">Failed to load both revisions.</div>;
   }
   if (diff.length === 0) {
     return (
-      <div className="rounded-sm border border-bd-subtle bg-bg-surface px-3 py-2 font-mono text-[11px] text-text-secondary">
+      <div className="rounded-sm border border-bd-subtle bg-bg-surface px-3 py-2 font-mono text-[13px] text-text-secondary">
         No spec field changes — operation may be metadata-only (archetype upgrade, soft-delete,
         etc.).
       </div>
@@ -298,21 +298,21 @@ function DiffPanel({ currentId, priorId }: { currentId: string; priorId: string 
   return (
     <ul className="divide-y divide-bd-subtle rounded-sm border border-bd-subtle bg-bg-surface">
       {diff.map((d) => (
-        <li key={d.path} className="flex flex-col gap-1 px-3 py-2 font-mono text-[11px]">
+        <li key={d.path} className="flex flex-col gap-1 px-3 py-2 font-mono text-[13px]">
           <div className="flex items-baseline gap-2">
             <span style={{ color: changeColor(d.kind) }}>{changeGlyph(d.kind)}</span>
             <span className="text-text-primary">{d.path}</span>
-            <span className="text-[9px] uppercase tracking-widest text-text-muted">{d.kind}</span>
+            <span className="text-[12px] uppercase tracking-widest text-text-muted">{d.kind}</span>
           </div>
           <div className="grid grid-cols-2 gap-2 pl-5">
             <div>
-              <div className="text-[9px] uppercase tracking-widest text-text-muted">before</div>
+              <div className="text-[12px] uppercase tracking-widest text-text-muted">before</div>
               <div className="whitespace-pre-wrap break-all text-text-secondary">
                 {formatVal(d.before)}
               </div>
             </div>
             <div>
-              <div className="text-[9px] uppercase tracking-widest text-text-muted">after</div>
+              <div className="text-[12px] uppercase tracking-widest text-text-muted">after</div>
               <div className="whitespace-pre-wrap break-all text-text-primary">
                 {formatVal(d.after)}
               </div>

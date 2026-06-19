@@ -111,12 +111,12 @@ export function TopStrategiesSection({
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between px-1">
-        <span className="font-mono text-[10px] uppercase tracking-[0.1em] text-[var(--text-muted)]">
+        <span className="font-mono text-[12px] uppercase tracking-[0.1em] text-[var(--text-muted)]">
           Ranked by Conviction
         </span>
         {asOf && (
           <span
-            className="font-mono text-[10px] text-[var(--text-muted)]"
+            className="font-mono text-[12px] text-[var(--text-muted)]"
             title="When the leaderboard snapshot was last recomputed (server clock)"
           >
             as of {asOf}
@@ -135,10 +135,10 @@ export function TopStrategiesSection({
       {hedgingEntries.length > 0 && (
         <>
           <div className="px-1 pt-2">
-            <span className="font-mono text-[10px] uppercase tracking-[0.1em] text-[var(--color-btc)]">
+            <span className="font-mono text-[12px] uppercase tracking-[0.1em] text-[var(--color-btc)]">
               Hedging · ranked by Calmar
             </span>
-            <p className="mt-1 text-[11px] text-[var(--text-muted)]">
+            <p className="mt-1 text-[13px] text-[var(--text-muted)]">
               Allocation tilts judged on return ÷ drawdown, not Conviction — shown separately so the
               two yardsticks aren&apos;t compared against each other.
             </p>
@@ -201,12 +201,12 @@ function LeaderboardRow({
             <span className="font-display text-base font-bold tracking-tight text-[var(--text-primary)]">
               {entry.symbol}
             </span>
-            <span className="rounded bg-[var(--bg-elevated)] px-1.5 py-0.5 font-mono text-[11px] text-[var(--text-muted)]">
+            <span className="rounded bg-[var(--bg-elevated)] px-1.5 py-0.5 font-mono text-[13px] text-[var(--text-muted)]">
               {entry.interval}
             </span>
             {isLive ? (
               <span
-                className="rounded-full px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-[0.1em]"
+                className="rounded-full px-2 py-0.5 font-mono text-[12px] font-semibold uppercase tracking-[0.1em]"
                 style={{ color: 'var(--color-profit)', backgroundColor: 'rgba(22,179,100,0.12)' }}
                 title={`Production — real-capital live (${entry.nLive} closed trades pooled)`}
               >
@@ -214,7 +214,7 @@ function LeaderboardRow({
               </span>
             ) : (
               <span
-                className="rounded-full px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-[0.1em] text-[var(--text-muted)]"
+                className="rounded-full px-2 py-0.5 font-mono text-[12px] font-semibold uppercase tracking-[0.1em] text-[var(--text-muted)]"
                 style={{ backgroundColor: 'var(--bg-elevated)' }}
                 title="Research graduate — no real-capital deployment yet"
               >
@@ -222,7 +222,7 @@ function LeaderboardRow({
               </span>
             )}
             <span
-              className="rounded-full px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-[0.1em]"
+              className="rounded-full px-2 py-0.5 font-mono text-[12px] font-semibold uppercase tracking-[0.1em]"
               style={{
                 color: isRobust ? 'var(--color-profit)' : 'var(--text-muted)',
                 backgroundColor: isRobust ? 'rgba(22,179,100,0.12)' : 'var(--bg-elevated)',
@@ -233,7 +233,7 @@ function LeaderboardRow({
             </span>
             {hasDrift && (
               <span
-                className="rounded-full px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-[0.1em]"
+                className="rounded-full px-2 py-0.5 font-mono text-[12px] font-semibold uppercase tracking-[0.1em]"
                 style={{ color: 'var(--color-loss)', backgroundColor: 'rgba(229,72,77,0.12)' }}
                 title="Live performance is drifting from the walk-forward forecast (advisory — not yet in the Conviction score)"
               >
@@ -242,7 +242,7 @@ function LeaderboardRow({
             )}
             {hasCapacity && (
               <span
-                className="rounded-full px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-[0.1em]"
+                className="rounded-full px-2 py-0.5 font-mono text-[12px] font-semibold uppercase tracking-[0.1em]"
                 style={{ color: capacityColor, backgroundColor: 'var(--bg-elevated)' }}
                 title="Capacity-judge verdict — how much edge survives to deployable capital (advisory — not yet in the Conviction score)"
               >
@@ -251,7 +251,7 @@ function LeaderboardRow({
             )}
             {entry.nearSubstitute && (
               <span
-                className="rounded-full px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-[0.1em]"
+                className="rounded-full px-2 py-0.5 font-mono text-[12px] font-semibold uppercase tracking-[0.1em]"
                 style={{ color: 'var(--color-loss)', backgroundColor: 'rgba(229,72,77,0.12)' }}
                 title={`Near-substitute — highly correlated with a strategy you already run${
                   entry.corrToBook != null ? ` (r=${entry.corrToBook.toFixed(2)})` : ''
@@ -292,7 +292,7 @@ function LeaderboardRow({
         <div className="flex shrink-0 flex-col items-end gap-2">
           <div className="text-right">
             <div
-              className="font-mono text-[10px] uppercase tracking-[0.1em] text-[var(--text-muted)]"
+              className="font-mono text-[12px] uppercase tracking-[0.1em] text-[var(--text-muted)]"
               title="Conviction = EdgeLB × Robustness × Live × Capacity, in [0,1]. Deflated, OOS-anchored."
             >
               Conviction
@@ -319,7 +319,7 @@ function LeaderboardRow({
           <button
             type="button"
             onClick={() => setParamsOpen((o) => !o)}
-            className="inline-flex items-center gap-1 font-mono text-[11px] text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)]"
+            className="inline-flex items-center gap-1 font-mono text-[13px] text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)]"
             aria-expanded={paramsOpen}
           >
             <ChevronDown
@@ -333,7 +333,7 @@ function LeaderboardRow({
               {paramEntries.map(([k, v]) => (
                 <span
                   key={k}
-                  className="inline-flex items-center gap-1 rounded border border-[var(--border-subtle)] bg-[var(--bg-elevated)] px-1.5 py-0.5 font-mono text-[10px]"
+                  className="inline-flex items-center gap-1 rounded border border-[var(--border-subtle)] bg-[var(--bg-elevated)] px-1.5 py-0.5 font-mono text-[12px]"
                 >
                   <span className="text-[var(--text-muted)]">{k}</span>
                   <span className="tabular-nums text-[var(--text-primary)]">
@@ -368,7 +368,7 @@ function Metric({
         : 'var(--text-primary)';
   return (
     <div title={title}>
-      <div className="font-mono text-[10px] uppercase tracking-[0.08em] text-[var(--text-muted)]">
+      <div className="font-mono text-[12px] uppercase tracking-[0.08em] text-[var(--text-muted)]">
         {label}
       </div>
       <div className="font-mono text-sm tabular-nums" style={{ color }}>

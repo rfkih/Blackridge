@@ -18,7 +18,7 @@ type Values = z.infer<typeof schema>;
 
 const FIELD_LABEL_STYLE: React.CSSProperties = {
   display: 'block',
-  fontSize: 11,
+  fontSize: 13,
   fontWeight: 600,
   color: 'var(--text-secondary)',
   marginBottom: 6,
@@ -31,7 +31,7 @@ const FIELD_INPUT_STYLE: React.CSSProperties = {
   padding: '12px 14px',
   border: '1px solid var(--border-default)',
   borderRadius: 10,
-  fontSize: 14,
+  fontSize: 15,
   fontFamily: 'inherit',
   boxSizing: 'border-box',
   background: 'var(--bg-elevated)',
@@ -84,7 +84,7 @@ export default function ForgotPasswordPage() {
         </h1>
         <p
           style={{
-            fontSize: 14,
+            fontSize: 15,
             color: 'var(--text-secondary)',
             margin: '0 0 24px',
             lineHeight: 1.5,
@@ -126,7 +126,7 @@ export default function ForgotPasswordPage() {
                 <div
                   className="font-display"
                   style={{
-                    fontSize: 14,
+                    fontSize: 15,
                     fontWeight: 700,
                     color: 'var(--text-primary)',
                   }}
@@ -135,7 +135,7 @@ export default function ForgotPasswordPage() {
                 </div>
                 <div
                   style={{
-                    fontSize: 12,
+                    fontSize: 14,
                     color: 'var(--text-secondary)',
                     marginTop: 2,
                   }}
@@ -145,14 +145,14 @@ export default function ForgotPasswordPage() {
               </div>
             </div>
 
-            <p style={{ fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+            <p style={{ fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
               If an account exists with that address, we&apos;ve issued reset instructions. The link
               expires in 30 minutes; only the most recent request remains valid.
             </p>
             <p
               style={{
                 marginTop: 12,
-                fontSize: 11,
+                fontSize: 13,
                 color: 'var(--text-muted)',
                 lineHeight: 1.5,
               }}
@@ -169,7 +169,7 @@ export default function ForgotPasswordPage() {
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: 6,
-                fontSize: 12,
+                fontSize: 14,
                 fontWeight: 700,
                 color: 'var(--brand-700, #0A7E3F)',
                 textDecoration: 'none',
@@ -202,7 +202,7 @@ export default function ForgotPasswordPage() {
                 style={FIELD_INPUT_STYLE}
               />
               {errors.email && (
-                <p role="alert" style={{ marginTop: 6, fontSize: 11, color: 'var(--color-loss)' }}>
+                <p role="alert" style={{ marginTop: 6, fontSize: 13, color: 'var(--color-loss)' }}>
                   {errors.email.message}
                 </p>
               )}
@@ -213,7 +213,7 @@ export default function ForgotPasswordPage() {
                 role="alert"
                 style={{
                   padding: '10px 12px',
-                  fontSize: 12,
+                  fontSize: 14,
                   borderRadius: 10,
                   border: '1px solid rgba(229,72,77,0.4)',
                   background: 'rgba(229,72,77,0.08)',
@@ -236,7 +236,7 @@ export default function ForgotPasswordPage() {
                 color: '#FFFFFF',
                 border: 'none',
                 borderRadius: 12,
-                fontSize: 14,
+                fontSize: 15,
                 fontWeight: 700,
                 cursor: isSubmitting ? 'not-allowed' : 'pointer',
                 fontFamily: 'inherit',
@@ -263,7 +263,7 @@ export default function ForgotPasswordPage() {
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: 6,
-                fontSize: 12,
+                fontSize: 14,
                 fontWeight: 600,
                 color: 'var(--text-muted)',
                 textDecoration: 'none',

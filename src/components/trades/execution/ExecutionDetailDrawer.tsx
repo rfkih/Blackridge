@@ -129,7 +129,7 @@ export function ExecutionDetailDrawer({
                 {failed ? <AlertTriangle size={16} /> : <Check size={16} />}
               </span>
               <div>
-                <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--mm-ink-0)' }}>
+                <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--mm-ink-0)' }}>
                   {title}
                 </div>
                 <div
@@ -169,7 +169,7 @@ export function ExecutionDetailDrawer({
                 border: '1px solid color-mix(in oklab, var(--color-loss) 30%, transparent)',
                 borderRadius: 999,
                 padding: '2px 10px',
-                fontSize: 11,
+                fontSize: 13,
                 fontWeight: 600,
               }}
             >
@@ -184,7 +184,7 @@ export function ExecutionDetailDrawer({
           {failed && event.errorMessage && (
             <div style={{ padding: '14px 16px', borderBottom: '1px solid var(--mm-hair)' }}>
               <div className="flex items-center justify-between" style={{ marginBottom: 7 }}>
-                <span className="mm-kicker" style={{ fontSize: 10 }}>
+                <span className="mm-kicker" style={{ fontSize: 12 }}>
                   Error message
                 </span>
                 <button
@@ -196,7 +196,7 @@ export function ExecutionDetailDrawer({
                     gap: 4,
                     alignItems: 'center',
                     color: 'var(--mm-ink-2)',
-                    fontSize: 11,
+                    fontSize: 13,
                     border: '1px solid var(--mm-hair-2, #2a3140)',
                     borderRadius: 6,
                     padding: '2px 8px',
@@ -265,7 +265,7 @@ export function ExecutionDetailDrawer({
                     borderRadius: 6,
                     padding: '1px 8px',
                     fontFamily: 'var(--font-mono, ui-monospace)',
-                    fontSize: 11,
+                    fontSize: 13,
                     color: 'var(--mm-ink-1)',
                   }}
                 >

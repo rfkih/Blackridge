@@ -187,7 +187,7 @@ export function DataTable<TData>({
                 placeholder={searchPlaceholder}
                 className={cn(
                   'h-9 w-full rounded-xl border border-bd-subtle bg-bg-surface pl-8 pr-3',
-                  'text-[13px] text-text-primary placeholder:text-[var(--text-muted)]',
+                  'text-[14px] text-text-primary placeholder:text-[var(--text-muted)]',
                   'transition-colors focus:border-[var(--accent-primary)] focus:outline-none',
                 )}
                 aria-label="Search"
@@ -204,7 +204,7 @@ export function DataTable<TData>({
                   type="button"
                   className={cn(
                     'inline-flex h-9 items-center gap-1.5 rounded-xl border border-bd-subtle bg-bg-surface px-3',
-                    'text-[12px] text-text-secondary transition-colors hover:border-bd hover:bg-bg-hover hover:text-text-primary',
+                    'text-[14px] text-text-secondary transition-colors hover:border-bd hover:bg-bg-hover hover:text-text-primary',
                   )}
                   aria-label="Toggle columns"
                 >
@@ -214,7 +214,7 @@ export function DataTable<TData>({
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuLabel className="text-[10px] uppercase tracking-wider text-text-muted">
+                <DropdownMenuLabel className="text-[12px] uppercase tracking-wider text-text-muted">
                   Visible columns
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
@@ -223,7 +223,7 @@ export function DataTable<TData>({
                   .map((col) => (
                     <DropdownMenuCheckboxItem
                       key={col.id}
-                      className="text-[12px] capitalize"
+                      className="text-[14px] capitalize"
                       checked={col.getIsVisible()}
                       onCheckedChange={(v) => col.toggleVisibility(Boolean(v))}
                     >
@@ -325,7 +325,7 @@ export function DataTable<TData>({
                         <button
                           type="button"
                           onClick={onRetry}
-                          className="inline-flex h-8 items-center gap-1.5 rounded-xl border border-bd-subtle bg-bg-surface px-3 text-[12px] text-text-secondary transition-colors hover:border-bd hover:bg-bg-hover hover:text-text-primary"
+                          className="inline-flex h-8 items-center gap-1.5 rounded-xl border border-bd-subtle bg-bg-surface px-3 text-[14px] text-text-secondary transition-colors hover:border-bd hover:bg-bg-hover hover:text-text-primary"
                         >
                           <RotateCcw size={12} strokeWidth={1.75} />
                           Retry
@@ -392,7 +392,7 @@ export function DataTable<TData>({
       )}
       {!hidePagination && !isLoading && rows.length > 0 && (
         <div className="flex flex-wrap items-center justify-between gap-3 px-1">
-          <div className="text-[11px] text-text-muted">
+          <div className="text-[13px] text-text-muted">
             {tableInstance.getFilteredRowModel().rows.length} row
             {tableInstance.getFilteredRowModel().rows.length === 1 ? '' : 's'} · page{' '}
             {tableInstance.getState().pagination.pageIndex + 1} of{' '}
@@ -403,7 +403,7 @@ export function DataTable<TData>({
             <select
               value={tableInstance.getState().pagination.pageSize}
               onChange={(e) => tableInstance.setPageSize(Number(e.target.value))}
-              className="h-8 rounded-xl border border-bd-subtle bg-bg-surface px-2 text-[11px] text-text-secondary focus:outline-none"
+              className="h-8 rounded-xl border border-bd-subtle bg-bg-surface px-2 text-[13px] text-text-secondary focus:outline-none"
               aria-label="Rows per page"
             >
               {DEFAULT_PAGE_SIZES.map((n) => (
@@ -473,7 +473,7 @@ function BodyRow<TData>({ row, isSelected, onRowClick }: BodyRowProps<TData>) {
       style={isSelected ? { boxShadow: 'inset 2px 0 0 0 var(--accent-primary)' } : undefined}
     >
       {row.getVisibleCells().map((cell) => (
-        <td key={cell.id} className="whitespace-nowrap px-3 py-2.5 align-middle text-[13px]">
+        <td key={cell.id} className="whitespace-nowrap px-3 py-2.5 align-middle text-[14px]">
           {flexRender(cell.column.columnDef.cell, cell.getContext())}
         </td>
       ))}

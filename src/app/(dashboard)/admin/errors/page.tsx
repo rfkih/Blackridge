@@ -106,7 +106,7 @@ export default function AdminErrorsPage() {
           type="button"
           onClick={() => query.refetch()}
           className="mm-pill"
-          style={{ padding: '8px 12px', fontSize: 12 }}
+          style={{ padding: '8px 12px', fontSize: 14 }}
           aria-label="Refresh errors"
         >
           <RefreshCcw size={13} strokeWidth={1.7} />
@@ -117,7 +117,7 @@ export default function AdminErrorsPage() {
       <div className="flex flex-col gap-2 rounded-xl border border-bd-subtle bg-bg-surface px-3 py-2.5">
         {}
         <div className="flex items-center gap-2">
-          <span className="w-16 text-[11px] uppercase tracking-widest text-text-muted">Search</span>
+          <span className="w-16 text-[13px] uppercase tracking-widest text-text-muted">Search</span>
           <div className="relative">
             <Search
               size={11}
@@ -128,7 +128,7 @@ export default function AdminErrorsPage() {
               placeholder="message, logger, exception…"
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
-              className="h-7 w-64 rounded-sm border border-bd-subtle bg-bg-base pl-6 pr-2 font-mono text-[12px] text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-1 focus:ring-[var(--accent-primary)]"
+              className="h-7 w-64 rounded-sm border border-bd-subtle bg-bg-base pl-6 pr-2 font-mono text-[14px] text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-1 focus:ring-[var(--accent-primary)]"
             />
           </div>
         </div>
@@ -163,14 +163,14 @@ export default function AdminErrorsPage() {
 
         {}
         <div className="flex items-center gap-2">
-          <span className="w-16 text-[11px] uppercase tracking-widest text-text-muted">Sort</span>
+          <span className="w-16 text-[13px] uppercase tracking-widest text-text-muted">Sort</span>
           <select
             value={sort}
             onChange={(e) => {
               setSort(e.target.value);
               setPage(0);
             }}
-            className="h-7 rounded-sm border border-bd-subtle bg-bg-base px-2 font-mono text-[12px] text-text-primary"
+            className="h-7 rounded-sm border border-bd-subtle bg-bg-base px-2 font-mono text-[14px] text-text-primary"
           >
             {SORT_OPTIONS.map((o) => (
               <option key={o.value} value={o.value}>
@@ -178,7 +178,7 @@ export default function AdminErrorsPage() {
               </option>
             ))}
           </select>
-          <span className="ml-auto font-mono text-[10px] uppercase tracking-widest text-text-muted">
+          <span className="ml-auto font-mono text-[12px] uppercase tracking-widest text-text-muted">
             {totalElements} {totalElements === 1 ? 'row' : 'rows'}
           </span>
         </div>
@@ -207,11 +207,11 @@ export default function AdminErrorsPage() {
             onClick={() => setPage((p) => Math.max(0, p - 1))}
             disabled={page <= 0}
             className="mm-pill disabled:cursor-not-allowed disabled:opacity-50"
-            style={{ padding: '6px 10px', fontSize: 12 }}
+            style={{ padding: '6px 10px', fontSize: 14 }}
           >
             Prev
           </button>
-          <span className="font-mono text-[11px] text-text-muted">
+          <span className="font-mono text-[13px] text-text-muted">
             Page {page + 1} / {totalPages}
           </span>
           <button
@@ -219,7 +219,7 @@ export default function AdminErrorsPage() {
             onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
             disabled={page >= totalPages - 1}
             className="mm-pill disabled:cursor-not-allowed disabled:opacity-50"
-            style={{ padding: '6px 10px', fontSize: 12 }}
+            style={{ padding: '6px 10px', fontSize: 14 }}
           >
             Next
           </button>
@@ -242,7 +242,7 @@ function FilterRow<T extends string>({
 }) {
   return (
     <div className="flex items-center gap-2">
-      <span className="w-16 text-[11px] uppercase tracking-widest text-text-muted">{label}</span>
+      <span className="w-16 text-[13px] uppercase tracking-widest text-text-muted">{label}</span>
       <div className="flex flex-wrap items-center gap-1.5">
         {options.map((f) => {
           const isActive = active === f.value;
@@ -251,7 +251,7 @@ function FilterRow<T extends string>({
               key={f.value}
               type="button"
               onClick={() => onChange(f.value)}
-              className="rounded-sm px-2 py-1 text-[12px] transition-colors"
+              className="rounded-sm px-2 py-1 text-[14px] transition-colors"
               style={{
                 background: isActive ? 'var(--bg-hover)' : 'transparent',
                 color: isActive ? 'var(--text-primary)' : 'var(--text-secondary)',
@@ -287,26 +287,26 @@ function ErrorRowItem({ row }: { row: ErrorLogRow }) {
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-baseline gap-2">
             <span
-              className="font-mono text-[10px] uppercase tracking-widest"
+              className="font-mono text-[12px] uppercase tracking-widest"
               style={{ color: sev.fg }}
             >
               {row.severity}
             </span>
-            <span className="font-mono text-[11px] uppercase tracking-widest text-text-secondary">
+            <span className="font-mono text-[13px] uppercase tracking-widest text-text-secondary">
               {row.status}
             </span>
-            <span className="rounded-sm bg-bg-hover px-1.5 py-px font-mono text-[9px] uppercase tracking-widest text-text-muted">
+            <span className="rounded-sm bg-bg-hover px-1.5 py-px font-mono text-[12px] uppercase tracking-widest text-text-muted">
               {row.jvm}
             </span>
             {row.occurrenceCount > 1 && (
-              <span className="font-mono text-[10px] text-text-muted">×{row.occurrenceCount}</span>
+              <span className="font-mono text-[12px] text-text-muted">×{row.occurrenceCount}</span>
             )}
-            <span className="ml-auto font-mono text-[10px] text-text-muted">
+            <span className="ml-auto font-mono text-[12px] text-text-muted">
               {ts ? formatDate(ts) : '—'}
             </span>
           </div>
-          <p className="mt-1 text-[12px] text-text-primary">{row.message}</p>
-          <div className="mt-1 flex flex-wrap items-center gap-3 font-mono text-[10px] text-text-muted">
+          <p className="mt-1 text-[14px] text-text-primary">{row.message}</p>
+          <div className="mt-1 flex flex-wrap items-center gap-3 font-mono text-[12px] text-text-muted">
             <span>{row.loggerName}</span>
             {row.exceptionClass && <span>{row.exceptionClass}</span>}
             <span>fp:{row.fingerprint.slice(0, 12)}</span>
@@ -316,7 +316,7 @@ function ErrorRowItem({ row }: { row: ErrorLogRow }) {
           type="button"
           onClick={() => setExpanded((v) => !v)}
           className="mm-pill"
-          style={{ padding: '4px 8px', fontSize: 11 }}
+          style={{ padding: '4px 8px', fontSize: 13 }}
           aria-label={expanded ? 'Collapse' : 'Expand'}
         >
           {expanded ? (
@@ -352,7 +352,7 @@ function ErrorRowDetail({ row }: { row: ErrorLogRow }) {
   return (
     <div className="ml-10 flex flex-col gap-3 rounded-sm border border-bd-subtle bg-bg-base px-3 py-3">
       <div className="flex flex-wrap items-center gap-2">
-        <span className="text-[11px] uppercase tracking-widest text-text-muted">Set status</span>
+        <span className="text-[13px] uppercase tracking-widest text-text-muted">Set status</span>
         {(['NEW', 'INVESTIGATING', 'RESOLVED', 'IGNORED', 'WONT_FIX'] as const).map((s) => {
           const active = row.status === s;
           return (
@@ -361,7 +361,7 @@ function ErrorRowDetail({ row }: { row: ErrorLogRow }) {
               type="button"
               disabled={mutation.isPending || active}
               onClick={() => mutation.mutate(s)}
-              className="rounded-sm px-2 py-1 text-[11px] transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+              className="rounded-sm px-2 py-1 text-[13px] transition-colors disabled:cursor-not-allowed disabled:opacity-50"
               style={{
                 background: active ? 'var(--bg-hover)' : 'transparent',
                 color: active ? 'var(--text-primary)' : 'var(--text-secondary)',
@@ -375,30 +375,30 @@ function ErrorRowDetail({ row }: { row: ErrorLogRow }) {
         })}
         {mutation.isPending && <Loader2 size={12} className="ml-1 animate-spin text-text-muted" />}
         {mutation.isError && (
-          <span className="font-mono text-[10px] text-loss">
+          <span className="font-mono text-[12px] text-loss">
             {(mutation.error as Error).message}
           </span>
         )}
       </div>
 
       {row.resolvedAt && (
-        <div className="font-mono text-[10px] text-text-muted">
+        <div className="font-mono text-[12px] text-text-muted">
           resolved {row.resolvedAt}
           {row.resolvedBy ? ` by ${row.resolvedBy}` : ''}
         </div>
       )}
 
       {detailQuery.isLoading ? (
-        <div className="flex items-center gap-2 text-[11px] text-text-secondary">
+        <div className="flex items-center gap-2 text-[13px] text-text-secondary">
           <Loader2 size={12} className="animate-spin" />
           <span>Loading stack trace…</span>
         </div>
       ) : detailQuery.isError || !detail ? (
-        <div className="text-[11px] text-text-secondary">Could not load stack trace.</div>
+        <div className="text-[13px] text-text-secondary">Could not load stack trace.</div>
       ) : (
         <>
           {detail.stackTrace && (
-            <pre className="max-h-72 overflow-auto rounded-sm bg-bg-surface p-2 font-mono text-[10px] leading-tight text-text-secondary">
+            <pre className="max-h-72 overflow-auto rounded-sm bg-bg-surface p-2 font-mono text-[12px] leading-tight text-text-secondary">
               {detail.stackTrace}
             </pre>
           )}
@@ -409,16 +409,16 @@ function ErrorRowDetail({ row }: { row: ErrorLogRow }) {
               Object.keys(detail.mdc as object).length === 0
             ) && (
               <div>
-                <div className="mb-1 font-mono text-[10px] uppercase tracking-widest text-text-muted">
+                <div className="mb-1 font-mono text-[12px] uppercase tracking-widest text-text-muted">
                   MDC
                 </div>
-                <pre className="max-h-40 overflow-auto rounded-sm bg-bg-surface p-2 font-mono text-[10px] leading-tight text-text-secondary">
+                <pre className="max-h-40 overflow-auto rounded-sm bg-bg-surface p-2 font-mono text-[12px] leading-tight text-text-secondary">
                   {JSON.stringify(detail.mdc, null, 2)}
                 </pre>
               </div>
             )}
           {detail.notificationChannels && detail.notificationChannels.length > 0 && (
-            <div className="font-mono text-[10px] text-text-muted">
+            <div className="font-mono text-[12px] text-text-muted">
               notified via {detail.notificationChannels.join(', ')}
               {detail.notifiedAt ? ` at ${detail.notifiedAt}` : ''}
             </div>

@@ -156,7 +156,7 @@ export default function ResearchDashboardPage() {
         <h1 className="font-display text-[20px] font-semibold tracking-tight text-text-primary">
           Admin only
         </h1>
-        <p className="text-[13px] text-text-muted">
+        <p className="text-[14px] text-text-muted">
           The research dashboard surfaces internal JVM state and promotion controls. Sign in with an
           admin account to view it.
         </p>
@@ -172,7 +172,7 @@ export default function ResearchDashboardPage() {
           <h1 className="font-display text-[24px] font-semibold tracking-tighter text-text-primary">
             Research dashboard
           </h1>
-          <p className="mt-1 text-[12px] text-text-muted">
+          <p className="mt-1 text-[14px] text-text-muted">
             Live JVM telemetry, sweep activity, and the strategy promotion pipeline.
           </p>
         </div>
@@ -180,7 +180,7 @@ export default function ResearchDashboardPage() {
           <button
             type="button"
             onClick={() => setEnqueueOpen(true)}
-            className="border-bd-default inline-flex items-center gap-1.5 rounded-sm border bg-bg-surface px-3 py-2 text-[12px] font-semibold text-text-secondary transition-colors hover:bg-bg-hover"
+            className="border-bd-default inline-flex items-center gap-1.5 rounded-sm border bg-bg-surface px-3 py-2 text-[14px] font-semibold text-text-secondary transition-colors hover:bg-bg-hover"
             title="Enqueue a research sweep on the orchestrator"
           >
             <Plus size={12} /> Enqueue
@@ -189,7 +189,7 @@ export default function ResearchDashboardPage() {
             type="button"
             onClick={handleTick}
             disabled={tick.isPending}
-            className="border-bd-default bg-accent-primary/10 text-accent-primary hover:bg-accent-primary/20 inline-flex items-center gap-1.5 rounded-sm border px-3 py-2 text-[12px] font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-60"
+            className="border-bd-default bg-accent-primary/10 text-accent-primary hover:bg-accent-primary/20 inline-flex items-center gap-1.5 rounded-sm border px-3 py-2 text-[14px] font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-60"
             title="POST /tick — runs one iteration synchronously (up to ~30 min). Cannot be cancelled once started."
           >
             {tick.isPending ? <Loader2 size={12} className="animate-spin" /> : <Play size={12} />}
@@ -198,26 +198,26 @@ export default function ResearchDashboardPage() {
               : 'Tick now'}
           </button>
           {tick.isPending && (
-            <span className="font-mono text-[10px] text-text-muted" title="Tick runs synchronously and cannot be cancelled — wait for it to complete">
+            <span className="font-mono text-[12px] text-text-muted" title="Tick runs synchronously and cannot be cancelled — wait for it to complete">
               ⚠ up to ~30 min · no cancel
             </span>
           )}
           <button
             type="button"
             onClick={refreshAll}
-            className="inline-flex items-center gap-1.5 rounded-sm border border-bd-subtle bg-bg-surface px-3 py-2 text-[12px] font-semibold text-text-secondary transition-colors hover:bg-bg-hover"
+            className="inline-flex items-center gap-1.5 rounded-sm border border-bd-subtle bg-bg-surface px-3 py-2 text-[14px] font-semibold text-text-secondary transition-colors hover:bg-bg-hover"
           >
             <RefreshCw size={12} /> Refresh
           </button>
           <Link
             href="/research/sweeps"
-            className="inline-flex items-center gap-1.5 rounded-sm border border-bd-subtle bg-bg-surface px-3 py-2 text-[12px] font-semibold text-text-secondary transition-colors hover:bg-bg-hover"
+            className="inline-flex items-center gap-1.5 rounded-sm border border-bd-subtle bg-bg-surface px-3 py-2 text-[14px] font-semibold text-text-secondary transition-colors hover:bg-bg-hover"
           >
             Sweeps <ChevronRight size={12} />
           </Link>
           <Link
             href="/research/log"
-            className="inline-flex items-center gap-1.5 rounded-sm border border-bd-subtle bg-bg-surface px-3 py-2 text-[12px] font-semibold text-text-secondary transition-colors hover:bg-bg-hover"
+            className="inline-flex items-center gap-1.5 rounded-sm border border-bd-subtle bg-bg-surface px-3 py-2 text-[14px] font-semibold text-text-secondary transition-colors hover:bg-bg-hover"
           >
             Log <ChevronRight size={12} />
           </Link>
@@ -285,17 +285,17 @@ function HealthCard({ jvm, port, health }: { jvm: Jvm; port: number; health: Ser
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Dot tone={tone} />
-          <span className="font-mono text-[11px] uppercase tracking-wider text-text-secondary">
+          <span className="font-mono text-[13px] uppercase tracking-wider text-text-secondary">
             {jvm} JVM
           </span>
         </div>
-        <span className="font-mono text-[10px] text-text-muted">:{port}</span>
+        <span className="font-mono text-[12px] text-text-muted">:{port}</span>
       </div>
       <div className="mt-2 flex items-end justify-between">
-        <span className="font-mono text-[14px] font-semibold" style={{ color: toneColor(tone) }}>
+        <span className="font-mono text-[15px] font-semibold" style={{ color: toneColor(tone) }}>
           {entry.pending ? '—' : entry.status}
         </span>
-        <span className="font-mono text-[10px] text-text-muted">
+        <span className="font-mono text-[12px] text-text-muted">
           {entry.lastSeen ? formatDate(entry.lastSeen) : 'never'}
         </span>
       </div>
@@ -338,7 +338,7 @@ function ResearchLifecycleControls({ status }: { status: ServiceHealthMap['resea
         type="button"
         onClick={handleStart}
         disabled={busy || isUp}
-        className="border-bd-default inline-flex items-center gap-1 rounded border bg-bg-base px-2 py-1 font-mono text-[11px] uppercase tracking-wider text-text-secondary hover:bg-bg-hover disabled:cursor-not-allowed disabled:opacity-40"
+        className="border-bd-default inline-flex items-center gap-1 rounded border bg-bg-base px-2 py-1 font-mono text-[13px] uppercase tracking-wider text-text-secondary hover:bg-bg-hover disabled:cursor-not-allowed disabled:opacity-40"
         title={isUp ? 'Research JVM already running' : 'Spawn research JVM via launcher script'}
       >
         {start.isPending ? <Loader2 size={11} className="animate-spin" /> : <CircleDot size={11} />}
@@ -348,7 +348,7 @@ function ResearchLifecycleControls({ status }: { status: ServiceHealthMap['resea
         type="button"
         onClick={handleRestart}
         disabled={busy || !isUp}
-        className="border-bd-default inline-flex items-center gap-1 rounded border bg-bg-base px-2 py-1 font-mono text-[11px] uppercase tracking-wider text-text-secondary hover:bg-bg-hover disabled:cursor-not-allowed disabled:opacity-40"
+        className="border-bd-default inline-flex items-center gap-1 rounded border bg-bg-base px-2 py-1 font-mono text-[13px] uppercase tracking-wider text-text-secondary hover:bg-bg-hover disabled:cursor-not-allowed disabled:opacity-40"
         title={isUp ? 'Stop via /actuator/shutdown then re-spawn' : 'Research JVM is not running'}
       >
         {restart.isPending ? (
@@ -407,7 +407,7 @@ function ResearchAutomationPanel() {
       {isLoading ? (
         <Skeleton className="h-20 w-full" />
       ) : isError || !data ? (
-        <div className="bg-bg-base/40 rounded-sm border border-bd-subtle p-4 text-center text-[11px] text-text-muted">
+        <div className="bg-bg-base/40 rounded-sm border border-bd-subtle p-4 text-center text-[13px] text-text-muted">
           Automation status endpoint unreachable.
         </div>
       ) : (
@@ -416,18 +416,18 @@ function ResearchAutomationPanel() {
             <div className="flex items-center gap-2">
               <Dot tone={paused ? 'warning' : 'profit'} />
               <span
-                className="font-mono text-[12px] font-semibold uppercase tracking-wider"
+                className="font-mono text-[14px] font-semibold uppercase tracking-wider"
                 style={{ color: toneColor(paused ? 'warning' : 'profit') }}
               >
                 {paused ? 'Paused' : 'Running'}
               </span>
             </div>
             {paused && data.reason && (
-              <span className="text-[11px] text-text-secondary">
+              <span className="text-[13px] text-text-secondary">
                 Reason: <span className="font-mono">{data.reason}</span>
               </span>
             )}
-            <span className="ml-auto font-mono text-[10px] text-text-muted">
+            <span className="ml-auto font-mono text-[12px] text-text-muted">
               Updated {data.updatedAt ? formatDate(Date.parse(data.updatedAt)) : '—'}
             </span>
           </div>
@@ -438,7 +438,7 @@ function ResearchAutomationPanel() {
               onChange={(e) => setReason(e.target.value)}
               placeholder="Pause reason (optional, written to audit log)"
               disabled={busy}
-              className="w-full rounded-sm border border-bd-subtle bg-bg-base px-2.5 py-1.5 text-[12px] text-text-primary placeholder:text-text-muted focus:border-[var(--accent-primary)] focus:outline-none disabled:opacity-60"
+              className="w-full rounded-sm border border-bd-subtle bg-bg-base px-2.5 py-1.5 text-[14px] text-text-primary placeholder:text-text-muted focus:border-[var(--accent-primary)] focus:outline-none disabled:opacity-60"
             />
           )}
           <div className="flex items-center gap-2">
@@ -446,7 +446,7 @@ function ResearchAutomationPanel() {
               type="button"
               onClick={handlePause}
               disabled={busy || paused}
-              className="border-bd-default inline-flex items-center gap-1.5 rounded-sm border bg-bg-surface px-3 py-1.5 font-mono text-[11px] uppercase tracking-wider text-text-secondary hover:bg-bg-hover disabled:cursor-not-allowed disabled:opacity-40"
+              className="border-bd-default inline-flex items-center gap-1.5 rounded-sm border bg-bg-surface px-3 py-1.5 font-mono text-[13px] uppercase tracking-wider text-text-secondary hover:bg-bg-hover disabled:cursor-not-allowed disabled:opacity-40"
               title={paused ? 'Already paused' : 'Set pause flag — next cron tick will skip'}
             >
               {pause.isPending ? (
@@ -460,7 +460,7 @@ function ResearchAutomationPanel() {
               type="button"
               onClick={handleResume}
               disabled={busy || !paused}
-              className="border-bd-default inline-flex items-center gap-1.5 rounded-sm border bg-bg-surface px-3 py-1.5 font-mono text-[11px] uppercase tracking-wider text-text-secondary hover:bg-bg-hover disabled:cursor-not-allowed disabled:opacity-40"
+              className="border-bd-default inline-flex items-center gap-1.5 rounded-sm border bg-bg-surface px-3 py-1.5 font-mono text-[13px] uppercase tracking-wider text-text-secondary hover:bg-bg-hover disabled:cursor-not-allowed disabled:opacity-40"
               title={
                 paused ? 'Clear pause flag — next cron tick will claim work' : 'Already running'
               }
@@ -472,7 +472,7 @@ function ResearchAutomationPanel() {
               )}
               Resume
             </button>
-            <span className="ml-auto text-[10px] text-text-muted">
+            <span className="ml-auto text-[12px] text-text-muted">
               Takes effect on the next 30-min cron window.
             </span>
           </div>
@@ -528,18 +528,18 @@ function KillSwitchRow({ strategy }: { strategy: AccountStrategy }) {
       <Dot tone="loss" />
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-baseline gap-2">
-          <span className="font-mono text-[12px] font-semibold text-text-primary">
+          <span className="font-mono text-[14px] font-semibold text-text-primary">
             {strategy.strategyCode}
           </span>
-          <span className="font-mono text-[11px] text-text-secondary">
+          <span className="font-mono text-[13px] text-text-secondary">
             {strategy.symbol} · {strategy.interval}
           </span>
-          <span className="font-mono text-[10px] text-text-muted">{strategy.presetName}</span>
+          <span className="font-mono text-[12px] text-text-muted">{strategy.presetName}</span>
         </div>
-        <div className="mt-1 text-[11px] text-text-secondary">
+        <div className="mt-1 text-[13px] text-text-secondary">
           {strategy.killSwitchReason ?? 'No reason recorded.'}
         </div>
-        <div className="mt-0.5 font-mono text-[10px] text-text-muted">
+        <div className="mt-0.5 font-mono text-[12px] text-text-muted">
           Tripped{' '}
           {strategy.killSwitchTrippedAt
             ? formatDate(Date.parse(strategy.killSwitchTrippedAt))
@@ -550,7 +550,7 @@ function KillSwitchRow({ strategy }: { strategy: AccountStrategy }) {
         type="button"
         onClick={handleRearm}
         disabled={rearm.isPending}
-        className="border-bd-default inline-flex items-center gap-1.5 rounded-sm border bg-bg-surface px-3 py-1.5 font-mono text-[11px] uppercase tracking-wider text-text-secondary hover:bg-bg-hover disabled:cursor-not-allowed disabled:opacity-40"
+        className="border-bd-default inline-flex items-center gap-1.5 rounded-sm border bg-bg-surface px-3 py-1.5 font-mono text-[13px] uppercase tracking-wider text-text-secondary hover:bg-bg-hover disabled:cursor-not-allowed disabled:opacity-40"
         title="Clear the trip flag — strategy resumes on the next signal"
       >
         {rearm.isPending && rearm.variables === strategy.id ? (
@@ -604,24 +604,24 @@ function StuckTradeRow({ anomaly }: { anomaly: TradeAnomaly }) {
       <Dot tone="warning" />
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-baseline gap-2">
-          <span className="font-mono text-[12px] font-semibold text-text-primary">
+          <span className="font-mono text-[14px] font-semibold text-text-primary">
             {anomaly.asset}
           </span>
-          <span className="font-mono text-[11px] text-text-secondary">
+          <span className="font-mono text-[13px] text-text-secondary">
             {anomaly.interval} · {anomaly.side}
           </span>
           <span
-            className="rounded-sm px-1.5 py-0.5 font-mono text-[9px] font-semibold uppercase tracking-wider"
+            className="rounded-sm px-1.5 py-0.5 font-mono text-[12px] font-semibold uppercase tracking-wider"
             style={{ background: 'var(--bg-elevated)', color: toneColor('warning') }}
           >
             {anomaly.status}
           </span>
-          <span className="font-mono text-[10px] text-text-muted">
+          <span className="font-mono text-[12px] text-text-muted">
             legs {anomaly.openLegs}/{anomaly.totalLegs} open
           </span>
         </div>
-        <div className="mt-1 text-[11px] text-text-secondary">{hint}</div>
-        <div className="mt-0.5 flex items-center gap-2 font-mono text-[10px] text-text-muted">
+        <div className="mt-1 text-[13px] text-text-secondary">{hint}</div>
+        <div className="mt-0.5 flex items-center gap-2 font-mono text-[12px] text-text-muted">
           <span>Entered {anomaly.entryTime ? formatDate(Date.parse(anomaly.entryTime)) : '—'}</span>
           <span className="text-text-muted/60">·</span>
           <code className="text-text-muted">{anomaly.tradeId.slice(0, 8)}</code>
@@ -629,7 +629,7 @@ function StuckTradeRow({ anomaly }: { anomaly: TradeAnomaly }) {
       </div>
       <Link
         href={`/trades/${anomaly.tradeId}`}
-        className="border-bd-default inline-flex items-center gap-1 rounded-sm border bg-bg-surface px-3 py-1.5 font-mono text-[11px] uppercase tracking-wider text-text-secondary hover:bg-bg-hover"
+        className="border-bd-default inline-flex items-center gap-1 rounded-sm border bg-bg-surface px-3 py-1.5 font-mono text-[13px] uppercase tracking-wider text-text-secondary hover:bg-bg-hover"
         title="Open trade detail to triage"
       >
         Inspect <ChevronRight size={11} />
@@ -669,7 +669,7 @@ function WsHeartbeatPanel() {
       {isLoading ? (
         <Skeleton className="h-20 w-full" />
       ) : isError || !data ? (
-        <div className="bg-bg-base/40 rounded-sm border border-bd-subtle p-4 text-center text-[11px] text-text-muted">
+        <div className="bg-bg-base/40 rounded-sm border border-bd-subtle p-4 text-center text-[13px] text-text-muted">
           WS status endpoint unreachable.
         </div>
       ) : (
@@ -677,21 +677,21 @@ function WsHeartbeatPanel() {
           <div className="flex flex-wrap items-center gap-3">
             <Dot tone={tone} />
             <span
-              className="font-mono text-[14px] font-semibold uppercase tracking-wider"
+              className="font-mono text-[15px] font-semibold uppercase tracking-wider"
               style={{ color: toneColor(tone) }}
             >
               {headline}
             </span>
-            <span className="font-mono text-[11px] text-text-secondary">{data.symbol ?? '—'}</span>
-            <span className="font-mono text-[10px] text-text-muted">
+            <span className="font-mono text-[13px] text-text-secondary">{data.symbol ?? '—'}</span>
+            <span className="font-mono text-[12px] text-text-muted">
               {data.intervals.length > 0 ? data.intervals.join(' · ') : 'no intervals'}
             </span>
-            <span className="ml-auto flex items-baseline gap-2 font-mono text-[11px]">
+            <span className="ml-auto flex items-baseline gap-2 font-mono text-[13px]">
               <span className="text-text-muted">last frame</span>
               <span style={{ color: toneColor(tone) }}>{formatAge(data.ageMs)}</span>
             </span>
           </div>
-          <div className="mt-1.5 font-mono text-[10px] text-text-muted">
+          <div className="mt-1.5 font-mono text-[12px] text-text-muted">
             {data.lastMessageAt
               ? `at ${formatDate(Date.parse(data.lastMessageAt))}`
               : 'no frames received yet'}
@@ -813,7 +813,7 @@ function TelemetryCard({
 function Sparkline({ samples }: { samples: JvmTelemetrySnapshot[] }) {
   if (samples.length < 2) {
     return (
-      <div className="bg-bg-base/40 flex h-10 items-center justify-center rounded-sm text-[10px] text-text-muted">
+      <div className="bg-bg-base/40 flex h-10 items-center justify-center rounded-sm text-[12px] text-text-muted">
         Heap sparkline — collecting samples…
       </div>
     );
@@ -842,7 +842,7 @@ function Sparkline({ samples }: { samples: JvmTelemetrySnapshot[] }) {
     .join(' ');
   return (
     <div className="bg-bg-base/40 rounded-sm border border-bd-subtle p-2">
-      <div className="mb-1 flex items-center justify-between text-[10px] text-text-muted">
+      <div className="mb-1 flex items-center justify-between text-[12px] text-text-muted">
         <span>Heap % · last 5 min</span>
         <span className="font-mono">
           {(min * 100).toFixed(0)}% – {(max * 100).toFixed(0)}%
@@ -891,16 +891,16 @@ function SchedulerPanel() {
       {isLoading ? (
         <Skeleton className="h-24 w-full" />
       ) : isError ? (
-        <div className="bg-bg-base/40 rounded-sm border border-bd-subtle p-4 text-center text-[11px] text-text-muted">
+        <div className="bg-bg-base/40 rounded-sm border border-bd-subtle p-4 text-center text-[13px] text-text-muted">
           Scheduler endpoint unreachable.
         </div>
       ) : jobs.length === 0 ? (
-        <div className="bg-bg-base/40 rounded-sm border border-bd-subtle p-4 text-center text-[11px] text-text-muted">
+        <div className="bg-bg-base/40 rounded-sm border border-bd-subtle p-4 text-center text-[13px] text-text-muted">
           No scheduler jobs registered.
         </div>
       ) : (
         <div className="overflow-hidden rounded-md border border-bd-subtle">
-          <table className="w-full text-[11px]">
+          <table className="w-full text-[13px]">
             <thead>
               <tr className="border-b border-bd-subtle bg-bg-base">
                 <Th>Job</Th>
@@ -921,7 +921,7 @@ function SchedulerPanel() {
                   <Td>
                     <div className="flex items-center gap-1.5">
                       <Dot tone={j.scheduled ? 'profit' : 'muted'} />
-                      <span className="font-mono text-[10px] uppercase tracking-wider text-text-secondary">
+                      <span className="font-mono text-[12px] uppercase tracking-wider text-text-secondary">
                         {j.scheduled ? 'scheduled' : 'idle'}
                       </span>
                     </div>
@@ -1013,7 +1013,7 @@ function SchedulerEditDialog({ job, onClose }: { job: SchedulerJobStatus; onClos
         <div className="space-y-3">
           <div>
             <label htmlFor="scheduler-cron">
-              <span className="mb-1.5 block text-[10px] font-semibold uppercase tracking-wider text-text-secondary">
+              <span className="mb-1.5 block text-[12px] font-semibold uppercase tracking-wider text-text-secondary">
                 Cron expression
               </span>
               <input
@@ -1023,16 +1023,16 @@ function SchedulerEditDialog({ job, onClose }: { job: SchedulerJobStatus; onClos
                 onChange={(e) => setCronExpression(e.target.value)}
                 spellCheck={false}
                 autoComplete="off"
-                className="w-full rounded-sm border border-bd-subtle bg-bg-base px-2.5 py-1.5 font-mono text-[12px] text-text-primary focus:border-[var(--accent-primary)] focus:outline-none"
+                className="w-full rounded-sm border border-bd-subtle bg-bg-base px-2.5 py-1.5 font-mono text-[14px] text-text-primary focus:border-[var(--accent-primary)] focus:outline-none"
               />
             </label>
-            <p className="mt-1 font-mono text-[10px] text-text-muted">
+            <p className="mt-1 font-mono text-[12px] text-text-muted">
               Spring 6-field: <code>sec min hr day mon dow</code> · server validates and rejects
               malformed values.
             </p>
           </div>
           <div>
-            <span className="mb-1.5 block text-[10px] font-semibold uppercase tracking-wider text-text-secondary">
+            <span className="mb-1.5 block text-[12px] font-semibold uppercase tracking-wider text-text-secondary">
               Status
             </span>
             <div className="flex gap-1.5">
@@ -1048,7 +1048,7 @@ function SchedulerEditDialog({ job, onClose }: { job: SchedulerJobStatus; onClos
                     key={val}
                     type="button"
                     onClick={() => setStatus(val)}
-                    className="rounded-sm border px-2.5 py-1 font-mono text-[11px] uppercase tracking-wider transition-colors"
+                    className="rounded-sm border px-2.5 py-1 font-mono text-[13px] uppercase tracking-wider transition-colors"
                     style={{
                       borderColor: selected ? 'var(--accent-primary)' : 'var(--border-subtle)',
                       background: selected ? 'rgba(59,130,246,0.12)' : 'transparent',
@@ -1066,7 +1066,7 @@ function SchedulerEditDialog({ job, onClose }: { job: SchedulerJobStatus; onClos
           <button
             type="button"
             onClick={onClose}
-            className="rounded-sm border border-bd-subtle bg-bg-surface px-3 py-1.5 text-[12px] text-text-secondary hover:bg-bg-hover"
+            className="rounded-sm border border-bd-subtle bg-bg-surface px-3 py-1.5 text-[14px] text-text-secondary hover:bg-bg-hover"
           >
             Cancel
           </button>
@@ -1074,7 +1074,7 @@ function SchedulerEditDialog({ job, onClose }: { job: SchedulerJobStatus; onClos
             type="button"
             onClick={submit}
             disabled={!dirty || update.isPending || !cronExpression.trim()}
-            className="hover:bg-[var(--accent-primary)]/90 inline-flex items-center gap-1.5 rounded-sm bg-[var(--accent-primary)] px-3 py-1.5 text-[12px] font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
+            className="hover:bg-[var(--accent-primary)]/90 inline-flex items-center gap-1.5 rounded-sm bg-[var(--accent-primary)] px-3 py-1.5 text-[14px] font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
           >
             {update.isPending && <Loader2 size={11} className="animate-spin" />}
             Save
@@ -1124,7 +1124,7 @@ function SweepActivityPanel() {
           {search.isFetching && !search.isLoading && <RefreshingPill />}
           <Link
             href="/research/sweeps"
-            className="font-mono text-[10px] uppercase tracking-wider text-[var(--accent-primary)] hover:underline"
+            className="font-mono text-[12px] uppercase tracking-wider text-[var(--accent-primary)] hover:underline"
           >
             All →
           </Link>
@@ -1132,7 +1132,7 @@ function SweepActivityPanel() {
       }
     >
       <div className="mb-2 flex flex-wrap items-center gap-2">
-        <span className="font-mono text-[10px] uppercase tracking-widest text-text-muted">
+        <span className="font-mono text-[12px] uppercase tracking-widest text-text-muted">
           Status
         </span>
         {SWEEP_STATUS_FILTERS.map((f) => {
@@ -1146,7 +1146,7 @@ function SweepActivityPanel() {
                 setPage(0);
               }}
               aria-pressed={active}
-              className="rounded-sm px-2 py-0.5 text-[10px] transition-colors"
+              className="rounded-sm px-2 py-0.5 text-[12px] transition-colors"
               style={{
                 background: active ? 'var(--bg-hover)' : 'transparent',
                 color: active ? 'var(--text-primary)' : 'var(--text-secondary)',
@@ -1159,8 +1159,8 @@ function SweepActivityPanel() {
           );
         })}
         <span className="h-4 w-px bg-bd-subtle" />
-        <div className="flex items-center gap-1.5 text-[11px] text-text-secondary">
-          <span className="font-mono text-[10px] uppercase tracking-widest text-text-muted">
+        <div className="flex items-center gap-1.5 text-[13px] text-text-secondary">
+          <span className="font-mono text-[12px] uppercase tracking-widest text-text-muted">
             Sort
           </span>
           <select
@@ -1170,7 +1170,7 @@ function SweepActivityPanel() {
               setPage(0);
             }}
             aria-label="Sort sweeps by"
-            className="rounded-sm border border-bd-subtle bg-bg-base px-2 py-1 font-mono text-[11px] text-text-primary"
+            className="rounded-sm border border-bd-subtle bg-bg-base px-2 py-1 font-mono text-[13px] text-text-primary"
           >
             {SWEEP_SORT_OPTIONS.map((o) => (
               <option key={o.value} value={o.value}>
@@ -1179,7 +1179,7 @@ function SweepActivityPanel() {
             ))}
           </select>
         </div>
-        <span className="ml-auto font-mono text-[10px] uppercase tracking-widest text-text-muted">
+        <span className="ml-auto font-mono text-[12px] uppercase tracking-widest text-text-muted">
           {totalElements} {totalElements === 1 ? 'row' : 'rows'}
         </span>
       </div>
@@ -1188,7 +1188,7 @@ function SweepActivityPanel() {
       ) : rows.length === 0 ? (
         <div className="bg-bg-base/40 mt-1 rounded-sm border border-bd-subtle p-4 text-center">
           <Activity size={14} className="mx-auto mb-1 text-text-muted" />
-          <p className="text-[11px] text-text-muted">No sweeps match this filter.</p>
+          <p className="text-[13px] text-text-muted">No sweeps match this filter.</p>
         </div>
       ) : (
         <ul className="mt-1 space-y-1.5">
@@ -1209,7 +1209,7 @@ function SweepActivityPanel() {
                   href={`/research/sweeps/${s.sweepId}`}
                   className="block rounded-sm border border-bd-subtle bg-bg-base px-2.5 py-2 transition-colors hover:bg-bg-hover"
                 >
-                  <div className="flex items-center justify-between gap-2 text-[11px]">
+                  <div className="flex items-center justify-between gap-2 text-[13px]">
                     <span className="font-mono text-text-secondary">
                       {s.spec.strategyCode} · {s.spec.asset} {s.spec.interval}
                     </span>
@@ -1241,18 +1241,18 @@ function SweepActivityPanel() {
             type="button"
             onClick={() => setPage((p) => Math.max(0, p - 1))}
             disabled={page <= 0}
-            className="rounded-sm border border-bd-subtle bg-bg-surface px-2 py-1 text-[11px] text-text-secondary hover:bg-bg-hover disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-sm border border-bd-subtle bg-bg-surface px-2 py-1 text-[13px] text-text-secondary hover:bg-bg-hover disabled:cursor-not-allowed disabled:opacity-50"
           >
             Prev
           </button>
-          <span className="font-mono text-[10px] text-text-muted">
+          <span className="font-mono text-[12px] text-text-muted">
             Page {page + 1} / {totalPages}
           </span>
           <button
             type="button"
             onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
             disabled={page >= totalPages - 1}
-            className="rounded-sm border border-bd-subtle bg-bg-surface px-2 py-1 text-[11px] text-text-secondary hover:bg-bg-hover disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-sm border border-bd-subtle bg-bg-surface px-2 py-1 text-[13px] text-text-secondary hover:bg-bg-hover disabled:cursor-not-allowed disabled:opacity-50"
           >
             Next
           </button>
@@ -1308,9 +1308,9 @@ function RecentPromotionsPanel() {
       <div className="mb-2 flex flex-wrap items-center gap-2">
         <label
           htmlFor="recent-strategy-filter"
-          className="flex items-center gap-1.5 text-[11px] text-text-secondary"
+          className="flex items-center gap-1.5 text-[13px] text-text-secondary"
         >
-          <span className="font-mono text-[10px] uppercase tracking-widest text-text-muted">
+          <span className="font-mono text-[12px] uppercase tracking-widest text-text-muted">
             Strategy
           </span>
           <input
@@ -1320,11 +1320,11 @@ function RecentPromotionsPanel() {
             placeholder="e.g. LSR"
             onChange={(e) => setStrategyCode(e.target.value)}
             aria-label="Filter recent promotions by strategy code"
-            className="w-24 rounded-sm border border-bd-subtle bg-bg-base px-2 py-1 font-mono text-[11px] text-text-primary"
+            className="w-24 rounded-sm border border-bd-subtle bg-bg-base px-2 py-1 font-mono text-[13px] text-text-primary"
           />
         </label>
         <span className="h-4 w-px bg-bd-subtle" />
-        <span className="font-mono text-[10px] uppercase tracking-widest text-text-muted">
+        <span className="font-mono text-[12px] uppercase tracking-widest text-text-muted">
           To state
         </span>
         {RECENT_PROMOTIONS_TO_STATES.map((s) => {
@@ -1338,7 +1338,7 @@ function RecentPromotionsPanel() {
                 setPage(0);
               }}
               aria-pressed={active}
-              className="rounded-sm px-2 py-0.5 text-[10px] transition-colors"
+              className="rounded-sm px-2 py-0.5 text-[12px] transition-colors"
               style={{
                 background: active ? 'var(--bg-hover)' : 'transparent',
                 color: active ? 'var(--text-primary)' : 'var(--text-secondary)',
@@ -1358,19 +1358,19 @@ function RecentPromotionsPanel() {
               setToState('');
               setPage(0);
             }}
-            className="ml-1 rounded-sm border border-bd-subtle px-2 py-0.5 text-[10px] text-text-secondary hover:bg-bg-hover"
+            className="ml-1 rounded-sm border border-bd-subtle px-2 py-0.5 text-[12px] text-text-secondary hover:bg-bg-hover"
           >
             Clear
           </button>
         )}
-        <span className="ml-auto font-mono text-[10px] uppercase tracking-widest text-text-muted">
+        <span className="ml-auto font-mono text-[12px] uppercase tracking-widest text-text-muted">
           {totalElements} {totalElements === 1 ? 'row' : 'rows'}
         </span>
       </div>
       {search.isLoading ? (
         <Skeleton className="h-40 w-full" />
       ) : rows.length === 0 ? (
-        <div className="bg-bg-base/40 flex items-center justify-center gap-1.5 rounded-sm border border-bd-subtle p-4 text-center text-[11px] text-text-muted">
+        <div className="bg-bg-base/40 flex items-center justify-center gap-1.5 rounded-sm border border-bd-subtle p-4 text-center text-[13px] text-text-muted">
           <CircleDot size={12} />
           {filtersActive
             ? 'No promotions match the current filters.'
@@ -1383,15 +1383,15 @@ function RecentPromotionsPanel() {
               <button
                 type="button"
                 onClick={() => setSelected(r)}
-                className="block w-full rounded-sm border border-bd-subtle bg-bg-base px-2.5 py-1.5 text-left text-[11px] transition-colors hover:bg-bg-hover focus:outline-none focus:ring-1 focus:ring-[var(--accent-primary)]"
+                className="block w-full rounded-sm border border-bd-subtle bg-bg-base px-2.5 py-1.5 text-left text-[13px] transition-colors hover:bg-bg-hover focus:outline-none focus:ring-1 focus:ring-[var(--accent-primary)]"
               >
                 <div className="flex items-center justify-between">
                   <span className="font-mono text-text-secondary">{r.strategyCode}</span>
-                  <span className="font-mono text-[10px] text-text-muted">
+                  <span className="font-mono text-[12px] text-text-muted">
                     {formatDate(Date.parse(r.createdTime))}
                   </span>
                 </div>
-                <div className="mt-0.5 flex items-center gap-1.5 text-[10px]">
+                <div className="mt-0.5 flex items-center gap-1.5 text-[12px]">
                   <StateBadge state={r.fromState} />
                   <ChevronRight size={10} className="text-text-muted" />
                   <StateBadge state={r.toState} />
@@ -1408,18 +1408,18 @@ function RecentPromotionsPanel() {
             type="button"
             onClick={() => setPage((p) => Math.max(0, p - 1))}
             disabled={page <= 0}
-            className="rounded-sm border border-bd-subtle bg-bg-surface px-2 py-1 text-[11px] text-text-secondary hover:bg-bg-hover disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-sm border border-bd-subtle bg-bg-surface px-2 py-1 text-[13px] text-text-secondary hover:bg-bg-hover disabled:cursor-not-allowed disabled:opacity-50"
           >
             Prev
           </button>
-          <span className="font-mono text-[10px] text-text-muted">
+          <span className="font-mono text-[12px] text-text-muted">
             Page {page + 1} / {totalPages}
           </span>
           <button
             type="button"
             onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
             disabled={page >= totalPages - 1}
-            className="rounded-sm border border-bd-subtle bg-bg-surface px-2 py-1 text-[11px] text-text-secondary hover:bg-bg-hover disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-sm border border-bd-subtle bg-bg-surface px-2 py-1 text-[13px] text-text-secondary hover:bg-bg-hover disabled:cursor-not-allowed disabled:opacity-50"
           >
             Next
           </button>
@@ -1456,39 +1456,39 @@ function PromotionDetailDialog({
             <StateBadge state={row.fromState} />
             <ChevronRight size={12} className="text-text-muted" />
             <StateBadge state={row.toState} />
-            <span className="ml-2 font-mono text-[11px] text-text-muted">
+            <span className="ml-2 font-mono text-[13px] text-text-muted">
               {formatDate(Date.parse(row.createdTime))}
             </span>
           </DialogDescription>
         </DialogHeader>
-        <div className="space-y-3 text-[12px]">
+        <div className="space-y-3 text-[14px]">
           <DetailRow label="Reason">
             <p className="whitespace-pre-wrap text-text-primary">{row.reason || '—'}</p>
           </DetailRow>
           {row.accountStrategyId ? (
             <DetailRow label="Account strategy">
-              <code className="font-mono text-[11px] text-text-secondary">
+              <code className="font-mono text-[13px] text-text-secondary">
                 {row.accountStrategyId}
               </code>
             </DetailRow>
           ) : (
             <DetailRow label="Strategy definition">
-              <code className="font-mono text-[11px] text-text-secondary">
+              <code className="font-mono text-[13px] text-text-secondary">
                 {row.strategyDefinitionId ?? row.strategyCode}
               </code>
             </DetailRow>
           )}
           <DetailRow label="Reviewer">
-            <code className="font-mono text-[11px] text-text-secondary">
+            <code className="font-mono text-[13px] text-text-secondary">
               {row.reviewerUserId ?? '— (system)'}
             </code>
           </DetailRow>
           <DetailRow label="Promotion ID">
-            <code className="font-mono text-[11px] text-text-secondary">{row.promotionId}</code>
+            <code className="font-mono text-[13px] text-text-secondary">{row.promotionId}</code>
           </DetailRow>
           <DetailRow label="Evidence">
             {evidenceText ? (
-              <pre className="max-h-[220px] overflow-auto rounded-sm border border-bd-subtle bg-bg-base p-2 font-mono text-[11px] text-text-primary">
+              <pre className="max-h-[220px] overflow-auto rounded-sm border border-bd-subtle bg-bg-base p-2 font-mono text-[13px] text-text-primary">
                 {evidenceText}
               </pre>
             ) : (
@@ -1500,7 +1500,7 @@ function PromotionDetailDialog({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-sm border border-bd-subtle bg-bg-surface px-3 py-1.5 text-[12px] text-text-secondary hover:bg-bg-hover"
+            className="rounded-sm border border-bd-subtle bg-bg-surface px-3 py-1.5 text-[14px] text-text-secondary hover:bg-bg-hover"
           >
             Close
           </button>
@@ -1513,7 +1513,7 @@ function PromotionDetailDialog({
 function DetailRow({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <div className="mb-1 font-mono text-[10px] uppercase tracking-wider text-text-muted">
+      <div className="mb-1 font-mono text-[12px] uppercase tracking-wider text-text-muted">
         {label}
       </div>
       {children}
@@ -1631,8 +1631,8 @@ function PromotionCandidatesPanel() {
       headerSlot={search.isFetching && !search.isLoading ? <RefreshingPill /> : null}
     >
       <div className="mb-2 flex flex-wrap items-center gap-2">
-        <div className="flex items-center gap-1.5 text-[11px] text-text-secondary">
-          <span className="font-mono text-[10px] uppercase tracking-widest text-text-muted">
+        <div className="flex items-center gap-1.5 text-[13px] text-text-secondary">
+          <span className="font-mono text-[12px] uppercase tracking-widest text-text-muted">
             Search
           </span>
           <input
@@ -1641,19 +1641,19 @@ function PromotionCandidatesPanel() {
             placeholder="strategy code or name"
             onChange={(e) => setQuery(e.target.value)}
             aria-label="Filter promotion candidates by strategy code or name"
-            className="w-48 rounded-sm border border-bd-subtle bg-bg-base px-2 py-1 font-mono text-[11px] text-text-primary"
+            className="w-48 rounded-sm border border-bd-subtle bg-bg-base px-2 py-1 font-mono text-[13px] text-text-primary"
           />
         </div>
         {filtersActive && (
           <button
             type="button"
             onClick={() => setQuery('')}
-            className="rounded-sm border border-bd-subtle px-2 py-0.5 text-[10px] text-text-secondary hover:bg-bg-hover"
+            className="rounded-sm border border-bd-subtle px-2 py-0.5 text-[12px] text-text-secondary hover:bg-bg-hover"
           >
             Clear
           </button>
         )}
-        <span className="ml-auto font-mono text-[10px] uppercase tracking-widest text-text-muted">
+        <span className="ml-auto font-mono text-[12px] uppercase tracking-widest text-text-muted">
           {totalElements} {totalElements === 1 ? 'row' : 'rows'}
         </span>
       </div>
@@ -1662,7 +1662,7 @@ function PromotionCandidatesPanel() {
       ) : rows.length === 0 ? (
         <div className="bg-bg-base/40 rounded-sm border border-bd-subtle p-6 text-center">
           <Sparkles size={16} className="mx-auto mb-2 text-text-muted" />
-          <p className="text-[11px] text-text-muted">
+          <p className="text-[13px] text-text-muted">
             {filtersActive
               ? 'No definitions match the current filter.'
               : 'No active strategy definitions. Seed one via the research orchestrator or POST '}
@@ -1672,7 +1672,7 @@ function PromotionCandidatesPanel() {
         </div>
       ) : (
         <div className="overflow-hidden rounded-md border border-bd-subtle">
-          <table className="w-full text-[11px]">
+          <table className="w-full text-[13px]">
             <thead>
               <tr className="border-b border-bd-subtle bg-bg-base">
                 {PROMOTION_SORT_FIELDS.map((f) => (
@@ -1700,7 +1700,7 @@ function PromotionCandidatesPanel() {
                     <Td className="font-mono">
                       <div className="flex flex-col">
                         <span>{d.strategyCode}</span>
-                        <span className="text-[10px] text-text-muted">{d.strategyName}</span>
+                        <span className="text-[12px] text-text-muted">{d.strategyName}</span>
                       </div>
                     </Td>
                     <Td className="text-text-secondary">{d.strategyType}</Td>
@@ -1713,7 +1713,7 @@ function PromotionCandidatesPanel() {
                     <Td>
                       <span className="inline-flex items-center gap-1.5">
                         <Dot tone={STATE_TONE[state]} />
-                        <span className="font-mono text-[10px] uppercase tracking-wider text-text-secondary">
+                        <span className="font-mono text-[12px] uppercase tracking-wider text-text-secondary">
                           {state.replace('_', ' ')}
                         </span>
                       </span>
@@ -1726,7 +1726,7 @@ function PromotionCandidatesPanel() {
                           setTargetIsDeepLinked(false);
                         }}
                         aria-label={`Manage promotion for ${d.strategyCode}`}
-                        className="inline-flex items-center gap-1 rounded-sm border border-bd-subtle px-2 py-1 font-mono text-[10px] uppercase tracking-wider text-[var(--accent-primary)] transition-colors hover:border-[var(--accent-primary)] hover:bg-[rgba(59,130,246,0.08)] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--accent-primary)]"
+                        className="inline-flex items-center gap-1 rounded-sm border border-bd-subtle px-2 py-1 font-mono text-[12px] uppercase tracking-wider text-[var(--accent-primary)] transition-colors hover:border-[var(--accent-primary)] hover:bg-[rgba(59,130,246,0.08)] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--accent-primary)]"
                       >
                         Manage →
                       </button>
@@ -1744,18 +1744,18 @@ function PromotionCandidatesPanel() {
             type="button"
             onClick={() => setPage((p) => Math.max(0, p - 1))}
             disabled={page <= 0}
-            className="rounded-sm border border-bd-subtle bg-bg-surface px-2 py-1 text-[11px] text-text-secondary hover:bg-bg-hover disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-sm border border-bd-subtle bg-bg-surface px-2 py-1 text-[13px] text-text-secondary hover:bg-bg-hover disabled:cursor-not-allowed disabled:opacity-50"
           >
             Prev
           </button>
-          <span className="font-mono text-[10px] text-text-muted">
+          <span className="font-mono text-[12px] text-text-muted">
             Page {page + 1} / {totalPages}
           </span>
           <button
             type="button"
             onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
             disabled={page >= totalPages - 1}
-            className="rounded-sm border border-bd-subtle bg-bg-surface px-2 py-1 text-[11px] text-text-secondary hover:bg-bg-hover disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-sm border border-bd-subtle bg-bg-surface px-2 py-1 text-[13px] text-text-secondary hover:bg-bg-hover disabled:cursor-not-allowed disabled:opacity-50"
           >
             Next
           </button>
@@ -1788,7 +1788,7 @@ function SortableTh({
       <button
         type="button"
         onClick={() => onSort(field)}
-        className="inline-flex items-center gap-1 font-mono text-[10px] uppercase tracking-wider text-text-muted transition-colors hover:text-text-secondary"
+        className="inline-flex items-center gap-1 font-mono text-[12px] uppercase tracking-wider text-text-muted transition-colors hover:text-text-secondary"
         style={{ color: active ? 'var(--text-secondary)' : undefined }}
       >
         {label}
@@ -1896,7 +1896,7 @@ function PromoteDialog({ target, onClose }: { target: StrategyDefinition; onClos
         </DialogHeader>
         <div className="space-y-3">
           <div>
-            <span className="mb-1.5 block text-[10px] font-semibold uppercase tracking-wider text-text-secondary">
+            <span className="mb-1.5 block text-[12px] font-semibold uppercase tracking-wider text-text-secondary">
               Target state
             </span>
             <div
@@ -1929,7 +1929,7 @@ function PromoteDialog({ target, onClose }: { target: StrategyDefinition; onClos
                     disabled={!legal}
                     onClick={() => setToState(s)}
                     title={legal ? undefined : `Illegal transition from ${currentState}`}
-                    className={`rounded-sm border px-2.5 py-1 font-mono text-[11px] uppercase tracking-wider transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
+                    className={`rounded-sm border px-2.5 py-1 font-mono text-[13px] uppercase tracking-wider transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
                       !legal ? 'line-through' : ''
                     }`}
                     style={{ borderColor, background, color }}
@@ -1940,14 +1940,14 @@ function PromoteDialog({ target, onClose }: { target: StrategyDefinition; onClos
               })}
             </div>
             {legalTargets.length === 0 && (
-              <p className="mt-1.5 text-[10px] text-text-muted">
+              <p className="mt-1.5 text-[12px] text-text-muted">
                 No legal transitions from {currentState}.
               </p>
             )}
           </div>
           <div>
             <label htmlFor="promote-reason">
-              <span className="mb-1.5 block text-[10px] font-semibold uppercase tracking-wider text-text-secondary">
+              <span className="mb-1.5 block text-[12px] font-semibold uppercase tracking-wider text-text-secondary">
                 Reason <span className="text-[var(--color-loss)]">*</span> (required for audit log)
               </span>
               <input
@@ -1959,13 +1959,13 @@ function PromoteDialog({ target, onClose }: { target: StrategyDefinition; onClos
                 required
                 aria-required="true"
                 placeholder="e.g. 30-day paper window cleared with Sharpe 1.4"
-                className="w-full rounded-sm border border-bd-subtle bg-bg-base px-2.5 py-1.5 text-[12px] text-text-primary placeholder:text-text-muted focus:border-[var(--accent-primary)] focus:outline-none"
+                className="w-full rounded-sm border border-bd-subtle bg-bg-base px-2.5 py-1.5 text-[14px] text-text-primary placeholder:text-text-muted focus:border-[var(--accent-primary)] focus:outline-none"
               />
             </label>
           </div>
           <div>
             <label htmlFor="promote-evidence">
-              <span className="mb-1.5 block text-[10px] font-semibold uppercase tracking-wider text-text-secondary">
+              <span className="mb-1.5 block text-[12px] font-semibold uppercase tracking-wider text-text-secondary">
                 Evidence JSON (optional)
               </span>
               <textarea
@@ -1976,7 +1976,7 @@ function PromoteDialog({ target, onClose }: { target: StrategyDefinition; onClos
                 aria-invalid={Boolean(evidenceParse.error)}
                 aria-describedby={evidenceParse.error ? 'promote-evidence-error' : undefined}
                 placeholder='{"sweepId":"…","sharpe":1.4,"trades":42}'
-                className="w-full rounded-sm border bg-bg-base px-2.5 py-1.5 font-mono text-[11px] text-text-primary placeholder:text-text-muted focus:outline-none"
+                className="w-full rounded-sm border bg-bg-base px-2.5 py-1.5 font-mono text-[13px] text-text-primary placeholder:text-text-muted focus:outline-none"
                 style={{
                   borderColor: evidenceParse.error ? 'rgba(229,72,77,0.5)' : 'var(--border-subtle)',
                 }}
@@ -1985,7 +1985,7 @@ function PromoteDialog({ target, onClose }: { target: StrategyDefinition; onClos
             {evidenceParse.error && (
               <p
                 id="promote-evidence-error"
-                className="mt-1 font-mono text-[10px]"
+                className="mt-1 font-mono text-[12px]"
                 style={{ color: 'var(--color-loss)' }}
               >
                 Invalid JSON · {evidenceParse.error}
@@ -1994,7 +1994,7 @@ function PromoteDialog({ target, onClose }: { target: StrategyDefinition; onClos
           </div>
           {toState === 'PROMOTED' && (
             <div
-              className="flex items-start gap-2 rounded-sm border px-2.5 py-2 text-[11px]"
+              className="flex items-start gap-2 rounded-sm border px-2.5 py-2 text-[13px]"
               style={{
                 borderColor: 'rgba(245,166,35,0.32)',
                 background: 'rgba(245,166,35,0.08)',
@@ -2014,7 +2014,7 @@ function PromoteDialog({ target, onClose }: { target: StrategyDefinition; onClos
           <button
             type="button"
             onClick={onClose}
-            className="rounded-sm border border-bd-subtle bg-bg-surface px-3 py-1.5 text-[12px] text-text-secondary hover:bg-bg-hover"
+            className="rounded-sm border border-bd-subtle bg-bg-surface px-3 py-1.5 text-[14px] text-text-secondary hover:bg-bg-hover"
           >
             Cancel
           </button>
@@ -2037,7 +2037,7 @@ function PromoteDialog({ target, onClose }: { target: StrategyDefinition; onClos
                     ? `Illegal transition from ${currentState}`
                     : undefined
             }
-            className="hover:bg-[var(--accent-primary)]/90 inline-flex items-center gap-1.5 rounded-sm bg-[var(--accent-primary)] px-3 py-1.5 text-[12px] font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
+            className="hover:bg-[var(--accent-primary)]/90 inline-flex items-center gap-1.5 rounded-sm bg-[var(--accent-primary)] px-3 py-1.5 text-[14px] font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
           >
             {promote.isPending && <Loader2 size={11} className="animate-spin" />}
             Apply
@@ -2091,7 +2091,7 @@ function ResearchLogPanel() {
           {search.isFetching && !search.isLoading && <RefreshingPill />}
           <Link
             href="/research/log"
-            className="font-mono text-[10px] uppercase tracking-wider text-[var(--accent-primary)] hover:underline"
+            className="font-mono text-[12px] uppercase tracking-wider text-[var(--accent-primary)] hover:underline"
           >
             Full log →
           </Link>
@@ -2099,8 +2099,8 @@ function ResearchLogPanel() {
       }
     >
       <div className="mb-2 flex flex-wrap items-center gap-2">
-        <div className="flex items-center gap-1.5 text-[11px] text-text-secondary">
-          <span className="font-mono text-[10px] uppercase tracking-widest text-text-muted">
+        <div className="flex items-center gap-1.5 text-[13px] text-text-secondary">
+          <span className="font-mono text-[12px] uppercase tracking-widest text-text-muted">
             Strategy
           </span>
           <input
@@ -2109,11 +2109,11 @@ function ResearchLogPanel() {
             placeholder="e.g. LSR"
             onChange={(e) => setStrategyCode(e.target.value)}
             aria-label="Filter research log by strategy code"
-            className="w-24 rounded-sm border border-bd-subtle bg-bg-base px-2 py-1 font-mono text-[11px] text-text-primary"
+            className="w-24 rounded-sm border border-bd-subtle bg-bg-base px-2 py-1 font-mono text-[13px] text-text-primary"
           />
         </div>
-        <div className="flex items-center gap-1.5 text-[11px] text-text-secondary">
-          <span className="font-mono text-[10px] uppercase tracking-widest text-text-muted">
+        <div className="flex items-center gap-1.5 text-[13px] text-text-secondary">
+          <span className="font-mono text-[12px] uppercase tracking-widest text-text-muted">
             Asset
           </span>
           <input
@@ -2122,11 +2122,11 @@ function ResearchLogPanel() {
             placeholder="e.g. BTCUSDT, ETHUSDT"
             onChange={(e) => setAsset(e.target.value)}
             aria-label="Filter research log by asset"
-            className="w-24 rounded-sm border border-bd-subtle bg-bg-base px-2 py-1 font-mono text-[11px] text-text-primary"
+            className="w-24 rounded-sm border border-bd-subtle bg-bg-base px-2 py-1 font-mono text-[13px] text-text-primary"
           />
         </div>
-        <div className="flex items-center gap-1.5 text-[11px] text-text-secondary">
-          <span className="font-mono text-[10px] uppercase tracking-widest text-text-muted">
+        <div className="flex items-center gap-1.5 text-[13px] text-text-secondary">
+          <span className="font-mono text-[12px] uppercase tracking-widest text-text-muted">
             Interval
           </span>
           <input
@@ -2135,7 +2135,7 @@ function ResearchLogPanel() {
             placeholder="1h"
             onChange={(e) => setIntervalFilter(e.target.value)}
             aria-label="Filter research log by interval"
-            className="w-16 rounded-sm border border-bd-subtle bg-bg-base px-2 py-1 font-mono text-[11px] text-text-primary"
+            className="w-16 rounded-sm border border-bd-subtle bg-bg-base px-2 py-1 font-mono text-[13px] text-text-primary"
           />
         </div>
         {filtersActive && (
@@ -2146,19 +2146,19 @@ function ResearchLogPanel() {
               setAsset('');
               setIntervalFilter('');
             }}
-            className="rounded-sm border border-bd-subtle px-2 py-0.5 text-[10px] text-text-secondary hover:bg-bg-hover"
+            className="rounded-sm border border-bd-subtle px-2 py-0.5 text-[12px] text-text-secondary hover:bg-bg-hover"
           >
             Clear
           </button>
         )}
-        <span className="ml-auto font-mono text-[10px] uppercase tracking-widest text-text-muted">
+        <span className="ml-auto font-mono text-[12px] uppercase tracking-widest text-text-muted">
           {totalElements} {totalElements === 1 ? 'row' : 'rows'}
         </span>
       </div>
       {search.isLoading ? (
         <Skeleton className="h-32 w-full" />
       ) : rows.length === 0 ? (
-        <div className="bg-bg-base/40 rounded-sm border border-bd-subtle p-4 text-center text-[11px] text-text-muted">
+        <div className="bg-bg-base/40 rounded-sm border border-bd-subtle p-4 text-center text-[13px] text-text-muted">
           <CircleDot size={14} className="mx-auto mb-1 text-text-muted" />
           {filtersActive
             ? 'No log entries match the current filters.'
@@ -2166,7 +2166,7 @@ function ResearchLogPanel() {
         </div>
       ) : (
         <div className="max-h-[280px] overflow-y-auto rounded-md border border-bd-subtle">
-          <table className="w-full min-w-[720px] text-[11px]">
+          <table className="w-full min-w-[720px] text-[13px]">
             <thead className="sticky top-0 bg-bg-base">
               <tr className="border-b border-bd-subtle">
                 <Th>When</Th>
@@ -2234,18 +2234,18 @@ function ResearchLogPanel() {
             type="button"
             onClick={() => setPage((p) => Math.max(0, p - 1))}
             disabled={page <= 0}
-            className="rounded-sm border border-bd-subtle bg-bg-surface px-2 py-1 text-[11px] text-text-secondary hover:bg-bg-hover disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-sm border border-bd-subtle bg-bg-surface px-2 py-1 text-[13px] text-text-secondary hover:bg-bg-hover disabled:cursor-not-allowed disabled:opacity-50"
           >
             Prev
           </button>
-          <span className="font-mono text-[10px] text-text-muted">
+          <span className="font-mono text-[12px] text-text-muted">
             Page {page + 1} / {totalPages}
           </span>
           <button
             type="button"
             onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
             disabled={page >= totalPages - 1}
-            className="rounded-sm border border-bd-subtle bg-bg-surface px-2 py-1 text-[11px] text-text-secondary hover:bg-bg-hover disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-sm border border-bd-subtle bg-bg-surface px-2 py-1 text-[13px] text-text-secondary hover:bg-bg-hover disabled:cursor-not-allowed disabled:opacity-50"
           >
             Next
           </button>
@@ -2270,7 +2270,7 @@ function RefreshingPill() {
     <span
       role="status"
       aria-live="polite"
-      className="inline-flex items-center gap-1 font-mono text-[10px] uppercase tracking-widest text-text-muted"
+      className="inline-flex items-center gap-1 font-mono text-[12px] uppercase tracking-widest text-text-muted"
     >
       <Loader2 size={10} className="animate-spin" />
       updating…
@@ -2311,7 +2311,7 @@ function fmtAgo(iso: string): string {
 function VerdictPill({ tone, label }: { tone: Tone; label: string }) {
   return (
     <span
-      className="inline-flex items-center rounded-sm px-1.5 py-0.5 font-mono text-[9px] font-semibold uppercase tracking-wider"
+      className="inline-flex items-center rounded-sm px-1.5 py-0.5 font-mono text-[12px] font-semibold uppercase tracking-wider"
       style={{ background: 'var(--bg-elevated)', color: toneColor(tone) }}
     >
       {label}
@@ -2331,12 +2331,12 @@ function LeaderboardPanel() {
       {isLoading ? (
         <Skeleton className="h-40 w-full" />
       ) : rows.length === 0 ? (
-        <div className="bg-bg-base/40 rounded-sm border border-bd-subtle p-4 text-center text-[11px] text-text-muted">
+        <div className="bg-bg-base/40 rounded-sm border border-bd-subtle p-4 text-center text-[13px] text-text-muted">
           No iterations recorded yet. The orchestrator writes one row per /tick.
         </div>
       ) : (
         <div className="overflow-x-auto">
-          <table className="w-full font-mono text-[11px]">
+          <table className="w-full font-mono text-[13px]">
             <thead className="text-text-muted">
               <tr className="border-b border-bd-subtle">
                 <th className="py-1.5 pr-2 text-left font-normal">#</th>
@@ -2439,8 +2439,8 @@ function RecentIterationsPanel() {
       headerSlot={search.isFetching && !search.isLoading ? <RefreshingPill /> : null}
     >
       <div className="mb-2 flex flex-wrap items-center gap-2">
-        <div className="flex items-center gap-1.5 text-[11px] text-text-secondary">
-          <span className="font-mono text-[10px] uppercase tracking-widest text-text-muted">
+        <div className="flex items-center gap-1.5 text-[13px] text-text-secondary">
+          <span className="font-mono text-[12px] uppercase tracking-widest text-text-muted">
             Strategy
           </span>
           <input
@@ -2449,11 +2449,11 @@ function RecentIterationsPanel() {
             placeholder="e.g. LSR"
             onChange={(e) => setStrategyCode(e.target.value)}
             aria-label="Filter iterations by strategy code"
-            className="w-24 rounded-sm border border-bd-subtle bg-bg-base px-2 py-1 font-mono text-[11px] text-text-primary"
+            className="w-24 rounded-sm border border-bd-subtle bg-bg-base px-2 py-1 font-mono text-[13px] text-text-primary"
           />
         </div>
         <span className="h-4 w-px bg-bd-subtle" />
-        <span className="font-mono text-[10px] uppercase tracking-widest text-text-muted">
+        <span className="font-mono text-[12px] uppercase tracking-widest text-text-muted">
           Verdict
         </span>
         {ITERATION_VERDICT_FILTERS.map((v) => {
@@ -2467,7 +2467,7 @@ function RecentIterationsPanel() {
                 setCursorStack([null]);
               }}
               aria-pressed={active}
-              className="rounded-sm px-2 py-0.5 text-[10px] transition-colors"
+              className="rounded-sm px-2 py-0.5 text-[12px] transition-colors"
               style={{
                 background: active ? 'var(--bg-hover)' : 'transparent',
                 color: active ? 'var(--text-primary)' : 'var(--text-secondary)',
@@ -2487,7 +2487,7 @@ function RecentIterationsPanel() {
               setVerdict('');
               setCursorStack([null]);
             }}
-            className="ml-1 rounded-sm border border-bd-subtle px-2 py-0.5 text-[10px] text-text-secondary hover:bg-bg-hover"
+            className="ml-1 rounded-sm border border-bd-subtle px-2 py-0.5 text-[12px] text-text-secondary hover:bg-bg-hover"
           >
             Clear
           </button>
@@ -2496,7 +2496,7 @@ function RecentIterationsPanel() {
       {search.isLoading ? (
         <Skeleton className="h-40 w-full" />
       ) : rows.length === 0 ? (
-        <div className="bg-bg-base/40 rounded-sm border border-bd-subtle p-4 text-center text-[11px] text-text-muted">
+        <div className="bg-bg-base/40 rounded-sm border border-bd-subtle p-4 text-center text-[13px] text-text-muted">
           {filtersActive
             ? 'No iterations match the current filters.'
             : 'No tick has completed yet. Run /tick via the agent.'}
@@ -2525,15 +2525,15 @@ function RecentIterationsPanel() {
                 key={r.iteration_id}
                 className="rounded-sm border border-bd-subtle bg-bg-base px-2.5 py-2"
               >
-                <div className="flex items-center justify-between gap-2 text-[11px]">
+                <div className="flex items-center justify-between gap-2 text-[13px]">
                   <span className="font-mono text-text-secondary">
                     {r.strategy_code} <span className="text-text-muted">#{r.iteration_number}</span>
                   </span>
-                  <span className="font-mono text-[10px] text-text-muted">
+                  <span className="font-mono text-[12px] text-text-muted">
                     {fmtAgo(r.created_time)} ago
                   </span>
                 </div>
-                <div className="mt-1 flex items-center gap-2 text-[10px]">
+                <div className="mt-1 flex items-center gap-2 text-[12px]">
                   <VerdictPill tone={verdictTone} label={r.verdict ?? '—'} />
                   <VerdictPill tone={statTone} label={r.statistical_verdict ?? '—'} />
                   <span className="font-mono text-text-muted">
@@ -2553,7 +2553,7 @@ function RecentIterationsPanel() {
                   )}
                 </div>
                 {r.hypothesis_predicted && (
-                  <div className="mt-1 truncate font-mono text-[10px] text-text-muted">
+                  <div className="mt-1 truncate font-mono text-[12px] text-text-muted">
                     {r.hypothesis_predicted}
                   </div>
                 )}
@@ -2568,16 +2568,16 @@ function RecentIterationsPanel() {
             type="button"
             onClick={onPrev}
             disabled={cursorStack.length <= 1}
-            className="rounded-sm border border-bd-subtle bg-bg-surface px-2 py-1 text-[11px] text-text-secondary hover:bg-bg-hover disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-sm border border-bd-subtle bg-bg-surface px-2 py-1 text-[13px] text-text-secondary hover:bg-bg-hover disabled:cursor-not-allowed disabled:opacity-50"
           >
             Prev
           </button>
-          <span className="font-mono text-[10px] text-text-muted">Page {cursorStack.length}</span>
+          <span className="font-mono text-[12px] text-text-muted">Page {cursorStack.length}</span>
           <button
             type="button"
             onClick={onNext}
             disabled={!nextCursor}
-            className="rounded-sm border border-bd-subtle bg-bg-surface px-2 py-1 text-[11px] text-text-secondary hover:bg-bg-hover disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-sm border border-bd-subtle bg-bg-surface px-2 py-1 text-[13px] text-text-secondary hover:bg-bg-hover disabled:cursor-not-allowed disabled:opacity-50"
           >
             Next
           </button>
@@ -2599,7 +2599,7 @@ function WalkForwardCandidatesPanel() {
       {isLoading ? (
         <Skeleton className="h-20 w-full" />
       ) : rows.length === 0 ? (
-        <div className="bg-bg-base/40 rounded-sm border border-bd-subtle p-4 text-center text-[11px] text-text-muted">
+        <div className="bg-bg-base/40 rounded-sm border border-bd-subtle p-4 text-center text-[13px] text-text-muted">
           No queued candidates. Sweeps that hit SIGNIFICANT_EDGE land here for{' '}
           <code className="font-mono">POST /walk-forward</code>.
         </div>
@@ -2610,13 +2610,13 @@ function WalkForwardCandidatesPanel() {
               key={r.queue_id}
               className="rounded-sm border border-bd-subtle bg-bg-base px-2.5 py-2"
             >
-              <div className="flex items-center justify-between gap-2 text-[11px]">
+              <div className="flex items-center justify-between gap-2 text-[13px]">
                 <span className="font-mono text-text-secondary">
                   {r.strategy_code} · {r.instrument} {r.interval_name}
                 </span>
                 <VerdictPill tone="profit" label={String(r.final_verdict ?? 'SIGNIFICANT_EDGE')} />
               </div>
-              <div className="mt-1 flex items-center gap-3 font-mono text-[10px] text-text-muted">
+              <div className="mt-1 flex items-center gap-3 font-mono text-[12px] text-text-muted">
                 <span>queue {r.queue_id.slice(0, 8)}</span>
                 {r.completed_at && <span>parked {fmtAgo(r.completed_at)} ago</span>}
                 <span>
@@ -2624,7 +2624,7 @@ function WalkForwardCandidatesPanel() {
                 </span>
               </div>
               {r.hypothesis && (
-                <div className="mt-1 truncate font-mono text-[10px] text-text-muted">
+                <div className="mt-1 truncate font-mono text-[12px] text-text-muted">
                   {r.hypothesis}
                 </div>
               )}
@@ -2670,7 +2670,7 @@ function QueuePanel() {
               key={f}
               type="button"
               onClick={() => setFilter(f)}
-              className={`rounded-sm px-2 py-1 font-mono text-[10px] uppercase tracking-wider transition-colors ${
+              className={`rounded-sm px-2 py-1 font-mono text-[12px] uppercase tracking-wider transition-colors ${
                 filter === f
                   ? 'bg-accent-primary/15 text-accent-primary'
                   : 'text-text-muted hover:bg-bg-hover hover:text-text-secondary'
@@ -2685,13 +2685,13 @@ function QueuePanel() {
       {isLoading ? (
         <Skeleton className="h-32 w-full" />
       ) : rows.length === 0 ? (
-        <div className="bg-bg-base/40 rounded-sm border border-bd-subtle p-4 text-center text-[11px] text-text-muted">
+        <div className="bg-bg-base/40 rounded-sm border border-bd-subtle p-4 text-center text-[13px] text-text-muted">
           No queue rows{filter !== 'ALL' ? ` with status=${filter}` : ''}. Use{' '}
           <code className="font-mono">Enqueue</code> to add a sweep.
         </div>
       ) : (
         <div className="overflow-x-auto">
-          <table className="w-full font-mono text-[11px]">
+          <table className="w-full font-mono text-[13px]">
             <thead className="text-text-muted">
               <tr className="border-b border-bd-subtle">
                 <th className="py-1.5 pr-2 text-left font-normal">Status</th>
@@ -2825,7 +2825,7 @@ function JournalPanel() {
               key={t}
               type="button"
               onClick={() => setTypeFilter(t)}
-              className={`rounded-sm px-2 py-1 font-mono text-[10px] uppercase tracking-wider transition-colors ${
+              className={`rounded-sm px-2 py-1 font-mono text-[12px] uppercase tracking-wider transition-colors ${
                 typeFilter === t
                   ? 'bg-accent-primary/15 text-accent-primary'
                   : 'text-text-muted hover:bg-bg-hover hover:text-text-secondary'
@@ -2845,7 +2845,7 @@ function JournalPanel() {
               key={s}
               type="button"
               onClick={() => setStatusFilter(s)}
-              className={`rounded-sm px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider transition-colors ${
+              className={`rounded-sm px-2 py-0.5 font-mono text-[12px] uppercase tracking-wider transition-colors ${
                 statusFilter === s
                   ? 'bg-accent-secondary/15 text-accent-secondary'
                   : 'text-text-muted hover:bg-bg-hover hover:text-text-secondary'
@@ -2860,19 +2860,19 @@ function JournalPanel() {
           placeholder="Strategy…"
           value={strategyInput}
           onChange={(e) => setStrategyInput(e.target.value)}
-          className="focus:border-accent-primary/50 h-6 w-24 rounded-sm border border-bd-subtle bg-bg-base px-2 font-mono text-[10px] text-text-secondary placeholder:text-text-muted focus:outline-none"
+          className="focus:border-accent-primary/50 h-6 w-24 rounded-sm border border-bd-subtle bg-bg-base px-2 font-mono text-[12px] text-text-secondary placeholder:text-text-muted focus:outline-none"
         />
         <input
           type="text"
           placeholder="Search…"
           value={searchInput}
           onChange={(e) => setSearchInput(e.target.value)}
-          className="focus:border-accent-primary/50 h-6 w-32 rounded-sm border border-bd-subtle bg-bg-base px-2 font-mono text-[10px] text-text-secondary placeholder:text-text-muted focus:outline-none"
+          className="focus:border-accent-primary/50 h-6 w-32 rounded-sm border border-bd-subtle bg-bg-base px-2 font-mono text-[12px] text-text-secondary placeholder:text-text-muted focus:outline-none"
         />
         <select
           value={sortKey}
           onChange={(e) => setSortKey(e.target.value as JournalSortKey)}
-          className="focus:border-accent-primary/50 h-6 rounded-sm border border-bd-subtle bg-bg-base px-1 font-mono text-[10px] text-text-secondary focus:outline-none"
+          className="focus:border-accent-primary/50 h-6 rounded-sm border border-bd-subtle bg-bg-base px-1 font-mono text-[12px] text-text-secondary focus:outline-none"
         >
           <option value="newest">Newest</option>
           <option value="oldest">Oldest</option>
@@ -2885,7 +2885,7 @@ function JournalPanel() {
       {isLoading ? (
         <Skeleton className="h-32 w-full" />
       ) : rows.length === 0 ? (
-        <div className="bg-bg-base/40 rounded-sm border border-bd-subtle p-4 text-center text-[11px] text-text-muted">
+        <div className="bg-bg-base/40 rounded-sm border border-bd-subtle p-4 text-center text-[13px] text-text-muted">
           No journal entries match the current filters.
         </div>
       ) : (
@@ -2901,24 +2901,24 @@ function JournalPanel() {
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2">
                       <VerdictPill tone={tone} label={r.entry_type.replace('_', ' ')} />
-                      <span className="font-mono text-[10px] uppercase tracking-wider text-text-muted">
+                      <span className="font-mono text-[12px] uppercase tracking-wider text-text-muted">
                         {r.status}
                       </span>
                       {r.strategy_code && (
-                        <span className="font-mono text-[10px] text-text-secondary">
+                        <span className="font-mono text-[12px] text-text-secondary">
                           {r.strategy_code}
                           {r.interval_name ? ` · ${r.interval_name}` : ''}
                         </span>
                       )}
                     </div>
-                    <span className="font-mono text-[10px] text-text-muted">
+                    <span className="font-mono text-[12px] text-text-muted">
                       {fmtAgo(r.created_time)} ago · {r.created_by ?? '—'}
                     </span>
                   </div>
-                  <div className="mt-1 font-display text-[12px] font-semibold text-text-primary">
+                  <div className="mt-1 font-display text-[14px] font-semibold text-text-primary">
                     {r.title}
                   </div>
-                  <div className="mt-1 line-clamp-3 whitespace-pre-wrap text-[11px] text-text-muted">
+                  <div className="mt-1 line-clamp-3 whitespace-pre-wrap text-[13px] text-text-muted">
                     {r.content}
                   </div>
                 </li>
@@ -2930,7 +2930,7 @@ function JournalPanel() {
               type="button"
               onClick={() => fetchNextPage()}
               disabled={isFetchingNextPage}
-              className="mt-2 w-full rounded-sm border border-bd-subtle py-1 font-mono text-[10px] text-text-muted transition-colors hover:bg-bg-hover hover:text-text-secondary disabled:opacity-50"
+              className="mt-2 w-full rounded-sm border border-bd-subtle py-1 font-mono text-[12px] text-text-muted transition-colors hover:bg-bg-hover hover:text-text-secondary disabled:opacity-50"
             >
               {isFetchingNextPage ? 'Loading…' : `Load more · ${rows.length} shown`}
             </button>
@@ -3037,10 +3037,10 @@ function EnqueueSweepDialog({ open, onClose }: { open: boolean; onClose: () => v
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-3 py-2 text-[12px]">
+        <div className="space-y-3 py-2 text-[14px]">
           <div className="grid grid-cols-3 gap-2">
             <label htmlFor="enqueue-strategy-code" className="space-y-1">
-              <span className="font-mono text-[10px] uppercase tracking-wider text-text-muted">
+              <span className="font-mono text-[12px] uppercase tracking-wider text-text-muted">
                 Strategy code
               </span>
               <input
@@ -3048,11 +3048,11 @@ function EnqueueSweepDialog({ open, onClose }: { open: boolean; onClose: () => v
                 type="text"
                 value={strategyCode}
                 onChange={(e) => setStrategyCode(e.target.value)}
-                className="border-bd-default focus:border-accent-primary w-full rounded-sm border bg-bg-base px-2 py-1.5 font-mono text-[12px] text-text-primary focus:outline-none"
+                className="border-bd-default focus:border-accent-primary w-full rounded-sm border bg-bg-base px-2 py-1.5 font-mono text-[14px] text-text-primary focus:outline-none"
               />
             </label>
             <label htmlFor="enqueue-interval" className="space-y-1">
-              <span className="font-mono text-[10px] uppercase tracking-wider text-text-muted">
+              <span className="font-mono text-[12px] uppercase tracking-wider text-text-muted">
                 Interval
               </span>
               <select
@@ -3061,7 +3061,7 @@ function EnqueueSweepDialog({ open, onClose }: { open: boolean; onClose: () => v
                 onChange={(e) =>
                   setIntervalName(e.target.value as EnqueueSweepRequest['interval_name'])
                 }
-                className="border-bd-default focus:border-accent-primary w-full rounded-sm border bg-bg-base px-2 py-1.5 font-mono text-[12px] text-text-primary focus:outline-none"
+                className="border-bd-default focus:border-accent-primary w-full rounded-sm border bg-bg-base px-2 py-1.5 font-mono text-[14px] text-text-primary focus:outline-none"
               >
                 <option value="5m">5m</option>
                 <option value="15m">15m</option>
@@ -3070,14 +3070,14 @@ function EnqueueSweepDialog({ open, onClose }: { open: boolean; onClose: () => v
               </select>
             </label>
             <label htmlFor="enqueue-instrument" className="space-y-1">
-              <span className="font-mono text-[10px] uppercase tracking-wider text-text-muted">
+              <span className="font-mono text-[12px] uppercase tracking-wider text-text-muted">
                 Instrument
               </span>
               <select
                 id="enqueue-instrument"
                 value={instrument}
                 onChange={(e) => setInstrument(e.target.value)}
-                className="border-bd-default focus:border-accent-primary w-full rounded-sm border bg-bg-base px-2 py-1.5 font-mono text-[12px] text-text-primary focus:outline-none"
+                className="border-bd-default focus:border-accent-primary w-full rounded-sm border bg-bg-base px-2 py-1.5 font-mono text-[14px] text-text-primary focus:outline-none"
               >
                 {SUPPORTED_SYMBOLS.map((s) => (
                   <option key={s} value={s}>
@@ -3089,7 +3089,7 @@ function EnqueueSweepDialog({ open, onClose }: { open: boolean; onClose: () => v
           </div>
 
           <label htmlFor="enqueue-hypothesis" className="block space-y-1">
-            <span className="font-mono text-[10px] uppercase tracking-wider text-text-muted">
+            <span className="font-mono text-[12px] uppercase tracking-wider text-text-muted">
               Hypothesis (pre-registration)
             </span>
             <textarea
@@ -3098,19 +3098,19 @@ function EnqueueSweepDialog({ open, onClose }: { open: boolean; onClose: () => v
               onChange={(e) => setHypothesis(e.target.value)}
               rows={2}
               placeholder="e.g. Lowering adxEntryMin to 18-23 lifts trade count past 100 without breaking quality gates."
-              className="border-bd-default focus:border-accent-primary w-full rounded-sm border bg-bg-base px-2 py-1.5 text-[12px] text-text-primary focus:outline-none"
+              className="border-bd-default focus:border-accent-primary w-full rounded-sm border bg-bg-base px-2 py-1.5 text-[14px] text-text-primary focus:outline-none"
             />
           </label>
 
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
-              <span className="font-mono text-[10px] uppercase tracking-wider text-text-muted">
+              <span className="font-mono text-[12px] uppercase tracking-wider text-text-muted">
                 Sweep grid (params × values)
               </span>
               <button
                 type="button"
                 onClick={() => setParams((p) => [...p, { name: '', values: '' }])}
-                className="inline-flex items-center gap-1 rounded-sm border border-bd-subtle px-2 py-1 font-mono text-[10px] text-text-muted hover:bg-bg-hover"
+                className="inline-flex items-center gap-1 rounded-sm border border-bd-subtle px-2 py-1 font-mono text-[12px] text-text-muted hover:bg-bg-hover"
               >
                 <Plus size={10} /> Add row
               </button>
@@ -3126,7 +3126,7 @@ function EnqueueSweepDialog({ open, onClose }: { open: boolean; onClose: () => v
                     )
                   }
                   placeholder="param name (e.g. adxEntryMin)"
-                  className="border-bd-default focus:border-accent-primary w-1/3 rounded-sm border bg-bg-base px-2 py-1.5 font-mono text-[11px] text-text-primary focus:outline-none"
+                  className="border-bd-default focus:border-accent-primary w-1/3 rounded-sm border bg-bg-base px-2 py-1.5 font-mono text-[13px] text-text-primary focus:outline-none"
                 />
                 <input
                   type="text"
@@ -3137,7 +3137,7 @@ function EnqueueSweepDialog({ open, onClose }: { open: boolean; onClose: () => v
                     )
                   }
                   placeholder="comma-separated values (e.g. 18, 21, 23)"
-                  className="border-bd-default focus:border-accent-primary flex-1 rounded-sm border bg-bg-base px-2 py-1.5 font-mono text-[11px] text-text-primary focus:outline-none"
+                  className="border-bd-default focus:border-accent-primary flex-1 rounded-sm border bg-bg-base px-2 py-1.5 font-mono text-[13px] text-text-primary focus:outline-none"
                 />
                 <button
                   type="button"
@@ -3154,7 +3154,7 @@ function EnqueueSweepDialog({ open, onClose }: { open: boolean; onClose: () => v
 
           <div className="grid grid-cols-2 gap-2">
             <label htmlFor="enqueue-iter-budget" className="space-y-1">
-              <span className="font-mono text-[10px] uppercase tracking-wider text-text-muted">
+              <span className="font-mono text-[12px] uppercase tracking-wider text-text-muted">
                 Iter budget
               </span>
               <input
@@ -3164,11 +3164,11 @@ function EnqueueSweepDialog({ open, onClose }: { open: boolean; onClose: () => v
                 max={200}
                 value={iterBudget}
                 onChange={(e) => setIterBudget(Number(e.target.value))}
-                className="border-bd-default focus:border-accent-primary w-full rounded-sm border bg-bg-base px-2 py-1.5 font-mono text-[12px] text-text-primary focus:outline-none"
+                className="border-bd-default focus:border-accent-primary w-full rounded-sm border bg-bg-base px-2 py-1.5 font-mono text-[14px] text-text-primary focus:outline-none"
               />
             </label>
             <label htmlFor="enqueue-priority" className="space-y-1">
-              <span className="font-mono text-[10px] uppercase tracking-wider text-text-muted">
+              <span className="font-mono text-[12px] uppercase tracking-wider text-text-muted">
                 Priority (lower = sooner)
               </span>
               <input
@@ -3178,7 +3178,7 @@ function EnqueueSweepDialog({ open, onClose }: { open: boolean; onClose: () => v
                 max={999}
                 value={priority}
                 onChange={(e) => setPriority(Number(e.target.value))}
-                className="border-bd-default focus:border-accent-primary w-full rounded-sm border bg-bg-base px-2 py-1.5 font-mono text-[12px] text-text-primary focus:outline-none"
+                className="border-bd-default focus:border-accent-primary w-full rounded-sm border bg-bg-base px-2 py-1.5 font-mono text-[14px] text-text-primary focus:outline-none"
               />
             </label>
           </div>
@@ -3186,7 +3186,7 @@ function EnqueueSweepDialog({ open, onClose }: { open: boolean; onClose: () => v
           <div className="flex flex-col gap-1.5">
             <label
               htmlFor="enqueue-early-stop"
-              className="inline-flex items-center gap-2 text-[11px] text-text-secondary"
+              className="inline-flex items-center gap-2 text-[13px] text-text-secondary"
             >
               <input
                 id="enqueue-early-stop"
@@ -3198,7 +3198,7 @@ function EnqueueSweepDialog({ open, onClose }: { open: boolean; onClose: () => v
             </label>
             <label
               htmlFor="enqueue-require-wf"
-              className="inline-flex items-center gap-2 text-[11px] text-text-secondary"
+              className="inline-flex items-center gap-2 text-[13px] text-text-secondary"
             >
               <input
                 id="enqueue-require-wf"
@@ -3216,7 +3216,7 @@ function EnqueueSweepDialog({ open, onClose }: { open: boolean; onClose: () => v
             type="button"
             onClick={handleClose}
             disabled={enqueue.isPending}
-            className="rounded-sm border border-bd-subtle bg-bg-surface px-3 py-2 text-[12px] font-semibold text-text-secondary hover:bg-bg-hover disabled:opacity-60"
+            className="rounded-sm border border-bd-subtle bg-bg-surface px-3 py-2 text-[14px] font-semibold text-text-secondary hover:bg-bg-hover disabled:opacity-60"
           >
             Cancel
           </button>
@@ -3224,7 +3224,7 @@ function EnqueueSweepDialog({ open, onClose }: { open: boolean; onClose: () => v
             type="button"
             onClick={handleSubmit}
             disabled={enqueue.isPending}
-            className="border-bd-default bg-accent-primary/10 text-accent-primary hover:bg-accent-primary/20 inline-flex items-center gap-1.5 rounded-sm border px-3 py-2 text-[12px] font-semibold disabled:cursor-not-allowed disabled:opacity-60"
+            className="border-bd-default bg-accent-primary/10 text-accent-primary hover:bg-accent-primary/20 inline-flex items-center gap-1.5 rounded-sm border px-3 py-2 text-[14px] font-semibold disabled:cursor-not-allowed disabled:opacity-60"
           >
             {enqueue.isPending ? (
               <Loader2 size={12} className="animate-spin" />
@@ -3258,10 +3258,10 @@ function PanelShell({
         <div className="flex items-center gap-2">
           <span className="text-text-muted">{icon}</span>
           <div>
-            <div className="font-mono text-[10px] uppercase tracking-wider text-text-muted">
+            <div className="font-mono text-[12px] uppercase tracking-wider text-text-muted">
               {title}
             </div>
-            {sub && <div className="text-[10px] text-text-muted">{sub}</div>}
+            {sub && <div className="text-[12px] text-text-muted">{sub}</div>}
           </div>
         </div>
         {headerSlot}
@@ -3286,17 +3286,17 @@ function Metric({
 }) {
   return (
     <div className="rounded-sm border border-bd-subtle bg-bg-base px-2.5 py-2">
-      <div className="flex items-center gap-1 text-[10px] uppercase tracking-wider text-text-muted">
+      <div className="flex items-center gap-1 text-[12px] uppercase tracking-wider text-text-muted">
         {icon}
         {label}
       </div>
       <div
-        className="mt-0.5 font-mono text-[14px] font-semibold tabular-nums"
+        className="mt-0.5 font-mono text-[15px] font-semibold tabular-nums"
         style={{ color: tone === 'muted' ? 'var(--text-primary)' : toneColor(tone) }}
       >
         {value}
       </div>
-      {sub && <div className="font-mono text-[10px] text-text-muted">{sub}</div>}
+      {sub && <div className="font-mono text-[12px] text-text-muted">{sub}</div>}
     </div>
   );
 }
@@ -3312,7 +3312,7 @@ function StateBadge({ state }: { state: PromotionState | 'INACTIVE' }) {
           : 'muted';
   return (
     <span
-      className="rounded-sm px-1.5 py-0.5 font-mono text-[9px] font-semibold uppercase tracking-wider"
+      className="rounded-sm px-1.5 py-0.5 font-mono text-[12px] font-semibold uppercase tracking-wider"
       style={{ background: 'var(--bg-elevated)', color: toneColor(tone) }}
     >
       {state}
@@ -3329,7 +3329,7 @@ function Th({
 }) {
   return (
     <th
-      className="px-2.5 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-text-muted"
+      className="px-2.5 py-1.5 text-[12px] font-semibold uppercase tracking-wider text-text-muted"
       style={{ textAlign: align }}
     >
       {children}

@@ -159,7 +159,7 @@ export function SignalsTable() {
                       </Link>
                       {isFail && (
                         <span
-                          className="ml-2 rounded px-1 py-0.5 text-[9px] font-bold uppercase tracking-wider"
+                          className="ml-2 rounded px-1 py-0.5 text-[12px] font-bold uppercase tracking-wider"
                           style={{
                             background: 'color-mix(in oklab, var(--color-loss) 12%, transparent)',
                             color: 'var(--color-loss)',

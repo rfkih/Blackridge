@@ -193,7 +193,7 @@ function StrategyCard({
             e.stopPropagation();
             onClone(strategy);
           }}
-          className="border-[var(--accent-primary)]/40 absolute right-2 top-2 z-10 inline-flex items-center gap-1 rounded-md border bg-[var(--bg-elevated)] px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--accent-primary)] transition-colors hover:bg-[var(--accent-primary)] hover:text-[var(--text-inverse)]"
+          className="border-[var(--accent-primary)]/40 absolute right-2 top-2 z-10 inline-flex items-center gap-1 rounded-md border bg-[var(--bg-elevated)] px-2 py-1 text-[12px] font-semibold uppercase tracking-[0.14em] text-[var(--accent-primary)] transition-colors hover:bg-[var(--accent-primary)] hover:text-[var(--text-inverse)]"
           aria-label={`Clone preset ${strategy.presetName} to my account`}
         >
           <Copy size={11} />
@@ -227,7 +227,7 @@ function StrategyCard({
               <StrategyBadge code={strategy.strategyCode} size="sm" />
               {isReadOnlyPublic && (
                 <span
-                  className="bg-[var(--accent-primary)]/12 rounded-sm px-1.5 py-0.5 font-mono text-[9px] font-semibold uppercase tracking-[0.12em] text-[var(--accent-primary)]"
+                  className="bg-[var(--accent-primary)]/12 rounded-sm px-1.5 py-0.5 font-mono text-[12px] font-semibold uppercase tracking-[0.12em] text-[var(--accent-primary)]"
                   title={`Owned by ${strategy.ownerLabel} — clone to edit or run`}
                 >
                   {strategy.ownerLabel}
@@ -235,7 +235,7 @@ function StrategyCard({
               )}
             </div>
             <span
-              className="truncate text-[11px] text-[var(--text-secondary)]"
+              className="truncate text-[13px] text-[var(--text-secondary)]"
               title={strategy.presetName}
             >
               {strategy.presetName}
@@ -243,7 +243,7 @@ function StrategyCard({
           </div>
           {isReadOnlyPublic ? (
             <span
-              className="rounded-md border border-[var(--border-subtle)] bg-[var(--bg-elevated)] px-2 py-1 font-mono text-[9px] uppercase tracking-[0.14em] text-[var(--text-muted)]"
+              className="rounded-md border border-[var(--border-subtle)] bg-[var(--bg-elevated)] px-2 py-1 font-mono text-[12px] uppercase tracking-[0.14em] text-[var(--text-muted)]"
               title="Public preset — clone to your account before enabling"
             >
               Read-only
@@ -274,7 +274,7 @@ function StrategyCard({
           <div
             style={{
               marginTop: 4,
-              fontSize: 12,
+              fontSize: 14,
               color: 'var(--mm-ink-2)',
               display: 'inline-flex',
               alignItems: 'center',
@@ -297,12 +297,12 @@ function StrategyCard({
           <SizingStat strategy={strategy} />
           {isHedging(strategy.strategyKind) ? (
             <div>
-              <div className="font-mono text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--text-muted)]">
+              <div className="font-mono text-[12px] font-semibold uppercase tracking-[0.08em] text-[var(--text-muted)]">
                 Kind
               </div>
               <div className="mt-1">
                 <span
-                  className="inline-flex items-center rounded px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-wider"
+                  className="inline-flex items-center rounded px-1.5 py-0.5 font-mono text-[12px] uppercase tracking-wider"
                   style={{
                     backgroundColor: 'var(--tint-btc)',
                     color: 'var(--color-btc)',
@@ -314,7 +314,7 @@ function StrategyCard({
             </div>
           ) : (
             <div>
-              <div className="font-mono text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--text-muted)]">
+              <div className="font-mono text-[12px] font-semibold uppercase tracking-[0.08em] text-[var(--text-muted)]">
                 Side
               </div>
               <div className="mt-1 flex items-center gap-1">
@@ -331,7 +331,7 @@ function StrategyCard({
             className="flex items-center border-t pt-3"
             style={{ borderColor: 'var(--mm-hair-2)' }}
           >
-            <span className="font-mono text-[10px] uppercase tracking-[0.04em] text-[var(--text-muted)]">
+            <span className="font-mono text-[12px] uppercase tracking-[0.04em] text-[var(--text-muted)]">
               Public preset
             </span>
           </div>
@@ -352,7 +352,7 @@ function StrategyCard({
       {!isReadOnlyPublic && (
         <span
           aria-hidden="true"
-          className="pointer-events-none absolute left-2 top-2 z-10 inline-flex items-center gap-1 rounded-md border border-[var(--border-subtle)] bg-[var(--bg-elevated)] px-1.5 py-0.5 font-mono text-[10px] font-semibold tabular-nums text-[var(--text-secondary)] opacity-70 transition-opacity group-hover:opacity-100"
+          className="pointer-events-none absolute left-2 top-2 z-10 inline-flex items-center gap-1 rounded-md border border-[var(--border-subtle)] bg-[var(--bg-elevated)] px-1.5 py-0.5 font-mono text-[12px] font-semibold tabular-nums text-[var(--text-secondary)] opacity-70 transition-opacity group-hover:opacity-100"
           title="Drag to reorder — priority within this interval group"
         >
           <GripVertical size={10} />#{position}
@@ -370,7 +370,7 @@ function StrategyCard({
         >
           {isRunning ? (
             <span
-              className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 font-mono text-[11px] font-semibold uppercase tracking-[0.12em]"
+              className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 font-mono text-[13px] font-semibold uppercase tracking-[0.12em]"
               style={{
                 color: isPaper ? 'var(--color-warning)' : 'var(--color-profit)',
                 backgroundColor: isPaper ? 'rgba(245,166,35,0.12)' : 'rgba(22,179,100,0.12)',
@@ -380,7 +380,7 @@ function StrategyCard({
               {groupHasOtherPreset ? 'Active preset' : 'Running'} · {isPaper ? 'paper' : 'live'}
             </span>
           ) : (
-            <span className="inline-flex items-center rounded-full bg-[var(--bg-elevated)] px-2.5 py-1 font-mono text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--text-muted)]">
+            <span className="inline-flex items-center rounded-full bg-[var(--bg-elevated)] px-2.5 py-1 font-mono text-[13px] font-semibold uppercase tracking-[0.12em] text-[var(--text-muted)]">
               Inactive
             </span>
           )}
@@ -392,7 +392,7 @@ function StrategyCard({
                 e.stopPropagation();
                 onTopRuns(strategy);
               }}
-              className="inline-flex h-7 items-center gap-1 rounded-sm border border-[var(--border-subtle)] bg-[var(--bg-base)] px-2 text-[11px] text-text-secondary transition-colors hover:border-[var(--border-default)] hover:bg-[var(--bg-hover)] hover:text-text-primary"
+              className="inline-flex h-7 items-center gap-1 rounded-sm border border-[var(--border-subtle)] bg-[var(--bg-base)] px-2 text-[13px] text-text-secondary transition-colors hover:border-[var(--border-default)] hover:bg-[var(--bg-hover)] hover:text-text-primary"
             >
               <TrendingUp size={11} strokeWidth={1.75} />
               Top runs
@@ -456,7 +456,7 @@ function SizingStat({ strategy }: { strategy: AccountStrategy }) {
     <div title={tooltip}>
       <div
         style={{
-          fontSize: 10,
+          fontSize: 12,
           fontWeight: 600,
           letterSpacing: '0.08em',
           textTransform: 'uppercase',
@@ -480,7 +480,7 @@ function SizingStat({ strategy }: { strategy: AccountStrategy }) {
         className="font-mono"
         style={{
           marginTop: 2,
-          fontSize: 9,
+          fontSize: 12,
           letterSpacing: '0.02em',
           color: 'var(--mm-ink-2)',
           whiteSpace: 'nowrap',
@@ -513,7 +513,7 @@ function IntervalSelect({
         e.stopPropagation();
         if (e.target.value !== value) onChange(e.target.value);
       }}
-      className="ml-2 cursor-pointer rounded bg-[var(--bg-elevated)] px-1.5 py-0.5 font-mono text-[10px] font-normal text-[var(--text-muted)] outline-none transition-colors hover:text-[var(--text-primary)] focus:ring-1 focus:ring-[var(--accent-primary)] disabled:cursor-not-allowed disabled:opacity-50"
+      className="ml-2 cursor-pointer rounded bg-[var(--bg-elevated)] px-1.5 py-0.5 font-mono text-[12px] font-normal text-[var(--text-muted)] outline-none transition-colors hover:text-[var(--text-primary)] focus:ring-1 focus:ring-[var(--accent-primary)] disabled:cursor-not-allowed disabled:opacity-50"
       aria-label="Strategy interval"
     >
       {options.map((opt) => (
@@ -560,7 +560,7 @@ function DirectionPill({ direction, enabled }: { direction: 'long' | 'short'; en
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-0.5 rounded px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-wider',
+        'inline-flex items-center gap-0.5 rounded px-1.5 py-0.5 font-mono text-[12px] uppercase tracking-wider',
       )}
       style={{
         backgroundColor: enabled ? bg : 'var(--bg-elevated)',
@@ -605,7 +605,7 @@ function KillSwitchPanel({
     >
       <ShieldAlert size={14} style={{ color: 'var(--color-loss)', marginTop: 2 }} />
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-        <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--color-loss)]">
+        <span className="font-mono text-[12px] font-semibold uppercase tracking-[0.14em] text-[var(--color-loss)]">
           Kill-switch tripped
           {trippedLabel ? (
             <span className="ml-1.5 font-normal normal-case text-[var(--text-muted)]">
@@ -613,7 +613,7 @@ function KillSwitchPanel({
             </span>
           ) : null}
         </span>
-        <span className="line-clamp-2 text-[11px] text-[var(--text-secondary)]" title={reason}>
+        <span className="line-clamp-2 text-[13px] text-[var(--text-secondary)]" title={reason}>
           {reason}
         </span>
       </div>
@@ -625,7 +625,7 @@ function KillSwitchPanel({
           onRearm(strategy);
         }}
         disabled={isRearming}
-        className="inline-flex shrink-0 items-center gap-1 rounded border px-2 py-1 font-mono text-[10px] uppercase tracking-[0.14em] transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+        className="inline-flex shrink-0 items-center gap-1 rounded border px-2 py-1 font-mono text-[12px] uppercase tracking-[0.14em] transition-colors disabled:cursor-not-allowed disabled:opacity-50"
         style={{
           borderColor: 'rgba(229,72,77,0.32)',
           color: 'var(--color-loss)',
@@ -676,7 +676,7 @@ function MaxTradesPanel({
           style={{
             background: 'var(--accent-subtle)',
             color: 'var(--brand-500)',
-            fontSize: 11,
+            fontSize: 13,
             fontWeight: 700,
             fontFamily: 'var(--mm-mono)',
           }}
@@ -686,7 +686,7 @@ function MaxTradesPanel({
         <div className="min-w-0">
           <div
             style={{
-              fontSize: 10,
+              fontSize: 12,
               fontWeight: 600,
               letterSpacing: '0.12em',
               textTransform: 'uppercase',
@@ -698,7 +698,7 @@ function MaxTradesPanel({
           </div>
           <div
             className="truncate"
-            style={{ fontSize: 13, color: 'var(--mm-ink-1)', marginTop: 2 }}
+            style={{ fontSize: 14, color: 'var(--mm-ink-1)', marginTop: 2 }}
           >
             {account.label}
           </div>
@@ -707,7 +707,7 @@ function MaxTradesPanel({
       <Select value={value} onValueChange={handleChange} disabled={disabled}>
         <SelectTrigger
           className="w-28 font-mono tabular-nums"
-          style={{ fontSize: 13 }}
+          style={{ fontSize: 14 }}
           aria-label={`Max concurrent trades for ${account.label}`}
         >
           <SelectValue />
@@ -811,13 +811,13 @@ function IntervalGroupSortable({
   return (
     <section className="space-y-2">
       <div className="flex items-baseline gap-2 px-1">
-        <span className="font-mono text-[10px] uppercase tracking-widest text-[var(--text-muted)]">
+        <span className="font-mono text-[12px] uppercase tracking-widest text-[var(--text-muted)]">
           Interval
         </span>
-        <span className="rounded bg-[var(--bg-elevated)] px-2 py-0.5 font-mono text-[11px] font-semibold text-[var(--text-primary)]">
+        <span className="rounded bg-[var(--bg-elevated)] px-2 py-0.5 font-mono text-[13px] font-semibold text-[var(--text-primary)]">
           {interval}
         </span>
-        <span className="font-mono text-[10px] text-[var(--text-muted)]">
+        <span className="font-mono text-[12px] text-[var(--text-muted)]">
           · {sorted.length} preset{sorted.length === 1 ? '' : 's'}
         </span>
       </div>
@@ -904,7 +904,7 @@ function PublicStrategiesSection({
         <h2 className="font-display text-sm font-semibold text-[var(--text-primary)]">
           Research Agent · Public Strategies
         </h2>
-        <span className="font-mono text-[10px] text-[var(--text-muted)]">
+        <span className="font-mono text-[12px] text-[var(--text-muted)]">
           · clone to your account before enabling
         </span>
       </header>
@@ -916,13 +916,13 @@ function PublicStrategiesSection({
           return (
             <div key={`public::${interval}`} className="space-y-2">
               <div className="flex items-baseline gap-2 px-1">
-                <span className="font-mono text-[10px] uppercase tracking-widest text-[var(--text-muted)]">
+                <span className="font-mono text-[12px] uppercase tracking-widest text-[var(--text-muted)]">
                   Interval
                 </span>
-                <span className="rounded bg-[var(--bg-elevated)] px-2 py-0.5 font-mono text-[11px] font-semibold text-[var(--text-primary)]">
+                <span className="rounded bg-[var(--bg-elevated)] px-2 py-0.5 font-mono text-[13px] font-semibold text-[var(--text-primary)]">
                   {interval}
                 </span>
-                <span className="font-mono text-[10px] text-[var(--text-muted)]">
+                <span className="font-mono text-[12px] text-[var(--text-muted)]">
                   · {sorted.length} preset{sorted.length === 1 ? '' : 's'}
                 </span>
               </div>
@@ -1253,7 +1253,7 @@ export default function StrategiesPage() {
               onClick={() => setCreateOpen(true)}
               disabled={!canCreate}
               className="mm-btn mm-btn-mint inline-flex items-center gap-1 whitespace-nowrap"
-              style={{ padding: '10px 18px', borderRadius: 9999, fontSize: 14 }}
+              style={{ padding: '10px 18px', borderRadius: 9999, fontSize: 15 }}
             >
               <Plus size={14} strokeWidth={2.2} className="shrink-0" />
               New Preset
@@ -1579,16 +1579,16 @@ function AccountsAndIntervalsView({
                     {account?.label ?? accountId.slice(0, 8)}
                   </h2>
                   {account && <AccountTypeBadge type={account.accountType} />}
-                  <span className="font-mono text-[10px] uppercase tracking-wider text-[var(--text-muted)]">
+                  <span className="font-mono text-[12px] uppercase tracking-wider text-[var(--text-muted)]">
                     {account?.exchange ?? 'UNKNOWN'}
                   </span>
                   {account && !account.active && (
-                    <span className="rounded bg-[rgba(229,72,77,0.12)] px-1.5 py-0.5 font-mono text-[10px] text-[var(--color-loss)]">
+                    <span className="rounded bg-[rgba(229,72,77,0.12)] px-1.5 py-0.5 font-mono text-[12px] text-[var(--color-loss)]">
                       INACTIVE
                     </span>
                   )}
                 </div>
-                <span className="font-mono text-[10px] text-[var(--text-muted)]">
+                <span className="font-mono text-[12px] text-[var(--text-muted)]">
                   {accountStrategies.length} preset
                   {accountStrategies.length === 1 ? '' : 's'}
                 </span>

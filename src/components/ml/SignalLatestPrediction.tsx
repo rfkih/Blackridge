@@ -202,7 +202,7 @@ export function SignalLatestPrediction({
                 style={{ width: `${convictionPct}%` }}
               />
             </div>
-            <p className="mt-1 text-right text-[11px] text-text-muted">distance from coin-flip</p>
+            <p className="mt-1 text-right text-[13px] text-text-muted">distance from coin-flip</p>
           </div>
         )}
       </div>

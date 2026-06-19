@@ -102,9 +102,9 @@ function buildBody(f: FormState): RegistryWriteInput {
   };
 }
 
-const labelCls = 'mb-1 block text-[10px] uppercase tracking-widest text-text-muted';
+const labelCls = 'mb-1 block text-[12px] uppercase tracking-widest text-text-muted';
 const inputCls =
-  'h-8 w-full rounded-sm border border-bd-subtle bg-bg-base px-2 font-mono text-[12px] text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-1 focus:ring-[var(--accent-primary)]';
+  'h-8 w-full rounded-sm border border-bd-subtle bg-bg-base px-2 font-mono text-[14px] text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-1 focus:ring-[var(--accent-primary)]';
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -275,7 +275,7 @@ export function RegistryEditDialog({
               onChange={(e) => set('memory_ref', e.target.value)}
             />
           </Field>
-          <label className="flex items-end gap-2 pb-1.5 text-[12px] text-text-secondary">
+          <label className="flex items-end gap-2 pb-1.5 text-[14px] text-text-secondary">
             <input
               type="checkbox"
               checked={form.is_offline_lead}
@@ -314,7 +314,7 @@ export function RegistryEditDialog({
         </div>
 
         {errorMessage && (
-          <p className="text-[12px]" style={{ color: 'var(--color-loss)' }}>
+          <p className="text-[14px]" style={{ color: 'var(--color-loss)' }}>
             {errorMessage}
           </p>
         )}

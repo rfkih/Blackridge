@@ -69,11 +69,11 @@ export function RevokeApprovalDialog({
     <Dialog open={open} onOpenChange={(v) => !revoke.isPending && onOpenChange(v)}>
       <DialogContent className="max-w-sm border-bd-subtle bg-bg-surface">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-[14px]">
+          <DialogTitle className="flex items-center gap-2 text-[15px]">
             <AlertTriangle size={14} className="text-[var(--color-loss)]" />
             Revoke approval
           </DialogTitle>
-          <DialogDescription className="text-[12px] text-text-secondary">
+          <DialogDescription className="text-[14px] text-text-secondary">
             Revoking{' '}
             <span className="font-mono text-text-primary">
               {approval.symbol} · {approval.strategyCode}
@@ -84,7 +84,7 @@ export function RevokeApprovalDialog({
         </DialogHeader>
 
         <div className="space-y-1">
-          <Label className="label-caps !text-[9px]">Reason</Label>
+          <Label className="label-caps !text-[12px]">Reason</Label>
           <textarea
             value={reason}
             onChange={(e) => setReason(e.target.value)}
@@ -92,10 +92,10 @@ export function RevokeApprovalDialog({
             maxLength={500}
             rows={3}
             autoFocus
-            className="flex w-full rounded-md border border-bd bg-bg-base px-3 py-2 text-[12px] text-text-primary placeholder:text-text-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+            className="flex w-full rounded-md border border-bd bg-bg-base px-3 py-2 text-[14px] text-text-primary placeholder:text-text-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
           />
           {reason.length > 0 && trimmed.length === 0 && (
-            <p className="text-[10px] text-[var(--color-warning)]">Reason cannot be blank.</p>
+            <p className="text-[12px] text-[var(--color-warning)]">Reason cannot be blank.</p>
           )}
         </div>
 

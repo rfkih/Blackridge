@@ -76,12 +76,12 @@ function build(read: (cssVar: string, fallback: string) => string): ChartTheme {
     elevated: read('--bg-elevated', CC_FALLBACK.elevated),
     textPrimary: read('--text-primary', CC_FALLBACK.textPrimary),
   };
-  const AXIS_TICK = { fill: CHART_COLORS.neutral, fontSize: 11, fontFamily: MONO };
+  const AXIS_TICK = { fill: CHART_COLORS.neutral, fontSize: 13, fontFamily: MONO };
   const TOOLTIP_CONTENT_STYLE = {
     background: CHART_COLORS.surface,
     border: `1px solid ${CHART_COLORS.axis}`,
     color: CHART_COLORS.textPrimary,
-    fontSize: 12,
+    fontSize: 14,
     borderRadius: 6,
     padding: '8px 12px',
   };

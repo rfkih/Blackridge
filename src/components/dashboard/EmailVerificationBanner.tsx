@@ -62,8 +62,8 @@ export function EmailVerificationBanner() {
           <Mail size={14} strokeWidth={1.75} />
         </span>
         <div className="min-w-0">
-          <p className="text-[12px] font-semibold text-text-primary">Verify your email</p>
-          <p className="truncate text-[11px] text-text-secondary">
+          <p className="text-[14px] font-semibold text-text-primary">Verify your email</p>
+          <p className="truncate text-[13px] text-text-secondary">
             We need to confirm <span className="font-mono">{user.email}</span>. Click the link from
             your verification message — or have your admin pull it from the application log.
           </p>
@@ -74,7 +74,7 @@ export function EmailVerificationBanner() {
         type="button"
         onClick={handleResend}
         disabled={pending}
-        className="inline-flex shrink-0 items-center gap-1.5 rounded-sm border border-bd-subtle bg-bg-base px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.14em] text-text-primary transition-colors hover:bg-bg-hover disabled:cursor-not-allowed disabled:opacity-50"
+        className="inline-flex shrink-0 items-center gap-1.5 rounded-sm border border-bd-subtle bg-bg-base px-2.5 py-1 font-mono text-[12px] uppercase tracking-[0.14em] text-text-primary transition-colors hover:bg-bg-hover disabled:cursor-not-allowed disabled:opacity-50"
       >
         {pending ? <Loader2 size={11} className="animate-spin" /> : <Mail size={11} strokeWidth={2} />}
         Resend

@@ -99,7 +99,7 @@ export default function StrategyDetailPage({ params }: PageProps) {
               {account?.label ?? strategy.accountId.slice(0, 8)}
             </span>
             {account && (
-              <span className="font-mono text-[10px] uppercase tracking-wider text-[var(--text-muted)]">
+              <span className="font-mono text-[12px] uppercase tracking-wider text-[var(--text-muted)]">
                 {account.exchange}
               </span>
             )}
@@ -192,7 +192,7 @@ function StrategyDetail({ strategy }: { strategy: AccountStrategy }) {
 
         {}
         <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-[var(--border-subtle)] pt-3">
-          <span className="font-mono text-[10px] text-[var(--text-muted)]">
+          <span className="font-mono text-[12px] text-[var(--text-muted)]">
             Preset · <span className="text-[var(--text-secondary)]">{strategy.presetName}</span>
           </span>
           <div className="flex items-center gap-2">
@@ -201,7 +201,7 @@ function StrategyDetail({ strategy }: { strategy: AccountStrategy }) {
               type="button"
               onClick={handleRunBacktest}
               title="Pre-fills symbol, interval, sizing, and direction from this strategy"
-              className="inline-flex items-center gap-1.5 rounded-sm border border-[var(--border-subtle)] bg-[var(--bg-base)] px-3 py-1.5 font-mono text-[10px] uppercase tracking-wider text-[var(--text-primary)] transition-colors hover:border-[var(--text-muted)] hover:bg-[var(--bg-hover)]"
+              className="inline-flex items-center gap-1.5 rounded-sm border border-[var(--border-subtle)] bg-[var(--bg-base)] px-3 py-1.5 font-mono text-[12px] uppercase tracking-wider text-[var(--text-primary)] transition-colors hover:border-[var(--text-muted)] hover:bg-[var(--bg-hover)]"
             >
               <FlaskConical size={11} strokeWidth={1.75} />
               Run backtest
@@ -286,11 +286,11 @@ function RiskGuardPanel({ strategy }: { strategy: AccountStrategy }) {
           aria-hidden="true"
         />
         <div className="flex min-w-0 flex-1 flex-col gap-1">
-          <p className="text-[12px] text-[var(--text-primary)]">
+          <p className="text-[14px] text-[var(--text-primary)]">
             <span className="font-semibold text-[var(--color-loss)]">Kill-switch tripped.</span> New
             entries are blocked for this strategy until re-armed.
           </p>
-          <p className="text-[11px] text-[var(--text-muted)]">
+          <p className="text-[13px] text-[var(--text-muted)]">
             {strategy.killSwitchReason ?? 'Drawdown threshold breached.'}
             {strategy.killSwitchTrippedAt && (
               <>
@@ -304,7 +304,7 @@ function RiskGuardPanel({ strategy }: { strategy: AccountStrategy }) {
           type="button"
           onClick={onRearm}
           disabled={rearmMut.isPending}
-          className="inline-flex shrink-0 items-center gap-1.5 rounded-sm border border-bd-subtle bg-bg-base px-3 py-1.5 font-mono text-[10px] uppercase tracking-wider text-text-primary transition-colors duration-fast hover:bg-bg-hover disabled:cursor-not-allowed disabled:opacity-50"
+          className="inline-flex shrink-0 items-center gap-1.5 rounded-sm border border-bd-subtle bg-bg-base px-3 py-1.5 font-mono text-[12px] uppercase tracking-wider text-text-primary transition-colors duration-fast hover:bg-bg-hover disabled:cursor-not-allowed disabled:opacity-50"
         >
           <ShieldCheck size={11} strokeWidth={1.75} />
           {rearmMut.isPending ? 'Re-arming…' : 'Re-arm kill-switch'}
@@ -316,10 +316,10 @@ function RiskGuardPanel({ strategy }: { strategy: AccountStrategy }) {
   return (
     <div className="flex items-center gap-3 rounded-lg border border-bd-subtle bg-bg-surface px-4 py-2.5">
       <ShieldCheck size={14} className="shrink-0 text-[var(--text-muted)]" aria-hidden="true" />
-      <span className="font-mono text-[10px] uppercase tracking-wider text-text-muted">
+      <span className="font-mono text-[12px] uppercase tracking-wider text-text-muted">
         Risk guard armed
       </span>
-      <span className="font-mono text-[11px] text-text-secondary">
+      <span className="font-mono text-[13px] text-text-secondary">
         DD threshold {strategy.ddKillThresholdPct.toFixed(0)}% · 30d window
       </span>
     </div>
@@ -361,7 +361,7 @@ function DirectionPanel({ strategy }: { strategy: AccountStrategy }) {
   return (
     <div className="flex flex-wrap items-center gap-3 rounded-lg border border-bd-subtle bg-bg-surface px-4 py-2.5">
       <ArrowUpDown size={14} className="shrink-0 text-text-muted" aria-hidden="true" />
-      <span className="font-mono text-[10px] uppercase tracking-wider text-text-muted">
+      <span className="font-mono text-[12px] uppercase tracking-wider text-text-muted">
         Direction
       </span>
 
@@ -371,7 +371,7 @@ function DirectionPanel({ strategy }: { strategy: AccountStrategy }) {
         onClick={() => onToggle('long')}
         disabled={updateMut.isPending || onlyLong}
         className={cn(
-          'inline-flex items-center gap-1.5 rounded-sm border px-2.5 py-1 font-mono text-[11px] uppercase tracking-wider transition-colors disabled:cursor-not-allowed',
+          'inline-flex items-center gap-1.5 rounded-sm border px-2.5 py-1 font-mono text-[13px] uppercase tracking-wider transition-colors disabled:cursor-not-allowed',
           strategy.allowLong
             ? 'border-[var(--color-profit)]/40 bg-[var(--color-profit)]/10 hover:bg-[var(--color-profit)]/20 text-[var(--color-profit)] disabled:opacity-60'
             : 'border-bd-subtle bg-bg-base text-text-muted hover:border-text-muted hover:text-text-primary disabled:opacity-50',
@@ -387,7 +387,7 @@ function DirectionPanel({ strategy }: { strategy: AccountStrategy }) {
         onClick={() => onToggle('short')}
         disabled={updateMut.isPending || onlyShort}
         className={cn(
-          'inline-flex items-center gap-1.5 rounded-sm border px-2.5 py-1 font-mono text-[11px] uppercase tracking-wider transition-colors disabled:cursor-not-allowed',
+          'inline-flex items-center gap-1.5 rounded-sm border px-2.5 py-1 font-mono text-[13px] uppercase tracking-wider transition-colors disabled:cursor-not-allowed',
           strategy.allowShort
             ? 'border-[var(--color-loss)]/40 bg-[var(--color-loss)]/10 hover:bg-[var(--color-loss)]/20 text-[var(--color-loss)] disabled:opacity-60'
             : 'border-bd-subtle bg-bg-base text-text-muted hover:border-text-muted hover:text-text-primary disabled:opacity-50',
@@ -399,13 +399,13 @@ function DirectionPanel({ strategy }: { strategy: AccountStrategy }) {
 
       {}
       {(onlyLong || onlyShort) && !updateMut.isPending && (
-        <span className="font-mono text-[10px] text-text-muted">
+        <span className="font-mono text-[12px] text-text-muted">
           · enable the other direction first to remove this one
         </span>
       )}
 
       {updateMut.isPending && (
-        <span className="font-mono text-[10px] text-text-muted">Saving…</span>
+        <span className="font-mono text-[12px] text-text-muted">Saving…</span>
       )}
     </div>
   );
@@ -478,7 +478,7 @@ function RiskGatesPanel({ strategy }: { strategy: AccountStrategy }) {
     <div className="flex flex-col gap-2 rounded-lg border border-bd-subtle bg-bg-surface px-4 py-2.5">
       <div className="flex flex-wrap items-center gap-2">
         <ShieldCheck size={14} className="shrink-0 text-text-muted" aria-hidden="true" />
-        <span className="font-mono text-[10px] uppercase tracking-wider text-text-muted">
+        <span className="font-mono text-[12px] uppercase tracking-wider text-text-muted">
           Risk gates
         </span>
         {GATE_META.map((g) => {
@@ -491,7 +491,7 @@ function RiskGatesPanel({ strategy }: { strategy: AccountStrategy }) {
               disabled={updateMut.isPending}
               title={g.hint}
               className={cn(
-                'inline-flex items-center gap-1.5 rounded-sm border px-2.5 py-1 font-mono text-[11px] uppercase tracking-wider transition-colors disabled:cursor-not-allowed disabled:opacity-60',
+                'inline-flex items-center gap-1.5 rounded-sm border px-2.5 py-1 font-mono text-[13px] uppercase tracking-wider transition-colors disabled:cursor-not-allowed disabled:opacity-60',
                 active
                   ? 'border-[var(--color-profit)]/40 bg-[var(--color-profit)]/10 hover:bg-[var(--color-profit)]/20 text-[var(--color-profit)]'
                   : 'border-bd-subtle bg-bg-base text-text-muted hover:border-text-muted hover:text-text-primary',
@@ -504,11 +504,11 @@ function RiskGatesPanel({ strategy }: { strategy: AccountStrategy }) {
           );
         })}
         {updateMut.isPending && (
-          <span className="font-mono text-[10px] text-text-muted">Saving…</span>
+          <span className="font-mono text-[12px] text-text-muted">Saving…</span>
         )}
       </div>
       {allOff && !updateMut.isPending && (
-        <span className="font-mono text-[10px] text-text-muted">
+        <span className="font-mono text-[12px] text-text-muted">
           · all gates off — live and backtest behave identically (V62 default). Enable each gate as
           you validate it.
         </span>
@@ -583,7 +583,7 @@ function ExecutionStylePanel({ strategy }: { strategy: AccountStrategy }) {
     <div className="flex flex-col gap-2 rounded-lg border border-bd-subtle bg-bg-surface px-4 py-2.5">
       <div className="flex flex-wrap items-center gap-2">
         <ShieldCheck size={14} className="shrink-0 text-text-muted" aria-hidden="true" />
-        <span className="font-mono text-[10px] uppercase tracking-wider text-text-muted">
+        <span className="font-mono text-[12px] uppercase tracking-wider text-text-muted">
           Execution style
         </span>
         {EXECUTION_STYLES.map((opt) => {
@@ -597,7 +597,7 @@ function ExecutionStylePanel({ strategy }: { strategy: AccountStrategy }) {
               disabled={disabled}
               title={opt.description}
               className={cn(
-                'inline-flex items-center gap-1.5 rounded-sm border px-2.5 py-1 font-mono text-[11px] uppercase tracking-wider transition-colors disabled:cursor-not-allowed disabled:opacity-60',
+                'inline-flex items-center gap-1.5 rounded-sm border px-2.5 py-1 font-mono text-[13px] uppercase tracking-wider transition-colors disabled:cursor-not-allowed disabled:opacity-60',
                 active
                   ? 'border-[var(--color-profit)]/40 bg-[var(--color-profit)]/10 hover:bg-[var(--color-profit)]/20 text-[var(--color-profit)]'
                   : 'border-bd-subtle bg-bg-base text-text-muted hover:border-text-muted hover:text-text-primary',
@@ -610,10 +610,10 @@ function ExecutionStylePanel({ strategy }: { strategy: AccountStrategy }) {
           );
         })}
         {updateMut.isPending && (
-          <span className="font-mono text-[10px] text-text-muted">Saving…</span>
+          <span className="font-mono text-[12px] text-text-muted">Saving…</span>
         )}
       </div>
-      <span className="font-mono text-[10px] text-text-muted">
+      <span className="font-mono text-[12px] text-text-muted">
         · {EXECUTION_STYLES.find((o) => o.value === current)?.description ?? 'Single MARKET fill.'}{' '}
         Backend refuses a style change while open trades exist.
       </span>
@@ -680,13 +680,13 @@ function KellySizingPanel({ strategy }: { strategy: AccountStrategy }) {
   return (
     <div className="flex flex-wrap items-center gap-3 rounded-lg border border-bd-subtle bg-bg-surface px-4 py-2.5">
       <TrendingUp size={14} className="shrink-0 text-text-muted" aria-hidden="true" />
-      <span className="font-mono text-[10px] uppercase tracking-wider text-text-muted">
+      <span className="font-mono text-[12px] uppercase tracking-wider text-text-muted">
         Kelly sizing
       </span>
 
       <span
         className={cn(
-          'font-mono text-[11px]',
+          'font-mono text-[13px]',
           !strategy.kellySizingEnabled
             ? 'text-text-muted'
             : isInactive
@@ -700,15 +700,15 @@ function KellySizingPanel({ strategy }: { strategy: AccountStrategy }) {
       {strategy.kellySizingEnabled && !editing && (
         <>
           {kellyStatus && kellyStatus.qualifyingRuns > 0 && (
-            <span className="font-mono text-[11px] text-text-primary">
+            <span className="font-mono text-[13px] text-text-primary">
               ×{kellyStatus.currentMultiplier.toFixed(2)}
             </span>
           )}
-          <span className="font-mono text-[11px] text-text-secondary">
+          <span className="font-mono text-[13px] text-text-secondary">
             cap {(strategy.kellyMaxFraction * 100).toFixed(0)}%
           </span>
           {kellyStatus && (
-            <span className="font-mono text-[10px] text-text-muted">{kellyStatus.reason}</span>
+            <span className="font-mono text-[12px] text-text-muted">{kellyStatus.reason}</span>
           )}
         </>
       )}
@@ -722,22 +722,22 @@ function KellySizingPanel({ strategy }: { strategy: AccountStrategy }) {
             step={1}
             value={maxFraction}
             onChange={(e) => setMaxFraction(e.target.value)}
-            className="w-16 rounded border border-bd-subtle bg-bg-base px-2 py-0.5 font-mono text-[11px] text-text-primary focus:outline-none"
+            className="w-16 rounded border border-bd-subtle bg-bg-base px-2 py-0.5 font-mono text-[13px] text-text-primary focus:outline-none"
             aria-label="Kelly max fraction percent"
           />
-          <span className="font-mono text-[11px] text-text-muted">%</span>
+          <span className="font-mono text-[13px] text-text-muted">%</span>
           <button
             type="button"
             onClick={onSaveCap}
             disabled={updateMut.isPending}
-            className="rounded-sm border border-bd-subtle bg-bg-base px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-text-primary hover:bg-bg-hover disabled:opacity-50"
+            className="rounded-sm border border-bd-subtle bg-bg-base px-2 py-0.5 font-mono text-[12px] uppercase tracking-wider text-text-primary hover:bg-bg-hover disabled:opacity-50"
           >
             Save
           </button>
           <button
             type="button"
             onClick={() => setEditing(false)}
-            className="font-mono text-[10px] uppercase tracking-wider text-text-muted hover:text-text-primary"
+            className="font-mono text-[12px] uppercase tracking-wider text-text-muted hover:text-text-primary"
           >
             Cancel
           </button>
@@ -749,7 +749,7 @@ function KellySizingPanel({ strategy }: { strategy: AccountStrategy }) {
           <button
             type="button"
             onClick={onEdit}
-            className="inline-flex items-center rounded-sm border border-bd-subtle bg-bg-base px-2.5 py-1 font-mono text-[10px] uppercase tracking-wider text-text-primary hover:bg-bg-hover"
+            className="inline-flex items-center rounded-sm border border-bd-subtle bg-bg-base px-2.5 py-1 font-mono text-[12px] uppercase tracking-wider text-text-primary hover:bg-bg-hover"
           >
             Edit cap
           </button>
@@ -758,7 +758,7 @@ function KellySizingPanel({ strategy }: { strategy: AccountStrategy }) {
           type="button"
           onClick={onToggle}
           disabled={updateMut.isPending}
-          className="inline-flex items-center rounded-sm border border-bd-subtle bg-bg-base px-2.5 py-1 font-mono text-[10px] uppercase tracking-wider text-text-primary hover:bg-bg-hover disabled:opacity-50"
+          className="inline-flex items-center rounded-sm border border-bd-subtle bg-bg-base px-2.5 py-1 font-mono text-[12px] uppercase tracking-wider text-text-primary hover:bg-bg-hover disabled:opacity-50"
         >
           {updateMut.isPending ? '…' : strategy.kellySizingEnabled ? 'Disable' : 'Enable'}
         </button>
@@ -862,7 +862,7 @@ function PositionSizingPanel({ strategy }: { strategy: AccountStrategy }) {
       <div className="flex items-start justify-between gap-2">
         <div className="flex flex-wrap items-center gap-3">
           <Scale size={14} className="shrink-0 text-text-muted" aria-hidden="true" />
-          <span className="font-mono text-[10px] uppercase tracking-wider text-text-muted">
+          <span className="font-mono text-[12px] uppercase tracking-wider text-text-muted">
             Position sizing
           </span>
 
@@ -874,7 +874,7 @@ function PositionSizingPanel({ strategy }: { strategy: AccountStrategy }) {
                 onClick={() => onSwitchMode(false)}
                 disabled={updateMut.isPending || editing}
                 className={cn(
-                  'rounded-[2px] px-2.5 py-0.5 font-mono text-[10px] uppercase tracking-wider transition-colors disabled:cursor-not-allowed disabled:opacity-50',
+                  'rounded-[2px] px-2.5 py-0.5 font-mono text-[12px] uppercase tracking-wider transition-colors disabled:cursor-not-allowed disabled:opacity-50',
                   !isRisk
                     ? 'bg-bg-elevated text-text-primary'
                     : 'text-text-muted hover:text-text-secondary',
@@ -887,7 +887,7 @@ function PositionSizingPanel({ strategy }: { strategy: AccountStrategy }) {
                 onClick={() => onSwitchMode(true)}
                 disabled={updateMut.isPending || editing}
                 className={cn(
-                  'rounded-[2px] px-2.5 py-0.5 font-mono text-[10px] uppercase tracking-wider transition-colors disabled:cursor-not-allowed disabled:opacity-50',
+                  'rounded-[2px] px-2.5 py-0.5 font-mono text-[12px] uppercase tracking-wider transition-colors disabled:cursor-not-allowed disabled:opacity-50',
                   isRisk
                     ? 'bg-bg-elevated text-text-primary'
                     : 'text-text-muted hover:text-text-secondary',
@@ -900,7 +900,7 @@ function PositionSizingPanel({ strategy }: { strategy: AccountStrategy }) {
 
           {}
           {!editing && (
-            <span className="font-mono text-[11px] text-text-primary">
+            <span className="font-mono text-[13px] text-text-primary">
               {isRisk ? (
                 <>
                   risk{' '}
@@ -926,12 +926,12 @@ function PositionSizingPanel({ strategy }: { strategy: AccountStrategy }) {
           {editing && (
             <div className="flex flex-wrap items-center gap-2">
               <div className="flex items-center gap-1">
-                <label className="font-mono text-[10px] text-text-muted">
+                <label className="font-mono text-[12px] text-text-muted">
                   {isRisk ? 'Cap' : 'Allocation'}
                 </label>
                 <Select value={allocationInput} onValueChange={setAllocationInput}>
                   <SelectTrigger
-                    className="h-7 w-[88px] font-mono text-[11px]"
+                    className="h-7 w-[88px] font-mono text-[13px]"
                     aria-label={isRisk ? 'Position cap percent' : 'Allocation percent'}
                   >
                     <SelectValue />
@@ -952,10 +952,10 @@ function PositionSizingPanel({ strategy }: { strategy: AccountStrategy }) {
               </div>
               {isRisk && (
                 <div className="flex items-center gap-1">
-                  <label className="font-mono text-[10px] text-text-muted">Risk/trade</label>
+                  <label className="font-mono text-[12px] text-text-muted">Risk/trade</label>
                   <Select value={riskInput} onValueChange={setRiskInput}>
                     <SelectTrigger
-                      className="h-7 w-[88px] font-mono text-[11px]"
+                      className="h-7 w-[88px] font-mono text-[13px]"
                       aria-label="Risk per trade percent"
                     >
                       <SelectValue />
@@ -979,14 +979,14 @@ function PositionSizingPanel({ strategy }: { strategy: AccountStrategy }) {
                 type="button"
                 onClick={onSave}
                 disabled={updateMut.isPending}
-                className="rounded-sm border border-bd-subtle bg-bg-base px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-text-primary hover:bg-bg-hover disabled:opacity-50"
+                className="rounded-sm border border-bd-subtle bg-bg-base px-2 py-0.5 font-mono text-[12px] uppercase tracking-wider text-text-primary hover:bg-bg-hover disabled:opacity-50"
               >
                 {updateMut.isPending ? '…' : 'Save'}
               </button>
               <button
                 type="button"
                 onClick={() => setEditing(false)}
-                className="font-mono text-[10px] uppercase tracking-wider text-text-muted hover:text-text-primary"
+                className="font-mono text-[12px] uppercase tracking-wider text-text-muted hover:text-text-primary"
               >
                 Cancel
               </button>
@@ -999,7 +999,7 @@ function PositionSizingPanel({ strategy }: { strategy: AccountStrategy }) {
           <button
             type="button"
             onClick={openEdit}
-            className="inline-flex shrink-0 items-center rounded-sm border border-bd-subtle bg-bg-base px-2.5 py-1 font-mono text-[10px] uppercase tracking-wider text-text-primary hover:bg-bg-hover"
+            className="inline-flex shrink-0 items-center rounded-sm border border-bd-subtle bg-bg-base px-2.5 py-1 font-mono text-[12px] uppercase tracking-wider text-text-primary hover:bg-bg-hover"
           >
             Edit
           </button>
@@ -1008,7 +1008,7 @@ function PositionSizingPanel({ strategy }: { strategy: AccountStrategy }) {
 
       {}
       {isRisk && !editing && (
-        <p className="mt-2 border-t border-bd-subtle pt-2 font-mono text-[10px] text-text-muted">
+        <p className="mt-2 border-t border-bd-subtle pt-2 font-mono text-[12px] text-text-muted">
           Long entries: qty = account_balance × risk% ÷ stop_distance · capped at cap% of equity.
           Short entries use allocation sizing unchanged.
         </p>
@@ -1047,17 +1047,17 @@ function MinNotionalFloorPanel({ strategy }: { strategy: AccountStrategy }) {
     <div className="flex flex-wrap items-center gap-3 rounded-lg border border-bd-subtle bg-bg-surface px-4 py-2.5">
       <Scale size={14} className="shrink-0 text-text-muted" aria-hidden="true" />
       <div className="flex min-w-0 flex-1 flex-col">
-        <span className="font-mono text-[10px] uppercase tracking-wider text-text-muted">
+        <span className="font-mono text-[12px] uppercase tracking-wider text-text-muted">
           Min-notional floor
         </span>
-        <span className="font-mono text-[10px] text-text-muted">
+        <span className="font-mono text-[12px] text-text-muted">
           Sizes a sub-minimum order up to the exchange minimum (if affordable) instead of skipping
           it.
         </span>
       </div>
       <span
         className={cn(
-          'font-mono text-[11px]',
+          'font-mono text-[13px]',
           strategy.minNotionalFloorEnabled ? 'text-[var(--color-profit)]' : 'text-text-muted',
         )}
       >
@@ -1136,7 +1136,7 @@ function StrategyModeToggle({ strategy }: { strategy: AccountStrategy }) {
         onClick={handleSwitchToLive}
         disabled={isMutating}
         title="Flip this row to real Binance orders. Auto-promotes the strategy definition too."
-        className="border-[var(--color-profit)]/60 inline-flex items-center gap-1.5 rounded-sm border bg-[var(--bg-base)] px-3 py-1.5 font-mono text-[10px] uppercase tracking-wider text-[var(--color-profit)] transition-colors hover:bg-[rgba(22,179,100,0.08)] disabled:cursor-not-allowed disabled:opacity-50"
+        className="border-[var(--color-profit)]/60 inline-flex items-center gap-1.5 rounded-sm border bg-[var(--bg-base)] px-3 py-1.5 font-mono text-[12px] uppercase tracking-wider text-[var(--color-profit)] transition-colors hover:bg-[rgba(22,179,100,0.08)] disabled:cursor-not-allowed disabled:opacity-50"
       >
         <TrendingUp size={11} strokeWidth={1.75} />
         {isMutating ? 'Switching…' : 'Switch to live'}
@@ -1150,7 +1150,7 @@ function StrategyModeToggle({ strategy }: { strategy: AccountStrategy }) {
       onClick={handleSwitchToPaper}
       disabled={isMutating}
       title="Demote this row to paper. Existing open positions still close real — only NEW entries divert."
-      className="border-[var(--color-warning)]/60 inline-flex items-center gap-1.5 rounded-sm border bg-[var(--bg-base)] px-3 py-1.5 font-mono text-[10px] uppercase tracking-wider text-[var(--color-warning)] transition-colors hover:bg-[rgba(245,166,35,0.08)] disabled:cursor-not-allowed disabled:opacity-50"
+      className="border-[var(--color-warning)]/60 inline-flex items-center gap-1.5 rounded-sm border bg-[var(--bg-base)] px-3 py-1.5 font-mono text-[12px] uppercase tracking-wider text-[var(--color-warning)] transition-colors hover:bg-[rgba(245,166,35,0.08)] disabled:cursor-not-allowed disabled:opacity-50"
     >
       <ShieldCheck size={11} strokeWidth={1.75} />
       {isMutating ? 'Switching…' : 'Switch to paper'}
@@ -1161,7 +1161,7 @@ function StrategyModeToggle({ strategy }: { strategy: AccountStrategy }) {
 function MetaStat({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div className="flex flex-col items-end">
-      <span className="font-mono text-[10px] uppercase tracking-wider text-[var(--text-muted)]">
+      <span className="font-mono text-[12px] uppercase tracking-wider text-[var(--text-muted)]">
         {label}
       </span>
       <span className="mt-0.5 font-mono text-sm tabular-nums text-[var(--text-primary)]">
@@ -1227,10 +1227,10 @@ function LiveTab({ strategy }: { strategy: AccountStrategy }) {
       {}
       <section className="rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-4 shadow-panel">
         <header className="mb-3 flex items-baseline justify-between">
-          <h3 className="font-mono text-[10px] uppercase tracking-wider text-[var(--text-muted)]">
+          <h3 className="font-mono text-[12px] uppercase tracking-wider text-[var(--text-muted)]">
             Open positions
           </h3>
-          <span className="font-mono text-[11px] text-[var(--text-secondary)]">
+          <span className="font-mono text-[13px] text-[var(--text-secondary)]">
             {open.length} active
           </span>
         </header>
@@ -1252,10 +1252,10 @@ function LiveTab({ strategy }: { strategy: AccountStrategy }) {
       {}
       <section className="rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-4 shadow-panel">
         <header className="mb-3 flex items-baseline justify-between">
-          <h3 className="font-mono text-[10px] uppercase tracking-wider text-[var(--text-muted)]">
+          <h3 className="font-mono text-[12px] uppercase tracking-wider text-[var(--text-muted)]">
             Recent closes
           </h3>
-          <span className="font-mono text-[11px] text-[var(--text-secondary)]">
+          <span className="font-mono text-[13px] text-[var(--text-secondary)]">
             {lastClosed
               ? `last ${formatRelative(lastClosed.exitTime ?? lastClosed.entryTime)}`
               : '—'}
@@ -1296,7 +1296,7 @@ function StatCard({
         : 'var(--text-primary)';
   return (
     <div className="rounded-md border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-3">
-      <div className="font-mono text-[10px] uppercase tracking-wider text-[var(--text-muted)]">
+      <div className="font-mono text-[12px] uppercase tracking-wider text-[var(--text-muted)]">
         {label}
       </div>
       <div className="mt-1 font-display text-lg tabular-nums" style={{ color: colour }}>
@@ -1319,20 +1319,20 @@ function TradeRow({ trade, variant }: { trade: Trades; variant: 'open' | 'closed
       >
         <span
           className="font-mono uppercase"
-          style={{ color: dirColour, fontSize: 10, width: 28, flexShrink: 0 }}
+          style={{ color: dirColour, fontSize: 12, width: 28, flexShrink: 0 }}
         >
           {trade.direction === 'LONG' ? 'LONG' : 'SHORT'}
         </span>
         <span className="font-mono text-[var(--text-primary)]">{trade.symbol}</span>
-        <span className="font-mono text-[10px] text-[var(--text-muted)]">
+        <span className="font-mono text-[12px] text-[var(--text-muted)]">
           {trade.entryPrice ? `@${trade.entryPrice.toFixed(2)}` : ''}
         </span>
       </Link>
       <div className="flex items-center gap-3 text-right">
-        <span className="font-mono tabular-nums" style={{ color: tone, fontSize: 12 }}>
+        <span className="font-mono tabular-nums" style={{ color: tone, fontSize: 14 }}>
           {formatPnl(pnl)}
         </span>
-        <span className="font-mono text-[10px] text-[var(--text-muted)]" style={{ minWidth: 70 }}>
+        <span className="font-mono text-[12px] text-[var(--text-muted)]" style={{ minWidth: 70 }}>
           {ts ? formatRelative(ts) : '—'}
         </span>
       </div>
@@ -1352,7 +1352,7 @@ function ActivitySkeleton({ rows }: { rows: number }) {
 
 function EmptyTradesRow({ text }: { text: string }) {
   return (
-    <p className="rounded border border-dashed border-[var(--border-subtle)] px-3 py-4 text-center text-[11px] text-[var(--text-muted)]">
+    <p className="rounded border border-dashed border-[var(--border-subtle)] px-3 py-4 text-center text-[13px] text-[var(--text-muted)]">
       {text}
     </p>
   );

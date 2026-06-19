@@ -73,7 +73,7 @@ export const StrategyBadge = memo(function StrategyBadge({
     <span
       className={cn(
         'inline-flex items-center rounded-full font-mono font-semibold tracking-wider',
-        size === 'sm' ? 'px-2 py-0.5 text-[10px]' : 'px-2.5 py-[3px] text-[11px]',
+        size === 'sm' ? 'px-2 py-0.5 text-[12px]' : 'px-2.5 py-[3px] text-[13px]',
         className,
       )}
       style={{ color: c.fg, backgroundColor: c.bg, border: `1px solid ${c.border}` }}

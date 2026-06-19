@@ -21,13 +21,13 @@ export function ThresholdChips({ onAddForSymbol, onEditThresholds }: ThresholdCh
 
   if (isLoading) {
     return (
-      <div className="font-mono text-[11px] text-text-muted">Loading thresholds…</div>
+      <div className="font-mono text-[13px] text-text-muted">Loading thresholds…</div>
     );
   }
 
   if (thresholds.length === 0) {
     return (
-      <div className="rounded-sm border border-bd-subtle bg-bg-base px-3 py-2 font-mono text-[11px] text-text-muted">
+      <div className="rounded-sm border border-bd-subtle bg-bg-base px-3 py-2 font-mono text-[13px] text-text-muted">
         No threshold rows seeded yet. The V102 migration seeds one per live symbol — verify the
         backend has migrated.
       </div>
@@ -59,24 +59,24 @@ function ThresholdChip({
 }) {
   return (
     <div className="flex flex-wrap items-center gap-2 rounded-sm border border-bd-subtle bg-bg-base px-2.5 py-1.5">
-      <span className="font-mono text-[12px] font-semibold text-text-primary">
+      <span className="font-mono text-[14px] font-semibold text-text-primary">
         {threshold.symbol}
       </span>
-      <span className="font-mono text-[10px] text-text-secondary">
+      <span className="font-mono text-[12px] text-text-secondary">
         CAGR ≥ {threshold.minCagrPct}% · cap ≥ ${threshold.minInitialCapitalUsd} · win ≥{' '}
         {threshold.minWindowDays}d · tr ≥ {threshold.minTrades}
       </span>
       <button
         type="button"
         onClick={onAdd}
-        className="inline-flex items-center gap-0.5 rounded-sm border border-bd-subtle bg-bg-surface px-1.5 py-0.5 font-mono text-[10px] text-text-secondary transition-colors hover:bg-bg-hover hover:text-text-primary"
+        className="inline-flex items-center gap-0.5 rounded-sm border border-bd-subtle bg-bg-surface px-1.5 py-0.5 font-mono text-[12px] text-text-secondary transition-colors hover:bg-bg-hover hover:text-text-primary"
       >
         <Plus size={10} /> Approve
       </button>
       <button
         type="button"
         onClick={onEdit}
-        className="inline-flex items-center gap-0.5 rounded-sm border border-bd-subtle bg-bg-surface px-1.5 py-0.5 font-mono text-[10px] text-text-secondary transition-colors hover:bg-bg-hover hover:text-text-primary"
+        className="inline-flex items-center gap-0.5 rounded-sm border border-bd-subtle bg-bg-surface px-1.5 py-0.5 font-mono text-[12px] text-text-secondary transition-colors hover:bg-bg-hover hover:text-text-primary"
         aria-label={`Edit thresholds for ${threshold.symbol}`}
       >
         <Settings2 size={10} /> Edit

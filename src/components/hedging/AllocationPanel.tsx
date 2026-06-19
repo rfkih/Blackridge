@@ -31,12 +31,12 @@ export function AllocationPanel({ accountId }: AllocationPanelProps) {
       <div className="mb-4 flex items-start justify-between gap-4">
         <div>
           <div
-            className="text-[12px] font-semibold uppercase tracking-[0.08em]"
+            className="text-[14px] font-semibold uppercase tracking-[0.08em]"
             style={{ color: 'var(--text-muted)' }}
           >
             Allocation
           </div>
-          <div className="mt-1 text-[13px]" style={{ color: 'var(--text-muted)' }}>
+          <div className="mt-1 text-[14px]" style={{ color: 'var(--text-muted)' }}>
             {targetWeightPct != null ? (
               <span data-testid="target-label">Target {targetWeightPct.toFixed(0)}% BTC</span>
             ) : (
@@ -54,7 +54,7 @@ export function AllocationPanel({ accountId }: AllocationPanelProps) {
             border: '1px dashed var(--border-subtle)',
             borderRadius: 16,
             color: 'var(--text-muted)',
-            fontSize: 13,
+            fontSize: 14,
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
@@ -97,7 +97,7 @@ export function AllocationPanel({ accountId }: AllocationPanelProps) {
             )}
           </div>
 
-          <div className="mt-3 flex items-center justify-between text-[13px]">
+          <div className="mt-3 flex items-center justify-between text-[14px]">
             <span className="font-mono tabular-nums" style={{ color: BTC_COLOR }}>
               BTC {btcW.toFixed(2)}%
             </span>

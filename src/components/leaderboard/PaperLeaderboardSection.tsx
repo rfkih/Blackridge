@@ -159,7 +159,7 @@ export function PaperLeaderboardSection({
   return (
     <div className="space-y-3">
       <div className="px-1">
-        <span className="font-mono text-[10px] uppercase tracking-[0.1em] text-[var(--text-muted)]">
+        <span className="font-mono text-[12px] uppercase tracking-[0.1em] text-[var(--text-muted)]">
           Research papers · candidates (not deployable)
         </span>
       </div>
@@ -227,12 +227,12 @@ export function PaperLeaderboardSection({
                       {code && <StrategyBadge code={code} size="sm" />}
                       <div className="min-w-0">
                         <div
-                          className="truncate text-[13px] text-[var(--text-primary)]"
+                          className="truncate text-[14px] text-[var(--text-primary)]"
                           title={paper.title}
                         >
                           {paper.title}
                         </div>
-                        <div className="truncate font-mono text-[10px] text-[var(--text-muted)]">
+                        <div className="truncate font-mono text-[12px] text-[var(--text-muted)]">
                           {paper.paper_id}
                         </div>
                       </div>
@@ -287,7 +287,7 @@ export function PaperLeaderboardSection({
                     {paper.n_trades ?? '—'}
                   </TableCell>
                   <TableCell>
-                    <Badge variant="outline" className="border-[var(--border-default)] text-[10px]">
+                    <Badge variant="outline" className="border-[var(--border-default)] text-[12px]">
                       {paper.paper_status.replace(/_/g, ' ')}
                     </Badge>
                   </TableCell>
@@ -295,7 +295,7 @@ export function PaperLeaderboardSection({
                     <div className="flex items-center justify-end gap-1.5">
                       <Link
                         href={`/research/papers/${encodeURIComponent(paper.paper_id)}`}
-                        className="inline-flex items-center gap-1 rounded-md border border-[var(--border-default)] bg-[var(--bg-elevated)] px-2 py-1 text-[11px] text-[var(--text-primary)] transition-colors hover:bg-[var(--bg-hover)]"
+                        className="inline-flex items-center gap-1 rounded-md border border-[var(--border-default)] bg-[var(--bg-elevated)] px-2 py-1 text-[13px] text-[var(--text-primary)] transition-colors hover:bg-[var(--bg-hover)]"
                       >
                         <ExternalLink size={11} />
                         Open
@@ -309,7 +309,7 @@ export function PaperLeaderboardSection({
                             ? 'No pinned backtest run — open the paper to promote manually.'
                             : 'Request approval for this paper'
                         }
-                        className="inline-flex items-center gap-1 rounded-md border border-[var(--border-default)] bg-[var(--bg-elevated)] px-2 py-1 text-[11px] font-semibold text-[var(--text-primary)] transition-colors hover:bg-[var(--bg-hover)] disabled:cursor-not-allowed disabled:opacity-50"
+                        className="inline-flex items-center gap-1 rounded-md border border-[var(--border-default)] bg-[var(--bg-elevated)] px-2 py-1 text-[13px] font-semibold text-[var(--text-primary)] transition-colors hover:bg-[var(--bg-hover)] disabled:cursor-not-allowed disabled:opacity-50"
                       >
                         {resolving ? (
                           <Loader2 size={11} className="animate-spin" />

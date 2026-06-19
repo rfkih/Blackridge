@@ -107,11 +107,11 @@ export function RequestApprovalDialog({ open, onOpenChange, target }: RequestApp
     <Dialog open={open} onOpenChange={(v) => !create.isPending && onOpenChange(v)}>
       <DialogContent className="max-w-lg border-[var(--border-subtle)] bg-[var(--bg-surface)]">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-[14px]">
+          <DialogTitle className="flex items-center gap-2 text-[15px]">
             <ShieldCheck size={14} className="text-[var(--color-profit)]" />
             Request approval
           </DialogTitle>
-          <DialogDescription className="text-[12px] text-[var(--text-secondary)]">
+          <DialogDescription className="text-[14px] text-[var(--text-secondary)]">
             Submits this run to the V102 approval gate. The backend re-validates it against the
             per-symbol thresholds; if it clears, the (symbol, strategy) pair becomes deployable.
           </DialogDescription>
@@ -127,22 +127,22 @@ export function RequestApprovalDialog({ open, onOpenChange, target }: RequestApp
             </div>
 
             <div className="space-y-1">
-              <Label className="label-caps !text-[9px]">Effective parameters</Label>
+              <Label className="label-caps !text-[12px]">Effective parameters</Label>
               <ParamsPopover params={target.params} label="parameters" />
             </div>
 
             <div className="space-y-1">
-              <Label className="label-caps !text-[9px]">Notes (optional)</Label>
+              <Label className="label-caps !text-[12px]">Notes (optional)</Label>
               <Input
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder="e.g. promote 2026-05 sweep winner"
                 maxLength={500}
-                className="h-8 text-[12px]"
+                className="h-8 text-[14px]"
               />
             </div>
 
-            <div className="flex items-start gap-1.5 text-[11px] text-[var(--text-muted)]">
+            <div className="flex items-start gap-1.5 text-[13px] text-[var(--text-muted)]">
               <AlertCircle size={12} className="mt-0.5 shrink-0" />
               <span>
                 Requesting approval does not deploy anything — it only unlocks the pair for a later
@@ -180,11 +180,11 @@ export function RequestApprovalDialog({ open, onOpenChange, target }: RequestApp
 function Field({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
   return (
     <div className="min-w-0">
-      <div className="font-mono text-[9px] uppercase tracking-[0.1em] text-[var(--text-muted)]">
+      <div className="font-mono text-[12px] uppercase tracking-[0.1em] text-[var(--text-muted)]">
         {label}
       </div>
       <div
-        className={`truncate text-[12px] text-[var(--text-primary)] ${
+        className={`truncate text-[14px] text-[var(--text-primary)] ${
           mono ? 'font-mono tabular-nums' : ''
         }`}
         title={value}

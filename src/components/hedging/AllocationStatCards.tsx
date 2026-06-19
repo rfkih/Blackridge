@@ -32,7 +32,7 @@ function Stat({ testId, label, value, tooltip, tone = 'neutral', icon }: StatPro
         <div
           title={tooltip}
           style={{
-            fontSize: 11,
+            fontSize: 13,
             letterSpacing: '0.08em',
             textTransform: 'uppercase',
             fontWeight: 600,

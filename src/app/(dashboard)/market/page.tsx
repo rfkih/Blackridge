@@ -164,7 +164,7 @@ function OhlcvHeader({ candles, symbol }: { candles: CandleData[] | undefined; s
 
 function LivePill({ active }: { active: boolean }) {
   return (
-    <span className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-wider text-text-muted">
+    <span className="inline-flex items-center gap-1.5 font-mono text-[12px] uppercase tracking-wider text-text-muted">
       <span
         aria-hidden="true"
         className="inline-block size-1.5 rounded-full"
@@ -180,13 +180,13 @@ function LivePill({ active }: { active: boolean }) {
 
 function ChartError({ onRetry }: { onRetry: () => void }) {
   return (
-    <div className="flex h-[440px] flex-col items-center justify-center gap-3 text-[12px] text-text-muted">
+    <div className="flex h-[440px] flex-col items-center justify-center gap-3 text-[14px] text-text-muted">
       <AlertCircle size={20} />
       <span>Failed to load candles.</span>
       <button
         type="button"
         onClick={onRetry}
-        className="inline-flex items-center gap-1 rounded-sm border border-bd-subtle bg-bg-base px-3 py-1.5 text-[11px] text-text-primary hover:bg-bg-hover"
+        className="inline-flex items-center gap-1 rounded-sm border border-bd-subtle bg-bg-base px-3 py-1.5 text-[13px] text-text-primary hover:bg-bg-hover"
       >
         <RefreshCw size={11} /> Retry
       </button>

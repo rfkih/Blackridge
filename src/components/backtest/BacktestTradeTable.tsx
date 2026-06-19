@@ -605,7 +605,7 @@ function BacktestTradeFilters({
         )}
 
         <div className="ml-auto flex items-center gap-3">
-          <span className="font-mono text-[11px] tabular-nums text-text-muted">
+          <span className="font-mono text-[13px] tabular-nums text-text-muted">
             {visibleCount === totalCount
               ? `${totalCount.toLocaleString()} trades`
               : `${visibleCount.toLocaleString()} of ${totalCount.toLocaleString()}`}
@@ -613,7 +613,7 @@ function BacktestTradeFilters({
           <button
             type="button"
             onClick={onExportCsv}
-            className="inline-flex items-center gap-1 rounded-sm border border-bd-subtle bg-bg-base px-2 py-1 font-mono text-[10px] uppercase tracking-wider text-text-secondary transition-colors hover:bg-bg-hover hover:text-text-primary"
+            className="inline-flex items-center gap-1 rounded-sm border border-bd-subtle bg-bg-base px-2 py-1 font-mono text-[12px] uppercase tracking-wider text-text-secondary transition-colors hover:bg-bg-hover hover:text-text-primary"
             title="Download visible trades as CSV"
           >
             CSV
@@ -622,7 +622,7 @@ function BacktestTradeFilters({
             <button
               type="button"
               onClick={reset}
-              className="inline-flex items-center gap-1 rounded-sm border border-bd-subtle bg-bg-base px-2 py-1 font-mono text-[10px] uppercase tracking-wider text-text-secondary transition-colors hover:bg-bg-hover hover:text-text-primary"
+              className="inline-flex items-center gap-1 rounded-sm border border-bd-subtle bg-bg-base px-2 py-1 font-mono text-[12px] uppercase tracking-wider text-text-secondary transition-colors hover:bg-bg-hover hover:text-text-primary"
             >
               <X size={10} strokeWidth={2} /> Reset
             </button>
@@ -642,7 +642,7 @@ function FilterDimension({
 }) {
   return (
     <div className="flex items-center gap-1.5">
-      <span className="font-mono text-[9px] uppercase tracking-wider text-text-muted">
+      <span className="font-mono text-[12px] uppercase tracking-wider text-text-muted">
         {label}
       </span>
       <div className="flex flex-wrap items-center gap-1">{children}</div>
@@ -679,7 +679,7 @@ function FilterPill({
       onClick={onClick}
       aria-pressed={active}
       className={cn(
-        'rounded-full border px-2.5 py-0.5 font-mono text-[10px] font-semibold tracking-wider transition-colors duration-fast',
+        'rounded-full border px-2.5 py-0.5 font-mono text-[12px] font-semibold tracking-wider transition-colors duration-fast',
         active
           ? 'border-transparent'
           : 'border-bd-subtle text-text-muted hover:border-bd-default hover:text-text-primary',
@@ -763,7 +763,7 @@ function VirtualRow({ trade, index, isSelected, top, onClick, gridTemplate, hedg
       <Cell>
         {trade.strategyCode || trade.strategyName ? (
           <span
-            className="rounded-sm border border-bd-subtle bg-bg-base px-1.5 py-0.5 font-mono text-[10px] font-semibold tracking-wider text-text-primary"
+            className="rounded-sm border border-bd-subtle bg-bg-base px-1.5 py-0.5 font-mono text-[12px] font-semibold tracking-wider text-text-primary"
             title={trade.strategyName ?? trade.strategyCode ?? ''}
           >
             {trade.strategyCode ?? trade.strategyName}
@@ -778,7 +778,7 @@ function VirtualRow({ trade, index, isSelected, top, onClick, gridTemplate, hedg
           // A hedging tilt is long/flat: each row is a BTC-holding episode that
           // exits to cash. Frame the "Switch" as the allocation held, not LONG/SHORT.
           <span
-            className="rounded-sm px-1.5 py-0.5 font-mono text-[10px] font-semibold tracking-wider"
+            className="rounded-sm px-1.5 py-0.5 font-mono text-[12px] font-semibold tracking-wider"
             style={{ background: 'var(--tint-btc)', color: 'var(--color-btc)' }}
             title="Allocated to BTC for this period, then switched back to cash on exit"
           >
@@ -786,7 +786,7 @@ function VirtualRow({ trade, index, isSelected, top, onClick, gridTemplate, hedg
           </span>
         ) : (
           <span
-            className="rounded-sm px-1.5 py-0.5 font-mono text-[10px] font-semibold tracking-wider"
+            className="rounded-sm px-1.5 py-0.5 font-mono text-[12px] font-semibold tracking-wider"
             style={{
               background: isLong ? 'var(--tint-profit)' : 'var(--tint-loss)',
               color: isLong ? 'var(--color-profit)' : 'var(--color-loss)',
@@ -817,7 +817,7 @@ function VirtualRow({ trade, index, isSelected, top, onClick, gridTemplate, hedg
       </Cell>
       <Cell>
         <span
-          className="num text-[12px] font-semibold"
+          className="num text-[14px] font-semibold"
           style={{ color: pnlUp ? 'var(--color-profit)' : 'var(--color-loss)' }}
         >
           {pnlUp ? '+' : ''}
@@ -827,7 +827,7 @@ function VirtualRow({ trade, index, isSelected, top, onClick, gridTemplate, hedg
       {!hedging && (
         <Cell>
           <span
-            className="num text-[11px]"
+            className="num text-[13px]"
             style={{ color: trade.rMultiple >= 0 ? 'var(--color-profit)' : 'var(--color-loss)' }}
           >
             {formatRMultiple(trade.rMultiple)}
@@ -854,7 +854,7 @@ function Cell({ children, muted, secondary, size }: CellProps) {
       role="cell"
       className={cn(
         'num truncate whitespace-nowrap px-3',
-        size === 'sm' ? 'text-[11px]' : 'text-[12px]',
+        size === 'sm' ? 'text-[13px]' : 'text-[14px]',
         muted ? 'text-text-muted' : secondary ? 'text-text-secondary' : 'text-text-primary',
       )}
     >
@@ -884,7 +884,7 @@ function LegDots({ hits }: { hits: Partial<Record<PositionType, PositionExitReas
               className="h-1.5 w-1.5 rounded-full"
               style={{ background: color }}
             />
-            <span className="font-mono text-[9px] uppercase text-text-muted">
+            <span className="font-mono text-[12px] uppercase text-text-muted">
               {type === 'RUNNER' ? 'R' : type.replace('TP', 'T')}
             </span>
           </span>
@@ -902,7 +902,7 @@ function OutcomePill({ outcome }: { outcome: TradeOutcome }) {
   const { bg, fg } = outcomePillColors(outcome.tone);
   return (
     <span
-      className="font-mono text-[10px] font-semibold tracking-wider"
+      className="font-mono text-[12px] font-semibold tracking-wider"
       title={outcome.description}
       aria-label={outcome.description}
       style={{
@@ -967,19 +967,19 @@ function StrategyStatsStrip({
               key={s.code}
               className="flex items-center gap-2 rounded-sm border border-bd-subtle bg-bg-base px-2.5 py-1.5"
             >
-              <span className="font-mono text-[11px] font-semibold text-text-primary">{s.code}</span>
+              <span className="font-mono text-[13px] font-semibold text-text-primary">{s.code}</span>
               <span className="text-text-muted">·</span>
-              <span className="font-mono text-[11px] tabular-nums text-text-secondary">{s.count} trades</span>
+              <span className="font-mono text-[13px] tabular-nums text-text-secondary">{s.count} trades</span>
               <span className="text-text-muted">·</span>
               <span
-                className="font-mono text-[11px] tabular-nums"
+                className="font-mono text-[13px] tabular-nums"
                 style={{ color: winRate >= 50 ? 'var(--color-profit)' : 'var(--color-loss)' }}
               >
                 {winRate.toFixed(0)}% win
               </span>
               <span className="text-text-muted">·</span>
               <span
-                className="font-mono text-[11px] tabular-nums font-semibold"
+                className="font-mono text-[13px] tabular-nums font-semibold"
                 style={{ color: pnlUp ? 'var(--color-profit)' : 'var(--color-loss)' }}
               >
                 {pnlUp ? '+' : ''}{s.totalPnl.toFixed(2)}

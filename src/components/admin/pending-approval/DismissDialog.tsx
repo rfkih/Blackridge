@@ -103,7 +103,7 @@ export function DismissDialog({ row, onOpenChange }: DismissDialogProps) {
             className="flex w-full resize-none rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
           />
           {reason.length > 0 && !isValid && (
-            <p className="text-danger text-[12px]">
+            <p className="text-danger text-[14px]">
               {shortfall} more character{shortfall === 1 ? '' : 's'} required.
             </p>
           )}

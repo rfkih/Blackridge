@@ -141,7 +141,7 @@ export function DatePicker({
 
           <div className="flex items-center gap-1">
             <select
-              className="rounded border border-[var(--border-default)] bg-[var(--bg-elevated)] px-1.5 py-0.5 font-mono text-[11px] text-[var(--text-primary)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-primary)]"
+              className="rounded border border-[var(--border-default)] bg-[var(--bg-elevated)] px-1.5 py-0.5 font-mono text-[13px] text-[var(--text-primary)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-primary)]"
               value={viewDate.getMonth()}
               onChange={(e) =>
                 setViewDate((d) => {
@@ -158,7 +158,7 @@ export function DatePicker({
               ))}
             </select>
             <select
-              className="rounded border border-[var(--border-default)] bg-[var(--bg-elevated)] px-1.5 py-0.5 font-mono text-[11px] text-[var(--text-primary)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-primary)]"
+              className="rounded border border-[var(--border-default)] bg-[var(--bg-elevated)] px-1.5 py-0.5 font-mono text-[13px] text-[var(--text-primary)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-primary)]"
               value={viewDate.getFullYear()}
               onChange={(e) =>
                 setViewDate((d) => {
@@ -190,7 +190,7 @@ export function DatePicker({
           {DOW.map((d) => (
             <div
               key={d}
-              className="py-1 text-center font-mono text-[9px] uppercase tracking-wider text-[var(--text-muted)]"
+              className="py-1 text-center font-mono text-[12px] uppercase tracking-wider text-[var(--text-muted)]"
             >
               {d}
             </div>
@@ -207,7 +207,7 @@ export function DatePicker({
                 disabled={blocked}
                 onClick={() => handleSelect(d)}
                 className={cn(
-                  'h-7 rounded-sm font-mono text-[11px] tabular-nums transition-colors',
+                  'h-7 rounded-sm font-mono text-[13px] tabular-nums transition-colors',
                   'focus:outline-none focus:ring-1 focus:ring-[var(--accent-primary)]',
                   blocked && 'cursor-not-allowed opacity-30',
                   !blocked && !isSelected && 'hover:bg-[var(--bg-hover)]',
@@ -223,7 +223,7 @@ export function DatePicker({
           })}
         </div>
 
-        <div className="mt-2 flex items-center justify-between gap-2 border-t border-[var(--border-subtle)] pt-2 font-mono text-[10px] uppercase tracking-wider">
+        <div className="mt-2 flex items-center justify-between gap-2 border-t border-[var(--border-subtle)] pt-2 font-mono text-[12px] uppercase tracking-wider">
           <button
             type="button"
             onClick={() => {

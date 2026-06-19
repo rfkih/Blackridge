@@ -48,7 +48,7 @@ export function BacktestProgressBar({ run, className, onCancel, canceling }: Bac
           {isRunning && (
             <Loader2 size={14} className="animate-spin shrink-0 text-[var(--color-info)]" />
           )}
-          <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-[var(--text-secondary)]">
+          <span className="font-mono text-[12px] uppercase tracking-[0.22em] text-[var(--text-secondary)]">
             {isPending
               ? 'In Queue'
               : isRunning
@@ -68,14 +68,14 @@ export function BacktestProgressBar({ run, className, onCancel, canceling }: Bac
             }}
           >
             {displayPercent}
-            <span className="ml-0.5 text-[10px] text-[var(--text-muted)]">%</span>
+            <span className="ml-0.5 text-[12px] text-[var(--text-muted)]">%</span>
           </span>
           {onCancel && (isPending || isRunning) && (
             <button
               type="button"
               onClick={onCancel}
               disabled={canceling}
-              className="flex shrink-0 items-center gap-1 rounded-md border border-[var(--border-subtle)] px-2 py-1 text-[10px] uppercase tracking-[0.18em] text-[var(--text-secondary)] transition-colors hover:border-[rgba(229,72,77,0.5)] hover:text-[var(--color-loss)] disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex shrink-0 items-center gap-1 rounded-md border border-[var(--border-subtle)] px-2 py-1 text-[12px] uppercase tracking-[0.18em] text-[var(--text-secondary)] transition-colors hover:border-[rgba(229,72,77,0.5)] hover:text-[var(--color-loss)] disabled:cursor-not-allowed disabled:opacity-50"
             >
               {canceling ? (
                 <Loader2 size={11} className="animate-spin" />
@@ -111,7 +111,7 @@ export function BacktestProgressBar({ run, className, onCancel, canceling }: Bac
       </div>
 
       {(isPending || isRunning) && (
-        <p className="mt-2 text-[11px] text-[var(--text-muted)]">
+        <p className="mt-2 text-[13px] text-[var(--text-muted)]">
           {isPending
             ? 'Queued for execution — this run will start automatically when a slot is free.'
             : 'Iterating candles, running strategies, and persisting trades. Results appear below as soon as the run finishes.'}
@@ -119,7 +119,7 @@ export function BacktestProgressBar({ run, className, onCancel, canceling }: Bac
       )}
 
       {isFailed && run.errorMessage && (
-        <p className="mt-2 truncate text-[11px] text-[var(--color-loss)]" title={run.errorMessage}>
+        <p className="mt-2 truncate text-[13px] text-[var(--color-loss)]" title={run.errorMessage}>
           {run.errorMessage}
         </p>
       )}

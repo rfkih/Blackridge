@@ -61,16 +61,16 @@ export function StrategyParamPresetPanel({ strategy }: { strategy: AccountStrate
     <div className="flex flex-col gap-2 rounded-lg border border-bd-subtle bg-bg-surface px-4 py-2.5">
       <div className="flex flex-wrap items-center gap-3">
         <Sliders size={14} className="shrink-0 text-text-muted" aria-hidden="true" />
-        <span className="font-mono text-[10px] uppercase tracking-wider text-text-muted">
+        <span className="font-mono text-[12px] uppercase tracking-wider text-text-muted">
           Parameter preset
         </span>
 
         {isLoading ? (
           <Skeleton className="h-7 w-48" />
         ) : isError ? (
-          <span className="font-mono text-[11px] text-text-muted">Could not load presets.</span>
+          <span className="font-mono text-[13px] text-text-muted">Could not load presets.</span>
         ) : !presets || presets.length === 0 ? (
-          <span className="font-mono text-[11px] text-text-muted">
+          <span className="font-mono text-[13px] text-text-muted">
             No saved presets ·{' '}
             <Link href={manageHref} className="underline hover:text-text-primary">
               Manage presets →
@@ -78,15 +78,15 @@ export function StrategyParamPresetPanel({ strategy }: { strategy: AccountStrate
           </span>
         ) : presets.length === 1 ? (
           <>
-            <span className="font-mono text-[11px] text-text-primary">
+            <span className="font-mono text-[13px] text-text-primary">
               {active?.name ?? presets[0].name}
             </span>
-            <span className="font-mono text-[10px] text-text-muted">
+            <span className="font-mono text-[12px] text-text-muted">
               · {overrideSummary(active ?? presets[0])}
             </span>
             <Link
               href={manageHref}
-              className="ml-auto font-mono text-[10px] text-text-muted underline hover:text-text-primary"
+              className="ml-auto font-mono text-[12px] text-text-muted underline hover:text-text-primary"
             >
               Manage presets →
             </Link>
@@ -99,27 +99,27 @@ export function StrategyParamPresetPanel({ strategy }: { strategy: AccountStrate
               disabled={activate.isPending}
             >
               <SelectTrigger
-                className="h-7 w-[220px] font-mono text-[11px]"
+                className="h-7 w-[220px] font-mono text-[13px]"
                 aria-label="Parameter preset"
               >
                 <SelectValue placeholder="Select preset" />
               </SelectTrigger>
               <SelectContent>
                 {presets.map((p) => (
-                  <SelectItem key={p.paramId} value={p.paramId} className="font-mono text-[11px]">
+                  <SelectItem key={p.paramId} value={p.paramId} className="font-mono text-[13px]">
                     {p.name}
                     {p.sourceBacktestRunId ? ` · from run #${p.sourceBacktestRunId.slice(0, 8)}` : ''}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
-            <span className="font-mono text-[10px] text-text-muted">· {overrideSummary(active)}</span>
+            <span className="font-mono text-[12px] text-text-muted">· {overrideSummary(active)}</span>
             {activate.isPending && (
-              <span className="font-mono text-[10px] text-text-muted">Switching…</span>
+              <span className="font-mono text-[12px] text-text-muted">Switching…</span>
             )}
             <Link
               href={manageHref}
-              className="ml-auto font-mono text-[10px] text-text-muted underline hover:text-text-primary"
+              className="ml-auto font-mono text-[12px] text-text-muted underline hover:text-text-primary"
             >
               Manage presets →
             </Link>

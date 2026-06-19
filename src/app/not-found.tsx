@@ -13,7 +13,7 @@ export default function NotFound() {
     >
       <div className="flex items-center gap-3 text-[var(--text-muted)]">
         <Compass size={18} aria-hidden="true" />
-        <span className="font-mono text-[11px] uppercase tracking-widest">No such route</span>
+        <span className="font-mono text-[13px] uppercase tracking-widest">No such route</span>
       </div>
 
       <h1
@@ -25,7 +25,7 @@ export default function NotFound() {
 
       <div>
         <p className="font-display text-[18px] font-semibold text-text-primary">Page not found</p>
-        <p className="mt-1 max-w-md text-[13px] text-text-secondary">
+        <p className="mt-1 max-w-md text-[14px] text-text-secondary">
           The URL you tried doesn&apos;t map to any page in the dashboard. It may have been renamed,
           moved, or never existed.
         </p>
@@ -33,7 +33,7 @@ export default function NotFound() {
 
       <Link
         href="/"
-        className="inline-flex items-center gap-1.5 rounded-sm border border-bd-subtle bg-bg-base px-3 py-2 text-[12px] text-text-primary transition-colors hover:bg-bg-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-primary)]"
+        className="inline-flex items-center gap-1.5 rounded-sm border border-bd-subtle bg-bg-base px-3 py-2 text-[14px] text-text-primary transition-colors hover:bg-bg-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-primary)]"
       >
         <ArrowLeft size={12} strokeWidth={1.75} aria-hidden="true" />
         Back to dashboard

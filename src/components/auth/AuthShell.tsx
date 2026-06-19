@@ -94,7 +94,7 @@ export function AuthShell({
             </div>
             <div>
               <div style={{ fontWeight: 600 }}>Maya Chen</div>
-              <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.65)' }}>
+              <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.65)' }}>
                 Prop trader · Hong Kong
               </div>
             </div>
@@ -123,7 +123,7 @@ export function AuthShell({
             </span>
           </Link>
           {topRight && (
-            <span style={{ fontSize: 13, color: 'var(--text-secondary)', fontWeight: 500 }}>
+            <span style={{ fontSize: 14, color: 'var(--text-secondary)', fontWeight: 500 }}>
               {topRight.label}{' '}
               <Link
                 href={topRight.href}
@@ -139,7 +139,7 @@ export function AuthShell({
         {}
         {topRight && (
           <div
-            className="absolute right-8 top-8 hidden text-[13px] md:block"
+            className="absolute right-8 top-8 hidden text-[14px] md:block"
             style={{ color: 'var(--text-secondary)', fontWeight: 500 }}
           >
             {topRight.label}{' '}
@@ -208,7 +208,7 @@ function TrustStrip() {
   ] as const;
   return (
     <div
-      className="relative z-[1] flex flex-wrap gap-x-7 gap-y-2 text-[13px]"
+      className="relative z-[1] flex flex-wrap gap-x-7 gap-y-2 text-[14px]"
       style={{ color: 'rgba(255,255,255,0.7)' }}
     >
       {items.map(({ Icon, label }) => (

@@ -42,14 +42,14 @@ export function PnlBarChart({ data, height = 260 }: PnlBarChartProps) {
         className="rounded-md border border-[var(--border-default)] px-3 py-2 text-left"
         style={{ background: 'var(--bg-elevated)', minWidth: 150 }}
       >
-        <p className="mb-1 font-mono text-[10px] text-[var(--text-muted)]">{d.date}</p>
+        <p className="mb-1 font-mono text-[12px] text-[var(--text-muted)]">{d.date}</p>
         <p
           className="font-display text-sm font-semibold tabular-nums"
           style={{ color: up ? CHART_COLORS.profit : CHART_COLORS.loss }}
         >
           {formatCurrency(d.realizedPnl, { withSign: true })}
         </p>
-        <p className="mt-0.5 font-mono text-[11px] text-[var(--text-muted)]">
+        <p className="mt-0.5 font-mono text-[13px] text-[var(--text-muted)]">
           {d.tradeCount} trade{d.tradeCount === 1 ? '' : 's'}
         </p>
       </div>

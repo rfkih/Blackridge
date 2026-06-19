@@ -42,14 +42,14 @@ export default function SpecTracePage() {
 
       <div className="flex flex-wrap items-end gap-3 rounded-xl border border-bd-subtle bg-bg-surface px-3 py-3">
         <div className="flex flex-col gap-1">
-          <span className="text-[10px] uppercase tracking-widest text-text-muted">Scope</span>
+          <span className="text-[12px] uppercase tracking-widest text-text-muted">Scope</span>
           <div className="flex items-center gap-1">
             {(['backtest', 'live'] as const).map((s) => (
               <button
                 key={s}
                 type="button"
                 onClick={() => setScope(s)}
-                className="rounded-sm px-2 py-1 text-[12px] transition-colors"
+                className="rounded-sm px-2 py-1 text-[14px] transition-colors"
                 style={{
                   background: scope === s ? 'var(--bg-hover)' : 'transparent',
                   color: scope === s ? 'var(--text-primary)' : 'var(--text-secondary)',
@@ -65,7 +65,7 @@ export default function SpecTracePage() {
 
         {scope === 'backtest' ? (
           <label className="flex flex-col gap-1">
-            <span className="text-[10px] uppercase tracking-widest text-text-muted">
+            <span className="text-[12px] uppercase tracking-widest text-text-muted">
               backtest_run_id
             </span>
             <input
@@ -73,12 +73,12 @@ export default function SpecTracePage() {
               value={backtestRunId}
               onChange={(e) => setBacktestRunId(e.target.value)}
               placeholder="UUID"
-              className="w-[320px] rounded-sm border border-bd-subtle bg-bg-base px-2 py-1 font-mono text-[12px] text-text-primary"
+              className="w-[320px] rounded-sm border border-bd-subtle bg-bg-base px-2 py-1 font-mono text-[14px] text-text-primary"
             />
           </label>
         ) : (
           <label className="flex flex-col gap-1">
-            <span className="text-[10px] uppercase tracking-widest text-text-muted">
+            <span className="text-[12px] uppercase tracking-widest text-text-muted">
               account_strategy_id
             </span>
             <input
@@ -86,13 +86,13 @@ export default function SpecTracePage() {
               value={accountStrategyId}
               onChange={(e) => setAccountStrategyId(e.target.value)}
               placeholder="UUID"
-              className="w-[320px] rounded-sm border border-bd-subtle bg-bg-base px-2 py-1 font-mono text-[12px] text-text-primary"
+              className="w-[320px] rounded-sm border border-bd-subtle bg-bg-base px-2 py-1 font-mono text-[14px] text-text-primary"
             />
           </label>
         )}
 
         <label className="flex flex-col gap-1">
-          <span className="text-[10px] uppercase tracking-widest text-text-muted">
+          <span className="text-[12px] uppercase tracking-widest text-text-muted">
             strategy_code (optional)
           </span>
           <input
@@ -100,7 +100,7 @@ export default function SpecTracePage() {
             value={strategyCode}
             onChange={(e) => setStrategyCode(e.target.value)}
             placeholder="e.g. LSR"
-            className="w-[160px] rounded-sm border border-bd-subtle bg-bg-base px-2 py-1 font-mono text-[12px] text-text-primary"
+            className="w-[160px] rounded-sm border border-bd-subtle bg-bg-base px-2 py-1 font-mono text-[14px] text-text-primary"
           />
         </label>
 
@@ -108,7 +108,7 @@ export default function SpecTracePage() {
           type="button"
           onClick={apply}
           className="mm-pill"
-          style={{ padding: '8px 14px', fontSize: 12 }}
+          style={{ padding: '8px 14px', fontSize: 14 }}
         >
           Load
         </button>

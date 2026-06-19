@@ -71,7 +71,7 @@ export function ParamSection({
         </div>
         <span
           className={cn(
-            'font-mono text-[10px]',
+            'font-mono text-[12px]',
             overrideCount > 0 ? 'text-[var(--color-warning)]' : 'text-[var(--text-muted)]',
           )}
         >

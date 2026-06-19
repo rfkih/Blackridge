@@ -40,7 +40,7 @@ export function StartStrategyMenu({
         }}
         disabled={isPending}
         title="Activate in paper mode — decisions land in paper_trade_run, no Binance order."
-        className="inline-flex items-center gap-1.5 border-r border-[var(--border-subtle)] px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--color-warning)] transition-colors hover:bg-[rgba(245,166,35,0.10)] disabled:cursor-not-allowed disabled:opacity-50"
+        className="inline-flex items-center gap-1.5 border-r border-[var(--border-subtle)] px-2.5 py-1 font-mono text-[12px] uppercase tracking-[0.14em] text-[var(--color-warning)] transition-colors hover:bg-[rgba(245,166,35,0.10)] disabled:cursor-not-allowed disabled:opacity-50"
       >
         {isPending ? (
           <Loader2 size={11} className="animate-spin" />
@@ -68,7 +68,7 @@ export function StartStrategyMenu({
           align="end"
           className="border-[var(--border-default)] bg-[var(--bg-surface)] text-[var(--text-primary)]"
         >
-          <DropdownMenuLabel className="font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--text-muted)]">
+          <DropdownMenuLabel className="font-mono text-[12px] uppercase tracking-[0.14em] text-[var(--text-muted)]">
             Activation mode
           </DropdownMenuLabel>
           <DropdownMenuItem
@@ -78,8 +78,8 @@ export function StartStrategyMenu({
           >
             <FlaskConical size={13} className="text-[var(--color-warning)]" />
             <div className="flex flex-col">
-              <span className="text-[12px] font-semibold">Start as paper</span>
-              <span className="text-[10px] text-[var(--text-muted)]">
+              <span className="text-[14px] font-semibold">Start as paper</span>
+              <span className="text-[12px] text-[var(--text-muted)]">
                 Simulated · no Binance orders
               </span>
             </div>
@@ -92,10 +92,10 @@ export function StartStrategyMenu({
           >
             <TrendingUp size={13} className="text-[var(--color-profit)]" />
             <div className="flex flex-col">
-              <span className="text-[12px] font-semibold text-[var(--color-profit)]">
+              <span className="text-[14px] font-semibold text-[var(--color-profit)]">
                 Start as live
               </span>
-              <span className="text-[10px] text-[var(--text-muted)]">
+              <span className="text-[12px] text-[var(--text-muted)]">
                 Real Binance orders · confirms first
               </span>
             </div>
@@ -139,7 +139,7 @@ export function SwitchModeButton({
         }}
         disabled={isPending}
         title="Promote to live — places real Binance orders on the next closed candle."
-        className="border-[var(--color-profit)]/60 inline-flex items-center gap-1.5 rounded-md border bg-[var(--bg-elevated)] px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--color-profit)] transition-colors hover:bg-[rgba(22,179,100,0.10)] disabled:cursor-not-allowed disabled:opacity-50"
+        className="border-[var(--color-profit)]/60 inline-flex items-center gap-1.5 rounded-md border bg-[var(--bg-elevated)] px-2.5 py-1 font-mono text-[12px] uppercase tracking-[0.14em] text-[var(--color-profit)] transition-colors hover:bg-[rgba(22,179,100,0.10)] disabled:cursor-not-allowed disabled:opacity-50"
       >
         {isPending ? (
           <Loader2 size={11} className="animate-spin" />
@@ -161,7 +161,7 @@ export function SwitchModeButton({
       }}
       disabled={isPending}
       title="Demote to paper — open positions still close real; new entries divert to paper_trade_run."
-      className="border-[var(--color-warning)]/60 inline-flex items-center gap-1.5 rounded-md border bg-[var(--bg-elevated)] px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--color-warning)] transition-colors hover:bg-[rgba(245,166,35,0.10)] disabled:cursor-not-allowed disabled:opacity-50"
+      className="border-[var(--color-warning)]/60 inline-flex items-center gap-1.5 rounded-md border bg-[var(--bg-elevated)] px-2.5 py-1 font-mono text-[12px] uppercase tracking-[0.14em] text-[var(--color-warning)] transition-colors hover:bg-[rgba(245,166,35,0.10)] disabled:cursor-not-allowed disabled:opacity-50"
     >
       {isPending ? (
         <Loader2 size={11} className="animate-spin" />

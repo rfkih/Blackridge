@@ -40,7 +40,7 @@ export function BacktestMonthlyReturns({ points, isLoading }: BacktestMonthlyRet
       <h3
         className="font-display"
         style={{
-          fontSize: 14,
+          fontSize: 15,
           fontWeight: 700,
           margin: 0,
           marginBottom: 16,
@@ -56,7 +56,7 @@ export function BacktestMonthlyReturns({ points, isLoading }: BacktestMonthlyRet
         <div
           style={{
             padding: '24px 0',
-            fontSize: 12,
+            fontSize: 14,
             color: 'var(--mm-ink-2)',
             textAlign: 'center',
           }}
@@ -78,7 +78,7 @@ export function BacktestMonthlyReturns({ points, isLoading }: BacktestMonthlyRet
                 key={i}
                 className="font-mono"
                 style={{
-                  fontSize: 10,
+                  fontSize: 12,
                   color: 'var(--mm-ink-2)',
                   textAlign: 'center',
                   paddingBottom: 4,
@@ -101,7 +101,7 @@ export function BacktestMonthlyReturns({ points, isLoading }: BacktestMonthlyRet
               marginTop: 14,
               paddingTop: 12,
               borderTop: '1px solid var(--mm-hair)',
-              fontSize: 11,
+              fontSize: 13,
               color: 'var(--mm-ink-2)',
               flexWrap: 'wrap',
             }}
@@ -137,7 +137,7 @@ function YearRow({ year, cells }: { year: number; cells: Array<MonthlyCell> }) {
       <div
         className="font-mono"
         style={{
-          fontSize: 11,
+          fontSize: 13,
           color: 'var(--mm-ink-2)',
           display: 'flex',
           alignItems: 'center',
@@ -164,7 +164,7 @@ function Cell({ value }: { value: number | null }) {
         color: fg,
         display: 'grid',
         placeItems: 'center',
-        fontSize: 9,
+        fontSize: 12,
         fontWeight: 700,
       }}
     >

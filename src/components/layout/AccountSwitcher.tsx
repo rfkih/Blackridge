@@ -52,7 +52,7 @@ export function AccountSwitcher() {
           type="button"
           onClick={() => setNewOpen(true)}
           className={cn(
-            'inline-flex h-7 items-center gap-1.5 rounded-md border border-dashed px-2.5 text-[11px] transition-colors',
+            'inline-flex h-7 items-center gap-1.5 rounded-md border border-dashed px-2.5 text-[13px] transition-colors',
             'border-[var(--border-default)] text-[var(--text-muted)]',
             'hover:border-[var(--color-profit)] hover:text-[var(--color-profit)]',
             'focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-primary)]',
@@ -98,9 +98,9 @@ export function AccountSwitcher() {
           >
             <AccountAvatar account={activeAccount} isAll={isAll} />
             <span className="flex min-w-0 flex-col items-start leading-tight">
-              <span className="truncate text-[11px] font-medium">{triggerLabel}</span>
+              <span className="truncate text-[13px] font-medium">{triggerLabel}</span>
               {triggerSubtle && (
-                <span className="truncate font-mono text-[9px] text-text-muted">
+                <span className="truncate font-mono text-[12px] text-text-muted">
                   {triggerSubtle}
                 </span>
               )}
@@ -113,7 +113,7 @@ export function AccountSwitcher() {
         </DropdownMenuTrigger>
 
         <DropdownMenuContent align="end" className="min-w-[240px]">
-          <DropdownMenuLabel className="label-caps !text-[10px]">Account context</DropdownMenuLabel>
+          <DropdownMenuLabel className="label-caps !text-[12px]">Account context</DropdownMenuLabel>
 
           {hasMultiple && (
             <>
@@ -153,7 +153,7 @@ export function AccountSwitcher() {
               event.preventDefault();
               setNewOpen(true);
             }}
-            className="flex cursor-pointer items-center gap-2.5 px-2 py-1.5 text-[12px] text-[var(--color-profit)]"
+            className="flex cursor-pointer items-center gap-2.5 px-2 py-1.5 text-[14px] text-[var(--color-profit)]"
           >
             <span
               className="flex size-5 shrink-0 items-center justify-center rounded-sm"
@@ -185,7 +185,7 @@ function AccountAvatar({ account, isAll }: { account: AccountSummary | null; isA
   return (
     <span
       className={cn(
-        'flex size-5 shrink-0 items-center justify-center rounded-sm font-mono text-[9px] font-semibold',
+        'flex size-5 shrink-0 items-center justify-center rounded-sm font-mono text-[12px] font-semibold',
         account.active ? 'bg-tint-profit text-profit' : 'bg-bg-hover text-text-muted',
       )}
       aria-hidden="true"
@@ -218,7 +218,7 @@ function AccountOption({
     <DropdownMenuItem
       onSelect={onSelect}
       className={cn(
-        'flex cursor-pointer items-center gap-2.5 px-2 py-1.5 text-[12px]',
+        'flex cursor-pointer items-center gap-2.5 px-2 py-1.5 text-[14px]',
         selected ? 'bg-bg-hover' : '',
       )}
     >
@@ -228,15 +228,15 @@ function AccountOption({
           <span className="truncate font-medium text-text-primary">{label}</span>
           {accountType && <AccountTypeBadge type={accountType} className="shrink-0" />}
           {active === false && (
-            <span className="rounded-sm bg-tint-loss px-1 py-px font-mono text-[9px] text-loss">
+            <span className="rounded-sm bg-tint-loss px-1 py-px font-mono text-[12px] text-loss">
               inactive
             </span>
           )}
         </div>
-        <span className="truncate font-mono text-[9px] text-text-muted">{subtitle}</span>
+        <span className="truncate font-mono text-[12px] text-text-muted">{subtitle}</span>
       </div>
       <div className="flex shrink-0 items-center gap-2">
-        <span className="font-mono text-[10px] text-text-muted">{count}</span>
+        <span className="font-mono text-[12px] text-text-muted">{count}</span>
         {selected ? (
           <Check size={12} strokeWidth={2} className="text-profit" />
         ) : (

@@ -116,12 +116,12 @@ function CardHeader({
 }) {
   return (
     <div className="flex items-center justify-between border-b border-bd-subtle px-4 py-3">
-      <h3 className="inline-flex items-center gap-2 font-display text-[13px] font-semibold text-text-primary">
+      <h3 className="inline-flex items-center gap-2 font-display text-[14px] font-semibold text-text-primary">
         <Microscope size={14} strokeWidth={1.75} className="text-[var(--accent-primary)]" />
         Research Analysis
       </h3>
       {(version || asset || interval) && (
-        <span className="font-mono text-[10px] uppercase tracking-wider text-text-muted">
+        <span className="font-mono text-[12px] uppercase tracking-wider text-text-muted">
           {[version, asset, interval].filter(Boolean).join(' · ')}
         </span>
       )}
@@ -209,9 +209,9 @@ function Stat({
       className="rounded-sm border border-bd-subtle bg-bg-base px-3 py-2"
       style={{ minWidth: 0 }}
     >
-      <div className="label-caps !text-[9px]">{label}</div>
+      <div className="label-caps !text-[12px]">{label}</div>
       <div
-        className="num mt-0.5 truncate text-[14px] font-semibold tabular-nums"
+        className="num mt-0.5 truncate text-[15px] font-semibold tabular-nums"
         style={{ color }}
       >
         {value}
@@ -232,14 +232,14 @@ function BucketTable({ bucketKey, rows }: { bucketKey: string; rows: BucketRow[]
   if (rows.length === 0) return null;
   return (
     <div className="rounded-sm border border-bd-subtle bg-bg-base">
-      <div className="border-b border-bd-subtle px-3 py-2 font-mono text-[10px] uppercase tracking-wider text-text-secondary">
+      <div className="border-b border-bd-subtle px-3 py-2 font-mono text-[12px] uppercase tracking-wider text-text-secondary">
         {BUCKET_LABELS[bucketKey] ?? bucketKey}
       </div>
-      <div className="grid grid-cols-[1fr_auto_auto_auto] gap-x-3 gap-y-1 px-3 py-2 text-[11px]">
-        <div className="label-caps !text-[9px]">Range</div>
-        <div className="label-caps !text-[9px] text-right">n</div>
-        <div className="label-caps !text-[9px] text-right">WR</div>
-        <div className="label-caps !text-[9px] text-right">Total</div>
+      <div className="grid grid-cols-[1fr_auto_auto_auto] gap-x-3 gap-y-1 px-3 py-2 text-[13px]">
+        <div className="label-caps !text-[12px]">Range</div>
+        <div className="label-caps !text-[12px] text-right">n</div>
+        <div className="label-caps !text-[12px] text-right">WR</div>
+        <div className="label-caps !text-[12px] text-right">Total</div>
         {rows.map((row, idx) => {
           const wr = row.winRate * 100;
           const wrColor = row.winRate >= 0.5 ? 'var(--color-profit)' : 'var(--color-loss)';
@@ -304,8 +304,8 @@ function MfeBlock({ mfe }: { mfe: MfeCapture }) {
 function MfeStat({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-sm border border-bd-subtle bg-bg-base px-3 py-2">
-      <div className="label-caps !text-[9px]">{label}</div>
-      <div className="num mt-0.5 text-[13px] font-semibold tabular-nums text-text-primary">
+      <div className="label-caps !text-[12px]">{label}</div>
+      <div className="num mt-0.5 text-[14px] font-semibold tabular-nums text-text-primary">
         {value}
       </div>
     </div>
@@ -326,7 +326,7 @@ function TradesList({
   return (
     <div className="rounded-sm border border-bd-subtle bg-bg-base">
       <div
-        className="border-b border-bd-subtle px-3 py-2 font-mono text-[10px] uppercase tracking-wider"
+        className="border-b border-bd-subtle px-3 py-2 font-mono text-[12px] uppercase tracking-wider"
         style={{ color: headerColor }}
       >
         {label}
@@ -343,7 +343,7 @@ function TradesList({
 function TradeRow({ t }: { t: TradeSnapshot }) {
   const pnlColor = t.pnl >= 0 ? 'var(--color-profit)' : 'var(--color-loss)';
   return (
-    <div className="px-3 py-2 text-[11px]">
+    <div className="px-3 py-2 text-[13px]">
       <div className="flex items-center justify-between gap-2">
         <span className="font-mono text-text-muted">
           {t.entryTime != null ? formatDate(Date.parse(t.entryTime)) : '—'}

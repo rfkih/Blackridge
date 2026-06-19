@@ -271,7 +271,7 @@ export default function BacktestResultPage({ params }: { params: { id: string } 
           </p>
           <Link
             href="/backtest"
-            className="mt-4 inline-flex items-center gap-1.5 rounded-sm border border-bd-subtle bg-bg-base px-3 py-2 text-[12px] text-text-primary transition-colors duration-fast hover:bg-bg-hover"
+            className="mt-4 inline-flex items-center gap-1.5 rounded-sm border border-bd-subtle bg-bg-base px-3 py-2 text-[14px] text-text-primary transition-colors duration-fast hover:bg-bg-hover"
           >
             <ArrowLeft size={12} strokeWidth={1.75} /> Back to runs
           </Link>
@@ -389,14 +389,14 @@ export default function BacktestResultPage({ params }: { params: { id: string } 
 
       <section className="overflow-hidden rounded-xl border border-bd-subtle bg-bg-surface shadow-panel">
         <div className="flex items-center justify-between border-b border-bd-subtle px-4 py-3">
-          <h3 className="font-display text-[13px] font-semibold text-text-primary">
+          <h3 className="font-display text-[14px] font-semibold text-text-primary">
             {isHedging(runQ.data?.strategyKind) ? 'Allocation Switches' : 'Trade Execution'}
           </h3>
           <div className="flex items-center gap-3">
             <button
               type="button"
               onClick={() => setIndicatorPanelOpen((o) => !o)}
-              className="font-mono text-[10px] uppercase tracking-wider text-text-muted hover:text-text-primary"
+              className="font-mono text-[12px] uppercase tracking-wider text-text-muted hover:text-text-primary"
             >
               {indicatorPanelOpen ? 'Hide indicators' : 'Indicators'}
             </button>
@@ -404,7 +404,7 @@ export default function BacktestResultPage({ params }: { params: { id: string } 
               <button
                 type="button"
                 onClick={() => handleTableSelect(null)}
-                className="font-mono text-[10px] uppercase tracking-wider text-text-muted hover:text-text-primary"
+                className="font-mono text-[12px] uppercase tracking-wider text-text-muted hover:text-text-primary"
               >
                 Clear selection
               </button>
@@ -443,9 +443,9 @@ export default function BacktestResultPage({ params }: { params: { id: string } 
 
       <section className="space-y-2">
         <div className="flex items-baseline justify-between">
-          <h3 className="font-display text-[14px] font-semibold text-text-primary">
+          <h3 className="font-display text-[15px] font-semibold text-text-primary">
             Trades{' '}
-            <span className="ml-1 font-mono text-[11px] text-text-muted">
+            <span className="ml-1 font-mono text-[13px] text-text-muted">
               {(tradesQ.data?.length ?? 0).toLocaleString()} total
             </span>
           </h3>
@@ -505,7 +505,7 @@ function ResultHeader({
       <div className="min-w-0">
         <Link
           href="/backtest"
-          className="inline-flex items-center gap-1 text-[11px] text-text-muted transition-colors hover:text-text-primary"
+          className="inline-flex items-center gap-1 text-[13px] text-text-muted transition-colors hover:text-text-primary"
         >
           <ArrowLeft size={12} strokeWidth={1.75} /> Back to runs
         </Link>
@@ -516,7 +516,7 @@ function ResultHeader({
             ) : (
               <>
                 Run{' '}
-                <span className="font-mono text-[14px] text-text-muted">
+                <span className="font-mono text-[15px] text-text-muted">
                   #{run?.id.slice(0, 8) ?? '—'}
                 </span>
               </>
@@ -525,7 +525,7 @@ function ResultHeader({
           <RunStatusPill status={run?.status} />
           {run && <RunSourceBadge source={run.triggeredBy} size="md" />}
         </div>
-        <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] text-text-secondary">
+        <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[14px] text-text-secondary">
           {codes.length === 0 ? (
             isLoading ? (
               <Skeleton className="h-5 w-24" />
@@ -554,11 +554,11 @@ function ResultHeader({
           (liveSourceStrategies.length > 0 ? (
             <div className="border-[var(--color-profit)]/30 bg-[var(--color-profit)]/5 inline-flex items-center gap-2 rounded-full border px-3 py-2">
               <Zap size={13} strokeWidth={2} className="text-[var(--color-profit)]/70 shrink-0" />
-              <span className="text-[12px] text-[var(--text-secondary)]">Active strategy</span>
+              <span className="text-[14px] text-[var(--text-secondary)]">Active strategy</span>
               <span className="h-3 w-px bg-[var(--border-subtle)]" aria-hidden />
               <Link
                 href={`/strategies/${liveSourceStrategies[0].id}`}
-                className="inline-flex items-center gap-1 font-mono text-[12px] text-[var(--color-profit)] hover:underline"
+                className="inline-flex items-center gap-1 font-mono text-[14px] text-[var(--color-profit)] hover:underline"
               >
                 {liveSourceStrategies[0].strategyCode} · {liveSourceStrategies[0].symbol}
                 {liveSourceStrategies.length > 1 && (
@@ -574,7 +574,7 @@ function ResultHeader({
               type="button"
               onClick={onActivate}
               className={cn(
-                'inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-4 py-2 text-[13px] font-semibold',
+                'inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-4 py-2 text-[14px] font-semibold',
                 'bg-profit text-text-inverse transition-opacity hover:opacity-90',
               )}
             >
@@ -590,7 +590,7 @@ function ResultHeader({
             'mm-btn inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap',
             'disabled:cursor-not-allowed disabled:opacity-60',
           )}
-          style={{ borderRadius: 9999, padding: '9px 16px', fontSize: 13 }}
+          style={{ borderRadius: 9999, padding: '9px 16px', fontSize: 14 }}
         >
           <PlayCircle size={14} strokeWidth={2} />
           Re-run with these params
@@ -630,11 +630,11 @@ function RunConfigPanel({ run }: { run: BacktestRun }) {
     <section className="overflow-hidden rounded-xl border border-bd-subtle bg-bg-surface shadow-panel">
       <div className="flex items-center gap-2 border-b border-bd-subtle px-4 py-2.5">
         <Scale size={13} className="shrink-0 text-text-muted" />
-        <h3 className="font-mono text-[10px] uppercase tracking-wider text-text-muted">
+        <h3 className="font-mono text-[12px] uppercase tracking-wider text-text-muted">
           Position sizing
         </h3>
         {run.maxConcurrentStrategies != null && run.maxConcurrentStrategies > 1 && (
-          <span className="ml-auto font-mono text-[10px] text-text-muted">
+          <span className="ml-auto font-mono text-[12px] text-text-muted">
             max {run.maxConcurrentStrategies} concurrent
           </span>
         )}
@@ -657,7 +657,7 @@ function RunConfigPanel({ run }: { run: BacktestRun }) {
           return (
             <div
               key={code}
-              className="flex flex-wrap items-center gap-x-6 gap-y-1 px-4 py-2.5 text-[12px]"
+              className="flex flex-wrap items-center gap-x-6 gap-y-1 px-4 py-2.5 text-[14px]"
             >
               {codes.length > 1 && (
                 <span className="w-16 font-mono font-semibold text-text-primary">{code}</span>
@@ -670,7 +670,7 @@ function RunConfigPanel({ run }: { run: BacktestRun }) {
                   </span>
                 </span>
               ) : (
-                <span className="font-mono text-[11px] text-text-muted">default allocation</span>
+                <span className="font-mono text-[13px] text-text-muted">default allocation</span>
               )}
               {riskPct != null && (
                 <span className="text-text-secondary">
@@ -709,7 +709,7 @@ function RunStatusPill({ status }: { status: string | undefined }) {
   })();
   return (
     <span
-      className="inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wider"
+      className="inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 font-mono text-[12px] font-semibold uppercase tracking-wider"
       style={{ backgroundColor: style.bg, color: style.fg }}
     >
       <span
@@ -764,7 +764,7 @@ function ErrorState({ message, onRetry }: { message: string; onRetry: () => void
       <button
         type="button"
         onClick={onRetry}
-        className="inline-flex items-center gap-1.5 rounded-sm border border-bd-subtle bg-bg-base px-3 py-1.5 text-[11px] text-text-primary transition-colors hover:bg-bg-hover"
+        className="inline-flex items-center gap-1.5 rounded-sm border border-bd-subtle bg-bg-base px-3 py-1.5 text-[13px] text-text-primary transition-colors hover:bg-bg-hover"
       >
         <RefreshCw size={12} /> Retry
       </button>
@@ -796,15 +796,15 @@ function ReproducibilityPanel({ run }: { run: BacktestRun }) {
   return (
     <section className="rounded-xl border border-bd-subtle bg-bg-surface shadow-panel">
       <div className="border-b border-bd-subtle px-4 py-3">
-        <h3 className="font-display text-[13px] font-semibold text-text-primary">
+        <h3 className="font-display text-[14px] font-semibold text-text-primary">
           Reproducibility
         </h3>
-        <p className="mt-0.5 text-[11px] text-text-muted">
+        <p className="mt-0.5 text-[13px] text-text-muted">
           Manifest captured at submission. With these values + the strategy code, this run can be
           replayed identically.
         </p>
       </div>
-      <dl className="grid grid-cols-2 gap-x-6 gap-y-3 px-4 py-3 text-[12px] sm:grid-cols-4">
+      <dl className="grid grid-cols-2 gap-x-6 gap-y-3 px-4 py-3 text-[14px] sm:grid-cols-4">
         <ManifestField label="Git SHA" mono title={sha}>
           {shortSha}
         </ManifestField>
@@ -824,7 +824,7 @@ function ReproducibilityPanel({ run }: { run: BacktestRun }) {
       </dl>
       {overrideEntries.length > 0 && (
         <div className="border-t border-bd-subtle px-4 py-3">
-          <p className="mb-2 font-mono text-[9px] uppercase tracking-wider text-text-muted">
+          <p className="mb-2 font-mono text-[12px] uppercase tracking-wider text-text-muted">
             Override values{' '}
             <span className="text-text-muted/70 ml-1 normal-case">(deltas vs defaults)</span>
           </p>
@@ -833,7 +833,7 @@ function ReproducibilityPanel({ run }: { run: BacktestRun }) {
       )}
       {effectiveEntries.length > 0 && (
         <details className="border-t border-bd-subtle px-4 py-3">
-          <summary className="cursor-pointer select-none font-mono text-[9px] uppercase tracking-wider text-text-muted">
+          <summary className="cursor-pointer select-none font-mono text-[12px] uppercase tracking-wider text-text-muted">
             Effective params{' '}
             <span className="text-text-muted/70 normal-case">
               ({effectiveCount} key{effectiveCount === 1 ? '' : 's'}, defaults + overrides — what
@@ -854,8 +854,8 @@ function ParamSnapshotTables({ entries }: { entries: Array<[string, Record<strin
     <div className="space-y-3">
       {entries.map(([code, kv]) => (
         <div key={code}>
-          <p className="font-mono text-[11px] font-semibold text-text-primary">{code}</p>
-          <table className="mt-1 w-full font-mono text-[11px]">
+          <p className="font-mono text-[13px] font-semibold text-text-primary">{code}</p>
+          <table className="mt-1 w-full font-mono text-[13px]">
             <tbody>
               {Object.entries(kv).map(([k, v]) => (
                 <tr key={k} className="border-bd-subtle/60 border-t">
@@ -896,7 +896,7 @@ function ManifestField({
 }) {
   return (
     <div className="flex flex-col gap-1">
-      <dt className="font-mono text-[9px] uppercase tracking-wider text-text-muted">{label}</dt>
+      <dt className="font-mono text-[12px] uppercase tracking-wider text-text-muted">{label}</dt>
       <dd className={cn('text-text-primary', mono && 'font-mono')} title={title}>
         {children}
       </dd>
