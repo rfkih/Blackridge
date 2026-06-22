@@ -4,6 +4,45 @@ import type { EpochMs, UUID } from './api';
 export type TradeDirection = 'LONG' | 'SHORT';
 export type TradeStatus = 'OPEN' | 'PARTIALLY_CLOSED' | 'CLOSED';
 
+/** Lifecycle of a delta-neutral carry pair (long-spot + short-perp). */
+export type CarryStatus =
+  | 'PENDING'
+  | 'OPENING'
+  | 'OPEN'
+  | 'REBALANCING'
+  | 'CLOSING'
+  | 'CLOSED'
+  | 'FAILED';
+
+/**
+ * One delta-neutral carry pair from `GET /api/v1/carry/pairs`. Persisted legs +
+ * a live mark and a P&L decomposition: `fundingPnl` is the carry edge,
+ * `unrealizedPnl` is basis drift across the two legs, `totalPnl = funding + basis`.
+ * `netDeltaBase` (spotQty - perpQty) ~ 0 means the hedge is balanced.
+ */
+export interface CarryPair {
+  id: UUID;
+  accountId: UUID;
+  accountStrategyId: UUID;
+  symbol: string;
+  status: CarryStatus;
+  simulated: boolean;
+  spotSide: string;
+  spotQty: number;
+  spotEntryPrice: number;
+  perpSide: string;
+  perpQty: number;
+  perpEntryPrice: number;
+  perpLeverage: number | null;
+  fundingPnl: number;
+  markPrice: number | null;
+  unrealizedPnl: number | null;
+  totalPnl: number | null;
+  netDeltaBase: number | null;
+  lastRebalanceAt: string | null;
+  createdAt: string | null;
+}
+
 /**
  * One row of the per-user execution feed (`GET /api/v1/trade-executions`) —
  * a real-money execution outcome for one of the caller's accounts. Paper

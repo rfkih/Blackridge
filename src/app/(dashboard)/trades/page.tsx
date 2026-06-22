@@ -32,6 +32,7 @@ import { useActiveAccount } from '@/hooks/useAccounts';
 import { useAccountView } from '@/lib/accountType/registry';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ExecutionHistoryTab } from '@/components/trades/execution/ExecutionHistoryTab';
+import { CarryBookTab } from '@/components/trades/carry/CarryBookTab';
 import { TradeHistoryChart } from '@/components/trades/TradeHistoryChart';
 import { RebalanceHistory } from '@/components/hedging/RebalanceHistory';
 import { usePositionStore } from '@/store/positionStore';
@@ -171,6 +172,7 @@ export default function TradesPage() {
         <TabsList className="self-start bg-[var(--bg-elevated)]">
           <TabsTrigger value="journal">{isHedging ? 'Rebalances' : 'Journal'}</TabsTrigger>
           <TabsTrigger value="executions">Execution History</TabsTrigger>
+          <TabsTrigger value="carry">Carry Book</TabsTrigger>
         </TabsList>
 
         <TabsContent value="journal">
@@ -179,6 +181,10 @@ export default function TradesPage() {
 
         <TabsContent value="executions">
           <ExecutionHistoryTab accountId={scopedAccountId} />
+        </TabsContent>
+
+        <TabsContent value="carry">
+          <CarryBookTab />
         </TabsContent>
       </Tabs>
     </Suspense>
