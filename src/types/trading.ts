@@ -12,7 +12,10 @@ export type CarryStatus =
   | 'REBALANCING'
   | 'CLOSING'
   | 'CLOSED'
-  | 'FAILED';
+  | 'FAILED'
+  // Sentinel for a status the frontend doesn't recognize — treated as live/needs-attention,
+  // never silently bucketed as terminal (so a renamed backend status can't hide a live pair).
+  | 'UNKNOWN';
 
 /**
  * One delta-neutral carry pair from `GET /api/v1/carry/pairs`. Persisted legs +
@@ -34,6 +37,7 @@ export interface CarryPair {
   perpQty: number;
   perpEntryPrice: number;
   perpLeverage: number | null;
+  rebalanceBandPct: number | null;
   fundingPnl: number;
   markPrice: number | null;
   unrealizedPnl: number | null;

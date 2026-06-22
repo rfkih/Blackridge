@@ -19,6 +19,7 @@ interface BackendCarryPair {
   perpQty: number | string | null;
   perpEntryPrice: number | string | null;
   perpLeverage: number | string | null;
+  rebalanceBandPct: number | string | null;
   fundingPnl: number | string | null;
   markPrice: number | string | null;
   unrealizedPnl: number | string | null;
@@ -40,7 +41,9 @@ const CARRY_STATUSES: CarryStatus[] = [
 
 function narrowStatus(v: string | null | undefined): CarryStatus {
   const up = (v ?? '').toUpperCase();
-  return (CARRY_STATUSES as string[]).includes(up) ? (up as CarryStatus) : 'CLOSED';
+  // Fail OPEN: an unrecognized/renamed backend status becomes UNKNOWN (treated as
+  // live/needs-attention), never silently CLOSED — so a live pair can't vanish from the book.
+  return (CARRY_STATUSES as string[]).includes(up) ? (up as CarryStatus) : 'UNKNOWN';
 }
 
 function mapCarryPair(c: BackendCarryPair): CarryPair {
@@ -58,6 +61,7 @@ function mapCarryPair(c: BackendCarryPair): CarryPair {
     perpQty: toNum(c.perpQty),
     perpEntryPrice: toNum(c.perpEntryPrice),
     perpLeverage: toNumOrNull(c.perpLeverage),
+    rebalanceBandPct: toNumOrNull(c.rebalanceBandPct),
     fundingPnl: toNum(c.fundingPnl),
     markPrice: toNumOrNull(c.markPrice),
     unrealizedPnl: toNumOrNull(c.unrealizedPnl),

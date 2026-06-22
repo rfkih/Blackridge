@@ -14,6 +14,7 @@ export function useCarryPairs() {
     queryKey: ['carry', 'pairs'],
     queryFn: getCarryPairs,
     staleTime: QUERY_STALE_TIMES.openPositions,
+    refetchInterval: 30_000, // keep the live mark / MTM fresh while the tab is open
     placeholderData: (prev) => prev,
   });
 }

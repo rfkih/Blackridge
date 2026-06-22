@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils';
 import type { CarryPair } from '@/types/trading';
 import { CarryBookTable } from './CarryBookTable';
 
-const LIVE_STATES = new Set(['PENDING', 'OPENING', 'OPEN', 'REBALANCING', 'CLOSING']);
+const LIVE_STATES = new Set(['PENDING', 'OPENING', 'OPEN', 'REBALANCING', 'CLOSING', 'UNKNOWN']);
 const isLive = (p: CarryPair) => LIVE_STATES.has(p.status);
 
 type Tone = 'profit' | 'loss' | 'warning' | 'neutral';

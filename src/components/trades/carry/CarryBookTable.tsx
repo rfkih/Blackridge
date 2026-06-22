@@ -6,7 +6,7 @@ import type { ColumnDef } from '@tanstack/react-table';
 import { DataTable } from '@/components/shared/DataTable';
 import { PnlCell } from '@/components/shared/PnlCell';
 import { PriceCell } from '@/components/shared/PriceCell';
-import { formatDate } from '@/lib/formatters';
+import { formatDate, parseIsoUtc } from '@/lib/formatters';
 import type { CarryPair, CarryStatus } from '@/types/trading';
 import { DeltaMeter } from './DeltaMeter';
 
@@ -18,6 +18,7 @@ const STATUS_STYLE: Record<CarryStatus, { bg: string; fg: string }> = {
   CLOSING: { bg: 'var(--tint-warning)', fg: 'var(--color-warning)' },
   CLOSED: { bg: 'var(--bg-elevated)', fg: 'var(--text-muted)' },
   FAILED: { bg: 'var(--tint-loss)', fg: 'var(--color-loss)' },
+  UNKNOWN: { bg: 'var(--tint-warning)', fg: 'var(--color-warning)' },
 };
 
 function StatusPill({ status }: { status: CarryStatus }) {
@@ -95,7 +96,11 @@ export function CarryBookTable({
         id: 'hedge',
         header: 'Hedge (Δ)',
         cell: ({ row }) => (
-          <DeltaMeter spotQty={row.original.spotQty} perpQty={row.original.perpQty} />
+          <DeltaMeter
+            spotQty={row.original.spotQty}
+            perpQty={row.original.perpQty}
+            bandPct={row.original.rebalanceBandPct ?? undefined}
+          />
         ),
       },
       {
@@ -151,7 +156,7 @@ export function CarryBookTable({
         header: 'Opened',
         cell: ({ row }) => (
           <span className="text-[12px] text-text-secondary">
-            {row.original.createdAt ? formatDate(new Date(row.original.createdAt).getTime()) : '—'}
+            {row.original.createdAt ? formatDate(parseIsoUtc(row.original.createdAt)) : '—'}
           </span>
         ),
       },
