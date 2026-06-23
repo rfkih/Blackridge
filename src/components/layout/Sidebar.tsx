@@ -100,6 +100,7 @@ const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
       { label: 'Inbox', href: '/admin/inbox', icon: Inbox },
       { label: 'Alerts', href: '/admin/alerts', icon: Bell },
       { label: 'Errors', href: '/admin/errors', icon: AlertOctagon },
+      { label: 'Loop Reports', href: '/admin/loop-reports', icon: FileText },
     ],
   },
   {
