@@ -85,11 +85,14 @@
 [data-theme='dark'] {
   color-scheme: dark;
 
-  /* Surfaces — softer than pure black to keep dashboards comfortable
-     for long sessions. */
+  /* Surfaces — softer than pure black to keep dashboards comfortable for long
+     sessions. UNIFIED 2026-06-24 to the mm-* ramp so shadcn-token panels match
+     the dashboard's mm-card panels exactly: bg-surface == --mm-surface (#171b22,
+     was one shade darker at #14181f) and bg-elevated bumped to --mm-surface-2 so
+     modals/dropdowns still float above the lifted surface. */
   --bg-base: #0e1116;
-  --bg-surface: #14181f;
-  --bg-elevated: #171b22;
+  --bg-surface: #171b22;
+  --bg-elevated: #1e232c;
   --bg-overlay: #1e232c;
   --bg-hover: #1e232c;
 
