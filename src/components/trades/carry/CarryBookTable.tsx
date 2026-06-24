@@ -26,7 +26,7 @@ function StatusPill({ status }: { status: CarryStatus }) {
   const s = STATUS_STYLE[status];
   return (
     <span
-      className="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide"
+      className="inline-flex items-center rounded-sm px-1.5 py-0.5 text-[12px] font-semibold uppercase tracking-wider"
       style={{ background: s.bg, color: s.fg }}
     >
       {status}
@@ -38,7 +38,7 @@ function ModeBadge({ simulated }: { simulated: boolean }) {
   if (simulated) {
     return (
       <span
-        className="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide"
+        className="inline-flex items-center rounded-sm px-1.5 py-0.5 text-[12px] font-semibold uppercase tracking-wider"
         style={{ background: 'var(--tint-warning)', color: 'var(--color-warning)' }}
       >
         Paper
@@ -47,7 +47,7 @@ function ModeBadge({ simulated }: { simulated: boolean }) {
   }
   return (
     <span
-      className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide"
+      className="inline-flex items-center gap-1 rounded-sm px-1.5 py-0.5 text-[12px] font-semibold uppercase tracking-wider"
       style={{ background: 'var(--tint-profit)', color: 'var(--color-profit)' }}
     >
       <span

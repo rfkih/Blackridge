@@ -122,29 +122,23 @@ function ModeFilter({
 }) {
   return (
     <div className="flex flex-wrap items-center gap-1.5">
-      {MODES.map((m) => {
-        const active = mode === m.key;
-        return (
-          <button
-            key={m.key}
-            type="button"
-            onClick={() => onChange(m.key)}
-            className="rounded-sm px-2.5 py-1 text-[13px] transition-colors"
-            style={{
-              background: active ? 'var(--bg-hover)' : 'transparent',
-              color: active ? 'var(--text-primary)' : 'var(--text-secondary)',
-              border: '1px solid',
-              borderColor: active ? 'var(--border-default)' : 'transparent',
-            }}
-            aria-pressed={active}
-          >
-            {m.label}
-            {m.key === 'PAPER' && paperCount > 0 ? ` (${paperCount})` : ''}
-          </button>
-        );
-      })}
+      {MODES.map((m) => (
+        <button
+          key={m.key}
+          type="button"
+          onClick={() => onChange(m.key)}
+          className={cn('mm-pill', mode === m.key && 'mm-pill-active')}
+          style={{ padding: '5px 12px', fontSize: 13 }}
+          aria-pressed={mode === m.key}
+        >
+          {m.label}
+          {m.key === 'PAPER' && paperCount > 0 ? ` (${paperCount})` : ''}
+        </button>
+      ))}
       {mode === 'LIVE' && paperCount > 0 && (
-        <span className="ml-1 text-[12px] text-text-muted">{paperCount} paper hidden</span>
+        <span style={{ marginLeft: 4, fontSize: 12, color: 'var(--mm-ink-2)' }}>
+          {paperCount} paper hidden
+        </span>
       )}
     </div>
   );
@@ -153,30 +147,36 @@ function ModeFilter({
 function KpiCard({ label, value, tone, hero, hint }: Kpi) {
   const color =
     tone === 'profit'
-      ? 'var(--color-profit)'
+      ? 'var(--mm-up)'
       : tone === 'loss'
-        ? 'var(--color-loss)'
+        ? 'var(--mm-dn)'
         : tone === 'warning'
           ? 'var(--color-warning)'
-          : undefined;
+          : 'var(--mm-ink-0)';
   return (
     <div
-      className={cn(
-        'flex flex-col gap-1 rounded-lg border border-bd-subtle bg-bg-surface p-3',
-        hero && 'shadow-sm',
-      )}
-      style={hero ? { borderColor: 'var(--color-profit)' } : undefined}
+      className="mm-card"
+      style={{
+        padding: '16px 18px',
+        ...(hero ? { borderColor: 'color-mix(in oklab, var(--mm-up) 32%, var(--mm-hair))' } : {}),
+      }}
     >
-      <span className="text-[10px] font-medium uppercase tracking-wide text-text-muted">
-        {label}
-      </span>
-      <span
-        className="font-mono text-[18px] font-semibold tabular-nums text-text-primary"
-        style={color ? { color } : undefined}
+      <div className="mm-kicker">{label}</div>
+      <div
+        style={{
+          fontSize: hero ? 24 : 20,
+          marginTop: 8,
+          fontFamily: 'var(--font-num)',
+          fontVariantNumeric: 'tabular-nums',
+          letterSpacing: '-0.02em',
+          color,
+        }}
       >
         {value}
-      </span>
-      {hint ? <span className="text-[10px] text-text-muted">{hint}</span> : null}
+      </div>
+      {hint ? (
+        <div style={{ marginTop: 4, fontSize: 12, color: 'var(--mm-ink-3)' }}>{hint}</div>
+      ) : null}
     </div>
   );
 }
