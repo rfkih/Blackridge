@@ -7,6 +7,7 @@ import { DataTable } from '@/components/shared/DataTable';
 import { PnlCell } from '@/components/shared/PnlCell';
 import { PriceCell } from '@/components/shared/PriceCell';
 import { formatDate, parseIsoUtc } from '@/lib/formatters';
+import { useCurrencyFormatter } from '@/hooks/useCurrency';
 import type { CarryPair, CarryStatus } from '@/types/trading';
 import { DeltaMeter } from './DeltaMeter';
 
@@ -140,11 +141,7 @@ export function CarryBookTable({
       {
         id: 'basis',
         header: 'Basis',
-        cell: ({ row }) => (
-          <span className="font-mono text-[13px] tabular-nums text-text-muted">
-            {fmtUsd(row.original.unrealizedPnl)}
-          </span>
-        ),
+        cell: ({ row }) => <BasisCell value={row.original.unrealizedPnl} />,
       },
       {
         id: 'total',
@@ -193,8 +190,12 @@ function trimNum(v: number): string {
   return Number.isInteger(v) ? String(v) : v.toFixed(2).replace(/\.?0+$/, '');
 }
 
-function fmtUsd(v: number | null): string {
-  if (v == null || !Number.isFinite(v)) return '—';
-  const sign = v >= 0 ? '+' : '−';
-  return `${sign}$${Math.abs(v).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+/** Basis (unrealized) drift — "the noise". Muted + signed, in the user's display currency. */
+function BasisCell({ value }: { value: number | null }) {
+  const formatCurrency = useCurrencyFormatter();
+  return (
+    <span className="font-mono text-[13px] tabular-nums text-text-muted">
+      {value == null || !Number.isFinite(value) ? '—' : formatCurrency(value, { withSign: true })}
+    </span>
+  );
 }

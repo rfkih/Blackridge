@@ -2,6 +2,7 @@
 
 import { useMemo } from 'react';
 import { useCarryPairs } from '@/hooks/useCarryPairs';
+import { useCurrencyFormatter } from '@/hooks/useCurrency';
 import { cn } from '@/lib/utils';
 import type { CarryPair } from '@/types/trading';
 import { CarryBookTable } from './CarryBookTable';
@@ -27,6 +28,7 @@ interface Kpi {
 export function CarryBookTab() {
   const { data, isLoading, isError, refetch } = useCarryPairs();
   const rows = useMemo(() => data ?? [], [data]);
+  const formatCurrency = useCurrencyFormatter();
 
   const kpis = useMemo<Kpi[]>(() => {
     const open = rows.filter(isLive);
@@ -47,19 +49,29 @@ export function CarryBookTab() {
     return [
       {
         label: 'Funding Earned',
-        value: usd(funding),
+        value: formatCurrency(funding),
         tone: toneOf(funding),
         hero: true,
         hint: 'the carry edge',
       },
-      { label: 'Net P&L', value: usd(total), tone: toneOf(total), hint: 'funding + basis' },
+      {
+        label: 'Net P&L',
+        value: formatCurrency(total),
+        tone: toneOf(total),
+        hint: 'funding + basis',
+      },
       {
         label: 'Notional Deployed',
-        value: usd(notional, 0),
+        value: formatCurrency(notional),
         tone: 'neutral',
         hint: `${open.length} open`,
       },
-      { label: 'Net Delta', value: usd(netDeltaUsd), tone: driftTone, hint: 'hedge residual' },
+      {
+        label: 'Net Delta',
+        value: formatCurrency(netDeltaUsd),
+        tone: driftTone,
+        hint: 'hedge residual',
+      },
       {
         label: 'Live / Paper',
         value: `${liveCount} / ${open.length - liveCount}`,
@@ -67,7 +79,7 @@ export function CarryBookTab() {
         hint: 'open pairs',
       },
     ];
-  }, [rows]);
+  }, [rows, formatCurrency]);
 
   return (
     <div className="flex flex-col gap-4">
@@ -110,14 +122,6 @@ function KpiCard({ label, value, tone, hero, hint }: Kpi) {
       {hint ? <span className="text-[10px] text-text-muted">{hint}</span> : null}
     </div>
   );
-}
-
-function usd(v: number, decimals = 2): string {
-  const sign = v < 0 ? '−' : '';
-  return `${sign}$${Math.abs(v).toLocaleString(undefined, {
-    minimumFractionDigits: decimals,
-    maximumFractionDigits: decimals,
-  })}`;
 }
 
 function toneOf(v: number): Tone {
