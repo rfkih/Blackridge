@@ -728,7 +728,10 @@ function TradeDetailCard({ trade, onClose }: { trade: BacktestTrade; onClose: ()
 
   return (
     <div
-      className="absolute right-3 top-3 z-20 w-[280px] rounded-md border border-[var(--border-default)] shadow-lg"
+      // `fixed` (not `absolute`) so the card is anchored to the viewport and follows the page
+      // scroll — it stays visible wherever you are, instead of being stuck at the chart's
+      // position near the top of the page when scrolled down.
+      className="fixed bottom-4 right-4 z-40 w-[280px] rounded-md border border-[var(--border-default)] shadow-lg"
       style={{ background: 'var(--bg-elevated)' }}
       role="dialog"
       aria-label="Trade details"
