@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useCarryPairs } from '@/hooks/useCarryPairs';
 import { useCurrencyFormatter } from '@/hooks/useCurrency';
 import { cn } from '@/lib/utils';
@@ -19,6 +19,14 @@ interface Kpi {
   hint?: string;
 }
 
+/** Live = real pairs (default — the book shows real positions); Paper = simulated; All = both. */
+type CarryMode = 'LIVE' | 'PAPER' | 'ALL';
+const MODES: { key: CarryMode; label: string }[] = [
+  { key: 'LIVE', label: 'Live' },
+  { key: 'PAPER', label: 'Paper' },
+  { key: 'ALL', label: 'All' },
+];
+
 /**
  * The Carry Book. A book-summary KPI strip (funding is the hero — that's the edge)
  * over the per-pair table. Funding vs basis are deliberately split so the operator
@@ -29,11 +37,20 @@ export function CarryBookTab() {
   const { data, isLoading, isError, refetch } = useCarryPairs();
   const rows = useMemo(() => data ?? [], [data]);
   const formatCurrency = useCurrencyFormatter();
+  const [mode, setMode] = useState<CarryMode>('LIVE');
+
+  // Default to LIVE so the book shows only real positions; paper (simulated) pairs are one click away.
+  const filtered = useMemo(
+    () =>
+      mode === 'ALL' ? rows : rows.filter((p) => (mode === 'LIVE' ? !p.simulated : p.simulated)),
+    [rows, mode],
+  );
+  const paperCount = useMemo(() => rows.filter((p) => p.simulated).length, [rows]);
 
   const kpis = useMemo<Kpi[]>(() => {
-    const open = rows.filter(isLive);
-    const funding = rows.reduce((s, p) => s + (p.fundingPnl ?? 0), 0);
-    const total = rows.reduce((s, p) => s + (p.totalPnl ?? p.fundingPnl ?? 0), 0);
+    const open = filtered.filter(isLive);
+    const funding = filtered.reduce((s, p) => s + (p.fundingPnl ?? 0), 0);
+    const total = filtered.reduce((s, p) => s + (p.totalPnl ?? p.fundingPnl ?? 0), 0);
     const notional = open.reduce(
       (s, p) => s + Math.abs(p.perpQty) * (p.markPrice ?? p.perpEntryPrice ?? 0),
       0,
@@ -79,16 +96,56 @@ export function CarryBookTab() {
         hint: 'open pairs',
       },
     ];
-  }, [rows, formatCurrency]);
+  }, [filtered, formatCurrency]);
 
   return (
     <div className="flex flex-col gap-4">
+      <ModeFilter mode={mode} onChange={setMode} paperCount={paperCount} />
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
         {kpis.map((k) => (
           <KpiCard key={k.label} {...k} />
         ))}
       </div>
-      <CarryBookTable rows={rows} isLoading={isLoading} isError={isError} onRetry={refetch} />
+      <CarryBookTable rows={filtered} isLoading={isLoading} isError={isError} onRetry={refetch} />
+    </div>
+  );
+}
+
+function ModeFilter({
+  mode,
+  onChange,
+  paperCount,
+}: {
+  mode: CarryMode;
+  onChange: (m: CarryMode) => void;
+  paperCount: number;
+}) {
+  return (
+    <div className="flex flex-wrap items-center gap-1.5">
+      {MODES.map((m) => {
+        const active = mode === m.key;
+        return (
+          <button
+            key={m.key}
+            type="button"
+            onClick={() => onChange(m.key)}
+            className="rounded-sm px-2.5 py-1 text-[13px] transition-colors"
+            style={{
+              background: active ? 'var(--bg-hover)' : 'transparent',
+              color: active ? 'var(--text-primary)' : 'var(--text-secondary)',
+              border: '1px solid',
+              borderColor: active ? 'var(--border-default)' : 'transparent',
+            }}
+            aria-pressed={active}
+          >
+            {m.label}
+            {m.key === 'PAPER' && paperCount > 0 ? ` (${paperCount})` : ''}
+          </button>
+        );
+      })}
+      {mode === 'LIVE' && paperCount > 0 && (
+        <span className="ml-1 text-[12px] text-text-muted">{paperCount} paper hidden</span>
+      )}
     </div>
   );
 }
