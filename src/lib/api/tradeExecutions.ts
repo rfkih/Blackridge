@@ -4,16 +4,21 @@ import type { PageEnvelope } from '@/types/api';
 import type { TradeExecutionEvent } from '@/types/trading';
 
 export type FailureCategory =
-  | 'MIN_NOTIONAL' | 'INSUFFICIENT_BALANCE' | 'QUANTITY_PRECISION'
-  | 'NO_FILL_TIMEOUT' | 'EXCHANGE_API_ERROR' | 'OTHER';
+  | 'MIN_NOTIONAL'
+  | 'INSUFFICIENT_BALANCE'
+  | 'QUANTITY_PRECISION'
+  | 'NO_FILL_TIMEOUT'
+  | 'EXCHANGE_API_ERROR'
+  | 'OTHER';
 
-export type ExecutionStatusFilter = 'FAILED' | 'SUCCESS' | 'ALL';
+// REAL = any real execution (success+failed); PAPER = DIVERTED (simulated-strategy short-circuits).
+export type ExecutionStatusFilter = 'REAL' | 'SUCCESS' | 'FAILED' | 'PAPER';
 
 export interface ExecutionEvent {
   id: string;
   executionType: 'OPEN' | 'CLOSE';
   side: 'LONG' | 'SHORT' | null;
-  status: 'SUCCESS' | 'FAILED';
+  status: 'SUCCESS' | 'FAILED' | 'DIVERTED';
   accountId: string | null;
   username: string | null;
   asset: string | null;
@@ -62,7 +67,8 @@ export interface ExecutionFilters {
 
 function buildParams(f: ExecutionFilters): Record<string, string | number> {
   const p: Record<string, string | number> = {};
-  if (f.status && f.status !== 'ALL') p.status = f.status;
+  // REAL ⇒ omit status (backend treats null as "any non-DIVERTED"). PAPER/SUCCESS/FAILED pass through.
+  if (f.status && f.status !== 'REAL') p.status = f.status;
   if (f.symbol) p.symbol = f.symbol.toUpperCase();
   if (f.strategyName) p.strategyName = f.strategyName;
   if (f.executionType && f.executionType !== 'ALL') p.executionType = f.executionType;
