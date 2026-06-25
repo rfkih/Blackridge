@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import type {
   IChartApi,
   IPriceLine,
@@ -568,9 +569,18 @@ export function BacktestAnnotatedChart({
         aria-hidden="true"
       />
       {hoveredTrade && hover && <TradeMarkerTooltip trade={hoveredTrade} x={hover.x} y={hover.y} />}
-      {selectedTrade && (
-        <TradeDetailCard trade={selectedTrade} onClose={() => onTradeSelect(null)} />
-      )}
+      {/* Portal the pinned card to <body>: the dashboard <main> carries a
+          `will-change: transform` + a lingering page-enter `translateY(0)`, either
+          of which makes <main> the containing block for `position: fixed`
+          descendants — so a card left inside the chart tree anchors to <main>
+          (the scroll container) and won't track viewport scroll. Rendering it at
+          the document root restores true viewport-fixed positioning. */}
+      {selectedTrade &&
+        typeof document !== 'undefined' &&
+        createPortal(
+          <TradeDetailCard trade={selectedTrade} onClose={() => onTradeSelect(null)} />,
+          document.body,
+        )}
       {!selectedTrade && trades.length > 0 && <ClickAnyMarkerHint />}
       {/* Cluster count badges for candles with multiple overlapping markers */}
       <div
