@@ -168,26 +168,46 @@ export default function TradesPage() {
 
   return (
     <Suspense fallback={<Skeleton className="h-[60vh] w-full" />}>
-      <Tabs defaultValue="journal" className="flex flex-col gap-4">
-        <TabsList className="self-start bg-[var(--bg-elevated)]">
-          <TabsTrigger value="journal">{isHedging ? 'Rebalances' : 'Journal'}</TabsTrigger>
-          <TabsTrigger value="executions">Execution History</TabsTrigger>
-          <TabsTrigger value="carry">Carry Book</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="journal">
-          {isHedging ? <RebalancesMonitor accountId={scopedAccountId} /> : <TradesPageContent />}
-        </TabsContent>
-
-        <TabsContent value="executions">
-          <ExecutionHistoryTab accountId={scopedAccountId} />
-        </TabsContent>
-
-        <TabsContent value="carry">
-          <CarryBookTab />
-        </TabsContent>
-      </Tabs>
+      <TradesTabs isHedging={isHedging} scopedAccountId={scopedAccountId} />
     </Suspense>
+  );
+}
+
+/**
+ * Tabbed trades surface. The initial tab honours `?tab=executions|carry` (e.g. the dashboard's
+ * Carry Book card deep-links here), defaulting to the journal. Read inside the Suspense boundary
+ * so `useSearchParams` is wrapped per Next.js requirements.
+ */
+function TradesTabs({
+  isHedging,
+  scopedAccountId,
+}: {
+  isHedging: boolean;
+  scopedAccountId: string | undefined;
+}) {
+  const tabParam = useSearchParams().get('tab');
+  const initialTab = tabParam === 'executions' || tabParam === 'carry' ? tabParam : 'journal';
+
+  return (
+    <Tabs defaultValue={initialTab} className="flex flex-col gap-4">
+      <TabsList className="self-start bg-[var(--bg-elevated)]">
+        <TabsTrigger value="journal">{isHedging ? 'Rebalances' : 'Journal'}</TabsTrigger>
+        <TabsTrigger value="executions">Execution History</TabsTrigger>
+        <TabsTrigger value="carry">Carry Book</TabsTrigger>
+      </TabsList>
+
+      <TabsContent value="journal">
+        {isHedging ? <RebalancesMonitor accountId={scopedAccountId} /> : <TradesPageContent />}
+      </TabsContent>
+
+      <TabsContent value="executions">
+        <ExecutionHistoryTab accountId={scopedAccountId} />
+      </TabsContent>
+
+      <TabsContent value="carry">
+        <CarryBookTab />
+      </TabsContent>
+    </Tabs>
   );
 }
 

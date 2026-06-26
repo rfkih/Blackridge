@@ -24,6 +24,7 @@ import { useCurrencyFormatter } from '@/hooks/useCurrency';
 import { OnboardingPanel } from '@/components/dashboard/OnboardingPanel';
 import { EmailVerificationBanner } from '@/components/dashboard/EmailVerificationBanner';
 import { KillSwitchBanner } from '@/components/dashboard/KillSwitchBanner';
+import { CarryBookSummaryCard } from '@/components/dashboard/CarryBookSummaryCard';
 import { MlHealthStrip } from '@/components/ml/MlHealthStrip';
 import { HedgingDashboard } from '@/components/hedging/HedgingDashboard';
 import { AccountTypeBadge } from '@/components/account/AccountTypeBadge';
@@ -188,6 +189,9 @@ export default function DashboardPage() {
 
       {}
       <PositionsPanel trades={openTrades} profitableCount={profitableCount} />
+
+      {}
+      <CarryBookSummaryCard accountId={scopedAccountId} />
 
       {}
       <MlHealthStrip />

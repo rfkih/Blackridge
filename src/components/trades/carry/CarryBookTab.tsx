@@ -11,14 +11,12 @@ import {
 } from '@/components/ui/dialog';
 import { useCarryPairs, useCloseCarryPair } from '@/hooks/useCarryPairs';
 import { useCurrencyFormatter } from '@/hooks/useCurrency';
+import { summarizeCarryBook } from '@/lib/carry/summary';
 import { cn } from '@/lib/utils';
 import type { CarryPair } from '@/types/trading';
 import { CarryActivateDialog } from './CarryActivateDialog';
 import { CarryBookTable } from './CarryBookTable';
 import { CarryOpenDialog } from './CarryOpenDialog';
-
-const LIVE_STATES = new Set(['PENDING', 'OPENING', 'OPEN', 'REBALANCING', 'CLOSING', 'UNKNOWN']);
-const isLive = (p: CarryPair) => LIVE_STATES.has(p.status);
 
 type Tone = 'profit' | 'loss' | 'warning' | 'neutral';
 interface Kpi {
@@ -62,50 +60,38 @@ export function CarryBookTab() {
   const paperCount = useMemo(() => rows.filter((p) => p.simulated).length, [rows]);
 
   const kpis = useMemo<Kpi[]>(() => {
-    const open = filtered.filter(isLive);
-    const funding = filtered.reduce((s, p) => s + (p.fundingPnl ?? 0), 0);
-    const total = filtered.reduce((s, p) => s + (p.totalPnl ?? p.fundingPnl ?? 0), 0);
-    const notional = open.reduce(
-      (s, p) => s + Math.abs(p.perpQty) * (p.markPrice ?? p.perpEntryPrice ?? 0),
-      0,
-    );
-    const netDeltaUsd = open.reduce(
-      (s, p) =>
-        s + (p.netDeltaBase ?? p.spotQty - p.perpQty) * (p.markPrice ?? p.perpEntryPrice ?? 0),
-      0,
-    );
-    const liveCount = open.filter((p) => !p.simulated).length;
+    const s = summarizeCarryBook(filtered);
     const driftTone: Tone =
-      notional > 0 && Math.abs(netDeltaUsd) > notional * 0.02 ? 'warning' : 'neutral';
+      s.notional > 0 && Math.abs(s.netDeltaUsd) > s.notional * 0.02 ? 'warning' : 'neutral';
     return [
       {
         label: 'Funding Earned',
-        value: formatCurrency(funding),
-        tone: toneOf(funding),
+        value: formatCurrency(s.funding),
+        tone: toneOf(s.funding),
         hero: true,
         hint: 'the carry edge',
       },
       {
         label: 'Net P&L',
-        value: formatCurrency(total),
-        tone: toneOf(total),
+        value: formatCurrency(s.total),
+        tone: toneOf(s.total),
         hint: 'funding + basis',
       },
       {
         label: 'Notional Deployed',
-        value: formatCurrency(notional),
+        value: formatCurrency(s.notional),
         tone: 'neutral',
-        hint: `${open.length} open`,
+        hint: `${s.openCount} open`,
       },
       {
         label: 'Net Delta',
-        value: formatCurrency(netDeltaUsd),
+        value: formatCurrency(s.netDeltaUsd),
         tone: driftTone,
         hint: 'hedge residual',
       },
       {
         label: 'Live / Paper',
-        value: `${liveCount} / ${open.length - liveCount}`,
+        value: `${s.liveCount} / ${s.paperCount}`,
         tone: 'neutral',
         hint: 'open pairs',
       },
