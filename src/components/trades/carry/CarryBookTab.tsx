@@ -1,11 +1,21 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { useCarryPairs } from '@/hooks/useCarryPairs';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { useCarryPairs, useCloseCarryPair } from '@/hooks/useCarryPairs';
 import { useCurrencyFormatter } from '@/hooks/useCurrency';
 import { cn } from '@/lib/utils';
 import type { CarryPair } from '@/types/trading';
+import { CarryActivateDialog } from './CarryActivateDialog';
 import { CarryBookTable } from './CarryBookTable';
+import { CarryOpenDialog } from './CarryOpenDialog';
 
 const LIVE_STATES = new Set(['PENDING', 'OPENING', 'OPEN', 'REBALANCING', 'CLOSING', 'UNKNOWN']);
 const isLive = (p: CarryPair) => LIVE_STATES.has(p.status);
@@ -38,6 +48,10 @@ export function CarryBookTab() {
   const rows = useMemo(() => data ?? [], [data]);
   const formatCurrency = useCurrencyFormatter();
   const [mode, setMode] = useState<CarryMode>('LIVE');
+  const [openDialog, setOpenDialog] = useState(false);
+  const [activateDialog, setActivateDialog] = useState(false);
+  const [closing, setClosing] = useState<CarryPair | null>(null);
+  const closeMutation = useCloseCarryPair();
 
   // Default to LIVE so the book shows only real positions; paper (simulated) pairs are one click away.
   const filtered = useMemo(
@@ -100,14 +114,99 @@ export function CarryBookTab() {
 
   return (
     <div className="flex flex-col gap-4">
-      <ModeFilter mode={mode} onChange={setMode} paperCount={paperCount} />
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <ModeFilter mode={mode} onChange={setMode} paperCount={paperCount} />
+        <div className="flex items-center gap-1.5">
+          <button
+            type="button"
+            onClick={() => setActivateDialog(true)}
+            className="h-8 rounded-md border px-3 text-[13px] font-semibold"
+            style={{ borderColor: 'var(--accent-primary)', color: 'var(--accent-primary)' }}
+          >
+            Activate
+          </button>
+          <button
+            type="button"
+            onClick={() => setOpenDialog(true)}
+            className="h-8 rounded-md px-3 text-[13px] font-semibold text-white"
+            style={{ background: 'var(--accent-primary)' }}
+          >
+            + Open pair
+          </button>
+        </div>
+      </div>
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
         {kpis.map((k) => (
           <KpiCard key={k.label} {...k} />
         ))}
       </div>
-      <CarryBookTable rows={filtered} isLoading={isLoading} isError={isError} onRetry={refetch} />
+      <CarryBookTable
+        rows={filtered}
+        isLoading={isLoading}
+        isError={isError}
+        onRetry={refetch}
+        onClose={setClosing}
+      />
+      <CarryOpenDialog open={openDialog} onOpenChange={setOpenDialog} />
+      <CarryActivateDialog open={activateDialog} onOpenChange={setActivateDialog} />
+      <CarryCloseConfirm
+        pair={closing}
+        isPending={closeMutation.isPending}
+        onOpenChange={(o) => {
+          if (!o) setClosing(null);
+        }}
+        onConfirm={() => {
+          if (!closing) return;
+          closeMutation.mutate(closing.id, { onSuccess: () => setClosing(null) });
+        }}
+      />
     </div>
+  );
+}
+
+/** Confirm dialog for the manual close (kill-switch) of a live carry pair. */
+function CarryCloseConfirm({
+  pair,
+  onOpenChange,
+  onConfirm,
+  isPending,
+}: {
+  pair: CarryPair | null;
+  onOpenChange: (o: boolean) => void;
+  onConfirm: () => void;
+  isPending: boolean;
+}) {
+  return (
+    <Dialog open={pair != null} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-sm">
+        <DialogHeader>
+          <DialogTitle>Close carry pair?</DialogTitle>
+          <DialogDescription>
+            {pair
+              ? `Unwinds the ${pair.symbol} pair — buys back the perp short and sells the spot long to flat.`
+              : ''}
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
+          <button
+            type="button"
+            onClick={() => onOpenChange(false)}
+            className="h-9 rounded-md border border-[var(--border-default)] px-4 text-sm text-text-secondary"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={onConfirm}
+            disabled={isPending}
+            className="h-9 rounded-md px-4 text-sm font-semibold text-white disabled:opacity-50"
+            style={{ background: 'var(--color-loss)' }}
+          >
+            {isPending ? 'Closing…' : 'Close pair'}
+          </button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 

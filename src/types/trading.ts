@@ -47,6 +47,95 @@ export interface CarryPair {
   createdAt: string | null;
 }
 
+/** One FCARRY strategy the user can open a carry pair against (from GET /api/v1/carry/openable). */
+export interface CarryOpenableStrategy {
+  accountStrategyId: UUID;
+  symbol: string;
+  hasOpenPair: boolean;
+}
+
+/** Openable-carry roster + the server-enforced leverage cap, used to build risk tiers ≤ cap. */
+export interface CarryOpenable {
+  maxLeverage: number;
+  strategies: CarryOpenableStrategy[];
+}
+
+/** Request body for POST /api/v1/carry/open-pair. `simulated: true` = paper (sim-first). */
+export interface OpenCarryPairRequest {
+  accountStrategyId: UUID;
+  symbol: string;
+  targetBaseQty: number;
+  leverage: number;
+  simulated: boolean;
+}
+
+/** Lightweight result of an open/close carry mutation — enough to react + invalidate the book. */
+export interface CarryMutationResult {
+  carryPairId: string;
+  status: CarryStatus;
+  symbol: string;
+  simulated: boolean;
+}
+
+export type CarryAllocationMode = 'PCT' | 'USD';
+
+/** Per-account carry-book activation config (GET/PUT /api/v1/carry/config/{accountId}). */
+export interface CarryConfig {
+  accountId: UUID;
+  enabled: boolean;
+  allocationMode: CarryAllocationMode;
+  /** Fraction 0..1 (0.30 = 30%) when mode = PCT; null otherwise. */
+  allocationPct: number | null;
+  /** Absolute USDT cap when mode = USD; null otherwise. */
+  allocationUsd: number | null;
+  defaultLeverage: number;
+  maxPairs: number;
+  simulated: boolean;
+}
+
+/** Body for PUT /api/v1/carry/config/{accountId}. `allocationPct` is a fraction 0..1. */
+export interface SaveCarryConfigRequest {
+  enabled: boolean;
+  allocationMode: CarryAllocationMode;
+  allocationPct: number | null;
+  allocationUsd: number | null;
+  defaultLeverage: number;
+  maxPairs: number;
+  simulated: boolean;
+}
+
+/** One planned pair open in a carry deploy dry-run. */
+export interface CarryDeployPlanItem {
+  accountStrategyId: UUID;
+  symbol: string;
+  targetBaseQty: number;
+  leverage: number;
+  markPrice: number;
+  estNotionalUsd: number;
+}
+
+/** Dry-run plan from POST /api/v1/carry/deploy/plan/{accountId} — what an execute would open. */
+export interface CarryDeployPlan {
+  enabled: boolean;
+  simulated: boolean;
+  allocationMode: CarryAllocationMode;
+  budgetUsd: number;
+  perPairUsd: number;
+  maxPairs: number;
+  items: CarryDeployPlanItem[];
+  notes: string[];
+}
+
+/** Outcome from POST /api/v1/carry/deploy/execute/{accountId}. */
+export interface CarryDeployResult {
+  simulated: boolean;
+  requested: number;
+  opened: number;
+  failed: number;
+  items: { symbol: string; status: string }[];
+  notes: string[];
+}
+
 /**
  * One row of the per-user execution feed (`GET /api/v1/trade-executions`) —
  * a real-money execution outcome for one of the caller's accounts. Paper

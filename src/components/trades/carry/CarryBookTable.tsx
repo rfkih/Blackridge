@@ -59,12 +59,17 @@ function ModeBadge({ simulated }: { simulated: boolean }) {
   );
 }
 
+/** Pair lifecycle states where a manual close (unwind) is meaningful. */
+const CLOSEABLE_STATES = new Set<CarryStatus>(['OPEN', 'REBALANCING']);
+
 interface CarryBookTableProps {
   rows: CarryPair[];
   isLoading: boolean;
   isError: boolean;
   onRetry: () => void;
   onRowClick?: (row: CarryPair) => void;
+  /** When provided, renders a per-row Close button for live (closeable) pairs. */
+  onClose?: (row: CarryPair) => void;
 }
 
 export function CarryBookTable({
@@ -73,9 +78,10 @@ export function CarryBookTable({
   isError,
   onRetry,
   onRowClick,
+  onClose,
 }: CarryBookTableProps) {
-  const columns = useMemo<ColumnDef<CarryPair, unknown>[]>(
-    () => [
+  const columns = useMemo<ColumnDef<CarryPair, unknown>[]>(() => {
+    const cols: ColumnDef<CarryPair, unknown>[] = [
       {
         id: 'pair',
         header: 'Pair',
@@ -157,9 +163,30 @@ export function CarryBookTable({
           </span>
         ),
       },
-    ],
-    [],
-  );
+    ];
+
+    if (onClose) {
+      cols.push({
+        id: 'actions',
+        header: '',
+        cell: ({ row }) =>
+          CLOSEABLE_STATES.has(row.original.status) ? (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onClose(row.original);
+              }}
+              className="rounded-md border border-[var(--border-default)] px-2 py-1 text-[12px] text-text-secondary hover:text-text-primary"
+            >
+              Close
+            </button>
+          ) : null,
+      });
+    }
+
+    return cols;
+  }, [onClose]);
 
   return (
     <DataTable
