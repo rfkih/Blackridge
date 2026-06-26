@@ -619,7 +619,16 @@ export function BacktestAnnotatedChart({
       {selectedTrade &&
         typeof document !== 'undefined' &&
         createPortal(
-          <TradeDetailCard trade={selectedTrade} onClose={() => onTradeSelect(null)} />,
+          <>
+            {/* Dimmed backdrop — click anywhere outside the card to dismiss it. */}
+            <button
+              type="button"
+              aria-label="Close trade details"
+              onClick={() => onTradeSelect(null)}
+              className="fixed inset-0 z-50 cursor-default border-0 bg-black/50"
+            />
+            <TradeDetailCard trade={selectedTrade} onClose={() => onTradeSelect(null)} />
+          </>,
           document.body,
         )}
       {!selectedTrade && trades.length > 0 && <ClickAnyMarkerHint />}
@@ -763,12 +772,11 @@ function TradeMarkerTooltip({ trade, x, y }: { trade: BacktestTrade; x: number; 
 }
 
 /**
- * Click-pinned detail card. Shown in the chart's top-right when a trade
- * marker is clicked. The hover tooltip is the quick-scan affordance; this
- * is the "I want the full picture for this trade" view — strategy + TF,
- * entry/exit times and prices, SL/TP levels, P&L, R-multiple, and which
- * legs hit what. Dismiss via the close button or by pressing ESC on the
- * focused chart container.
+ * Click-pinned detail card. Opened when a trade marker is clicked — the full-picture
+ * view (strategy + TF, entry/exit times and prices, SL/TP levels, P&L, R-multiple,
+ * legs). Centered on the viewport as a modal over a dimmed backdrop; dismiss via the
+ * X button, a click on the backdrop, or the ESC key. Scrolls within the viewport so a
+ * leg-heavy card never overflows off-screen.
  */
 function TradeDetailCard({ trade, onClose }: { trade: BacktestTrade; onClose: () => void }) {
   const isLong = trade.direction === 'LONG';
@@ -777,14 +785,24 @@ function TradeDetailCard({ trade, onClose }: { trade: BacktestTrade; onClose: ()
   const outcomeColors = tooltipOutcomeColors(outcome.tone);
   const duration = trade.exitTime != null ? trade.exitTime - trade.entryTime : null;
 
+  // ESC closes from anywhere. The card is portaled to <body>, so the chart
+  // container's own key handler may not hold focus — listen on document instead.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [onClose]);
+
   return (
     <div
-      // `fixed` (not `absolute`) so the card is anchored to the viewport and follows the page
-      // scroll — it stays visible wherever you are, instead of being stuck at the chart's
-      // position near the top of the page when scrolled down.
-      className="fixed bottom-4 right-4 z-40 w-[280px] rounded-md border border-[var(--border-default)] shadow-lg"
+      // Centered on the viewport (above the backdrop) so it never lands off-screen or
+      // under page chrome; `fixed` + translate keeps it middle-of-screen on any scroll.
+      className="fixed left-1/2 top-1/2 z-[60] max-h-[85vh] w-[300px] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-md border border-[var(--border-default)] shadow-xl"
       style={{ background: 'var(--bg-elevated)' }}
       role="dialog"
+      aria-modal="true"
       aria-label="Trade details"
     >
       {}
