@@ -68,6 +68,11 @@ interface BacktestAnnotatedChartProps {
   /** Exit-marker labeling: `'reason'` (default, backtest result page) or
    *  `'action'` (live-trades chart — labels closes BUY/SELL). */
   exitLabelMode?: 'reason' | 'action';
+  /** Live mark price for the chart symbol (from the open-position WS feed). When
+   *  provided, the last (forming) candle's close is updated to this in realtime so
+   *  the chart's current price tracks the live price and is identical across every
+   *  interval. Unset on the backtest result page (no live feed) → effect is inert. */
+  livePrice?: number | null;
 }
 
 const MARKER_HIT_RADIUS_PX = 16;
@@ -89,12 +94,16 @@ export function BacktestAnnotatedChart({
   emaWarmupCandles,
   showIndicators,
   exitLabelMode = 'reason',
+  livePrice,
 }: BacktestAnnotatedChartProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
   const seriesRef = useRef<ISeriesApi<'Candlestick'> | null>(null);
   const markersPluginRef = useRef<ISeriesMarkersPluginApi<Time> | null>(null);
   const priceLineRefs = useRef<IPriceLine[]>([]);
+  // Last (forming) candle's OHLC, so a live-price tick can `series.update()` it in
+  // place (preserving the user's zoom) instead of re-`setData`-ing the whole series.
+  const lastBarRef = useRef<{ time: number; open: number; high: number; low: number } | null>(null);
   const tvRef = useRef<{
     LineSeries: unknown;
     HistogramSeries: unknown;
@@ -383,8 +392,27 @@ export function BacktestAnnotatedChart({
         close: c.close,
       })),
     );
+    const lastC = valid[valid.length - 1];
+    lastBarRef.current = { time: lastC.time, open: lastC.open, high: lastC.high, low: lastC.low };
     chartRef.current?.timeScale().fitContent();
   }, [ready, candles]);
+
+  // Realtime price sync: drive the last (forming) bar's close from the live WS
+  // mark so every interval shows the SAME current price, updated tick-by-tick and
+  // matching the price the rest of the page (P&L / notional) uses. `update()` only
+  // touches the last bar, so the user's pan/zoom is preserved. Inert when no live
+  // price is supplied (backtest result page) or before the series has data.
+  useEffect(() => {
+    if (!ready || !seriesRef.current) return;
+    const lp = livePrice;
+    const last = lastBarRef.current;
+    if (lp == null || !Number.isFinite(lp) || lp <= 0 || !last) return;
+    const high = Math.max(last.high, lp);
+    const low = Math.min(last.low, lp);
+    last.high = high;
+    last.low = low;
+    seriesRef.current.update({ time: last.time as Time, open: last.open, high, low, close: lp });
+  }, [ready, livePrice, candles]);
 
   useEffect(() => {
     if (!ready) return;

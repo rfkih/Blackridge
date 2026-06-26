@@ -12,6 +12,7 @@ import { useRangeCandles } from '@/hooks/useRangeCandles';
 import { useBacktestIndicators } from '@/hooks/useBacktestIndicators';
 import { useEmaWarmupCandles } from '@/hooks/useEmaWarmupCandles';
 import { liveTradeToBacktestTrade } from '@/lib/trades/liveTradeToBacktestTrade';
+import { usePositionStore } from '@/store/positionStore';
 import { INTERVAL_SECONDS } from '@/lib/charts/chartTheme';
 import type { BacktestTrade } from '@/types/backtest';
 import type { CandleData, ChartInterval, IndicatorData } from '@/types/market';
@@ -83,6 +84,12 @@ export function TradeHistoryChart({
   bare = false,
 }: TradeHistoryChartProps) {
   const { indicators, toggle, anyActive } = useChartIndicators(storageKey);
+
+  // Live mark price for this symbol from the open-position WS feed (same source the
+  // page's P&L uses). Drives the chart's last-bar close so the "current price" is
+  // realtime and identical across the 15m/1h/4h/1d tabs. null when no open position
+  // on the symbol → the chart falls back to the last fetched candle close.
+  const livePrice = useLiveSymbolPrice(symbol);
 
   const chartWindow = useMemo(() => computeWindow(trades, interval), [trades, interval]);
 
@@ -160,6 +167,7 @@ export function TradeHistoryChart({
             emaWarmupCandles={warmupQ.data ?? EMPTY_CANDLES}
             showIndicators={indicators}
             exitLabelMode="action"
+            livePrice={livePrice}
             height={height}
           />
         )}
@@ -169,6 +177,24 @@ export function TradeHistoryChart({
 }
 
 function noop() {}
+
+/**
+ * Freshest live mark price for `symbol` from the open-position store (populated by
+ * the `/topic/pnl/{accountId}` WS stream). Returns the mark of an open trade on the
+ * symbol, or null when none is open. A primitive return keeps the zustand selector
+ * render-stable (only re-renders when the price actually changes).
+ */
+function useLiveSymbolPrice(symbol: string): number | null {
+  return usePositionStore((s) => {
+    let price: number | null = null;
+    for (const p of s.positions) {
+      if (p.symbol !== symbol) continue;
+      const m = s.markMap[p.tradeId];
+      if (typeof m === 'number' && Number.isFinite(m) && m > 0) price = m;
+    }
+    return price;
+  });
+}
 
 /**
  * Candle fetch window = [min entry, max(exit ?? now)] padded by at least
