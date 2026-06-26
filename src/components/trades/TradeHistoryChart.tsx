@@ -11,9 +11,10 @@ import { useChartIndicators } from '@/hooks/useChartIndicators';
 import { useRangeCandles } from '@/hooks/useRangeCandles';
 import { useBacktestIndicators } from '@/hooks/useBacktestIndicators';
 import { useEmaWarmupCandles } from '@/hooks/useEmaWarmupCandles';
+import { useLivePriceProbe } from '@/hooks/useLivePriceProbe';
 import { liveTradeToBacktestTrade } from '@/lib/trades/liveTradeToBacktestTrade';
 import { usePositionStore } from '@/store/positionStore';
-import { INTERVAL_SECONDS } from '@/lib/charts/chartTheme';
+import { INTERVAL_SECONDS, REFETCH_INTERVALS } from '@/lib/charts/chartTheme';
 import type { BacktestTrade } from '@/types/backtest';
 import type { CandleData, ChartInterval, IndicatorData } from '@/types/market';
 import type { Trades } from '@/types/trading';
@@ -85,20 +86,26 @@ export function TradeHistoryChart({
 }: TradeHistoryChartProps) {
   const { indicators, toggle, anyActive } = useChartIndicators(storageKey);
 
-  // Live mark price for this symbol from the open-position WS feed (same source the
-  // page's P&L uses). Drives the chart's last-bar close so the "current price" is
-  // realtime and identical across the 15m/1h/4h/1d tabs. null when no open position
-  // on the symbol → the chart falls back to the last fetched candle close.
-  const livePrice = useLiveSymbolPrice(symbol);
+  // Realtime "current price" for the last bar, shown identically across every
+  // interval. Prefer the open-position WS feed (tick-level, same source the page's
+  // P&L uses); fall back to a polled probe of the latest forming candle so the price
+  // is still live when nothing is open on the symbol (the common dormant-book case).
+  const wsPrice = useLiveSymbolPrice(symbol);
+  const probePrice = useLivePriceProbe(symbol, interval, Boolean(symbol));
+  const livePrice = wsPrice ?? probePrice;
 
   const chartWindow = useMemo(() => computeWindow(trades, interval), [trades, interval]);
 
+  // Poll the window on the interval's cadence so the forming bar rolls forward and
+  // tracks the live price (the static one-shot fetch froze each interval's last
+  // close at a different moment — the cross-interval mismatch this fixes).
   const candlesQ = useRangeCandles(
     symbol,
     interval,
     chartWindow?.fromMs,
     chartWindow?.toMs,
     !!chartWindow,
+    REFETCH_INTERVALS[interval],
   );
   const indicatorsQ = useBacktestIndicators(
     symbol,
@@ -197,10 +204,13 @@ function useLiveSymbolPrice(symbol: string): number | null {
 }
 
 /**
- * Candle fetch window = [min entry, max(exit ?? now)] padded by at least
- * {@link MIN_CONTEXT_BARS} on each side, then clamped to {@link MAX_BARS} total
- * (keeping the most recent slice). Returns null when no trade has a usable
- * entry time, so the caller renders an empty state instead of a blank chart.
+ * Candle fetch window = [min entry, NOW] padded by at least {@link MIN_CONTEXT_BARS}
+ * on each side, then clamped to {@link MAX_BARS} total (keeping the most recent
+ * slice). The window always extends to the present — not just to the last trade's
+ * exit — so the current forming bar is fetched and the chart's right-edge price is
+ * the live market price (the realtime sync the page needs), even when every trade on
+ * the symbol is already closed. Returns null when no trade has a usable entry time,
+ * so the caller renders an empty state instead of a blank chart.
  */
 function computeWindow(
   trades: Trades[],
@@ -216,7 +226,8 @@ function computeWindow(
     if (end > maxExit) maxExit = end;
   }
   if (!Number.isFinite(minEntry)) return null;
-  if (maxExit < minEntry) maxExit = minEntry;
+  // Always reach the present so the live forming bar is in-window.
+  maxExit = Math.max(maxExit, now);
 
   const stepMs = (INTERVAL_SECONDS[interval] ?? 3_600) * 1_000;
   const span = maxExit - minEntry;

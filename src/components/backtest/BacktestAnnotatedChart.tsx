@@ -104,6 +104,10 @@ export function BacktestAnnotatedChart({
   // Last (forming) candle's OHLC, so a live-price tick can `series.update()` it in
   // place (preserving the user's zoom) instead of re-`setData`-ing the whole series.
   const lastBarRef = useRef<{ time: number; open: number; high: number; low: number } | null>(null);
+  // First bar time of the currently-loaded series. Used to fit the view only when the
+  // series identity changes (symbol / interval / window) — NOT on an incremental poll
+  // update of the same window, which would otherwise reset the user's pan/zoom.
+  const prevFirstTimeRef = useRef<number | null>(null);
   const tvRef = useRef<{
     LineSeries: unknown;
     HistogramSeries: unknown;
@@ -227,6 +231,8 @@ export function BacktestAnnotatedChart({
   useEffect(() => {
     if (!containerRef.current) return;
     setReady(false);
+    // A rebuilt chart has a fresh, empty series — force the next setData to fit it.
+    prevFirstTimeRef.current = null;
 
     let cancelled = false;
     const unsubs: Array<() => void> = [];
@@ -394,7 +400,14 @@ export function BacktestAnnotatedChart({
     );
     const lastC = valid[valid.length - 1];
     lastBarRef.current = { time: lastC.time, open: lastC.open, high: lastC.high, low: lastC.low };
-    chartRef.current?.timeScale().fitContent();
+    // Fit only when this is a different series (new symbol/interval/window), so a
+    // periodic poll of the SAME window refreshes the data without yanking the view
+    // back from wherever the user panned/zoomed.
+    const firstT = valid[0].time;
+    if (prevFirstTimeRef.current !== firstT) {
+      prevFirstTimeRef.current = firstT;
+      chartRef.current?.timeScale().fitContent();
+    }
   }, [ready, candles]);
 
   // Realtime price sync: drive the last (forming) bar's close from the live WS
