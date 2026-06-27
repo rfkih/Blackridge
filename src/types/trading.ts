@@ -60,6 +60,31 @@ export interface CarryOpenable {
   strategies: CarryOpenableStrategy[];
 }
 
+/** Per-open-pair leg breakdown within the consolidated carry balance. */
+export interface CarryBalanceLeg {
+  symbol: string;
+  simulated: boolean;
+  spotValueUsdt: number;
+  perpNotionalUsdt: number;
+  marginUsdt: number;
+  leverage: number;
+}
+
+/** Consolidated carry capital across an account's SPOT + FUTURES wallets. */
+export interface CarryBalance {
+  accountId: UUID;
+  totalUsdt: number;
+  freeUsdt: number;
+  spotFreeUsdt: number;
+  spotLegsValueUsdt: number;
+  futuresWalletUsdt: number;
+  deployedMarginUsdt: number;
+  openPairs: number;
+  legs: CarryBalanceLeg[];
+  /** true when the futures-wallet balance couldn't be read (split is spot-only/partial). */
+  futuresBalanceUnavailable: boolean;
+}
+
 /** Request body for POST /api/v1/carry/open-pair. `simulated: true` = paper (sim-first). */
 export interface OpenCarryPairRequest {
   accountStrategyId: UUID;

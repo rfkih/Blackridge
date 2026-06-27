@@ -4,6 +4,7 @@ import { extractList } from './pageUtils';
 import type { PageResponse } from '@/types/api';
 import type {
   CarryAllocationMode,
+  CarryBalance,
   CarryConfig,
   CarryDeployPlan,
   CarryDeployResult,
@@ -89,6 +90,55 @@ export async function getCarryPairs(): Promise<CarryPair[]> {
     '/api/v1/carry/pairs',
   );
   return extractList(data).map(mapCarryPair);
+}
+
+/** Wire shape from `GET /api/v1/carry/balance/{accountId}`. */
+interface BackendCarryBalance {
+  accountId: string | null;
+  totalUsdt: number | string | null;
+  freeUsdt: number | string | null;
+  spotFreeUsdt: number | string | null;
+  spotLegsValueUsdt: number | string | null;
+  futuresWalletUsdt: number | string | null;
+  deployedMarginUsdt: number | string | null;
+  openPairs: number | null;
+  legs:
+    | Array<{
+        symbol: string | null;
+        simulated: boolean | null;
+        spotValueUsdt: number | string | null;
+        perpNotionalUsdt: number | string | null;
+        marginUsdt: number | string | null;
+        leverage: number | string | null;
+      }>
+    | null;
+  futuresBalanceUnavailable: boolean | null;
+}
+
+/** Consolidated carry capital (spot+futures split + per-pair legs) for one account. */
+export async function getCarryBalance(accountId: string): Promise<CarryBalance> {
+  const { data } = await apiClient.get<BackendCarryBalance>(
+    `/api/v1/carry/balance/${encodeURIComponent(accountId)}`,
+  );
+  return {
+    accountId: data.accountId ?? '',
+    totalUsdt: toNum(data.totalUsdt),
+    freeUsdt: toNum(data.freeUsdt),
+    spotFreeUsdt: toNum(data.spotFreeUsdt),
+    spotLegsValueUsdt: toNum(data.spotLegsValueUsdt),
+    futuresWalletUsdt: toNum(data.futuresWalletUsdt),
+    deployedMarginUsdt: toNum(data.deployedMarginUsdt),
+    openPairs: data.openPairs ?? 0,
+    legs: (data.legs ?? []).map((l) => ({
+      symbol: l.symbol ?? '',
+      simulated: Boolean(l.simulated),
+      spotValueUsdt: toNum(l.spotValueUsdt),
+      perpNotionalUsdt: toNum(l.perpNotionalUsdt),
+      marginUsdt: toNum(l.marginUsdt),
+      leverage: toNum(l.leverage),
+    })),
+    futuresBalanceUnavailable: Boolean(data.futuresBalanceUnavailable),
+  };
 }
 
 interface BackendOpenableStrategy {

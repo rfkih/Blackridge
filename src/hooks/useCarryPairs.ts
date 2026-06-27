@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   closeCarryPair,
   executeCarryDeploy,
+  getCarryBalance,
   getCarryConfig,
   getCarryPairs,
   getOpenableCarry,
@@ -25,6 +26,19 @@ export function useCarryPairs() {
     queryFn: getCarryPairs,
     staleTime: QUERY_STALE_TIMES.openPositions,
     refetchInterval: 30_000, // keep the live mark / MTM fresh while the tab is open
+    placeholderData: (prev) => prev,
+  });
+}
+
+/** Consolidated carry capital (spot+futures split + per-pair legs) for one account.
+ *  Disabled until an account is selected. Polls like the book so the split stays live. */
+export function useCarryBalance(accountId: string | undefined) {
+  return useQuery({
+    queryKey: ['carry', 'balance', accountId],
+    queryFn: () => getCarryBalance(accountId as string),
+    enabled: !!accountId,
+    staleTime: QUERY_STALE_TIMES.openPositions,
+    refetchInterval: 30_000,
     placeholderData: (prev) => prev,
   });
 }

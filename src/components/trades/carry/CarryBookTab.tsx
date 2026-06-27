@@ -9,13 +9,15 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { useCarryPairs, useCloseCarryPair } from '@/hooks/useCarryPairs';
+import { useActiveAccount } from '@/hooks/useAccounts';
+import { useCarryBalance, useCarryPairs, useCloseCarryPair } from '@/hooks/useCarryPairs';
 import { useCurrencyFormatter } from '@/hooks/useCurrency';
 import { summarizeCarryBook } from '@/lib/carry/summary';
 import { cn } from '@/lib/utils';
 import type { CarryPair } from '@/types/trading';
 import { CarryActivateDialog } from './CarryActivateDialog';
 import { CarryBookTable } from './CarryBookTable';
+import { CarryCapitalCard } from './CarryCapitalCard';
 import { CarryOpenDialog } from './CarryOpenDialog';
 
 type Tone = 'profit' | 'loss' | 'warning' | 'neutral';
@@ -45,6 +47,12 @@ export function CarryBookTab() {
   const { data, isLoading, isError, refetch } = useCarryPairs();
   const rows = useMemo(() => data ?? [], [data]);
   const formatCurrency = useCurrencyFormatter();
+
+  // Consolidated balance is per-account: prefer the active account, else the account
+  // that actually holds carry pairs (so the card works even on the "All accounts" view).
+  const { scopedAccountId } = useActiveAccount();
+  const balanceAccountId = scopedAccountId ?? rows.find((r) => r.accountId)?.accountId;
+  const { data: balance, isLoading: balanceLoading } = useCarryBalance(balanceAccountId);
   const [mode, setMode] = useState<CarryMode>('LIVE');
   const [openDialog, setOpenDialog] = useState(false);
   const [activateDialog, setActivateDialog] = useState(false);
@@ -121,6 +129,7 @@ export function CarryBookTab() {
           </button>
         </div>
       </div>
+      <CarryCapitalCard balance={balance} isLoading={balanceLoading} />
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
         {kpis.map((k) => (
           <KpiCard key={k.label} {...k} />
