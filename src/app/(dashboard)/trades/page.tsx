@@ -794,9 +794,9 @@ function TradesListChart({ trades, filterSymbol }: { trades: Trades[]; filterSym
     return f && isSupportedSymbol(f) ? f : DEFAULT_SYMBOL;
   }, [filterSymbol]);
 
+  const router = useRouter();
   const [symbol, setSymbol] = useState<string>(initialSymbol);
   const [interval, setIntervalState] = useState<ChartInterval>('1h');
-  const [selectedTradeId, setSelectedTradeId] = useState<string | null>(null);
 
   // If the user hasn't manually picked and the current symbol has no loaded
   // trades, switch to the most-traded loaded symbol so the chart isn't empty
@@ -839,7 +839,6 @@ function TradesListChart({ trades, filterSymbol }: { trades: Trades[]; filterSym
 
   const handleSymbol = useCallback((s: string) => {
     userPickedSymbol.current = true;
-    setSelectedTradeId(null);
     setSymbol(s.toUpperCase());
   }, []);
 
@@ -847,6 +846,15 @@ function TradesListChart({ trades, filterSymbol }: { trades: Trades[]; filterSym
     userPickedInterval.current = true;
     setIntervalState(iv);
   }, []);
+
+  // On the journal, a marker click goes straight to the trade's detail page (the
+  // full view) rather than opening an in-chart popup.
+  const handleTradeNavigate = useCallback(
+    (id: string | null) => {
+      if (id) router.push(`/trades/${id}`);
+    },
+    [router],
+  );
 
   return (
     <section className="overflow-hidden rounded-xl border border-bd-subtle bg-bg-surface">
@@ -880,8 +888,7 @@ function TradesListChart({ trades, filterSymbol }: { trades: Trades[]; filterSym
             interval={interval}
             onIntervalChange={handleInterval}
             onSymbolChange={handleSymbol}
-            selectedTradeId={selectedTradeId}
-            onTradeSelect={setSelectedTradeId}
+            onTradeSelect={handleTradeNavigate}
           />
         </div>
       )}
