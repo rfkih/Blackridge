@@ -3,12 +3,14 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   closeCarryPair,
+  deployBestCarry,
   executeCarryDeploy,
   getCarryBalance,
   getCarryConfig,
   getCarryPairs,
   getOpenableCarry,
   openCarryPair,
+  planBestCarry,
   planCarryDeploy,
   saveCarryConfig,
 } from '@/lib/api/carry';
@@ -114,6 +116,35 @@ export function useExecuteCarryDeploy() {
       queryClient.invalidateQueries({ queryKey: ['carry', 'pairs'] });
       queryClient.invalidateQueries({ queryKey: ['carry', 'openable'] });
       queryClient.invalidateQueries({ queryKey: ['carry', 'config', accountId] });
+    },
+  });
+}
+
+/**
+ * Preview the best (highest-funding) carry to open, sized to free capital — modeled as a query so
+ * it auto-fetches when the confirm dialog opens (`enabled`) and re-previews fresh each time (funding
+ * moves; never confirm against a stale rate). No orders are placed by the preview.
+ */
+export function usePlanBestCarry(accountId: string | undefined, enabled: boolean) {
+  return useQuery({
+    queryKey: ['carry', 'best-plan', accountId],
+    queryFn: () => planBestCarry(accountId as string),
+    enabled: enabled && Boolean(accountId),
+    staleTime: 0,
+    gcTime: 0,
+    refetchOnMount: 'always',
+  });
+}
+
+/** Activate the best carry (LIVE), then refresh the book + balance + openable roster. */
+export function useDeployBestCarry() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (accountId: string) => deployBestCarry(accountId),
+    onSuccess: (_data, accountId) => {
+      queryClient.invalidateQueries({ queryKey: ['carry', 'pairs'] });
+      queryClient.invalidateQueries({ queryKey: ['carry', 'openable'] });
+      queryClient.invalidateQueries({ queryKey: ['carry', 'balance', accountId] });
     },
   });
 }

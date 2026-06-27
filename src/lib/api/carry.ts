@@ -5,6 +5,8 @@ import type { PageResponse } from '@/types/api';
 import type {
   CarryAllocationMode,
   CarryBalance,
+  CarryBestDeployResult,
+  CarryBestPlan,
   CarryConfig,
   CarryDeployPlan,
   CarryDeployResult,
@@ -102,16 +104,14 @@ interface BackendCarryBalance {
   futuresWalletUsdt: number | string | null;
   deployedMarginUsdt: number | string | null;
   openPairs: number | null;
-  legs:
-    | Array<{
-        symbol: string | null;
-        simulated: boolean | null;
-        spotValueUsdt: number | string | null;
-        perpNotionalUsdt: number | string | null;
-        marginUsdt: number | string | null;
-        leverage: number | string | null;
-      }>
-    | null;
+  legs: Array<{
+    symbol: string | null;
+    simulated: boolean | null;
+    spotValueUsdt: number | string | null;
+    perpNotionalUsdt: number | string | null;
+    marginUsdt: number | string | null;
+    leverage: number | string | null;
+  }> | null;
   futuresBalanceUnavailable: boolean | null;
 }
 
@@ -331,5 +331,65 @@ export async function executeCarryDeploy(accountId: string): Promise<CarryDeploy
     failed: data?.failed ?? 0,
     items: (data?.items ?? []).map((i) => ({ symbol: i.symbol ?? '', status: i.status ?? '' })),
     notes: data?.notes ?? [],
+  };
+}
+
+// --------------------------------------------------------- best-carry one-click ("activate best")
+
+interface BackendCarryBestPlan {
+  hasCandidate: boolean | null;
+  accountStrategyId: string | null;
+  symbol: string | null;
+  fundingRate: number | string | null;
+  fundingAprPct: number | string | null;
+  markPrice: number | string | null;
+  targetBaseQty: number | string | null;
+  leverage: number | string | null;
+  estNotionalUsd: number | string | null;
+  freeUsdt: number | string | null;
+  reason: string | null;
+}
+
+function mapBestPlan(d: BackendCarryBestPlan | null): CarryBestPlan {
+  return {
+    hasCandidate: Boolean(d?.hasCandidate),
+    accountStrategyId: d?.accountStrategyId ?? null,
+    symbol: d?.symbol ?? null,
+    fundingRate: toNumOrNull(d?.fundingRate),
+    fundingAprPct: toNumOrNull(d?.fundingAprPct),
+    markPrice: toNumOrNull(d?.markPrice),
+    targetBaseQty: toNumOrNull(d?.targetBaseQty),
+    leverage: toNumOrNull(d?.leverage),
+    estNotionalUsd: toNumOrNull(d?.estNotionalUsd),
+    freeUsdt: toNum(d?.freeUsdt),
+    reason: d?.reason ?? null,
+  };
+}
+
+/** Preview the single best (highest-funding) carry to open, sized to free capital. Places NO orders. */
+export async function planBestCarry(accountId: string): Promise<CarryBestPlan> {
+  const { data } = await apiClient.post<BackendCarryBestPlan>(
+    `/api/v1/carry/deploy/best/plan/${encodeURIComponent(accountId)}`,
+  );
+  return mapBestPlan(data);
+}
+
+interface BackendCarryBestDeployResult {
+  plan: BackendCarryBestPlan | null;
+  opened: BackendCarryEntity | null;
+}
+
+/**
+ * Activate the best carry — open the highest-funding pair LIVE, sized to free capital.
+ * NOTE: returns HTTP 200 even when nothing opens (`opened` null → read `plan.reason`) or when a
+ * leg rolls back (`opened.status === 'FAILED'`); callers MUST inspect the result, not just resolve.
+ */
+export async function deployBestCarry(accountId: string): Promise<CarryBestDeployResult> {
+  const { data } = await apiClient.post<BackendCarryBestDeployResult>(
+    `/api/v1/carry/deploy/best/${encodeURIComponent(accountId)}`,
+  );
+  return {
+    plan: mapBestPlan(data?.plan ?? null),
+    opened: data?.opened ? mapMutationResult(data.opened) : null,
   };
 }

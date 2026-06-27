@@ -162,6 +162,37 @@ export interface CarryDeployResult {
 }
 
 /**
+ * Preview of the single best (highest-funding) carry to open, sized to free capital
+ * (POST /api/v1/carry/deploy/best/plan/{accountId}). When `hasCandidate` is false, read
+ * `reason` — nothing is deployable (no positive-funding symbol, no free USDT, or sub-min size).
+ */
+export interface CarryBestPlan {
+  hasCandidate: boolean;
+  accountStrategyId: UUID | null;
+  symbol: string | null;
+  /** Last funding rate per ~8h interval (e.g. 0.0001 = 1bp). */
+  fundingRate: number | null;
+  /** Annualized funding estimate (%), display-only. */
+  fundingAprPct: number | null;
+  markPrice: number | null;
+  targetBaseQty: number | null;
+  leverage: number | null;
+  estNotionalUsd: number | null;
+  freeUsdt: number;
+  reason: string | null;
+}
+
+/**
+ * Outcome of POST /api/v1/carry/deploy/best/{accountId}: the plan acted on + the opened pair.
+ * `opened` is null when nothing was deployable (read `plan.reason`); an `opened.status` of
+ * `FAILED` means the executor rolled a leg back (nothing left half-open).
+ */
+export interface CarryBestDeployResult {
+  plan: CarryBestPlan;
+  opened: CarryMutationResult | null;
+}
+
+/**
  * One row of the per-user execution feed (`GET /api/v1/trade-executions`) —
  * a real-money execution outcome for one of the caller's accounts. Paper
  * (DIVERTED) rows are filtered server-side. Backs the notification bell:

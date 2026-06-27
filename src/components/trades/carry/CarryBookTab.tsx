@@ -16,6 +16,7 @@ import { summarizeCarryBook } from '@/lib/carry/summary';
 import { cn } from '@/lib/utils';
 import type { CarryPair } from '@/types/trading';
 import { CarryActivateDialog } from './CarryActivateDialog';
+import { CarryBestDialog } from './CarryBestDialog';
 import { CarryBookTable } from './CarryBookTable';
 import { CarryCapitalCard } from './CarryCapitalCard';
 import { CarryOpenDialog } from './CarryOpenDialog';
@@ -56,6 +57,7 @@ export function CarryBookTab() {
   const [mode, setMode] = useState<CarryMode>('LIVE');
   const [openDialog, setOpenDialog] = useState(false);
   const [activateDialog, setActivateDialog] = useState(false);
+  const [bestDialog, setBestDialog] = useState(false);
   const [closing, setClosing] = useState<CarryPair | null>(null);
   const closeMutation = useCloseCarryPair();
 
@@ -115,17 +117,26 @@ export function CarryBookTab() {
             type="button"
             onClick={() => setActivateDialog(true)}
             className="h-8 rounded-md border px-3 text-[13px] font-semibold"
-            style={{ borderColor: 'var(--accent-primary)', color: 'var(--accent-primary)' }}
+            style={{ borderColor: 'var(--border-default)', color: 'var(--mm-ink-1)' }}
           >
             Activate
           </button>
           <button
             type="button"
             onClick={() => setOpenDialog(true)}
+            className="h-8 rounded-md border px-3 text-[13px] font-semibold"
+            style={{ borderColor: 'var(--border-default)', color: 'var(--mm-ink-1)' }}
+          >
+            + Open pair
+          </button>
+          <button
+            type="button"
+            onClick={() => setBestDialog(true)}
+            title="Open the single highest-funding carry pair, sized to your free USDT"
             className="h-8 rounded-md px-3 text-[13px] font-semibold text-white"
             style={{ background: 'var(--accent-primary)' }}
           >
-            + Open pair
+            ⚡ Best carry
           </button>
         </div>
       </div>
@@ -144,6 +155,11 @@ export function CarryBookTab() {
       />
       <CarryOpenDialog open={openDialog} onOpenChange={setOpenDialog} />
       <CarryActivateDialog open={activateDialog} onOpenChange={setActivateDialog} />
+      <CarryBestDialog
+        accountId={balanceAccountId}
+        open={bestDialog}
+        onOpenChange={setBestDialog}
+      />
       <CarryCloseConfirm
         pair={closing}
         isPending={closeMutation.isPending}
