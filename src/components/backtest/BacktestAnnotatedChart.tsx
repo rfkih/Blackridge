@@ -619,16 +619,7 @@ export function BacktestAnnotatedChart({
       {selectedTrade &&
         typeof document !== 'undefined' &&
         createPortal(
-          <>
-            {/* Dimmed backdrop — click anywhere outside the card to dismiss it. */}
-            <button
-              type="button"
-              aria-label="Close trade details"
-              onClick={() => onTradeSelect(null)}
-              className="fixed inset-0 z-50 cursor-default border-0 bg-black/50"
-            />
-            <TradeDetailCard trade={selectedTrade} onClose={() => onTradeSelect(null)} />
-          </>,
+          <TradeDetailCard trade={selectedTrade} onClose={() => onTradeSelect(null)} />,
           document.body,
         )}
       {!selectedTrade && trades.length > 0 && <ClickAnyMarkerHint />}
@@ -796,17 +787,35 @@ function TradeDetailCard({ trade, onClose }: { trade: BacktestTrade; onClose: ()
   }, [onClose]);
 
   return (
+    // Full-screen overlay centered on the viewport. Clicking the dim backdrop (target
+    // === the overlay itself) dismisses; clicks on the card don't. Inline styles —
+    // matching the execution drawer — so positioning/stacking never depends on a
+    // Tailwind utility being generated.
     <div
-      // Centered on the viewport (above the backdrop) so it never lands off-screen or
-      // under page chrome; `fixed` + translate keeps it middle-of-screen on any scroll.
-      className="fixed left-1/2 top-1/2 z-[60] max-h-[85vh] w-[300px] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-md border border-[var(--border-default)] shadow-xl"
-      style={{ background: 'var(--bg-elevated)' }}
-      role="dialog"
-      aria-modal="true"
-      aria-label="Trade details"
+      role="presentation"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+      style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 60,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 16,
+        background: 'rgba(0,0,0,0.5)',
+      }}
     >
-      {}
-      <div className="flex items-center justify-between gap-2 border-b border-[var(--border-subtle)] px-3 py-2">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label="Trade details"
+        className="overflow-y-auto rounded-md border border-[var(--border-default)] shadow-xl"
+        style={{ width: 'min(300px, 94vw)', maxHeight: '85vh', background: 'var(--bg-elevated)' }}
+      >
+        {}
+        <div className="flex items-center justify-between gap-2 border-b border-[var(--border-subtle)] px-3 py-2">
         <div className="flex min-w-0 items-center gap-2">
           <span
             className="rounded-sm px-1.5 py-0.5 font-mono text-[12px] font-semibold tracking-wider"
@@ -952,6 +961,7 @@ function TradeDetailCard({ trade, onClose }: { trade: BacktestTrade; onClose: ()
             ))}
           </ul>
         )}
+      </div>
       </div>
     </div>
   );
