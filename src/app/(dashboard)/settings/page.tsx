@@ -1174,6 +1174,9 @@ function TradingRiskPolicyCard({ account }: { account: AccountSummary }) {
   const mut = useUpdateAccountRiskConfig();
   const [longCap, setLongCap] = useState(String(account.maxConcurrentLongs));
   const [shortCap, setShortCap] = useState(String(account.maxConcurrentShorts));
+  const [tradesCap, setTradesCap] = useState(
+    account.maxConcurrentTrades == null ? '' : String(account.maxConcurrentTrades),
+  );
   const [volEnabled, setVolEnabled] = useState(account.volTargetingEnabled);
   const [volTarget, setVolTarget] = useState(String(account.bookVolTargetPct));
 
@@ -1184,6 +1187,8 @@ function TradingRiskPolicyCard({ account }: { account: AccountSummary }) {
         payload: {
           maxConcurrentLongs: Number(longCap),
           maxConcurrentShorts: Number(shortCap),
+          // blank or <1 clears the total cap (backend stores it as null = no limit)
+          maxConcurrentTrades: tradesCap.trim() === '' ? 0 : Number(tradesCap),
           volTargetingEnabled: volEnabled,
           bookVolTargetPct: Number(volTarget) || 15,
         },
@@ -1264,6 +1269,18 @@ function TradingRiskPolicyCard({ account }: { account: AccountSummary }) {
             className="mm-input"
             value={shortCap}
             onChange={(e) => setShortCap(e.target.value)}
+          />
+        </RiskField>
+        <RiskField label="Max concurrent trades (total)">
+          <input
+            type="number"
+            min={0}
+            max={20}
+            step={1}
+            className="mm-input"
+            placeholder="No cap"
+            value={tradesCap}
+            onChange={(e) => setTradesCap(e.target.value)}
           />
         </RiskField>
         <RiskField label="Vol-targeting">
