@@ -269,6 +269,7 @@ function TradeDetailChartSection({ trade }: { trade: Trades }) {
         interval={interval}
         onIntervalChange={setChartInterval}
         selectedTradeId={trade.id}
+        showDetailCard={false}
         height={420}
         storageKey="blackheart:trade-detail-indicators"
       />

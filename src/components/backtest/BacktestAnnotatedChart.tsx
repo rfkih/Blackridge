@@ -73,6 +73,12 @@ interface BacktestAnnotatedChartProps {
    *  the chart's current price tracks the live price and is identical across every
    *  interval. Unset on the backtest result page (no live feed) → effect is inert. */
   livePrice?: number | null;
+  /** Render the click-pinned {@link TradeDetailCard} modal when a trade is
+   *  selected (default true). The single-trade detail page pre-selects its trade
+   *  purely to draw the SL/TP price lines, and wires no `onTradeSelect` — so it
+   *  sets this false: every field the card shows is already on that page, and an
+   *  auto-opened card with a no-op close handler would be un-closable. */
+  showDetailCard?: boolean;
 }
 
 const MARKER_HIT_RADIUS_PX = 16;
@@ -95,6 +101,7 @@ export function BacktestAnnotatedChart({
   showIndicators,
   exitLabelMode = 'reason',
   livePrice,
+  showDetailCard = true,
 }: BacktestAnnotatedChartProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
@@ -616,7 +623,8 @@ export function BacktestAnnotatedChart({
           descendants — so a card left inside the chart tree anchors to <main>
           (the scroll container) and won't track viewport scroll. Rendering it at
           the document root restores true viewport-fixed positioning. */}
-      {selectedTrade &&
+      {showDetailCard &&
+        selectedTrade &&
         typeof document !== 'undefined' &&
         createPortal(
           <TradeDetailCard trade={selectedTrade} onClose={() => onTradeSelect(null)} />,

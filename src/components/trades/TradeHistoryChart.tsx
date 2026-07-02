@@ -62,6 +62,11 @@ interface TradeHistoryChartProps {
   /** Drop the outer card chrome (border/rounded/bg) so a parent can own it —
    *  used by the collapsible journal panel. */
   bare?: boolean;
+  /** Forwarded to the annotated chart: render the click-pinned trade-detail
+   *  modal on selection (default true). The single-trade detail page pre-selects
+   *  its trade to draw SL/TP lines and sets this false so the redundant card
+   *  doesn't auto-open with no way to close it. */
+  showDetailCard?: boolean;
 }
 
 /**
@@ -83,6 +88,7 @@ export function TradeHistoryChart({
   showControls = true,
   storageKey = 'blackheart:trades-indicators',
   bare = false,
+  showDetailCard = true,
 }: TradeHistoryChartProps) {
   const { indicators, toggle, anyActive } = useChartIndicators(storageKey);
 
@@ -169,6 +175,7 @@ export function TradeHistoryChart({
             trades={adapted}
             selectedTradeId={selectedTradeId}
             onTradeSelect={handleSelect}
+            showDetailCard={showDetailCard}
             scrollTrigger={scrollTrigger}
             features={indicatorsQ.data ?? EMPTY_FEATURES}
             emaWarmupCandles={warmupQ.data ?? EMPTY_CANDLES}
