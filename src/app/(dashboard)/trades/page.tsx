@@ -377,13 +377,11 @@ function TradesPageContent() {
       {
         id: 'exit',
         header: 'Exit',
-        accessorFn: (t) => t.exitAvgPrice ?? t.markPrice ?? null,
-        cell: ({ row }) => (
-          <PriceCell
-            value={row.original.exitAvgPrice ?? row.original.markPrice ?? null}
-            decimals={4}
-          />
-        ),
+        // Real exit fill only. Deliberately NO fall-back to markPrice: an OPEN
+        // trade has no exit, and showing the live mark under an "Exit" header
+        // reads as a fill that never happened. Blank (—) until it truly closes.
+        accessorFn: (t) => t.exitAvgPrice ?? null,
+        cell: ({ row }) => <PriceCell value={row.original.exitAvgPrice ?? null} decimals={4} />,
       },
       {
         id: 'pnl',
