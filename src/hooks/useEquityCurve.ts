@@ -5,7 +5,6 @@ import { useQuery } from '@tanstack/react-query';
 import { fetchEquityPoints } from '@/lib/api/equity';
 import { useActiveAccount } from '@/hooks/useAccounts';
 import { useStrategies } from '@/hooks/useStrategies';
-import { useEarnPosition } from '@/hooks/useEarnPosition';
 import type { EquityPoint } from '@/types/market';
 
 export type EquityPeriod = '7D' | '30D' | '90D' | 'ALL';
@@ -53,20 +52,12 @@ export function useEquityCurve() {
     retry: false,
   });
 
-  // Realized earn yield is already folded into the backend equity points. Add the
-  // CURRENT open episode's accrued (unrealized) yield to the live tip so equity
-  // reflects interest as it accrues, not only at redeem. No-op (accrued 0) for
-  // non-hedging accounts or when earn is off.
-  const accruedEarn = useEarnPosition(accountId).data?.accruedYieldUsdt ?? 0;
-
-  const points = useMemo(() => {
-    const base = query.data ?? EMPTY_POINTS;
-    if (accruedEarn <= 0 || base.length === 0) return base;
-    const out = base.slice();
-    const tip = out[out.length - 1]!;
-    out[out.length - 1] = { ...tip, equity: tip.equity + accruedEarn };
-    return out;
-  }, [query.data, accruedEarn]);
+  // Equity points are authoritative as returned by the backend. For TRADING
+  // accounts realized earn is already folded in (and accrued is always 0). For
+  // HEDGING accounts the curve comes from mark-to-market snapshots whose
+  // total_equity_usdt ALREADY includes the Earn position — so the client must
+  // NOT add accrued earn to the tip here, which would double-count it (V185).
+  const points = query.data ?? EMPTY_POINTS;
 
   const stats = useMemo(() => {
     if (!points.length) return null;
