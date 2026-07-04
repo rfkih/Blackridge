@@ -81,12 +81,16 @@ export function useAllocation(accountId: string | undefined): UseAllocationResul
       ? splitBalance(balance)
       : { btcValue: 0, cashValue: 0 };
 
-    // Fold USDT parked in Earn back into the cash sleeve: once funds move to
-    // Earn the spot balance drops, which would otherwise overstate BTC weight.
-    // Earn USDT IS cash. When earnUsdt is 0 the result equals the spot-only read.
+    // The backend already folds Simple-Earn USDT into `totalUsdt` (see
+    // PortfolioBalanceService.applyEarn) but NOT into the per-asset `assets[]`
+    // list. So `totalUsdt` IS the Earn-inclusive equity — use it directly.
+    // Adding earnUsdt on top here would double-count it, shrinking both weights
+    // so they sum to <100% (the double-counted Earn / inflated equity was the
+    // "missing" slice). The cash sleeve, by contrast, is summed from `assets[]`
+    // (which carries no Earn line), so Earn IS added back there. When earnUsdt
+    // is 0 both reduce to the spot-only read.
     const earnUsdt = earn.data?.amountUsdt ?? 0;
-    const spotEquity = balance?.totalUsdt ?? 0;
-    const equity = spotEquity + earnUsdt; // total incl. Earn
+    const equity = balance?.totalUsdt ?? 0; // already Earn-inclusive (backend fold)
     const cashValue = spotCash + earnUsdt;
 
     // targetWeightPct: the configured BTC target for the account. We use the

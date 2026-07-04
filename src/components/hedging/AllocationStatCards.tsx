@@ -5,6 +5,7 @@ import { useAllocation } from '@/hooks/useAllocation';
 import { useEquityCurve } from '@/hooks/useEquityCurve';
 import { useEarnPosition } from '@/hooks/useEarnPosition';
 import { useCurrencyFormatter } from '@/hooks/useCurrency';
+import { useCurrencyStore } from '@/store/currencyStore';
 
 interface AllocationStatCardsProps {
   accountId: string | undefined;
@@ -82,8 +83,9 @@ function Stat({ testId, label, value, tooltip, tone = 'neutral', icon }: StatPro
  * so they are intentionally omitted rather than faked.
  */
 export function AllocationStatCards({ accountId }: AllocationStatCardsProps) {
-  // useAllocation already folds Earn USDT into the cash sleeve + equity + weights,
-  // so consume its weights directly — no manual recompute (would double-count).
+  // useAllocation returns Earn-inclusive equity (the backend folds Earn into
+  // totalUsdt) with Earn added into the cash sleeve, so consume its weights
+  // directly — a manual recompute here would re-add Earn and double-count it.
   const { btcWeightPct, cashWeightPct, earnUsdt } = useAllocation(accountId);
   const equity = useEquityCurve();
   const maxDrawdown = equity.stats?.maxDrawdown ?? null;
@@ -92,13 +94,26 @@ export function AllocationStatCards({ accountId }: AllocationStatCardsProps) {
   // dedupes with useAllocation's call (same query key).
   const earn = useEarnPosition(accountId);
   const formatCurrency = useCurrencyFormatter();
+  const displayCurrency = useCurrencyStore((s) => s.displayCurrency);
   const earnEnabled = earn.data?.enabled ?? false;
   const interestEarned = earn.data?.accruedYieldUsdt ?? 0;
+
+  // Interest accrues in sub-cent increments, so show 4 decimals — but only in
+  // USD view, where the figure is a direct USDT amount. BTC/IDR keep their
+  // currency-aware precision (4dp of a $0.04 conversion would just read as 0).
+  const interestFmtOpts =
+    displayCurrency === 'USD'
+      ? { minimumFractionDigits: 4, maximumFractionDigits: 4 }
+      : undefined;
 
   const earnValue =
     earnUsdt > 0 ? formatCurrency(earnUsdt) : earnEnabled ? formatCurrency(0) : 'Off';
   const interestValue =
-    interestEarned > 0 ? formatCurrency(interestEarned) : earnEnabled ? formatCurrency(0) : 'Off';
+    interestEarned > 0
+      ? formatCurrency(interestEarned, interestFmtOpts)
+      : earnEnabled
+        ? formatCurrency(0, interestFmtOpts)
+        : 'Off';
 
   return (
     <section className="grid grid-cols-2 gap-4 lg:grid-cols-5">

@@ -92,6 +92,27 @@ describe('AllocationStatCards', () => {
     expect(interest).toHaveTextContent('$2.50');
   });
 
+  it('formats accrued interest to 4 decimals in USD view', () => {
+    // Default display currency is USD, so the interest cell asks the formatter
+    // for 4 fraction digits (sub-cent accrual visibility).
+    const fmt = vi.fn((n: number, opts?: { maximumFractionDigits?: number }) =>
+      `$${Number(n).toFixed(opts?.maximumFractionDigits ?? 2)}`,
+    );
+    useCurrencyFormatter.mockReturnValue(fmt);
+    useAllocation.mockReturnValue(mkAllocation({ earnUsdt: 50 }));
+    useEquityCurve.mockReturnValue({ stats: null });
+    useEarnPosition.mockReturnValue({
+      data: { asset: 'USDT', amountUsdt: 50, accruedYieldUsdt: 0.0412, enabled: true },
+    });
+
+    render(<AllocationStatCards accountId="a1" />);
+    expect(fmt).toHaveBeenCalledWith(0.0412, {
+      minimumFractionDigits: 4,
+      maximumFractionDigits: 4,
+    });
+    expect(screen.getByTestId('stat-interestEarned')).toHaveTextContent('$0.0412');
+  });
+
   it('omits btcStack and sharpe cards (require data the app does not expose)', () => {
     useAllocation.mockReturnValue(mkAllocation());
     useEquityCurve.mockReturnValue({ stats: { maxDrawdown: -5 } });

@@ -105,10 +105,14 @@ describe('useAllocation', () => {
   });
 
   it('folds Earn USDT into cash + equity so weights are correct', () => {
-    // spot: $600 BTC, $0 USDT; Earn: $400 USDT
+    // spot: $600 BTC, $0 spot USDT; Earn: $400 USDT.
+    // The backend (PortfolioBalanceService.applyEarn) folds Earn into `totalUsdt`
+    // but leaves it out of `assets[]` — so totalUsdt=1000 while assets sum to 600.
+    // The hook must NOT re-add Earn to equity (that double-counts), but MUST add
+    // it to the cash sleeve (assets[] has no Earn line).
     usePortfolio.mockReturnValue({
       data: mkBalance({
-        totalUsdt: 600,
+        totalUsdt: 1_000,
         availableUsdt: 0,
         assets: [{ asset: 'BTC', free: 0.01, locked: 0, usdtValue: 600 }],
       }),
@@ -125,6 +129,8 @@ describe('useAllocation', () => {
     expect(result.current.btcWeightPct).toBeCloseTo(60, 5);
     expect(result.current.cashWeightPct).toBeCloseTo(40, 5);
     expect(result.current.earnUsdt).toBe(400);
+    // Regression: Earn must not be double-counted — BTC + cash weight = 100%.
+    expect(result.current.btcWeightPct + result.current.cashWeightPct).toBeCloseTo(100, 5);
   });
 
   it('reads targetWeightPct from the active hedging binding capitalAllocationPct', () => {
