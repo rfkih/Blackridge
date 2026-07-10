@@ -675,7 +675,7 @@ function PerformanceCard() {
     },
     {
       l: 'Win rate · month',
-      v: month?.winRate != null ? `${(month.winRate * 100).toFixed(0)}%` : '—',
+      v: month?.winRate != null ? `${month.winRate.toFixed(0)}%` : '—',
     },
     {
       l: 'Open · today',

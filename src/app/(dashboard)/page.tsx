@@ -77,8 +77,8 @@ export default function DashboardPage() {
   const activeBots = visibleStrategies.filter((s) => s.status === 'LIVE').length;
   const totalBots = visibleStrategies.length;
   const bestOpen = pickBestOpen(openTrades);
-  // pnlSummary.winRate is a fraction in [0,1]; render as a percentage.
-  const winRatePct = (pnlSummary?.winRate ?? 0) * 100;
+  // pnlSummary.winRate is already a percent (backend multiplies by 100).
+  const winRatePct = pnlSummary?.winRate ?? 0;
   const scopeLabel = isAll ? 'All accounts' : (activeAccount?.label ?? '');
 
   // Account-type branch: a single HEDGING account active renders the hedging
@@ -160,7 +160,7 @@ export default function DashboardPage() {
           icon={<TrendingUp size={16} strokeWidth={2} />}
         />
         <StatCard
-          label="Win rate (30d)"
+          label="Win rate (today)"
           value={`${winRatePct.toFixed(1)}%`}
           sub={`${activeBots} of ${totalBots} strategies live`}
           tone="neutral"

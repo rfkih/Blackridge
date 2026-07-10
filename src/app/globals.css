@@ -234,10 +234,13 @@
   --text-muted: #6b7280;
   --text-inverse: #ffffff;
 
-  /* Semantic — emerald + coral, deepened slightly for WCAG AA on white */
-  --color-profit: #0e9f50;
-  --color-loss: #e5484d;
-  --color-warning: #d68910;
+  /* Semantic — emerald + coral, deepened for WCAG AA (≥4.5:1) as text on
+     white. Values match the marketing (.qp-page) pins, which existed only
+     because these used to fail AA (#0e9f50 3.45:1, #e5484d 3.91:1,
+     #d68910 2.82:1). */
+  --color-profit: #0c7d42;
+  --color-loss: #c0353a;
+  --color-warning: #a16207;
   --color-info: #2563eb;
   --color-neutral: #6b7280;
 
@@ -1726,8 +1729,9 @@ input[type='number'].no-native-spinners {
   --qp-brand: var(--brand-500);
   --qp-brand-deep: var(--brand-700);
   --qp-brand-soft: var(--brand-50);
-  /* Profit/loss are pinned per theme rather than chained to the app tokens —
-     the app's #e5484d / #0e9f50 sit below 4.5:1 contrast on white paper. */
+  /* Profit/loss pins — now equal to the light-theme app tokens (both were
+     deepened to clear 4.5:1 on white); kept pinned so marketing pages don't
+     shift if the app tokens are ever re-tuned. */
   --qp-loss: #c0353a;
   --qp-profit: #0c7d42;
   --qp-loss-soft: var(--tint-loss);

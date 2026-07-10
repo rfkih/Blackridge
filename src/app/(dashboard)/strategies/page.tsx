@@ -1020,23 +1020,6 @@ export default function StrategiesPage() {
     presetsByTuple.set(k, (presetsByTuple.get(k) ?? 0) + 1);
   }
 
-  const handleActivate = (strategy: AccountStrategy) => {
-    activateMutation.mutate(strategy.id, {
-      onSuccess: (s) => {
-        toast.success({
-          title: `Activated "${s.presetName}"`,
-          description: `${s.strategyCode} · ${s.symbol} ${s.interval}`,
-        });
-      },
-      onError: (err) => {
-        toast.error({
-          title: 'Could not activate preset',
-          description: normalizeError(err),
-        });
-      },
-    });
-  };
-
   const handleStartAsPaper = (strategy: AccountStrategy) => {
     promoteMutation.mutate(
       {
@@ -1353,7 +1336,10 @@ export default function StrategiesPage() {
               showAccountHeaders={isAll && accounts.length > 1}
               onDelete={setDeleteTarget}
               onClone={setCloneTarget}
-              onActivate={handleActivate}
+              // Activation = real Binance orders (enabled=true, simulated=false).
+              // Route the card's status toggle through the same confirm dialog as
+              // the start menu — never one-click into LIVE.
+              onActivate={(s) => setLiveConfirmTarget({ strategy: s, fromStopped: true })}
               onDeactivate={handleDeactivate}
               onIntervalChange={handleIntervalChange}
               onRearm={setRearmTarget}
