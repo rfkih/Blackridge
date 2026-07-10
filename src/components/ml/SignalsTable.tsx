@@ -5,6 +5,7 @@ import { formatDistanceToNowStrict } from 'date-fns';
 import { AlertTriangle, Search } from 'lucide-react';
 import { useState, type ChangeEvent } from 'react';
 import { useSignals, useStreamingStatus } from '@/lib/api/ml';
+import { parseIsoUtc } from '@/lib/formatters';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
@@ -31,7 +32,8 @@ const PAGE_SIZE = 50;
 function fmtRelative(ts: string | null): string {
   if (!ts) return '—';
   try {
-    return `${formatDistanceToNowStrict(new Date(ts))} ago`;
+    // parseIsoUtc: zone-less orchestrator timestamps are UTC, not local.
+    return `${formatDistanceToNowStrict(parseIsoUtc(ts))} ago`;
   } catch {
     return '—';
   }

@@ -65,10 +65,6 @@ export function DatePicker({
   const [open, setOpen] = useState(false);
   const [viewDate, setViewDate] = useState<Date>(() => selected ?? new Date());
 
-  const lastValue = useMemo(() => value, [value]);
-  if (selected && !isSameMonth(viewDate, selected) && lastValue !== format(viewDate, ISO_FMT)) {
-  }
-
   const days = useMemo(() => buildMonthGrid(viewDate), [viewDate]);
 
   const handleSelect = (d: Date) => {

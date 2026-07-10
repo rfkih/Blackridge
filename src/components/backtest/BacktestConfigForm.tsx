@@ -56,8 +56,8 @@ const configSchema = z
     strategyCodes: z.array(z.string()).min(1, 'Select at least one strategy'),
     strategyAccountStrategyIds: z.record(z.string(), z.string()),
     maxConcurrentStrategies: z
-      .number()
-      .int()
+      .number({ error: 'Must be a whole number between 1 and 20' })
+      .int('Must be a whole number between 1 and 20')
       .min(1, 'Must allow at least 1 concurrent strategy')
       .max(20, 'Cap is 20 concurrent strategies')
       .optional(),
@@ -446,7 +446,11 @@ const strategyOptionsByCode = useMemo(() => {
       initialCapital: Number(initialCapital),
       strategyCodes: selectedStrategies,
       strategyAccountStrategyIds,
-      maxConcurrentStrategies: Number(maxConcurrentStrategies) || undefined,
+      // Blank = "no override" (undefined). Anything typed must survive Zod's
+      // int(1..20) — the old `Number(x) || undefined` silently swallowed "0"
+      // and garbage instead of surfacing a validation error.
+      maxConcurrentStrategies:
+        maxConcurrentStrategies.trim() === '' ? undefined : Number(maxConcurrentStrategies),
       strategyAllocations: Object.keys(allocs).length ? allocs : undefined,
       strategyRiskPcts: Object.keys(riskPcts).length ? riskPcts : undefined,
       strategyAllowLong: Object.keys(allowLongMap).length ? allowLongMap : undefined,
@@ -740,7 +744,7 @@ const strategyOptionsByCode = useMemo(() => {
 
             {}
             <div className="mt-5 grid grid-cols-1 gap-4 border-t border-bd-subtle pt-4 lg:grid-cols-3">
-              <Field label="Max concurrent strategies">
+              <Field label="Max concurrent strategies" error={errors.maxConcurrentStrategies}>
                 <Input
                   type="number"
                   inputMode="numeric"

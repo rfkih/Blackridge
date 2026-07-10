@@ -12,6 +12,7 @@ import {
   searchSweeps,
 } from '@/lib/api/research';
 import type { ResearchLogQuery, SweepsQuery } from '@/types/research';
+import { generateIdempotencyKey } from '@/lib/idempotency';
 import { getLsrDefaults } from '@/lib/api/lsr-params';
 import { getVcbDefaults } from '@/lib/api/vcb-params';
 import { useAuthStore } from '@/store/authStore';
@@ -65,7 +66,7 @@ const SWEEP_LIST_KEY = ['research', 'sweeps'] as const;
 export function useCreateSweep() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (spec: SweepSpec) => createSweep(spec),
+    mutationFn: (spec: SweepSpec) => createSweep(spec, generateIdempotencyKey('sweep')),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: SWEEP_LIST_KEY });
     },
@@ -85,7 +86,9 @@ export function useEvaluateHoldout(sweepId: string | undefined) {
     },
     onSuccess: () => {
       if (sweepId) {
-        queryClient.invalidateQueries({ queryKey: ['research', 'sweep', sweepId] });
+        // Must match useSweep's key ('sweeps', plural) — COMPLETED sweeps stop
+        // polling, so a missed invalidation here never self-heals.
+        queryClient.invalidateQueries({ queryKey: ['research', 'sweeps', sweepId] });
       }
     },
   });
@@ -183,10 +186,11 @@ export function useSweep(sweepId: string | undefined) {
     enabled: Boolean(sweepId) && Boolean(userId),
     refetchInterval: (query) => {
       const status = query.state.data?.status;
-
-      if (status === 'RUNNING' || status === 'PENDING') return 1_000;
+      // 2.5s — the response carries the FULL per-combo results array, so a
+      // 1s cadence on a 256-combo sweep was needlessly heavy on the JVM.
+      if (status === 'RUNNING' || status === 'PENDING') return 2_500;
       return false;
     },
-    staleTime: 1_000,
+    staleTime: 2_500,
   });
 }

@@ -1,8 +1,9 @@
 'use client';
 
 import Link from 'next/link';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, RefreshCcw } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
+import { AxiosError } from 'axios';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ExportButtons } from '@/components/research/papers/ExportButtons';
 import { PaperActionButtons } from '@/components/research/papers/PaperActionButtons';
@@ -62,6 +63,33 @@ function NotFound({ id }: { id: string }) {
   );
 }
 
+/** Transient failure (500 / network / orchestrator down) — offer retry
+ *  instead of falsely claiming the paper doesn't exist. */
+function LoadError({ onRetry }: { onRetry: () => void }) {
+  return (
+    <div className="space-y-3 rounded-xl border border-bd-subtle bg-bg-surface p-10 text-center">
+      <p className="text-[14px]" style={{ color: 'var(--color-loss)' }}>
+        Could not load this paper — the research orchestrator may be down.
+      </p>
+      <div className="flex items-center justify-center gap-3">
+        <button
+          type="button"
+          onClick={onRetry}
+          className="inline-flex items-center gap-1.5 rounded-sm border border-bd-subtle bg-bg-base px-3 py-1.5 text-[14px] text-text-primary transition-colors hover:bg-bg-hover"
+        >
+          <RefreshCcw size={12} /> Retry
+        </button>
+        <Link
+          href="/research/papers"
+          className="inline-flex items-center gap-1.5 text-[14px] font-semibold text-[var(--accent-primary)] hover:underline"
+        >
+          <ArrowLeft size={12} /> Back to library
+        </Link>
+      </div>
+    </div>
+  );
+}
+
 export default function PaperPage({ params }: { params: { id: string } }) {
   const { id } = params;
 
@@ -69,6 +97,8 @@ export default function PaperPage({ params }: { params: { id: string } }) {
     data: paper,
     isLoading,
     isError,
+    error,
+    refetch,
   } = useQuery({
     queryKey: ['paper', id],
     queryFn: () => getPaper(id),
@@ -90,7 +120,12 @@ export default function PaperPage({ params }: { params: { id: string } }) {
   });
 
   if (isLoading) return <PageSkeleton />;
-  if (isError || !paper) return <NotFound id={id} />;
+  if (isError) {
+    const status = error instanceof AxiosError ? error.response?.status : undefined;
+    if (status === 404) return <NotFound id={id} />;
+    return <LoadError onRetry={() => refetch()} />;
+  }
+  if (!paper) return <NotFound id={id} />;
 
   const best = hasBestIter(paper.best_iteration) ? paper.best_iteration : null;
   const meta = paper.metadata;

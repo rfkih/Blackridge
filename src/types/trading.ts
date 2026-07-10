@@ -300,6 +300,8 @@ export interface PnlSummary {
   unrealizedPnl: number;
   totalPnl: number;
   tradeCount: number;
+  /** Percent in [0,100] — the backend already multiplies by 100 (unlike
+   *  /trades/stats, which returns a fraction). Do NOT scale again. */
   winRate: number;
   openCount?: number;
   /** V60 — mean per-trade return rate (pnl / notional × 100). Null when no

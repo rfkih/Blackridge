@@ -77,7 +77,10 @@ export default function MonteCarloPage() {
   const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
 
-  const runsQ = useBacktestRuns({ status: 'COMPLETED', size: 5 });
+  // 50, not 5 — the old cap made anything but the very latest runs
+  // unreachable for Monte Carlo. A 50-option select is still navigable; the
+  // hint below flags when even that truncates.
+  const runsQ = useBacktestRuns({ status: 'COMPLETED', size: 50 });
   const completedRuns = runsQ.data?.content ?? [];
   const totalCompleted = runsQ.data?.total ?? completedRuns.length;
   const isDropdownTruncated = totalCompleted > completedRuns.length;
@@ -263,7 +266,7 @@ export default function MonteCarloPage() {
           error={errors.backtestRunId}
           hint={
             isDropdownTruncated
-              ? `Showing latest 5 of ${totalCompleted} completed runs — older hidden.`
+              ? `Showing latest ${completedRuns.length} of ${totalCompleted} completed runs — older hidden.`
               : undefined
           }
         >
@@ -418,8 +421,8 @@ function Results({ result }: { result: MonteCarloResult }) {
             }}
           >
             <span>— MEDIAN</span>
-            <span style={{ color: 'var(--mm-mint)' }}>━ P90</span>
-            <span style={{ color: 'var(--mm-dn)' }}>━ P10</span>
+            <span style={{ color: 'var(--mm-mint)' }}>━ BEST</span>
+            <span style={{ color: 'var(--mm-dn)' }}>━ WORST</span>
             <span>· {result.numberOfSimulations.toLocaleString()} PATHS</span>
           </div>
         </div>

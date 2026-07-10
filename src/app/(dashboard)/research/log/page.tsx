@@ -6,7 +6,7 @@ import { ChevronDown, ChevronUp, ChevronsUpDown, Loader2, Search } from 'lucide-
 import { useSearchResearchLog } from '@/hooks/useResearch';
 import { useDebouncedSearchPage } from '@/hooks/useDebouncedSearchPage';
 import { Skeleton } from '@/components/ui/skeleton';
-import { formatDate } from '@/lib/formatters';
+import { formatDate, parseIsoUtc } from '@/lib/formatters';
 
 type SortKey =
   | 'createdAt'
@@ -206,20 +206,27 @@ export default function ResearchLogPage() {
               </thead>
               <tbody>
                 {rows.map((row) => {
-                  const wrColor = row.winRate >= 0.5 ? 'var(--color-profit)' : 'var(--color-loss)';
+                  // Metric fields are null for zero-trade runs — never call
+                  // .toFixed unguarded. A PF of null is "no data", not ∞.
+                  const wrColor =
+                    row.winRate == null
+                      ? 'var(--text-muted)'
+                      : row.winRate >= 0.5
+                        ? 'var(--color-profit)'
+                        : 'var(--color-loss)';
                   const rColor =
-                    row.avgR > 0
+                    row.avgR != null && row.avgR > 0
                       ? 'var(--color-profit)'
-                      : row.avgR < 0
+                      : row.avgR != null && row.avgR < 0
                         ? 'var(--color-loss)'
                         : 'var(--text-muted)';
                   const pnlColor =
-                    row.netPnl > 0
+                    row.netPnl != null && row.netPnl > 0
                       ? 'var(--color-profit)'
-                      : row.netPnl < 0
+                      : row.netPnl != null && row.netPnl < 0
                         ? 'var(--color-loss)'
                         : 'var(--text-muted)';
-                  const pfStr = row.profitFactor == null ? '∞' : row.profitFactor.toFixed(2);
+                  const pfStr = row.profitFactor == null ? '—' : row.profitFactor.toFixed(2);
                   return (
                     <tr
                       key={row.runId}
@@ -230,7 +237,7 @@ export default function ResearchLogPage() {
                         <span className="ml-2 text-text-muted">{row.strategyCode}</span>
                       </Td>
                       <Td className="font-mono text-text-muted">
-                        {row.createdAt ? formatDate(Date.parse(row.createdAt)) : '—'}
+                        {row.createdAt ? formatDate(parseIsoUtc(row.createdAt)) : '—'}
                       </Td>
                       <Td className="font-mono">{row.asset}</Td>
                       <Td className="font-mono text-text-muted">{row.interval}</Td>
@@ -238,20 +245,21 @@ export default function ResearchLogPage() {
                         {row.tradeCount}
                       </Td>
                       <Td align="right" className="num" style={{ color: wrColor }}>
-                        {(row.winRate * 100).toFixed(1)}%
+                        {row.winRate == null ? '—' : `${(row.winRate * 100).toFixed(1)}%`}
                       </Td>
                       <Td align="right" className="num">
                         {pfStr}
                       </Td>
                       <Td align="right" className="num" style={{ color: rColor }}>
-                        {row.avgR.toFixed(3)}
+                        {row.avgR == null ? '—' : row.avgR.toFixed(3)}
                       </Td>
                       <Td align="right" className="num" style={{ color: pnlColor }}>
-                        {row.netPnl > 0 ? '+' : ''}
-                        {row.netPnl.toFixed(2)}
+                        {row.netPnl == null
+                          ? '—'
+                          : `${row.netPnl > 0 ? '+' : ''}${row.netPnl.toFixed(2)}`}
                       </Td>
                       <Td align="right" className="num text-[var(--color-loss)]">
-                        {row.maxDrawdown.toFixed(2)}
+                        {row.maxDrawdown == null ? '—' : row.maxDrawdown.toFixed(2)}
                       </Td>
                       <Td align="right" className="num">
                         {row.maxConsecutiveLosses}

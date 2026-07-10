@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { formatDistanceToNowStrict } from 'date-fns';
 import { useMlMonitor } from '@/lib/api/ml';
+import { parseIsoUtc } from '@/lib/formatters';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   Table,
@@ -20,7 +21,10 @@ import { MlMonitorAlertRibbon } from './MlMonitorAlertRibbon';
 function fmtRelative(ts: string | null): string {
   if (!ts) return '—';
   try {
-    return `${formatDistanceToNowStrict(new Date(ts))} ago`;
+    // parseIsoUtc: orchestrator timestamps arrive zone-less but ARE UTC —
+    // local-parsing inflated recency by the browser's UTC offset, making a
+    // live pipeline read as stale.
+    return `${formatDistanceToNowStrict(parseIsoUtc(ts))} ago`;
   } catch {
     return '—';
   }

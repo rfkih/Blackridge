@@ -85,7 +85,7 @@ import {
 } from '@/components/ui/dialog';
 import { toast } from '@/hooks/useToast';
 import { normalizeError } from '@/lib/api/client';
-import { formatDate } from '@/lib/formatters';
+import { formatDate, parseIsoUtc } from '@/lib/formatters';
 import { toneColor, type Tone } from '@/lib/tones';
 import type { JvmTelemetrySnapshot, Jvm } from '@/lib/api/actuator';
 import type { AccountStrategy } from '@/types/strategy';
@@ -428,7 +428,7 @@ function ResearchAutomationPanel() {
               </span>
             )}
             <span className="ml-auto font-mono text-[12px] text-text-muted">
-              Updated {data.updatedAt ? formatDate(Date.parse(data.updatedAt)) : '—'}
+              Updated {data.updatedAt ? formatDate(parseIsoUtc(data.updatedAt)) : '—'}
             </span>
           </div>
           {!paused && (
@@ -542,7 +542,7 @@ function KillSwitchRow({ strategy }: { strategy: AccountStrategy }) {
         <div className="mt-0.5 font-mono text-[12px] text-text-muted">
           Tripped{' '}
           {strategy.killSwitchTrippedAt
-            ? formatDate(Date.parse(strategy.killSwitchTrippedAt))
+            ? formatDate(parseIsoUtc(strategy.killSwitchTrippedAt))
             : '—'}
         </div>
       </div>
@@ -622,7 +622,7 @@ function StuckTradeRow({ anomaly }: { anomaly: TradeAnomaly }) {
         </div>
         <div className="mt-1 text-[13px] text-text-secondary">{hint}</div>
         <div className="mt-0.5 flex items-center gap-2 font-mono text-[12px] text-text-muted">
-          <span>Entered {anomaly.entryTime ? formatDate(Date.parse(anomaly.entryTime)) : '—'}</span>
+          <span>Entered {anomaly.entryTime ? formatDate(parseIsoUtc(anomaly.entryTime)) : '—'}</span>
           <span className="text-text-muted/60">·</span>
           <code className="text-text-muted">{anomaly.tradeId.slice(0, 8)}</code>
         </div>
@@ -693,7 +693,7 @@ function WsHeartbeatPanel() {
           </div>
           <div className="mt-1.5 font-mono text-[12px] text-text-muted">
             {data.lastMessageAt
-              ? `at ${formatDate(Date.parse(data.lastMessageAt))}`
+              ? `at ${formatDate(parseIsoUtc(data.lastMessageAt))}`
               : 'no frames received yet'}
           </div>
         </div>
@@ -927,10 +927,10 @@ function SchedulerPanel() {
                     </div>
                   </Td>
                   <Td className="font-mono text-text-secondary">
-                    {j.lastRunAt ? formatDate(Date.parse(j.lastRunAt)) : '—'}
+                    {j.lastRunAt ? formatDate(parseIsoUtc(j.lastRunAt)) : '—'}
                   </Td>
                   <Td className="font-mono text-text-secondary">
-                    {j.nextRunAt ? formatDate(Date.parse(j.nextRunAt)) : '—'}
+                    {j.nextRunAt ? formatDate(parseIsoUtc(j.nextRunAt)) : '—'}
                   </Td>
                   <Td className="text-right">
                     <div className="flex items-center justify-end gap-1">
@@ -1388,7 +1388,7 @@ function RecentPromotionsPanel() {
                 <div className="flex items-center justify-between">
                   <span className="font-mono text-text-secondary">{r.strategyCode}</span>
                   <span className="font-mono text-[12px] text-text-muted">
-                    {formatDate(Date.parse(r.createdTime))}
+                    {formatDate(parseIsoUtc(r.createdTime))}
                   </span>
                 </div>
                 <div className="mt-0.5 flex items-center gap-1.5 text-[12px]">
@@ -1457,7 +1457,7 @@ function PromotionDetailDialog({
             <ChevronRight size={12} className="text-text-muted" />
             <StateBadge state={row.toState} />
             <span className="ml-2 font-mono text-[13px] text-text-muted">
-              {formatDate(Date.parse(row.createdTime))}
+              {formatDate(parseIsoUtc(row.createdTime))}
             </span>
           </DialogDescription>
         </DialogHeader>
@@ -2187,7 +2187,7 @@ function ResearchLogPanel() {
                   className="border-b border-bd-subtle bg-bg-surface last:border-b-0"
                 >
                   <Td className="font-mono text-text-muted">
-                    {r.createdAt ? formatDate(Date.parse(r.createdAt)) : '—'}
+                    {r.createdAt ? formatDate(parseIsoUtc(r.createdAt)) : '—'}
                   </Td>
                   <Td className="font-mono">
                     {r.strategyCode}
@@ -2213,7 +2213,12 @@ function ResearchLogPanel() {
                   <Td align="right" className="num">
                     <span
                       style={{
-                        color: r.netPnl >= 0 ? 'var(--color-profit)' : 'var(--color-loss)',
+                        color:
+                          r.netPnl == null
+                            ? 'var(--text-muted)'
+                            : r.netPnl >= 0
+                              ? 'var(--color-profit)'
+                              : 'var(--color-loss)',
                       }}
                     >
                       {numOrDash(r.netPnl, 2)}
@@ -2301,7 +2306,11 @@ function fmtNum(v: number | string | null | undefined, digits = 2): string {
 }
 
 function fmtAgo(iso: string): string {
-  const ms = Date.now() - new Date(iso).getTime();
+  // parseIsoUtc: orchestrator/JVM timestamps arrive zone-less but ARE UTC —
+  // a bare `new Date(iso)` local-parses them, inflating every "ago" value by
+  // the browser's UTC offset (e.g. +7h in UTC+7).
+  const ms = Date.now() - parseIsoUtc(iso);
+  if (!Number.isFinite(ms) || ms < 0) return '0s';
   if (ms < 60_000) return `${Math.floor(ms / 1000)}s`;
   if (ms < 3_600_000) return `${Math.floor(ms / 60_000)}m`;
   if (ms < 86_400_000) return `${Math.floor(ms / 3_600_000)}h`;
@@ -2996,6 +3005,22 @@ function EnqueueSweepDialog({ open, onClose }: { open: boolean; onClose: () => v
       toast.error({
         title: 'Sweep needs at least one param row',
         description: 'Add a param name and at least one value to sweep.',
+      });
+      return;
+    }
+
+    // Number inputs deliver NaN when cleared — min/max attributes only
+    // constrain the spinners, not typed values. Validate before send so the
+    // orchestrator never receives iter_budget/priority = null.
+    if (!Number.isInteger(iterBudget) || iterBudget < 1 || iterBudget > 200) {
+      toast.error({
+        title: 'Iter budget must be a whole number between 1 and 200',
+      });
+      return;
+    }
+    if (!Number.isInteger(priority) || priority < 1 || priority > 999) {
+      toast.error({
+        title: 'Priority must be a whole number between 1 and 999',
       });
       return;
     }

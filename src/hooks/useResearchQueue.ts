@@ -7,6 +7,7 @@ import {
   listQueue,
   updateQueuePriority,
 } from '@/lib/api/research-queue';
+import { generateIdempotencyKey } from '@/lib/idempotency';
 import { useAuthStore } from '@/store/authStore';
 import type {
   CreateQueueItemRequest,
@@ -34,7 +35,8 @@ export function useResearchQueue(filters?: {
 export function useCreateQueueItem() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (payload: CreateQueueItemRequest) => createQueueItem(payload),
+    mutationFn: (payload: CreateQueueItemRequest) =>
+      createQueueItem(payload, generateIdempotencyKey('queue-item')),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QUEUE_KEY });
     },

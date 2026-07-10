@@ -14,7 +14,8 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { useIsAdmin } from '@/hooks/useIsAdmin';
-import { formatDate } from '@/lib/formatters';
+import { useDebouncedSearchPage } from '@/hooks/useDebouncedSearchPage';
+import { formatDate, parseIsoUtc } from '@/lib/formatters';
 import {
   listWalkForwardRuns,
   type StabilityVerdict,
@@ -35,15 +36,15 @@ const VERDICT_FILTERS: { label: string; value: StabilityVerdict | 'ALL' }[] = [
 export default function WalkForwardPage() {
   const isAdmin = useIsAdmin();
   const [verdict, setVerdict] = useState<StabilityVerdict | 'ALL'>('ALL');
-  const [strategyCode, setStrategyCode] = useState('');
-  const [page, setPage] = useState(0);
+  // Debounced — the raw input fired one server query per keystroke.
+  const { searchInput, setSearchInput, debouncedSearch, page, setPage } = useDebouncedSearchPage();
 
   const query = useQuery({
-    queryKey: ['walk-forward', verdict, strategyCode, page],
+    queryKey: ['walk-forward', verdict, debouncedSearch, page],
     queryFn: () =>
       listWalkForwardRuns({
         verdict: verdict === 'ALL' ? undefined : verdict,
-        strategyCode: strategyCode.trim() || undefined,
+        strategyCode: debouncedSearch || undefined,
         page,
         size: PAGE_SIZE,
       }),
@@ -111,12 +112,9 @@ export default function WalkForwardPage() {
           <span className="text-[13px] uppercase tracking-widest text-text-muted">Strategy</span>
           <input
             type="text"
-            value={strategyCode}
+            value={searchInput}
             placeholder="e.g. LSR"
-            onChange={(e) => {
-              setStrategyCode(e.target.value);
-              setPage(0);
-            }}
+            onChange={(e) => setSearchInput(e.target.value)}
             className="rounded-sm border border-bd-subtle bg-bg-base px-2 py-1 font-mono text-[14px] text-text-primary"
           />
         </label>
@@ -179,7 +177,7 @@ export default function WalkForwardPage() {
 function WalkForwardRow({ run }: { run: WalkForwardSummary }) {
   const meta = verdictMeta(run.stabilityVerdict);
   const Icon = meta.icon;
-  const ts = run.createdTime ? new Date(run.createdTime).getTime() : null;
+  const ts = run.createdTime ? parseIsoUtc(run.createdTime) : null;
 
   const folds = useMemo(() => {
     const total = num(run.totalTradesAcrossFolds);

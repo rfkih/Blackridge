@@ -267,17 +267,34 @@ export function BacktestParamTuner() {
     router,
   ]);
 
+  const defaultsLoading =
+    (needsLsr && lsrDefaultsQ.isLoading) ||
+    (needsVcb && vcbDefaultsQ.isLoading) ||
+    (needsVbo && vboDefaultsQ.isLoading);
+
   /** Gate the actual submit through a confirmation dialog when the user is
    *  adding to a non-empty queue. Empty queue → submit straight away. At the
-   *  cap → do nothing (button is disabled, this is a belt-and-braces guard). */
+   *  cap → do nothing (button is disabled, this is a belt-and-braces guard).
+   *
+   *  MUST mirror the submit button's `disabled` conditions — this callback is
+   *  also reachable via the global ⌘/Ctrl+Enter shortcut, which bypasses the
+   *  button's disabled attribute. Without the isPending guard, two quick
+   *  shortcut presses fired two identical POSTs (duplicate queued runs). */
   const handleRunClick = useCallback(() => {
-    if (isAtLimit) return;
+    if (createMutation.isPending || activeCountLoading || defaultsLoading || isAtLimit) return;
     if (hasQueued) {
       setConfirmQueueOpen(true);
       return;
     }
     handleRun();
-  }, [isAtLimit, hasQueued, handleRun]);
+  }, [
+    createMutation.isPending,
+    activeCountLoading,
+    defaultsLoading,
+    isAtLimit,
+    hasQueued,
+    handleRun,
+  ]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -293,11 +310,6 @@ export function BacktestParamTuner() {
   if (!config) {
     return null;
   }
-
-  const defaultsLoading =
-    (needsLsr && lsrDefaultsQ.isLoading) ||
-    (needsVcb && vcbDefaultsQ.isLoading) ||
-    (needsVbo && vboDefaultsQ.isLoading);
 
   return (
     <div className="space-y-5">

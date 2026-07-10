@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useInfiniteQuery, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   ArrowLeft,
   Bot,
@@ -24,6 +24,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useIsAdmin } from '@/hooks/useIsAdmin';
+import { parseIsoUtc } from '@/lib/formatters';
 import { useResearchActivityStream } from '@/hooks/useResearchActivityStream';
 import { researchActivityApi } from '@/lib/api/researchActivity';
 import { useWsStore } from '@/store/wsStore';
@@ -72,29 +73,48 @@ function getActivityStyle(
   activityType: string,
   details: Record<string, unknown> | null,
 ): ActivityStyle {
+  // Semantic colors come from theme tokens (light/dark aware). The five
+  // accent hues below (purple/indigo/orange/cyan) have no token equivalent —
+  // they are theme-neutral mid-tones, legible on both backgrounds.
   if (activityType === 'GOAL_HIT') {
-    return { color: 'var(--color-profit)', bg: 'rgba(46,196,138,0.14)', dot: '#2ec48a' };
+    return {
+      color: 'var(--color-profit)',
+      bg: 'rgba(46,196,138,0.14)',
+      dot: 'var(--color-profit)',
+    };
   }
   if (activityType === 'ERROR') {
-    return { color: 'var(--color-loss)', bg: 'rgba(255,90,90,0.14)', dot: '#ff5a5a' };
+    return { color: 'var(--color-loss)', bg: 'rgba(255,90,90,0.14)', dot: 'var(--color-loss)' };
   }
   if (activityType === 'SESSION_START' || activityType === 'SESSION_END') {
-    return { color: 'var(--text-secondary)', bg: 'rgba(170,170,170,0.10)', dot: '#888' };
+    return {
+      color: 'var(--text-secondary)',
+      bg: 'rgba(170,170,170,0.10)',
+      dot: 'var(--text-muted)',
+    };
   }
   if (activityType === 'ITERATION_COMPLETED') {
     const verdict =
       typeof details?.statistical_verdict === 'string' ? details.statistical_verdict : '';
     if (verdict === 'SIGNIFICANT_EDGE') {
-      return { color: 'var(--color-profit)', bg: 'rgba(46,196,138,0.14)', dot: '#2ec48a' };
+      return {
+        color: 'var(--color-profit)',
+        bg: 'rgba(46,196,138,0.14)',
+        dot: 'var(--color-profit)',
+      };
     }
     if (verdict === 'INSUFFICIENT_EVIDENCE') {
-      return { color: 'var(--color-info)', bg: 'rgba(59,130,246,0.14)', dot: '#4e9eff' };
+      return { color: 'var(--color-info)', bg: 'rgba(59,130,246,0.14)', dot: 'var(--color-info)' };
     }
     if (verdict === 'DISCARD') {
-      return { color: 'var(--color-loss)', bg: 'rgba(255,90,90,0.14)', dot: '#ff5a5a' };
+      return { color: 'var(--color-loss)', bg: 'rgba(255,90,90,0.14)', dot: 'var(--color-loss)' };
     }
 
-    return { color: 'var(--color-warning)', bg: 'rgba(245,166,35,0.14)', dot: '#f5a623' };
+    return {
+      color: 'var(--color-warning)',
+      bg: 'rgba(245,166,35,0.14)',
+      dot: 'var(--color-warning)',
+    };
   }
   if (activityType === 'SWEEP_QUEUED') {
     return { color: '#a78bfa', bg: 'rgba(167,139,250,0.14)', dot: '#a78bfa' };
@@ -111,7 +131,7 @@ function getActivityStyle(
   if (activityType === 'HYPOTHESIS_REGISTERED' || activityType === 'PLAN_WRITTEN') {
     return { color: '#c084fc', bg: 'rgba(192,132,252,0.14)', dot: '#c084fc' };
   }
-  return { color: 'var(--text-secondary)', bg: 'rgba(170,170,170,0.10)', dot: '#888' };
+  return { color: 'var(--text-secondary)', bg: 'rgba(170,170,170,0.10)', dot: 'var(--text-muted)' };
 }
 
 function StrategyBadge({ code }: { code: string }) {
@@ -243,15 +263,21 @@ function SessionTimeline({
   onBack: () => void;
   liveActivities: AgentActivity[];
 }) {
-  const query = useQuery({
+  // Infinite pages — the old single-page fetch hard-capped long sessions at
+  // the first 100 activities with no way to see the rest.
+  const query = useInfiniteQuery({
     queryKey: ['research-activity', 'timeline', sessionId],
-    queryFn: () => researchActivityApi.getActivities(sessionId, 0, ACTIVITIES_PAGE_SIZE),
+    queryFn: ({ pageParam }) =>
+      researchActivityApi.getActivities(sessionId, pageParam as number, ACTIVITIES_PAGE_SIZE),
+    initialPageParam: 0,
+    getNextPageParam: (lastPage, pages) =>
+      pages.length < lastPage.totalPages ? pages.length : undefined,
     staleTime: 10_000,
     refetchInterval: 15_000,
     placeholderData: (prev) => prev,
   });
 
-  const fetched: AgentActivity[] = query.data?.content ?? [];
+  const fetched: AgentActivity[] = query.data?.pages.flatMap((p) => p.content) ?? [];
 
   const fetchedIds = new Set(fetched.map((a) => a.activityId));
   const newLive = liveActivities.filter((a) => !fetchedIds.has(a.activityId));
@@ -300,7 +326,7 @@ function SessionTimeline({
           <MetaStat label="Agent" value={session.agentName} />
           <MetaStat
             label="Started"
-            value={format(parseISO(session.startedAt), 'MMM d, HH:mm')}
+            value={format(parseIsoUtc(session.startedAt), 'MMM d, HH:mm')}
             mono
           />
           <MetaStat
@@ -397,6 +423,16 @@ function SessionTimeline({
                   isLast={idx === activities.length - 1}
                 />
               ))}
+              {query.hasNextPage && (
+                <button
+                  type="button"
+                  onClick={() => query.fetchNextPage()}
+                  disabled={query.isFetchingNextPage}
+                  className="mt-2 w-full rounded-sm border border-bd-subtle py-1.5 font-mono text-[12px] text-text-muted transition-colors hover:bg-bg-hover hover:text-text-secondary disabled:opacity-50"
+                >
+                  {query.isFetchingNextPage ? 'Loading…' : `Load more · ${activities.length} shown`}
+                </button>
+              )}
             </div>
           )}
         </div>
@@ -494,14 +530,17 @@ function SessionCard({
 
         {}
         <div className="font-mono text-[13px] tabular-nums text-text-muted">
+          {/* parseIsoUtc — orchestrator timestamps are zone-less UTC; local
+              parsing shifted "last active" by the browser's UTC offset. */}
           <span title={session.startedAt}>
-            {format(parseISO(session.startedAt), 'MMM d, HH:mm')}
+            {format(parseIsoUtc(session.startedAt), 'MMM d, HH:mm')}
           </span>
           <span className="mx-1">·</span>
           <span>{formatSessionDuration(session.startedAt, session.lastActivityAt)}</span>
           <span className="mx-1">·</span>
           <span title={session.lastActivityAt}>
-            last {formatDistanceToNowStrict(parseISO(session.lastActivityAt), { addSuffix: true })}
+            last{' '}
+            {formatDistanceToNowStrict(parseIsoUtc(session.lastActivityAt), { addSuffix: true })}
           </span>
         </div>
       </div>

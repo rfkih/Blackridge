@@ -15,6 +15,7 @@ import {
   type BacktestListFilters,
 } from '@/lib/api/backtest';
 import { QUERY_STALE_TIMES } from '@/lib/constants';
+import { generateIdempotencyKey } from '@/lib/idempotency';
 import { subscribeToTopic } from '@/lib/ws/stompClient';
 import { useWsStore } from '@/store/wsStore';
 import type { BacktestRun, BacktestRunPayload } from '@/types/backtest';
@@ -113,7 +114,10 @@ export function useBacktestRun(id: string | undefined) {
 export function useCreateBacktestRun() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (payload: BacktestRunPayload) => createBacktestRun(payload),
+    // Fresh key per mutation call — a network-level retry of the SAME call
+    // reuses the key (dedupe), while a deliberate re-submit gets a new one.
+    mutationFn: (payload: BacktestRunPayload) =>
+      createBacktestRun(payload, generateIdempotencyKey('backtest-run')),
     onSuccess: (run) => {
       queryClient.setQueryData(['backtest-run', run.id], run);
       queryClient.invalidateQueries({ queryKey: ['backtest-runs'] });

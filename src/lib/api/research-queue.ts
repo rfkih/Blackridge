@@ -22,13 +22,15 @@ export async function listQueue(params?: {
   return data;
 }
 
+/** `idempotencyKey` dedupes retries/double-submits server-side (ignored by
+ *  builds that don't read it — same-origin via the Next rewrite proxy). */
 export async function createQueueItem(
   payload: CreateQueueItemRequest,
+  idempotencyKey?: string,
 ): Promise<ResearchQueueItem> {
-  const { data } = await researchClient.post<ResearchQueueItem>(
-    `${BASE}/me`,
-    payload,
-  );
+  const { data } = await researchClient.post<ResearchQueueItem>(`${BASE}/me`, payload, {
+    headers: idempotencyKey ? { 'Idempotency-Key': idempotencyKey } : undefined,
+  });
   return data;
 }
 
