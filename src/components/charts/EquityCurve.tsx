@@ -166,8 +166,10 @@ export function EquityCurve({
       <ComposedChart data={data} margin={{ top: 8, right: 12, left: 0, bottom: 0 }}>
         <defs>
           <linearGradient id="bt-equity-grad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor="#00C896" stopOpacity={0.32} />
-            <stop offset="95%" stopColor="#00C896" stopOpacity={0.02} />
+            {/* Resolved theme token (recharts writes SVG attrs, which don't
+                resolve var()) — hardcoded #00C896 was pinned to dark mode. */}
+            <stop offset="5%" stopColor={CHART_COLORS.profit} stopOpacity={0.32} />
+            <stop offset="95%" stopColor={CHART_COLORS.profit} stopOpacity={0.02} />
           </linearGradient>
         </defs>
         <XAxis
@@ -225,11 +227,11 @@ export function EquityCurve({
         <Area
           type="monotone"
           dataKey="equity"
-          stroke="#00C896"
+          stroke={CHART_COLORS.profit}
           strokeWidth={1.5}
           fill="url(#bt-equity-grad)"
           dot={false}
-          activeDot={{ r: 3, fill: '#00C896' }}
+          activeDot={{ r: 3, fill: CHART_COLORS.profit }}
           isAnimationActive={data.length < 200}
         />
       </ComposedChart>

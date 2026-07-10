@@ -363,7 +363,7 @@ export function PaperEquityCurveChart({
           disabled={!hasRegimeData}
           title={!hasRegimeData ? 'Regenerate paper to get regime data' : showRegime ? 'Hide market regime' : 'Show market regime'}
           onClick={() => hasRegimeData && setShowRegime((v) => !v)}
-          activeColor="#818cf8"
+          activeColor={CHART_COLORS.info}
         />
         <TogglePill
           icon={<Layers size={9} strokeWidth={2} />}

@@ -10,6 +10,7 @@ import { useStrategyDefinitions } from '@/hooks/useStrategyDefinitions';
 import { DatePicker } from '@/components/ui/date-picker';
 import { toast } from '@/hooks/useToast';
 import { normalizeError } from '@/lib/api/client';
+import { BACKTEST_INTERVALS } from '@/lib/constants';
 import type { AccountStrategy } from '@/types/strategy';
 import type { ParamRange, SweepSpec } from '@/types/research';
 import { SUPPORTED_SYMBOLS, DEFAULT_SYMBOL } from '@/lib/symbols';
@@ -121,20 +122,43 @@ export default function ResearchPage() {
       toast.error({ title: 'Selected account strategy is not in the eligible list' });
       return;
     }
+    if (!fromDate || !toDate || toDate <= fromDate) {
+      toast.error({
+        title: 'Invalid date range',
+        description: 'To-date must be after from-date.',
+      });
+      return;
+    }
+    const capital = Number(initialCapital);
+    if (!Number.isFinite(capital) || capital <= 0) {
+      toast.error({
+        title: 'Invalid initial capital',
+        description: 'Enter a positive USDT amount.',
+      });
+      return;
+    }
     const paramRanges: Record<string, ParamRange> = {};
     for (const r of ranges) {
       const key = r.key.trim();
+      if (!key) continue;
       const min = Number(r.min);
       const max = Number(r.max);
       const step = Number(r.step);
-      if (
-        !key ||
-        !Number.isFinite(min) ||
-        !Number.isFinite(max) ||
-        !Number.isFinite(step) ||
-        step <= 0
-      ) {
-        continue;
+      // A named row with malformed numbers is a typo, not an intentional
+      // skip — error loudly instead of silently sweeping without it.
+      if (!Number.isFinite(min) || !Number.isFinite(max) || !Number.isFinite(step) || step <= 0) {
+        toast.error({
+          title: `Range for "${key}" is invalid`,
+          description: 'min / max / step must all be numbers, with step > 0.',
+        });
+        return;
+      }
+      if (min > max) {
+        toast.error({
+          title: `Range for "${key}" has min > max`,
+          description: `min ${min} must be ≤ max ${max}.`,
+        });
+        return;
       }
       paramRanges[key] = { min, max, step };
     }
@@ -159,6 +183,9 @@ export default function ResearchPage() {
     }
 
     const roundsN = Math.max(2, Math.min(5, Number(rounds) || 3));
+    // Clamp instead of trusting the input's min/max attrs — typed values
+    // bypass them ("3" would have shipped an elite fraction of 300%).
+    const eliteN = Math.min(1, Math.max(0.05, Number(elitePct) || 0.25));
     const spec: SweepSpec = {
       strategyCode: selected.strategyCode,
       accountStrategyId,
@@ -166,12 +193,12 @@ export default function ResearchPage() {
       interval,
       fromDate: `${fromDate}T00:00:00`,
       toDate: `${toDate}T00:00:00`,
-      initialCapital: Number(initialCapital),
+      initialCapital: capital,
       label: label || undefined,
       paramRanges,
       fixedParams: Object.keys(fixedParams).length > 0 ? fixedParams : undefined,
       rounds: roundsN,
-      elitePct: Number(elitePct) || 0.25,
+      elitePct: eliteN,
       rankMetric,
     };
 
@@ -226,11 +253,19 @@ export default function ResearchPage() {
             </select>
           </Field>
           <Field label="Interval">
-            <input
-              className="mm-input"
+            {/* Select, not free text — the sweep engine runs backtests, whose
+                monitor tick floors at 5m; arbitrary strings 500'd server-side. */}
+            <select
+              className="mm-input font-mono"
               value={interval}
               onChange={(e) => setIntervalValue(e.target.value)}
-            />
+            >
+              {BACKTEST_INTERVALS.map((iv) => (
+                <option key={iv} value={iv}>
+                  {iv}
+                </option>
+              ))}
+            </select>
           </Field>
           <Field label="Account strategy (registered + researchable)">
             <select
@@ -249,7 +284,7 @@ export default function ResearchPage() {
             {eligibleStrategies.length === 0 && (
               <span className="mt-1 text-[13px] text-[var(--color-warning)]">
                 No eligible strategies. You need an AccountStrategy whose strategyCode is both
-                registered (ACTIVE in /admin/strategies) and research-capable (TPR today).
+                registered (ACTIVE in /admin/strategies) and research-capable (TPR / VCB / LSR).
               </span>
             )}
           </Field>
@@ -656,6 +691,9 @@ function rangesEqual(a: RangeEntry[], b: RangeEntry[]): boolean {
 function estimateRound1Combos(ranges: RangeEntry[]): number {
   let product = 1;
   for (const r of ranges) {
+    // Rows without a param picked are dropped at submit — don't let them
+    // inflate (or zero out) the estimate and block the submit button.
+    if (!r.key.trim()) continue;
     const min = Number(r.min);
     const max = Number(r.max);
     const step = Number(r.step);

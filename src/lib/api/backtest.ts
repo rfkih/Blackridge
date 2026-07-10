@@ -326,8 +326,16 @@ export async function getBacktestRun(id: string): Promise<BacktestRun> {
   return mapBacktestRun(data);
 }
 
-export async function createBacktestRun(payload: BacktestRunPayload): Promise<BacktestRun> {
-  const { data } = await apiClient.post<BackendBacktestRun>(BASE, payload);
+/** Submit a run. `idempotencyKey` lets the backend dedupe retries/double-
+ *  submits (harmlessly ignored by builds that don't read it — calls are
+ *  same-origin via the Next rewrite proxy, so no CORS preflight concern). */
+export async function createBacktestRun(
+  payload: BacktestRunPayload,
+  idempotencyKey?: string,
+): Promise<BacktestRun> {
+  const { data } = await apiClient.post<BackendBacktestRun>(BASE, payload, {
+    headers: idempotencyKey ? { 'Idempotency-Key': idempotencyKey } : undefined,
+  });
   return mapBacktestRun(data);
 }
 

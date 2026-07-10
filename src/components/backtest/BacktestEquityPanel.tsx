@@ -236,7 +236,7 @@ export function BacktestEquityPanel({
               <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
                 <span
                   className="flex items-center gap-1 font-mono text-[12px] font-semibold"
-                  style={{ color: '#00C896' }}
+                  style={{ color: 'var(--color-profit)' }}
                 >
                   <span aria-hidden>●</span> Strategy
                 </span>

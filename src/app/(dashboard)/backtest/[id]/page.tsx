@@ -248,7 +248,12 @@ export default function BacktestResultPage({ params }: { params: { id: string } 
         strategyCorrelationOverrides: run.strategyCorrelationOverrides ?? undefined,
         strategyConcurrentCapOverrides: run.strategyConcurrentCapOverrides ?? undefined,
         strategyIntervals: run.strategyIntervals ?? undefined,
-        evaluationMode: run.strategyIntervals ? 'multi' : 'single',
+        // Always 'single': the run only persists its resolved per-strategy
+        // intervals, not the mode that produced them. Single mode replays
+        // those intervals verbatim (identical engine config); inferring
+        // 'multi' made the wizard overwrite them with each account-strategy's
+        // CURRENT registered interval — silently changing the re-run.
+        evaluationMode: 'single',
       },
       run.paramSnapshot ?? {},
       run.id,

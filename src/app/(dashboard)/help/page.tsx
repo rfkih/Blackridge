@@ -108,7 +108,7 @@ Live trading isn't restricted; the live WebSocket processes whatever interval th
     title: 'What are Forward Projections (the Monte Carlo page)?',
     body: `Given a backtest's actual trade sequence, Forward Projections asks "what could the next N trades plausibly look like, statistically?" It bootstraps trades (with replacement) from the historical distribution to simulate thousands of equally-plausible forward paths.
 
-You see fan-chart percentile bands (5/25/50/75/95) and statistics like P(ruin) and median terminal equity. This is NOT a forecast — it's a "if the strategy keeps performing as it has, here's the distribution of outcomes you should expect." If you change the strategy, the projection becomes invalid.
+You see the best, median, and worst simulated paths on the chart, a percentile ledger of terminal outcomes, and statistics like P(ruin) and median terminal equity. This is NOT a forecast — it's a "if the strategy keeps performing as it has, here's the distribution of outcomes you should expect." If you change the strategy, the projection becomes invalid.
 
 Useful for sizing decisions ("what's the worst-case 1-in-20 drawdown over 100 trades?") and stress-testing assumptions.`,
   },

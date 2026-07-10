@@ -22,9 +22,10 @@ export const RunSourceBadge = memo(function RunSourceBadge({
         className,
       )}
       style={{
-        color: '#a855f7',
-        backgroundColor: 'rgba(168, 85, 247, 0.12)',
-        border: '1px solid rgba(168, 85, 247, 0.3)',
+        // Token, not hex — --color-bot carries a light-mode variant.
+        color: 'var(--color-bot)',
+        backgroundColor: 'color-mix(in srgb, var(--color-bot) 12%, transparent)',
+        border: '1px solid color-mix(in srgb, var(--color-bot) 30%, transparent)',
       }}
     >
       RESEARCHER

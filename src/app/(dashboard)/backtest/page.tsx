@@ -3,7 +3,7 @@
 /* eslint-disable react/no-unstable-nested-components */
 
 import Link from 'next/link';
-import { Suspense, useCallback, useMemo } from 'react';
+import { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { format } from 'date-fns';
 import {
@@ -76,7 +76,9 @@ function readFilters(params: URLSearchParams): Filters {
   const sortBy = SORTABLE_KEYS.includes(rawSortBy) ? rawSortBy : 'createdAt';
   const rawSortDir = (params.get('sortDir') ?? 'DESC').toUpperCase();
   const sortDir: 'ASC' | 'DESC' = rawSortDir === 'ASC' ? 'ASC' : 'DESC';
-  const pageRaw = Number(params.get('page'));
+  // parseInt (not Number) so fractional/garbage page params can't reach the
+  // backend as e.g. page=1.5.
+  const pageRaw = Number.parseInt(params.get('page') ?? '', 10);
   const sizeRaw = Number(params.get('size'));
   return {
     status,
@@ -88,7 +90,7 @@ function readFilters(params: URLSearchParams): Filters {
     to: params.get('to') ?? '',
     sortBy,
     sortDir,
-    page: Number.isFinite(pageRaw) && pageRaw > 0 ? pageRaw : 0,
+    page: Number.isInteger(pageRaw) && pageRaw > 0 ? pageRaw : 0,
     size: PAGE_SIZES.includes(sizeRaw) ? sizeRaw : 20,
   };
 }
@@ -140,6 +142,31 @@ function BacktestListContent() {
     },
     [filters, router, searchParams],
   );
+
+  // Text filters are debounced: patching the URL per keystroke issued a
+  // router.replace + server query per character, and the controlled-value
+  // round-trip through useSearchParams could drop characters when typing fast.
+  const [strategyCodeInput, setStrategyCodeInput] = useState(filters.strategyCode);
+  const [symbolInput, setSymbolInput] = useState(filters.symbol);
+
+  // Re-sync local inputs when the URL changes from elsewhere (Clear button,
+  // back/forward navigation). Inputs are uppercased on change, so a no-op
+  // sync after our own debounce push never clobbers in-progress typing.
+  useEffect(() => {
+    setStrategyCodeInput(filters.strategyCode);
+  }, [filters.strategyCode]);
+  useEffect(() => {
+    setSymbolInput(filters.symbol);
+  }, [filters.symbol]);
+
+  useEffect(() => {
+    const t = setTimeout(() => {
+      if (strategyCodeInput !== filters.strategyCode || symbolInput !== filters.symbol) {
+        patchFilters({ strategyCode: strategyCodeInput, symbol: symbolInput });
+      }
+    }, 400);
+    return () => clearTimeout(t);
+  }, [strategyCodeInput, symbolInput, filters.strategyCode, filters.symbol, patchFilters]);
 
   const toIsoStart = (d: string) => (d ? `${d}T00:00:00` : undefined);
   const toIsoEnd = (d: string) => (d ? `${d}T23:59:59` : undefined);
@@ -426,8 +453,8 @@ function BacktestListContent() {
           <input
             aria-label="Filter by strategy code"
             type="text"
-            value={filters.strategyCode}
-            onChange={(e) => patchFilters({ strategyCode: e.target.value.toUpperCase() })}
+            value={strategyCodeInput}
+            onChange={(e) => setStrategyCodeInput(e.target.value.toUpperCase())}
             placeholder="LSR_V2"
             className="h-8 w-[140px] rounded-md border border-bd-subtle bg-bg-base px-2 font-mono text-[14px] uppercase text-text-primary placeholder:normal-case placeholder:text-[var(--text-muted)] focus:border-[var(--accent-primary)] focus:outline-none"
           />
@@ -438,8 +465,8 @@ function BacktestListContent() {
           <input
             aria-label="Filter by symbol"
             type="text"
-            value={filters.symbol}
-            onChange={(e) => patchFilters({ symbol: e.target.value.toUpperCase() })}
+            value={symbolInput}
+            onChange={(e) => setSymbolInput(e.target.value.toUpperCase())}
             placeholder="e.g. BTCUSDT, ETHUSDT"
             className="h-8 w-[120px] rounded-md border border-bd-subtle bg-bg-base px-2 font-mono text-[14px] uppercase text-text-primary placeholder:normal-case placeholder:text-[var(--text-muted)] focus:border-[var(--accent-primary)] focus:outline-none"
           />

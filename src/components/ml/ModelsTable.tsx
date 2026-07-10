@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { formatDistanceToNowStrict } from 'date-fns';
 import { useState } from 'react';
 import { useModels } from '@/lib/api/ml';
+import { parseIsoUtc } from '@/lib/formatters';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   Table,
@@ -39,7 +40,8 @@ const STATUS_STYLES: Record<string, string> = {
 
 function fmtRelative(ts: string): string {
   try {
-    return `${formatDistanceToNowStrict(new Date(ts))} ago`;
+    // parseIsoUtc: zone-less orchestrator timestamps are UTC, not local.
+    return `${formatDistanceToNowStrict(parseIsoUtc(ts))} ago`;
   } catch {
     return '—';
   }

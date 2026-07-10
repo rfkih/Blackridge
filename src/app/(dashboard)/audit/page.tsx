@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Loader2, RefreshCcw, ScrollText } from 'lucide-react';
 import { listMyAuditEvents, type AuditEvent } from '@/lib/api/auditEvents';
-import { formatDate } from '@/lib/formatters';
+import { formatDate, parseIsoUtc } from '@/lib/formatters';
 
 const PAGE_SIZE = 25;
 
@@ -46,6 +46,23 @@ export default function AuditLogPage() {
       {query.isLoading ? (
         <div className="flex items-center justify-center py-12 text-text-secondary">
           <Loader2 size={18} className="animate-spin" />
+        </div>
+      ) : query.isError ? (
+        // A failed fetch is NOT an empty log — showing "No actions logged
+        // yet" on a 500 would falsely suggest the audit trail is empty.
+        <div className="flex flex-col items-center gap-3 rounded-xl border border-bd-subtle bg-bg-surface px-6 py-12 text-center">
+          <p className="text-[14px]" style={{ color: 'var(--color-loss)' }}>
+            Could not load the audit log.
+          </p>
+          <button
+            type="button"
+            onClick={() => query.refetch()}
+            className="mm-pill"
+            style={{ padding: '6px 12px', fontSize: 13 }}
+          >
+            <RefreshCcw size={12} strokeWidth={1.7} />
+            <span>Retry</span>
+          </button>
         </div>
       ) : rows.length === 0 ? (
         <div className="rounded-xl border border-bd-subtle bg-bg-surface px-6 py-12 text-center text-text-secondary">
@@ -113,7 +130,7 @@ export default function AuditLogPage() {
 }
 
 function AuditRow({ event }: { event: AuditEvent }) {
-  const ts = event.createdAt ? new Date(event.createdAt).getTime() : null;
+  const ts = event.createdAt ? parseIsoUtc(event.createdAt) : null;
   return (
     <tr className="border-t border-bd-subtle">
       <td className="px-3 py-2 font-mono text-[13px] text-text-muted">

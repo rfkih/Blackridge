@@ -52,6 +52,7 @@ export function BacktestActivateStrategyDialog({ run, open, onClose }: Props) {
   const [step, setStep] = useState<Step>('configure');
   const [activatedStrategyId, setActivatedStrategyId] = useState<string | null>(null);
   const [activatedSimulated, setActivatedSimulated] = useState<boolean>(true);
+  const [liveConfirm, setLiveConfirm] = useState<string>('');
 
   const strategiesQ = useAccountStrategies();
   const activate = useActivateBacktestStrategy(run.id);
@@ -64,6 +65,7 @@ export function BacktestActivateStrategyDialog({ run, open, onClose }: Props) {
       setStep('configure');
       setActivatedStrategyId(null);
       setActivatedSimulated(true);
+      setLiveConfirm('');
       activate.reset();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -72,6 +74,11 @@ export function BacktestActivateStrategyDialog({ run, open, onClose }: Props) {
   useEffect(() => {
     setSelectedStrategyId('');
   }, [selectedCode]);
+
+  // Re-require the CONFIRM token whenever the target strategy changes.
+  useEffect(() => {
+    setLiveConfirm('');
+  }, [selectedStrategyId]);
 
   const matchingStrategies = useMemo(() => {
     if (!strategiesQ.data || !selectedCode) return [];
@@ -109,8 +116,15 @@ export function BacktestActivateStrategyDialog({ run, open, onClose }: Props) {
     return `Backtest ${shortId} · ${date}`;
   }, [run.id, run.createdAt]);
 
+  // Activating a NON-simulated strategy fires real Binance orders on the
+  // next signal — gate that path behind a typed CONFIRM, matching the
+  // pending-approvals convention for comparable-severity actions.
+  const requiresLiveConfirm = selectedStrategy != null && !selectedStrategy.simulated;
   const canSubmit =
-    selectedCode.length > 0 && selectedStrategyId.length > 0 && !activate.isPending;
+    selectedCode.length > 0 &&
+    selectedStrategyId.length > 0 &&
+    !activate.isPending &&
+    (!requiresLiveConfirm || liveConfirm === 'CONFIRM');
 
   async function handleActivate() {
     if (!canSubmit) return;
@@ -167,6 +181,9 @@ export function BacktestActivateStrategyDialog({ run, open, onClose }: Props) {
             error={activate.error ? normalizeError(activate.error) : null}
             onActivate={handleActivate}
             onClose={onClose}
+            requiresLiveConfirm={requiresLiveConfirm}
+            liveConfirm={liveConfirm}
+            onLiveConfirmChange={setLiveConfirm}
           />
         ) : (
           <SuccessStep
@@ -204,6 +221,9 @@ function ConfigureStep({
   error,
   onClose,
   onActivate,
+  requiresLiveConfirm,
+  liveConfirm,
+  onLiveConfirmChange,
 }: {
   run: BacktestRun;
   strategyCodes: string[];
@@ -223,6 +243,9 @@ function ConfigureStep({
   error: string | null;
   onClose: () => void;
   onActivate: () => void;
+  requiresLiveConfirm: boolean;
+  liveConfirm: string;
+  onLiveConfirmChange: (v: string) => void;
 }) {
   return (
     <div className="space-y-4">
@@ -407,6 +430,33 @@ function ConfigureStep({
           maxLength={80}
         />
       </div>
+
+      {}
+      {requiresLiveConfirm && (
+        <div className="space-y-1.5 rounded-sm border border-bd-subtle bg-tint-warning px-3 py-2.5">
+          <Label
+            htmlFor="activate-live-confirm"
+            className="flex items-center gap-1.5 text-[13px] font-semibold text-warning"
+          >
+            <AlertTriangle size={12} className="shrink-0" />
+            This strategy is NOT simulated — real Binance orders will fire on the next signal.
+          </Label>
+          <p className="text-[13px] text-text-secondary">
+            Type <span className="font-mono font-semibold text-text-primary">CONFIRM</span> to
+            enable activation.
+          </p>
+          <Input
+            id="activate-live-confirm"
+            value={liveConfirm}
+            onChange={(e) => onLiveConfirmChange(e.target.value)}
+            placeholder="CONFIRM"
+            autoComplete="off"
+            autoCorrect="off"
+            spellCheck={false}
+            className="h-8 font-mono text-[14px]"
+          />
+        </div>
+      )}
 
       {}
       {error && (

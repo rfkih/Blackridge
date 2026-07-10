@@ -1,11 +1,10 @@
 'use client';
 
 import Link from 'next/link';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ChevronRight, FileText, Inbox, Loader2, Plus, ShieldCheck, X } from 'lucide-react';
-import { useEffect } from 'react';
-import { useMutation } from '@tanstack/react-query';
-import { generatePaper } from '@/lib/api/researchPapers';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import { generatePaper, listPapers } from '@/lib/api/researchPapers';
 import { useIsAdmin } from '@/hooks/useIsAdmin';
 import {
   useCancelQueueItem,
@@ -24,8 +23,8 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from '@/hooks/useToast';
 import { normalizeError } from '@/lib/api/client';
-import { formatDate } from '@/lib/formatters';
-import { toneColor, type Tone } from '@/lib/tones';
+import { formatDate, parseIsoUtc } from '@/lib/formatters';
+import { toneColor } from '@/lib/tones';
 import type {
   CreateQueueItemRequest,
   ResearchQueueItem,
@@ -60,6 +59,24 @@ export default function ResearchQueuePage() {
   } = useResearchQueue({
     status: statusFilter,
   });
+
+  // Server-side queue_id → paper_id map so "View paper" survives across
+  // browsers/devices (previously localStorage-only, which made other devices
+  // show "Paper" — a regenerate that bumps the version — instead of a link).
+  // Newest 100 papers is a sane window; localStorage remains the fallback.
+  const papersQ = useQuery({
+    queryKey: ['papers', 'queue-map'],
+    queryFn: () => listPapers({ limit: 100, sortBy: 'updated_time', sortDir: 'desc' }),
+    enabled: isAdmin,
+    staleTime: 60_000,
+  });
+  const paperIdByQueueId = useMemo(() => {
+    const map: Record<string, string> = {};
+    for (const p of papersQ.data?.items ?? []) {
+      if (p.queue_id && !map[p.queue_id]) map[p.queue_id] = p.paper_id;
+    }
+    return map;
+  }, [papersQ.data]);
 
   if (!isAdmin) {
     return (
@@ -136,7 +153,7 @@ export default function ResearchQueuePage() {
       ) : rows.length === 0 ? (
         <EmptyState onCreate={() => setCreating(true)} />
       ) : (
-        <QueueTable rows={rows} />
+        <QueueTable rows={rows} paperIdByQueueId={paperIdByQueueId} />
       )}
 
       {creating && <NewQueueItemDialog onClose={() => setCreating(false)} />}
@@ -144,7 +161,13 @@ export default function ResearchQueuePage() {
   );
 }
 
-function QueueTable({ rows }: { rows: ResearchQueueItem[] }) {
+function QueueTable({
+  rows,
+  paperIdByQueueId,
+}: {
+  rows: ResearchQueueItem[];
+  paperIdByQueueId: Record<string, string>;
+}) {
   return (
     <div className="overflow-hidden rounded-md border border-bd-subtle">
       <table className="w-full min-w-[820px] text-[13px]">
@@ -163,7 +186,7 @@ function QueueTable({ rows }: { rows: ResearchQueueItem[] }) {
         </thead>
         <tbody>
           {rows.map((r) => (
-            <QueueRow key={r.queueId} row={r} />
+            <QueueRow key={r.queueId} row={r} serverPaperId={paperIdByQueueId[r.queueId] ?? null} />
           ))}
         </tbody>
       </table>
@@ -171,17 +194,27 @@ function QueueTable({ rows }: { rows: ResearchQueueItem[] }) {
   );
 }
 
-function QueueRow({ row }: { row: ResearchQueueItem }) {
+function QueueRow({
+  row,
+  serverPaperId,
+}: {
+  row: ResearchQueueItem;
+  serverPaperId: string | null;
+}) {
   const cancel = useCancelQueueItem();
   const update = useUpdateQueuePriority();
   const [editing, setEditing] = useState(false);
   const [draftPriority, setDraftPriority] = useState(row.priority);
-  const [generatedPaperId, setGeneratedPaperId] = useState<string | null>(null);
+  const [localPaperId, setLocalPaperId] = useState<string | null>(null);
 
   useEffect(() => {
     const stored = localStorage.getItem(`paper:${row.queueId}`);
-    if (stored) setGeneratedPaperId(stored);
+    if (stored) setLocalPaperId(stored);
   }, [row.queueId]);
+
+  // Prefer the just-generated id (this session), then the server-resolved
+  // paper (cross-device), then nothing → offer Generate.
+  const generatedPaperId = localPaperId ?? serverPaperId;
 
   const isTerminal =
     row.status === 'COMPLETED' || row.status === 'FAILED' || row.status === 'PARKED';
@@ -190,7 +223,7 @@ function QueueRow({ row }: { row: ResearchQueueItem }) {
   const generatePaperMutation = useMutation({
     mutationFn: () => generatePaper(row.queueId, crypto.randomUUID()),
     onSuccess: (result) => {
-      setGeneratedPaperId(result.paper_id);
+      setLocalPaperId(result.paper_id);
       localStorage.setItem(`paper:${row.queueId}`, result.paper_id);
       toast.show({
         title: 'Paper generated',
@@ -223,6 +256,11 @@ function QueueRow({ row }: { row: ResearchQueueItem }) {
   const handleSavePriority = () => {
     if (draftPriority === row.priority) {
       setEditing(false);
+      return;
+    }
+    // A cleared number input yields NaN; min/max attrs don't constrain typing.
+    if (!Number.isInteger(draftPriority) || draftPriority < 1 || draftPriority > 1000) {
+      toast.warning({ title: 'Priority must be a whole number between 1 and 1000' });
       return;
     }
     update.mutate(
@@ -310,7 +348,7 @@ function QueueRow({ row }: { row: ResearchQueueItem }) {
         {row.hypothesis || <span className="text-text-muted">—</span>}
       </Td>
       <Td className="font-mono text-text-muted">
-        {row.createdTime ? formatDate(Date.parse(row.createdTime)) : '—'}
+        {row.createdTime ? formatDate(parseIsoUtc(row.createdTime)) : '—'}
       </Td>
       <Td align="right">
         <div className="flex items-center justify-end gap-1.5">
@@ -425,8 +463,12 @@ function NewQueueItemDialog({ onClose }: { onClose: () => void }) {
       toast.warning({ title: 'Interval required' });
       return;
     }
-    if (!Number.isFinite(iterBudget) || iterBudget < 1 || iterBudget > 64) {
-      toast.warning({ title: 'Iter budget must be 1..64' });
+    if (!Number.isInteger(iterBudget) || iterBudget < 1 || iterBudget > 64) {
+      toast.warning({ title: 'Iter budget must be a whole number between 1 and 64' });
+      return;
+    }
+    if (!Number.isInteger(priority) || priority < 1 || priority > 1000) {
+      toast.warning({ title: 'Priority must be a whole number between 1 and 1000' });
       return;
     }
     let parsedSweep: unknown;

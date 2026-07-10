@@ -4,30 +4,37 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { Loader2, Play, Plus, X } from 'lucide-react';
-import { useCreateSweep, useListSweeps, useStrategyDefaults } from '@/hooks/useResearch';
+import { useCreateSweep, useSearchSweeps, useStrategyDefaults } from '@/hooks/useResearch';
 import { useStrategies } from '@/hooks/useStrategies';
 import { useStrategyDefinitions } from '@/hooks/useStrategyDefinitions';
 import type { AccountStrategy } from '@/types/strategy';
-import type { SweepState } from '@/types/research';
+import type { SweepSpec, SweepState } from '@/types/research';
 import { Skeleton } from '@/components/ui/skeleton';
 import { DatePicker } from '@/components/ui/date-picker';
 import { toast } from '@/hooks/useToast';
 import { normalizeError } from '@/lib/api/client';
-import { formatDate } from '@/lib/formatters';
-import type { SweepSpec } from '@/types/research';
+import { formatDate, parseIsoUtc } from '@/lib/formatters';
+import { BACKTEST_INTERVALS } from '@/lib/constants';
 import { SUPPORTED_SYMBOLS, DEFAULT_SYMBOL } from '@/lib/symbols';
+
+const SWEEPS_PAGE_SIZE = 25;
 
 /**
  * Sweep list + create form.
  *
  * <p>Sweeps run server-side on a single-thread executor; the list poll
  * picks up progress as combos finish. Clicking a row goes to the
- * per-sweep leaderboard.
+ * per-sweep leaderboard. The list is server-paginated — the old
+ * {@code listSweeps} variant silently truncated to the first server page.
  */
 export default function ResearchSweepsPage() {
   const router = useRouter();
-  const sweeps = useListSweeps();
+  const [page, setPage] = useState(0);
+  const sweeps = useSearchSweeps({ sort: 'createdAt,desc', page, size: SWEEPS_PAGE_SIZE });
   const [formOpen, setFormOpen] = useState(false);
+  const rows = sweeps.data?.content ?? [];
+  const totalPages = sweeps.data?.totalPages ?? 0;
+  const totalElements = sweeps.data?.totalElements ?? 0;
 
   return (
     <div className="space-y-5">
@@ -62,7 +69,7 @@ export default function ResearchSweepsPage() {
 
       {sweeps.isLoading ? (
         <Skeleton className="h-60 w-full" />
-      ) : !sweeps.data || sweeps.data.length === 0 ? (
+      ) : rows.length === 0 ? (
         <div className="rounded-xl border border-bd-subtle bg-bg-surface p-8 text-center text-sm text-text-muted">
           No sweeps yet. Click “New sweep” to start one.
         </div>
@@ -80,13 +87,13 @@ export default function ResearchSweepsPage() {
               </tr>
             </thead>
             <tbody>
-              {sweeps.data.map((s: SweepState) => {
+              {rows.map((s: SweepState) => {
                 const progress =
                   s.totalCombos > 0 ? Math.round((s.finishedCombos / s.totalCombos) * 100) : 0;
                 return (
                   <tr key={s.sweepId} className="border-b border-bd-subtle last:border-b-0">
                     <Td className="font-mono text-text-muted">
-                      {s.createdAt ? formatDate(Date.parse(s.createdAt)) : '—'}
+                      {s.createdAt ? formatDate(parseIsoUtc(s.createdAt)) : '—'}
                     </Td>
                     <Td className="font-mono">{s.spec.strategyCode}</Td>
                     <Td className="font-mono">
@@ -115,6 +122,32 @@ export default function ResearchSweepsPage() {
               })}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between text-[14px] text-text-muted">
+          <span>
+            {totalElements} sweep{totalElements !== 1 ? 's' : ''} · page {page + 1} of {totalPages}
+          </span>
+          <div className="flex gap-1">
+            <button
+              type="button"
+              disabled={page === 0}
+              onClick={() => setPage((p) => Math.max(0, p - 1))}
+              className="rounded-sm border border-bd-subtle bg-bg-surface px-3 py-1 text-[13px] text-text-secondary hover:bg-bg-hover disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              ← Prev
+            </button>
+            <button
+              type="button"
+              disabled={page >= totalPages - 1}
+              onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+              className="rounded-sm border border-bd-subtle bg-bg-surface px-3 py-1 text-[13px] text-text-secondary hover:bg-bg-hover disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              Next →
+            </button>
+          </div>
         </div>
       )}
     </div>
@@ -259,6 +292,21 @@ function NewSweepForm({ onSubmitted }: { onSubmitted: (sweepId: string) => void 
       toast.error({ title: 'Selected account strategy is not in the eligible list' });
       return;
     }
+    if (!fromDate || !toDate || toDate <= fromDate) {
+      toast.error({
+        title: 'Invalid date range',
+        description: 'To-date must be after from-date.',
+      });
+      return;
+    }
+    const capital = Number(initialCapital);
+    if (!Number.isFinite(capital) || capital <= 0) {
+      toast.error({
+        title: 'Invalid initial capital',
+        description: 'Enter a positive USDT amount.',
+      });
+      return;
+    }
     const paramGrid: Record<string, number[]> = {};
     for (const g of grid) {
       const key = g.key.trim();
@@ -267,7 +315,15 @@ function NewSweepForm({ onSubmitted }: { onSubmitted: (sweepId: string) => void 
         .split(',')
         .map((v) => Number(v.trim()))
         .filter((v) => Number.isFinite(v));
-      if (values.length === 0) continue;
+      // A named row with no parseable values is a typo, not an intentional
+      // skip — error loudly instead of silently sweeping without it.
+      if (values.length === 0) {
+        toast.error({
+          title: `"${key}" has no numeric values`,
+          description: 'Use comma-separated numbers, e.g. 18, 21, 24.',
+        });
+        return;
+      }
       paramGrid[key] = values;
     }
     if (Object.keys(paramGrid).length === 0) {
@@ -282,7 +338,7 @@ function NewSweepForm({ onSubmitted }: { onSubmitted: (sweepId: string) => void 
       interval,
       fromDate: `${fromDate}T00:00:00`,
       toDate: `${toDate}T00:00:00`,
-      initialCapital: Number(initialCapital),
+      initialCapital: capital,
       label: label || undefined,
       paramGrid,
       rankMetric,
@@ -330,11 +386,19 @@ function NewSweepForm({ onSubmitted }: { onSubmitted: (sweepId: string) => void 
           </select>
         </Field>
         <Field label="Interval">
-          <input
-            className="mm-input"
+          {/* Select, not free text — the sweep engine runs backtests, whose
+              monitor tick floors at 5m; arbitrary strings 500'd server-side. */}
+          <select
+            className="mm-input font-mono"
             value={interval}
             onChange={(e) => setInterval(e.target.value)}
-          />
+          >
+            {BACKTEST_INTERVALS.map((iv) => (
+              <option key={iv} value={iv}>
+                {iv}
+              </option>
+            ))}
+          </select>
         </Field>
         <Field label="Account strategy (registered + researchable)">
           <select
@@ -353,15 +417,15 @@ function NewSweepForm({ onSubmitted }: { onSubmitted: (sweepId: string) => void 
           {eligibleStrategies.length === 0 && (
             <span className="mt-1 text-[13px] text-[var(--color-warning)]">
               No eligible strategies. Need an AccountStrategy whose code is both ACTIVE in
-              /admin/strategies and research-capable (TPR today).
+              /admin/strategies and research-capable (TPR / VCB / LSR).
             </span>
           )}
         </Field>
         <Field label="From date">
-          <DatePicker value={fromDate} onChange={setFromDate} />
+          <DatePicker value={fromDate} onChange={setFromDate} max={toDate} />
         </Field>
         <Field label="To date">
-          <DatePicker value={toDate} onChange={setToDate} />
+          <DatePicker value={toDate} onChange={setToDate} min={fromDate} />
         </Field>
         <Field label="Initial capital (USDT)">
           <input

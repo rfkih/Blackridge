@@ -6,6 +6,7 @@ import { ArrowLeft, Copy } from 'lucide-react';
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '@/lib/api/client';
+import { formatDate, parseIsoUtc } from '@/lib/formatters';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 import type { MlModel } from '@/types/ml';
@@ -147,9 +148,10 @@ export default function ModelDetailPage() {
             <Row
               k="Created"
               v={
-                data.createdTime
-                  ? new Date(data.createdTime).toISOString().slice(0, 19).replace('T', ' ')
-                  : '—'
+                // parseIsoUtc: the zone-less orchestrator timestamp is UTC; a
+                // bare new Date().toISOString() double-shifted it by the
+                // browser's UTC offset.
+                data.createdTime ? formatDate(parseIsoUtc(data.createdTime)) : '—'
               }
             />
             <Row k="Created by" v={data.createdBy ?? '—'} />

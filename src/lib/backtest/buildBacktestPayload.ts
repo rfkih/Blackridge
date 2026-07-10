@@ -24,11 +24,16 @@ function computeDiff(
 
 /**
  * Convert a YYYY-MM-DD ISO date (wizard field) to a LocalDateTime string
- * Spring Boot parses cleanly: "2024-01-01T00:00:00".
+ * Spring Boot parses cleanly. The start of the window maps to T00:00:00; the
+ * end maps to T23:59:59 so the To-date the user picked is INCLUSIVE — mapping
+ * it to midnight excluded the entire final day (the default wizard range
+ * silently dropped "today"). Values that already carry a time component
+ * (re-run hydration passes the original run's LocalDateTimes through) are
+ * preserved verbatim so a re-run reproduces the exact original window.
  */
-function dateToLocalDateTime(isoDate: string): string {
+function dateToLocalDateTime(isoDate: string, endOfDay = false): string {
   if (isoDate.includes('T')) return isoDate;
-  return `${isoDate}T00:00:00`;
+  return endOfDay ? `${isoDate}T23:59:59` : `${isoDate}T00:00:00`;
 }
 
 /**
@@ -117,7 +122,7 @@ export function buildBacktestPayload(
     asset: config.symbol,
     interval: config.interval,
     startTime: dateToLocalDateTime(config.fromDate),
-    endTime: dateToLocalDateTime(config.toDate),
+    endTime: dateToLocalDateTime(config.toDate, true),
     initialCapital: config.initialCapital,
 
     riskPerTradePct: DEFAULT_SIZING.riskPerTradePct,

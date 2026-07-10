@@ -1,4 +1,5 @@
 import { researchClient as apiClient } from './client';
+import { toNum, toNumOrNull } from './coerce';
 import { addOptionalParam, buildPageParams } from './queryParams';
 import type { Page } from '@/types/api';
 import type {
@@ -39,6 +40,41 @@ export async function getTprParams(): Promise<TprParams> {
   return data;
 }
 
+/** Wire shape of a research-log row. Jackson can emit BigDecimal metrics as
+ *  number-or-string, and every metric is null for zero-trade runs — coerce at
+ *  the boundary so render code never calls `.toFixed` on a string/null. */
+type BackendResearchLogRow = Omit<
+  ResearchLogRow,
+  | 'tradeCount'
+  | 'winRate'
+  | 'profitFactor'
+  | 'avgR'
+  | 'netPnl'
+  | 'maxDrawdown'
+  | 'maxConsecutiveLosses'
+> & {
+  tradeCount: number | string | null;
+  winRate: number | string | null;
+  profitFactor: number | string | null;
+  avgR: number | string | null;
+  netPnl: number | string | null;
+  maxDrawdown: number | string | null;
+  maxConsecutiveLosses: number | string | null;
+};
+
+function mapResearchLogRow(r: BackendResearchLogRow): ResearchLogRow {
+  return {
+    ...r,
+    tradeCount: toNum(r.tradeCount, 0),
+    winRate: toNumOrNull(r.winRate),
+    profitFactor: toNumOrNull(r.profitFactor),
+    avgR: toNumOrNull(r.avgR),
+    netPnl: toNumOrNull(r.netPnl),
+    maxDrawdown: toNumOrNull(r.maxDrawdown),
+    maxConsecutiveLosses: toNum(r.maxConsecutiveLosses, 0),
+  };
+}
+
 /**
  * Filterable + paginated research log. Backend caps `size` at 200; default 25
  * matches the dashboard panel size. Empty/blank filter values are dropped
@@ -51,12 +87,16 @@ export async function searchResearchLog(q: ResearchLogQuery = {}): Promise<Page<
   addOptionalParam(params, 'interval', q.interval);
   addOptionalParam(params, 'search', q.search);
   addOptionalParam(params, 'sort', q.sort);
-  const { data } = await apiClient.get<Page<ResearchLogRow>>(`${BASE}/log`, { params });
-  return data;
+  const { data } = await apiClient.get<Page<BackendResearchLogRow>>(`${BASE}/log`, { params });
+  return { ...data, content: (data.content ?? []).map(mapResearchLogRow) };
 }
 
-export async function createSweep(spec: SweepSpec): Promise<SweepState> {
-  const { data } = await apiClient.post<SweepState>(`${BASE}/sweeps`, spec);
+/** Start a sweep. `idempotencyKey` dedupes retries/double-submits server-side
+ *  (ignored by builds that don't read it — same-origin via the Next proxy). */
+export async function createSweep(spec: SweepSpec, idempotencyKey?: string): Promise<SweepState> {
+  const { data } = await apiClient.post<SweepState>(`${BASE}/sweeps`, spec, {
+    headers: idempotencyKey ? { 'Idempotency-Key': idempotencyKey } : undefined,
+  });
   return data;
 }
 

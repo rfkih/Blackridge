@@ -6,8 +6,16 @@ import { ArrowDown, ArrowLeft, ArrowUp, ChevronLeft, ChevronRight } from 'lucide
 import { useEvaluateHoldout, useSweep } from '@/hooks/useResearch';
 import { toast } from '@/hooks/useToast';
 import { normalizeError } from '@/lib/api/client';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { Skeleton } from '@/components/ui/skeleton';
-import { formatDate } from '@/lib/formatters';
+import { formatDate, parseIsoUtc } from '@/lib/formatters';
 import type { SweepResult, SweepSpec, SweepState } from '@/types/research';
 
 interface PageProps {
@@ -45,7 +53,10 @@ export default function SweepDetailPage({ params }: PageProps) {
   const [page, setPage] = useState(0);
   const PAGE_SIZE = 20;
 
-  const allResults = s?.results ?? [];
+  // Memoized — a fresh `?? []` array every render would invalidate every
+  // downstream useMemo (rounds / filter / winner) on each 2.5s poll tick.
+  const results = s?.results;
+  const allResults = useMemo(() => results ?? [], [results]);
 
   const availableRounds = useMemo(() => {
     const set = new Set<number>();
@@ -138,7 +149,24 @@ export default function SweepDetailPage({ params }: PageProps) {
   }, [s?.spec.paramGrid, s?.spec.paramRanges, s?.results]);
 
   const isResearchMode = (s?.totalRounds ?? 0) > 1;
-  const winner = rankedResults.find((r) => r.status === 'COMPLETED') ?? null;
+  // The holdout winner must NOT depend on the UI's sort/filter state — the
+  // one-shot evaluation would silently spend the holdout on whatever row the
+  // user happened to sort to the top. Rank over ALL results by the sweep's
+  // configured rankMetric (all candidates are higher-is-better).
+  const winner = useMemo(() => {
+    let best: SweepResult | null = null;
+    let bestVal = -Infinity;
+    for (const r of allResults) {
+      if (r.status !== 'COMPLETED') continue;
+      const v = r[rankMetric];
+      const num = typeof v === 'number' ? v : -Infinity;
+      if (best === null || num > bestVal) {
+        best = r;
+        bestVal = num;
+      }
+    }
+    return best;
+  }, [allResults, rankMetric]);
 
   const getProgress = (r: SweepResult): number => {
     if (r.status === 'COMPLETED') return 1;
@@ -199,7 +227,7 @@ export default function SweepDetailPage({ params }: PageProps) {
       )}
 
       <DsrThresholdPanel state={s} />
-      <HoldoutPanel state={s} winner={winner} />
+      <HoldoutPanel state={s} winner={winner} rankMetric={rankMetric} />
 
       <section className="overflow-hidden rounded-xl border border-bd-subtle bg-bg-surface">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-bd-subtle px-4 py-3">
@@ -372,14 +400,16 @@ export default function SweepDetailPage({ params }: PageProps) {
               ) : (
                 pageResults.map((r, i) => (
                   <ResultRow
-                    key={safePage * PAGE_SIZE + i}
+                    // Stable identity — index keys on a polling, re-sorting
+                    // leaderboard made React reuse rows across combos.
+                    key={r.backtestRunId ?? `${r.round ?? 0}:${JSON.stringify(r.paramSet)}`}
                     rank={safePage * PAGE_SIZE + i + 1}
                     paramKeys={paramKeys}
                     result={r}
-                    rankMetric={rankMetric}
                     showRound={isResearchMode}
                     progress={getProgress(r)}
                     dsrThreshold={s.dsrThresholdSharpe ?? null}
+                    isWinner={r === winner}
                   />
                 ))
               )}
@@ -526,7 +556,7 @@ function SweepHeader({
         </h1>
         {createdAt && (
           <div className="mt-0.5 font-mono text-[13px] text-text-muted">
-            started {formatDate(Date.parse(createdAt))}
+            started {formatDate(parseIsoUtc(createdAt))}
             {status && <span className="ml-2">· {status}</span>}
           </div>
         )}
@@ -539,18 +569,18 @@ function ResultRow({
   rank,
   paramKeys,
   result,
-  rankMetric,
   showRound,
   progress,
   dsrThreshold,
+  isWinner,
 }: {
   rank: number;
   paramKeys: string[];
   result: SweepResult;
-  rankMetric: keyof SweepResult;
   showRound: boolean;
   progress: number;
   dsrThreshold: number | null;
+  isWinner: boolean;
 }) {
   const wrColor = (result.winRate ?? 0) >= 0.5 ? 'var(--color-profit)' : 'var(--color-loss)';
   const beatsThreshold =
@@ -584,7 +614,8 @@ function ResultRow({
         ? 'var(--color-loss)'
         : 'var(--text-muted)';
 
-  const rowBg = rank === 1 ? 'rgba(22,179,100,0.06)' : undefined;
+  // Tint the true rankMetric winner, not whatever the user sorted to the top.
+  const rowBg = isWinner ? 'var(--tint-profit, rgba(22,179,100,0.06))' : undefined;
 
   return (
     <tr className="border-b border-bd-subtle last:border-b-0" style={{ background: rowBg }}>
@@ -679,12 +710,22 @@ function ProgressCell({ status, progress }: { status: SweepResult['status']; pro
  *  - already evaluated → show a link to the holdout backtest run; no
  *    re-evaluate option, that's the entire point of a holdout.
  */
-function HoldoutPanel({ state, winner }: { state: SweepState; winner: SweepResult | null }) {
+function HoldoutPanel({
+  state,
+  winner,
+  rankMetric,
+}: {
+  state: SweepState;
+  winner: SweepResult | null;
+  rankMetric: keyof SweepResult;
+}) {
   const evalMutation = useEvaluateHoldout(state.sweepId);
+  const [confirmOpen, setConfirmOpen] = useState(false);
   if (!state.holdoutFromDate || !state.holdoutToDate) return null;
 
   const sweepCompleted = state.status === 'COMPLETED';
   const alreadyEvaluated = Boolean(state.holdoutBacktestRunId);
+  const winnerMetric = winner ? winner[rankMetric] : null;
 
   const onEvaluate = async () => {
     if (!winner) {
@@ -693,6 +734,7 @@ function HoldoutPanel({ state, winner }: { state: SweepState; winner: SweepResul
     }
     try {
       const res = await evalMutation.mutateAsync(winner.paramSet);
+      setConfirmOpen(false);
       toast.success({
         title: 'Holdout evaluation submitted',
         description: `run ${res.backtestRunId.slice(0, 8)} — this is the unbiased estimate`,
@@ -767,7 +809,7 @@ function HoldoutPanel({ state, winner }: { state: SweepState; winner: SweepResul
           ) : (
             <button
               type="button"
-              onClick={onEvaluate}
+              onClick={() => setConfirmOpen(true)}
               disabled={!sweepCompleted || !winner || evalMutation.isPending}
               className="self-start rounded-sm border border-bd-subtle bg-bg-base px-3 py-1.5 font-mono text-[12px] uppercase tracking-wider text-text-primary transition-colors duration-fast hover:bg-bg-hover disabled:cursor-not-allowed disabled:opacity-50"
             >
@@ -782,6 +824,60 @@ function HoldoutPanel({ state, winner }: { state: SweepState; winner: SweepResul
           That&apos;s how the result stays unbiased.
         </p>
       )}
+
+      <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <DialogContent className="max-w-md border-[var(--border-default)] bg-[var(--bg-surface)] text-[var(--text-primary)]">
+          <DialogHeader>
+            <DialogTitle className="font-display text-lg">Spend the holdout?</DialogTitle>
+            <DialogDescription className="text-[var(--text-secondary)]">
+              This is irreversible: the reserved window can be evaluated exactly once. The param set
+              below is the sweep&apos;s best COMPLETED combo by <b>{String(rankMetric)}</b> —
+              independent of how the leaderboard is currently sorted or filtered.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-2 rounded-md border border-[var(--border-subtle)] bg-[var(--bg-elevated)] p-3">
+            <p className="font-mono text-sm">
+              <span className="text-[var(--text-muted)]">Window:</span>{' '}
+              <span className="num text-[var(--text-primary)]">
+                {(state.holdoutFromDate ?? '').slice(0, 10)} →{' '}
+                {(state.holdoutToDate ?? '').slice(0, 10)}
+              </span>
+            </p>
+            <p className="font-mono text-sm">
+              <span className="text-[var(--text-muted)]">
+                Winner ({String(rankMetric)}
+                {typeof winnerMetric === 'number' ? ` = ${winnerMetric.toFixed(3)}` : ''}):
+              </span>
+            </p>
+            <p className="num text-sm text-[var(--text-primary)]">
+              {winner
+                ? Object.entries(winner.paramSet)
+                    .map(([k, v]) => `${k}=${String(v)}`)
+                    .join('  ')
+                : '—'}
+            </p>
+          </div>
+
+          <DialogFooter>
+            <button
+              type="button"
+              onClick={() => setConfirmOpen(false)}
+              className="rounded-md border border-[var(--border-default)] bg-[var(--bg-elevated)] px-3 py-1.5 text-xs text-[var(--text-primary)] transition-colors hover:bg-[var(--bg-hover)]"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={onEvaluate}
+              disabled={!winner || evalMutation.isPending}
+              className="rounded-md bg-[var(--color-profit)] px-3 py-1.5 text-xs font-semibold text-[var(--text-inverse)] transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {evalMutation.isPending ? 'Submitting…' : 'Evaluate — spend holdout'}
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

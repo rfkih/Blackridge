@@ -255,7 +255,8 @@ export interface SweepState {
   holdoutBacktestRunId?: string | null;
 }
 
-/** Flattened row emitted by `/api/v1/research/log`. */
+/** Flattened row emitted by `/api/v1/research/log`. Metric fields are null
+ *  for zero-trade runs — render with a null-guard, never bare `.toFixed`. */
 export interface ResearchLogRow {
   runId: UUID;
   strategyCode: string;
@@ -264,11 +265,11 @@ export interface ResearchLogRow {
   interval: string;
   createdAt: string | null;
   tradeCount: number;
-  winRate: number;
+  winRate: number | null;
   profitFactor: number | null;
-  avgR: number;
-  netPnl: number;
-  maxDrawdown: number;
+  avgR: number | null;
+  netPnl: number | null;
+  maxDrawdown: number | null;
   maxConsecutiveLosses: number;
 }
 

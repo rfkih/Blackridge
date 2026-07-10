@@ -268,7 +268,9 @@ function StrategyTable({
                   {safeDateFmt(row.updatedAt)}
                 </td>
                 <td className="whitespace-nowrap px-4 py-3 text-right">
-                  <div className="flex items-center justify-end gap-1 opacity-0 transition-opacity duration-fast group-hover:opacity-100">
+                  {/* focus-within keeps the actions visible for keyboard users —
+                      hover-only left tabbed-to buttons invisible. */}
+                  <div className="flex items-center justify-end gap-1 opacity-0 transition-opacity duration-fast group-focus-within:opacity-100 group-hover:opacity-100">
                     <button
                       type="button"
                       onClick={() => onEdit(row)}
