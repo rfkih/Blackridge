@@ -14,7 +14,7 @@ import { useCarryBalance, useCarryPairs, useCloseCarryPair } from '@/hooks/useCa
 import { useCurrencyFormatter } from '@/hooks/useCurrency';
 import { summarizeCarryBook } from '@/lib/carry/summary';
 import { cn } from '@/lib/utils';
-import type { CarryPair } from '@/types/trading';
+import type { CarryPair, CarryStatus } from '@/types/trading';
 import { CarryActivateDialog } from './CarryActivateDialog';
 import { CarryBestDialog } from './CarryBestDialog';
 import { CarryBookTable } from './CarryBookTable';
@@ -37,6 +37,21 @@ const MODES: { key: CarryMode; label: string }[] = [
   { key: 'PAPER', label: 'Paper' },
   { key: 'ALL', label: 'All' },
 ];
+
+/**
+ * Display order: open/active pairs float to the top, terminal (closed/failed) sink.
+ * The operator watches live positions first; closed/failed history is reference below.
+ */
+const STATUS_PRIORITY: Record<CarryStatus, number> = {
+  OPEN: 0,
+  REBALANCING: 1,
+  OPENING: 2,
+  PENDING: 3,
+  CLOSING: 4,
+  UNKNOWN: 5,
+  CLOSED: 6,
+  FAILED: 7,
+};
 
 /**
  * The Carry Book. A book-summary KPI strip (funding is the hero — that's the edge)
@@ -68,6 +83,13 @@ export function CarryBookTab() {
     [rows, mode],
   );
   const paperCount = useMemo(() => rows.filter((p) => p.simulated).length, [rows]);
+
+  // Open/active pairs first, terminal (closed/failed) last. Array.sort is stable, so
+  // the backend's within-status order (newest-opened first) is preserved inside each tier.
+  const ordered = useMemo(
+    () => [...filtered].sort((a, b) => STATUS_PRIORITY[a.status] - STATUS_PRIORITY[b.status]),
+    [filtered],
+  );
 
   const kpis = useMemo<Kpi[]>(() => {
     const s = summarizeCarryBook(filtered);
@@ -147,7 +169,7 @@ export function CarryBookTab() {
         ))}
       </div>
       <CarryBookTable
-        rows={filtered}
+        rows={ordered}
         isLoading={isLoading}
         isError={isError}
         onRetry={refetch}
