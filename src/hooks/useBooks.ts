@@ -10,11 +10,7 @@ export function useBooks() {
   });
 }
 
-export function useBookTargets(
-  bookCode: string | undefined,
-  asOfDate?: string,
-  version?: number,
-) {
+export function useBookTargets(bookCode: string | undefined, asOfDate?: string, version?: number) {
   return useQuery({
     queryKey: ['equity', 'book-targets', bookCode ?? null, asOfDate ?? null, version ?? null],
     queryFn: () => getBookTargets(bookCode as string, asOfDate, version),

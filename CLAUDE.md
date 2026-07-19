@@ -45,6 +45,7 @@
 - `NEXT_PUBLIC_API_URL` (default `http://localhost:8080`) — Trading JVM. Live trading, accounts, trades, P&L, portfolio, strategies, params, scheduler, server diagnostics, websocket.
 - `NEXT_PUBLIC_RESEARCH_URL` (default `http://localhost:8081`) — Research JVM. `/api/v1/backtest/*`, `/api/v1/research/*`, `/api/v1/montecarlo/*`, `/api/v1/historical/*`. Falls back to `apiUrl` if unset.
 - `NEXT_PUBLIC_WS_URL=ws://localhost:8080/ws` (Trading JVM only).
+- `INTERNAL_EQUITY_URL` (server-side only, default `http://localhost:8090`) — **blackheart-equity** service. Reached via a same-origin Next rewrite `/equity/:path*` → `${INTERNAL_EQUITY_URL}/api/equity/:path*` (NOT a `NEXT_PUBLIC` var; `equityClient` uses the relative `/equity` base). Powers the **Equities** section (`/equities`, `/equities/positions`): Book Authority books + per-sleeve targets (via the trading JVM `/api/portfolio-books`, live) + equity paper positions/orders (via `equityClient`). Read-only — no mutations/LIVE toggle. ⚠️Ops handoff: set `INTERNAL_EQUITY_URL=http://equity:8090` + add the `equity` compose service so the positions/orders tables populate (they render a distinct empty/"service unavailable" state until then).
 
 `apiClient` vs `researchClient` come from a shared `createApiClient(baseURL)` factory — same auth, envelope unwrap, 401 redirect latch. Module-level redirect latch prevents storms when both clients 401 at once. See `docs/agent-context/API.md`.
 
