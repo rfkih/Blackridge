@@ -36,6 +36,8 @@ import {
   FileText,
   Trophy,
   Library,
+  Landmark,
+  Building2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { BlackridgeMark } from '@/components/brand/BlackridgeMark';
@@ -75,6 +77,13 @@ const NAV_GROUPS: NavGroup[] = [
       { label: 'ML', href: '/ml/monitor', icon: Brain },
       { label: 'Forward Projections', href: '/montecarlo', icon: Dices },
       { label: 'P&L', href: '/pnl', icon: BarChart3 },
+    ],
+  },
+  {
+    label: 'EQUITIES',
+    items: [
+      { label: 'Books', href: '/equities', icon: Landmark },
+      { label: 'Positions', href: '/equities/positions', icon: Building2 },
     ],
   },
   {
@@ -368,12 +377,14 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                           }}
                           onMouseEnter={(e) => {
                             if (!active) {
+                              // eslint-disable-next-line no-param-reassign
                               (e.currentTarget as HTMLAnchorElement).style.background =
                                 'rgba(255,255,255,0.04)';
                             }
                           }}
                           onMouseLeave={(e) => {
                             if (!active) {
+                              // eslint-disable-next-line no-param-reassign
                               (e.currentTarget as HTMLAnchorElement).style.background =
                                 'transparent';
                             }
