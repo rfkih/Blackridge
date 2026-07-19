@@ -25,6 +25,13 @@ const isProd = process.env.NODE_ENV === 'production';
 const INTERNAL_API_URL =
   process.env.INTERNAL_API_URL || (isProd ? 'http://trading:8080' : 'http://localhost:8080');
 
+// Equity service (blackheart-equity, :8090). Server-side only — never exposed to
+// the browser. The /equity/* rewrite proxies browser calls to this service.
+// In Docker Compose the service name resolves; override via env var otherwise.
+// In prod the operator sets INTERNAL_EQUITY_URL=http://equity:8090.
+const INTERNAL_EQUITY_URL =
+  process.env.INTERNAL_EQUITY_URL || (isProd ? 'http://equity:8090' : 'http://localhost:8090');
+
 function requireProdEnv(name, fallback) {
   const raw = process.env[name];
   if (raw && raw.trim()) return raw.trim();
@@ -85,6 +92,13 @@ const nextConfig = {
       {
         source: '/research-actuator/:path*',
         destination: `${INTERNAL_API_URL}/research-actuator/:path*`,
+      },
+      // Distinct /equity prefix (NOT /api/equity — the /api/* rule above would
+      // misroute that to the trading JVM). Browser GET /equity/positions →
+      // server-side proxy → http://<equity>:8090/api/equity/positions.
+      {
+        source: '/equity/:path*',
+        destination: `${INTERNAL_EQUITY_URL}/api/equity/:path*`,
       },
     ];
   },

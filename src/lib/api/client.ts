@@ -6,12 +6,12 @@ import { reportError } from '@/lib/observability/errorReporter';
 export { normalizeError } from './errorMap';
 
 /**
- * Axios instance factory. Both clients share identical config + interceptors;
+ * Axios instance factory. All clients share identical config + interceptors;
  * only the `baseURL` differs. Keeping a single factory means cookie auth,
  * envelope unwrapping, 401-handling, and dev logging stay in lockstep
- * across the two JVMs.
+ * across all backends.
  */
-function createApiClient(baseURL: string): AxiosInstance {
+export function createApiClient(baseURL: string): AxiosInstance {
   const instance = axios.create({
     baseURL,
     headers: { 'Content-Type': 'application/json' },
@@ -47,6 +47,16 @@ export const apiClient: AxiosInstance = createApiClient(env.apiUrl);
  */
 export const researchClient: AxiosInstance =
   env.researchUrl === env.apiUrl ? apiClient : createApiClient(env.researchUrl);
+
+/**
+ * Equity service client (blackheart-equity, :8090) via the same-origin /equity
+ * Next.js rewrite. Relative base → same-origin → the JWT cookie is sent by the
+ * browser; Next proxies to INTERNAL_EQUITY_URL on the server side. The
+ * origin-safety interceptor only strips credentials for absolute URLs matching
+ * /^https?:/ — a relative base like '/equity' is never absolute, so credentials
+ * are preserved without any interceptor change.
+ */
+export const equityClient: AxiosInstance = createApiClient('/equity');
 
 /**
  * One-shot boot diagnostic for the localhost↔127.0.0.1 footgun
